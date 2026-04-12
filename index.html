@@ -50,6 +50,9 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .tb-user{font-size:12px;color:var(--ink-muted);margin-right:1rem;white-space:nowrap;}
 .btn-out{font-size:11px;color:var(--ink-light);background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;}
 .btn-out:hover{color:var(--ink);background:var(--sand);}
+.btn-sync{font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent-light);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;margin-right:8px;transition:all 0.15s;}
+.btn-sync:hover{background:var(--accent-pale);}
+.btn-sync.syncing{opacity:0.6;}
 
 .pb{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
 .page{display:none;}
@@ -354,6 +357,17 @@ tbody tr:hover td{background:#FDFAF6;}
 
 .empty-state{font-size:13px;color:var(--ink-light);padding:2rem 0;text-align:center;}
 .divider{height:0.5px;background:var(--border);margin:1.2rem 0;}
+
+/* PROFIT TABLE */
+.profit-input{width:100%;padding:7px 9px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:right;}
+.profit-input:focus{border-color:var(--accent-light);background:#fff;}
+.profit-auto{font-size:13px;text-align:right;padding:8px 10px;font-family:'Noto Serif TC',serif;}
+.profit-auto.positive{color:var(--green);}
+.profit-auto.negative{color:var(--red);}
+.profit-row-equip td{background:#EBF2F5;}
+.profit-tfoot-row td{background:var(--sand);font-weight:500;padding:10px 12px;border-top:1.5px solid var(--border);}
+.proj-clickable{cursor:pointer;}
+.proj-clickable:hover td{background:var(--accent-pale)!important;}
 </style>
 </head>
 <body>
@@ -581,6 +595,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
     </div>
     <div class="tb-spacer"></div>
+    <button class="btn-sync" onclick="syncAllData()" title="重新整理所有下拉選單資料">↺ 同步資料</button>
     <button class="btn-out" onclick="doLogout()">登出</button>
   </div>
   <div class="pb">
@@ -588,11 +603,127 @@ tbody tr:hover td{background:#FDFAF6;}
     <!-- 專案管理 -->
     <div class="page active" id="a-projects">
       <div class="sec-head"><div class="sec-ttl">專案管理</div><button class="btn-ink" onclick="openPM()">＋ 新增專案</button></div>
-      <div style="font-size:13px;color:var(--ink-muted);margin-bottom:1.2rem;">建立專案後，可在客戶管理中將客戶歸屬至對應專案。</div>
+      <div style="font-size:13px;color:var(--ink-muted);margin-bottom:1.2rem;">建立專案後，可在客戶管理中將客戶歸屬至對應專案。點擊專案名稱可進入詳細頁面。</div>
       <div class="tbl-admin"><table>
         <thead><tr><th style="width:26%">專案名稱</th><th style="width:12%">狀態</th><th style="width:22%">地址</th><th style="width:13%">開案日期</th><th style="width:13%">預計完工</th><th style="width:14%">操作</th></tr></thead>
         <tbody id="projects-tbody"></tbody>
       </table></div>
+    </div>
+
+    <!-- 專案詳細頁 -->
+    <div class="page" id="a-project-detail">
+      <div class="sec-head">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn-ghost" onclick="goAdminPage('a-projects',document.querySelector('#s-admin .tnav'))" style="padding:6px 12px;font-size:12px;">← 返回列表</button>
+          <div class="sec-ttl" id="detail-proj-name"></div>
+          <span class="pill pill-green" id="detail-proj-status" style="font-size:11px;"></span>
+        </div>
+        <button class="btn-ghost" onclick="openPM(currentDetailProjId)" style="font-size:12px;">編輯專案資訊</button>
+      </div>
+      <div style="font-size:13px;color:var(--ink-muted);margin-bottom:1.5rem;" id="detail-proj-meta"></div>
+
+      <!-- 頁籤 -->
+      <div class="stabs" id="proj-detail-tabs">
+        <button class="stab active" onclick="switchProjTab('profit',this)">利潤分析</button>
+        <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
+      </div>
+
+      <!-- 利潤分析 -->
+      <div id="proj-tab-profit">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫各工程項目的廠商報價與客戶報價，系統自動計算利潤與百分比。</div>
+        <div class="tbl-wrap" style="border-radius:14px;">
+          <table id="profit-table" style="min-width:600px;">
+            <thead><tr>
+              <th style="width:18%">項目</th>
+              <th style="width:20%">廠商報價（元）</th>
+              <th style="width:20%">客戶報價（元）</th>
+              <th style="width:15%">利潤（元）</th>
+              <th style="width:12%">利潤率</th>
+              <th style="width:15%">類別</th>
+            </tr></thead>
+            <tbody id="profit-tbody"></tbody>
+            <tfoot id="profit-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- 付款計算 -->
+      <div id="proj-tab-payment" style="display:none;">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">金額自動從利潤分析帶入，填寫監工費百分比後自動計算總報價。</div>
+
+        <!-- 費用明細 -->
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">工程費用明細</div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:400px;">
+            <thead><tr>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">項目說明</th>
+              <th style="text-align:right;padding:8px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">金額</th>
+              <th style="text-align:center;padding:8px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:130px;">監工費 %</th>
+              <th style="text-align:right;padding:8px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">監工費金額</th>
+            </tr></thead>
+            <tbody>
+              <!-- 裝修工程 -->
+              <tr style="background:var(--sand);">
+                <td colspan="4" style="padding:8px 12px;font-size:11px;font-weight:500;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;">裝修工程（不含空調、設備）</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;color:var(--ink-muted);font-size:13px;">裝修工程費合計</td>
+                <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-size:14px;font-weight:500;" id="pay-construction-total">$0</td>
+                <td style="padding:6px 8px;text-align:center;">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+                    <input type="number" id="pay-construction-pct" min="0" max="100" step="0.1" placeholder="8" style="width:60px;padding:6px 8px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;" oninput="calcPayment()">
+                    <span style="font-size:12px;color:var(--ink-muted);">%</span>
+                  </div>
+                </td>
+                <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--green);font-weight:500;" id="pay-construction-fee">$0</td>
+              </tr>
+
+              <!-- 設備空調 -->
+              <tr style="background:var(--sand);">
+                <td colspan="4" style="padding:8px 12px;font-size:11px;font-weight:500;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;">設備及空調</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;color:var(--ink-muted);font-size:13px;">設備及空調費合計</td>
+                <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-size:14px;font-weight:500;" id="pay-equip-total">$0</td>
+                <td style="padding:10px 12px;text-align:center;font-size:13px;color:var(--ink-muted);">3%（固定）</td>
+                <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--green);font-weight:500;" id="pay-equip-fee">$0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 總計 -->
+        <div class="card">
+          <div class="card-title">客戶總報價計算</div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border);">
+              <span style="font-size:13px;color:var(--ink-muted);">裝修工程費</span>
+              <span style="font-size:13px;font-family:'Noto Serif TC',serif;" id="sum-construction">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border);">
+              <span style="font-size:13px;color:var(--ink-muted);">裝修監工費</span>
+              <span style="font-size:13px;font-family:'Noto Serif TC',serif;" id="sum-construction-fee">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border);">
+              <span style="font-size:13px;color:var(--ink-muted);">設備及空調費</span>
+              <span style="font-size:13px;font-family:'Noto Serif TC',serif;" id="sum-equip">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border);">
+              <span style="font-size:13px;color:var(--ink-muted);">設備及空調監工費（3%）</span>
+              <span style="font-size:13px;font-family:'Noto Serif TC',serif;" id="sum-equip-fee">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-top:4px;">
+              <span style="font-size:15px;font-weight:500;color:var(--ink);">工程總報價（含監工費）</span>
+              <span style="font-size:20px;font-weight:500;font-family:'Noto Serif TC',serif;color:var(--accent);" id="sum-total">$0</span>
+            </div>
+          </div>
+          <div style="padding-top:1rem;border-top:0.5px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div style="font-size:12px;color:var(--ink-muted);">另計：設計費</div>
+            <input type="text" id="pay-design-fee" placeholder="例：100,000" style="width:140px;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;" oninput="calcPayment()">
+            <div style="font-size:12px;color:var(--ink-muted);">元（不含在工程總報價內）</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 客戶管理 -->
@@ -991,9 +1122,66 @@ function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
   if(id==='a-docs'){populateDocsClientSel();renderAdminDocs();}
   if(id==='a-logs'){populateLogClientSel();renderAdminLogs();}
+  if(id==='a-assign'){renderAssignClist();}
+  if(id==='a-clients'){renderAdminClients();}
+  if(id==='a-projects'){renderProjects();}
+}
+
+function syncAllData(){
+  const btn=document.querySelector('.btn-sync');
+  btn.textContent='↺ 同步中…';btn.classList.add('syncing');
+  populateDocsClientSel();
+  populateLogClientSel();
+  populateCMProjectSel();
+  renderProjects();
+  renderAdminClients();
+  renderArtGrid();
+  renderAssignClist();
+  renderAdminLogs();
+  // 重新渲染目前所在頁面
+  const activePage=document.querySelector('#s-admin .page.active');
+  if(activePage){
+    if(activePage.id==='a-docs')renderAdminDocs();
+    if(activePage.id==='a-logs')renderAdminLogs();
+  }
+  setTimeout(()=>{btn.textContent='↺ 同步資料';btn.classList.remove('syncing');},600);
 }
 
 // ========== PROJECTS ==========
+let currentDetailProjId = null;
+
+const PROFIT_ITEMS = [
+  {key:'protect', label:'保護',   type:'construction'},
+  {key:'demo',    label:'拆除',   type:'construction'},
+  {key:'mep',     label:'水電',   type:'construction'},
+  {key:'ac',      label:'空調',   type:'equip'},
+  {key:'plaster', label:'泥作',   type:'construction'},
+  {key:'tile',    label:'磁磚',   type:'construction'},
+  {key:'stone',   label:'石材',   type:'construction'},
+  {key:'iron',    label:'鐵件',   type:'construction'},
+  {key:'wood',    label:'木作',   type:'construction'},
+  {key:'paint',   label:'油漆',   type:'construction'},
+  {key:'light',   label:'燈具',   type:'construction'},
+  {key:'cabinet', label:'系統櫃', type:'construction'},
+  {key:'floor',   label:'木地板', type:'construction'},
+  {key:'alum_d',  label:'鋁門',   type:'construction'},
+  {key:'alum_w',  label:'鋁窗',   type:'construction'},
+  {key:'main_d',  label:'大門',   type:'construction'},
+  {key:'curtain', label:'窗簾',   type:'construction'},
+  {key:'equip',   label:'設備',   type:'equip'},
+];
+
+let profitData = {};
+let paymentData = {};
+
+function initProjData(pid){
+  if(!profitData[pid]){profitData[pid]={};PROFIT_ITEMS.forEach(it=>{profitData[pid][it.key]={vendor:0,client:0};});}
+  if(!paymentData[pid])paymentData[pid]={constructionPct:'',designFee:''};
+}
+
+function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
+function setText(id,val){const el=document.getElementById(id);if(el)el.textContent='$'+val;}
+
 function renderProjects(){
   const tb=document.getElementById('projects-tbody');tb.innerHTML='';
   if(!projects.length){tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">尚無專案，請點擊右上角新增</td></tr>';return;}
@@ -1001,15 +1189,126 @@ function renderProjects(){
     const pc=p.status==='進行中'?'pill-green':p.status==='已完工'?'pill-gray':p.status==='待付款'?'pill-amber':'pill-blue';
     const client=clients.find(c=>c.projectId===p.id);
     const tr=document.createElement('tr');
+    tr.className='proj-clickable';
+    tr.onclick=()=>openProjectDetail(p.id);
     tr.innerHTML=`
-      <td><div style="font-weight:500;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
+      <td><div style="font-weight:500;color:var(--accent);text-decoration:underline;text-underline-offset:3px;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
       <td><span class="pill ${pc}">${p.status}</span></td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.address||'—'}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.date||'—'}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.endDate||'—'}</td>
-      <td><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
+      <td onclick="event.stopPropagation()"><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
     tb.appendChild(tr);
   });
+}
+
+function openProjectDetail(pid){
+  currentDetailProjId=pid;
+  initProjData(pid);
+  const p=projects.find(x=>x.id===pid);
+  document.getElementById('detail-proj-name').textContent=p.name;
+  const sc=p.status==='進行中'?'pill-green':p.status==='已完工'?'pill-gray':p.status==='待付款'?'pill-amber':'pill-blue';
+  const sEl=document.getElementById('detail-proj-status');sEl.textContent=p.status;sEl.className='pill '+sc;
+  document.getElementById('detail-proj-meta').textContent=(p.address||'')+(p.date?' ｜ 開案：'+p.date:'')+(p.endDate?' ｜ 預計完工：'+p.endDate:'');
+  document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('#proj-detail-tabs .stab').classList.add('active');
+  document.getElementById('proj-tab-profit').style.display='block';
+  document.getElementById('proj-tab-payment').style.display='none';
+  document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#s-admin .page').forEach(pg=>pg.classList.remove('active'));
+  document.getElementById('a-project-detail').classList.add('active');
+  renderProfitTable();
+  calcPayment();
+}
+
+function switchProjTab(tab,el){
+  document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('proj-tab-profit').style.display=tab==='profit'?'block':'none';
+  document.getElementById('proj-tab-payment').style.display=tab==='payment'?'block':'none';
+  if(tab==='payment')calcPayment();
+}
+
+function renderProfitTable(){
+  const pid=currentDetailProjId;
+  const data=profitData[pid];
+  const tbody=document.getElementById('profit-tbody');
+  const tfoot=document.getElementById('profit-tfoot');
+  tbody.innerHTML='';tfoot.innerHTML='';
+  let totV=0,totC=0,totP=0;
+  PROFIT_ITEMS.forEach(it=>{
+    const d=data[it.key];
+    const profit=d.client-d.vendor;
+    const pct=d.client>0?(profit/d.client*100):null;
+    totV+=d.vendor;totC+=d.client;totP+=profit;
+    const tr=document.createElement('tr');
+    if(it.type==='equip')tr.style.background='#EBF2F5';
+    tr.innerHTML=`
+      <td style="padding:6px 12px;font-size:13px;font-weight:500;">${it.label}${it.type==='equip'?'<span style="font-size:10px;color:var(--blue);background:var(--blue-pale);padding:1px 6px;border-radius:4px;margin-left:6px;">設備空調</span>':''}</td>
+      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.vendor||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','vendor',this.value)"></td>
+      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.client||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','client',this.value)"></td>
+      <td><div class="profit-auto ${profit>=0?'positive':'negative'}">${d.vendor>0||d.client>0?fmtN(profit):'—'}</div></td>
+      <td><div class="profit-auto ${pct!==null&&pct>=0?'positive':'negative'}">${pct!==null?pct.toFixed(1)+'%':'—'}</div></td>
+      <td style="padding:6px 12px;font-size:11px;color:var(--ink-light);">${it.type==='equip'?'設備空調類':'裝修工程類'}</td>`;
+    tbody.appendChild(tr);
+  });
+  const totPct=totC>0?(totP/totC*100):null;
+  tfoot.innerHTML=`<tr style="background:var(--sand);">
+    <td style="padding:10px 12px;font-weight:500;border-top:1.5px solid var(--border);">合計</td>
+    <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-weight:500;border-top:1.5px solid var(--border);">${fmtN(totV)}</td>
+    <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-weight:500;border-top:1.5px solid var(--border);">${fmtN(totC)}</td>
+    <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-weight:500;color:${totP>=0?'var(--green)':'var(--red)'};border-top:1.5px solid var(--border);">${fmtN(totP)}</td>
+    <td style="padding:10px 12px;text-align:right;font-weight:500;color:${totPct!==null&&totPct>=0?'var(--green)':'var(--red)'};border-top:1.5px solid var(--border);">${totPct!==null?totPct.toFixed(1)+'%':'—'}</td>
+    <td style="border-top:1.5px solid var(--border);"></td>
+  </tr>`;
+}
+
+function updateProfit(pid,key,field,val){
+  profitData[pid][key][field]=parseFloat(val)||0;
+  const d=profitData[pid][key];
+  const profit=d.client-d.vendor;
+  const pct=d.client>0?(profit/d.client*100):null;
+  const tr=event.target.closest('tr');
+  if(tr){
+    const profitCell=tr.children[3].querySelector('.profit-auto');
+    const pctCell=tr.children[4].querySelector('.profit-auto');
+    if(profitCell){profitCell.textContent=(d.vendor>0||d.client>0)?fmtN(profit):'—';profitCell.className='profit-auto '+(profit>=0?'positive':'negative');}
+    if(pctCell){pctCell.textContent=pct!==null?pct.toFixed(1)+'%':'—';pctCell.className='profit-auto '+(pct!==null&&pct>=0?'positive':'negative');}
+  }
+  // update tfoot
+  let totV=0,totC=0,totP=0;
+  PROFIT_ITEMS.forEach(it=>{const d2=profitData[pid][it.key];totV+=d2.vendor;totC+=d2.client;totP+=(d2.client-d2.vendor);});
+  const totPct=totC>0?(totP/totC*100):null;
+  const tfoot=document.getElementById('profit-tfoot');
+  if(tfoot.rows[0]){
+    tfoot.rows[0].cells[1].textContent=fmtN(totV);
+    tfoot.rows[0].cells[2].textContent=fmtN(totC);
+    tfoot.rows[0].cells[3].textContent=fmtN(totP);tfoot.rows[0].cells[3].style.color=totP>=0?'var(--green)':'var(--red)';
+    tfoot.rows[0].cells[4].textContent=totPct!==null?totPct.toFixed(1)+'%':'—';tfoot.rows[0].cells[4].style.color=totPct!==null&&totPct>=0?'var(--green)':'var(--red)';
+  }
+  calcPayment();
+}
+
+function calcPayment(){
+  const pid=currentDetailProjId;if(!pid)return;
+  initProjData(pid);
+  const data=profitData[pid];
+  let conTotal=0,eqTotal=0;
+  PROFIT_ITEMS.forEach(it=>{const v=data[it.key].client||0;if(it.type==='equip')eqTotal+=v;else conTotal+=v;});
+  const pctEl=document.getElementById('pay-construction-pct');
+  const pct=parseFloat(pctEl?pctEl.value:0)||0;
+  const conFee=Math.round(conTotal*pct/100);
+  const eqFee=Math.round(eqTotal*0.03);
+  const total=conTotal+conFee+eqTotal+eqFee;
+  setText('pay-construction-total',fmtN(conTotal));
+  setText('pay-equip-total',fmtN(eqTotal));
+  setText('pay-construction-fee',fmtN(conFee));
+  setText('pay-equip-fee',fmtN(eqFee));
+  setText('sum-construction',fmtN(conTotal));
+  setText('sum-construction-fee',fmtN(conFee));
+  setText('sum-equip',fmtN(eqTotal));
+  setText('sum-equip-fee',fmtN(eqFee));
+  setText('sum-total',fmtN(total));
 }
 function openPM(id){
   editPId=id||null;
@@ -1108,9 +1407,9 @@ function saveClient(){
     clients.push({id:newId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[1]});
     if(!docsData[newId])docsData[newId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
   }
-  closeCM();renderAdminClients();populateDocsClientSel();populateLogClientSel();
+  closeCM();renderAdminClients();populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
-function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('確定刪除「'+c.name+'」？'))return;clients=clients.filter(x=>x.id!==id);renderAdminClients();}
+function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('確定刪除「'+c.name+'」？'))return;clients=clients.filter(x=>x.id!==id);renderAdminClients();populateDocsClientSel();populateLogClientSel();}
 function goToClientDocs(cid){
   populateDocsClientSel();document.getElementById('docs-client-sel').value=cid;
   goAdminPage('a-docs',document.querySelectorAll('#s-admin .tb-nav .tnav')[2]);renderAdminDocs();
