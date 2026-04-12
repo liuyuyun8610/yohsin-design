@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>有心制作・空間設計 — 客戶專案入口</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sand:#F5F0E8;--sand-dark:#EAE3D2;--ink:#2A2520;--ink-muted:#6B6258;--ink-light:#9A8F84;
+  --accent:#8B6F4E;--accent-light:#C4A882;--accent-pale:#F0E8DC;
+  --green:#4A6741;--green-pale:#E8EFE6;--red:#8B3A2E;--red-pale:#F5ECEA;
+  --blue:#2E5A8B;--blue-pale:#E8EEF5;--border:rgba(42,37,32,0.12);
+}
+body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;background:var(--sand);min-height:100vh;}
+
+.screen{display:none;}
+.screen.active{display:block;}
+#s-login.active{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:2rem;}
+
+/* LOGIN */
+.login-wrap{background:#fff;border:0.5px solid var(--border);border-radius:20px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(42,37,32,0.08);}
+.logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:1.8rem;}
+.logo-svg-lg{width:72px;height:62px;margin-bottom:0.8rem;}
+.logo-name{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:500;letter-spacing:0.14em;color:var(--ink);}
+.logo-sub{font-size:11px;letter-spacing:0.22em;color:var(--ink-light);margin-top:4px;}
+.mode-switch{display:flex;background:var(--sand);border-radius:10px;padding:3px;margin-bottom:1.5rem;}
+.mdbtn{flex:1;padding:7px;font-size:12px;border:none;border-radius:8px;cursor:pointer;background:none;color:var(--ink-muted);font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;}
+.mdbtn.active{background:#fff;color:var(--ink);font-weight:500;}
+.fl{display:block;font-size:11px;letter-spacing:0.1em;color:var(--ink-muted);text-align:left;margin-bottom:5px;text-transform:uppercase;}
+.fi{width:100%;padding:10px 14px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;margin-bottom:1rem;}
+.fi:focus{border-color:var(--accent-light);background:#fff;}
+.btn-enter{width:100%;padding:12px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;letter-spacing:0.08em;cursor:pointer;transition:background 0.15s;}
+.btn-enter:hover{background:var(--accent);}
+.l-err{font-size:12px;color:var(--red);margin-top:0.7rem;min-height:16px;}
+.l-hint{margin-top:1rem;font-size:11px;color:var(--ink-light);line-height:1.9;background:var(--sand);border-radius:8px;padding:10px 14px;}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:0.5px solid var(--border);height:56px;display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:100;}
+.tb-brand{display:flex;align-items:center;gap:10px;padding-right:1.4rem;border-right:0.5px solid var(--border);margin-right:0.8rem;}
+.tb-logo-svg{width:30px;height:26px;flex-shrink:0;}
+.tb-name{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:500;letter-spacing:0.08em;line-height:1.2;color:var(--ink);}
+.tb-sub{font-size:10px;letter-spacing:0.14em;color:var(--ink-light);}
+.tb-nav{display:flex;gap:2px;flex-wrap:wrap;}
+.tnav{font-size:12px;letter-spacing:0.05em;color:var(--ink-muted);padding:6px 11px;cursor:pointer;border-radius:8px;border:none;background:none;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;white-space:nowrap;}
+.tnav:hover{background:var(--sand);color:var(--ink);}
+.tnav.active{background:var(--ink);color:#fff;}
+.tb-spacer{flex:1;}
+.tb-user{font-size:12px;color:var(--ink-muted);margin-right:1rem;white-space:nowrap;}
+.btn-out{font-size:11px;color:var(--ink-light);background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;}
+.btn-out:hover{color:var(--ink);background:var(--sand);}
+
+.pb{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.page{display:none;}
+.page.active{display:block;}
+.page-title{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:500;margin-bottom:1.3rem;}
+
+/* CARDS */
+.card{background:#fff;border:0.5px solid var(--border);border-radius:16px;padding:1.4rem 1.5rem;margin-bottom:1rem;}
+.card-title{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:1.1rem;font-weight:500;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+@media(max-width:640px){.g2{grid-template-columns:1fr;}}
+
+/* PILLS */
+.pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:6px;}
+.pill-green{background:var(--green-pale);color:var(--green);}
+.pill-amber{background:#FBF4E8;color:#7A5E1A;}
+.pill-gray{background:var(--sand-dark);color:var(--ink-muted);}
+.pill-blue{background:var(--blue-pale);color:var(--blue);}
+.pill-red{background:var(--red-pale);color:var(--red);}
+.pill-final{background:#2A2520;color:#fff;}
+
+/* FILE ITEMS */
+.fi-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;transition:color 0.15s;}
+.fi-item:last-child{border-bottom:none;}
+.fi-item:hover{color:var(--accent);}
+.ficon{width:28px;height:28px;background:var(--accent-pale);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--accent);font-weight:500;flex-shrink:0;}
+.fsize{font-size:11px;color:var(--ink-light);margin-left:auto;}
+.fdate{font-size:11px;color:var(--ink-light);}
+
+/* PROGRESS */
+.prog-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:640px){.prog-grid{grid-template-columns:1fr 1fr;}}
+.prog-col-lbl{font-size:11px;letter-spacing:0.08em;color:var(--ink-light);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.pdot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.dot-gr{background:#bbb;}.dot-am{background:#D4A020;}.dot-bl{background:#4A7FBB;}.dot-gn{background:var(--green);}
+.prog-item{background:var(--sand);border-radius:8px;padding:9px 11px;font-size:12px;margin-bottom:6px;border:0.5px solid var(--border);}
+.prog-item-sub{font-size:10px;color:var(--ink-light);margin-top:3px;}
+
+/* PAYMENT */
+.pay-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.3rem;}
+.pay-box{background:var(--sand);border-radius:10px;padding:12px;text-align:center;}
+.pay-lbl{font-size:10px;letter-spacing:0.08em;color:var(--ink-light);text-transform:uppercase;margin-bottom:5px;}
+.pay-val{font-size:16px;font-weight:500;font-family:'Noto Serif TC',serif;}
+.pay-val.danger{color:var(--red);}
+.ptbl{width:100%;border-collapse:collapse;font-size:13px;}
+.ptbl th{font-size:11px;color:var(--ink-light);text-align:left;padding:0 0 8px;border-bottom:0.5px solid var(--border);font-weight:400;text-transform:uppercase;letter-spacing:0.06em;}
+.ptbl td{padding:9px 0;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+.ptbl tr:last-child td{border-bottom:none;}
+
+/* KNOWLEDGE */
+.know-item{background:var(--sand);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.know-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;transition:background 0.12s;}
+.know-hd:hover{background:var(--sand-dark);}
+.know-left{display:flex;align-items:center;gap:9px;}
+.know-arr{font-size:13px;color:var(--ink-light);transition:transform 0.2s;display:inline-block;}
+.know-arr.open{transform:rotate(90deg);}
+.know-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--accent-pale);color:var(--accent);}
+.know-bd{display:none;padding:2px 14px 14px;font-size:13px;color:var(--ink-muted);line-height:1.8;border-top:0.5px solid var(--border);}
+.know-bd.open{display:block;}
+
+/* CALENDAR */
+.cal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.cal-mnth{font-size:16px;font-weight:500;font-family:'Noto Serif TC',serif;}
+.cal-navs{display:flex;gap:5px;}
+.cal-nav{background:none;border:0.5px solid var(--border);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--ink-muted);font-size:15px;display:flex;align-items:center;justify-content:center;}
+.cal-nav:hover{background:var(--sand-dark);}
+.cal-wrap{background:var(--sand);border-radius:16px;padding:14px;margin-bottom:1rem;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cdl{font-size:10px;letter-spacing:0.06em;color:var(--ink-light);text-align:center;padding:4px 0;text-transform:uppercase;}
+.cday{min-height:64px;background:#fff;border:0.5px solid transparent;border-radius:10px;padding:6px 7px;cursor:pointer;transition:all 0.12s;display:flex;flex-direction:column;}
+.cday:hover{border-color:var(--accent-light);}
+.cday.om{background:transparent;cursor:default;}.cday.om:hover{border-color:transparent;}
+.cday.today{border-color:var(--accent);border-width:1.5px;}
+.cday.has-log{background:var(--accent-pale);}
+.cday.sel{border-color:var(--ink);border-width:2px;background:#fff;}
+.cday.hol{background:var(--red-pale);}
+.cdn{font-size:11px;font-weight:500;margin-bottom:3px;}
+.cday.om .cdn{color:#ccc;}.cday.today .cdn{color:var(--accent);}.cday.hol .cdn{color:var(--red);}
+.cetag{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--sand-dark);color:var(--ink-muted);margin-bottom:2px;display:inline-block;line-height:1.4;}
+.cetag.bk{background:#E8EEF5;color:var(--blue);}
+.cpc{font-size:9px;color:var(--accent-light);margin-top:auto;}
+.det-card{background:#fff;border:0.5px solid var(--border);border-radius:16px;padding:1.4rem;}
+.det-date{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:500;margin-bottom:0.8rem;}
+.det-empty{font-size:13px;color:var(--ink-light);padding:2rem 0;text-align:center;}
+.det-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;}
+.det-chip{font-size:11px;padding:3px 9px;border-radius:6px;}
+.chip-bk{background:var(--blue-pale);color:var(--blue);}.chip-hol{background:var(--red-pale);color:var(--red);}
+.sec-lbl{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:7px;font-weight:500;margin-top:1rem;}
+.log-ta{width:100%;padding:10px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;resize:vertical;min-height:85px;line-height:1.7;}
+.log-ta:focus{border-color:var(--accent-light);background:#fff;}
+.photo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px;}
+.pt{aspect-ratio:1;border-radius:10px;overflow:hidden;position:relative;background:var(--sand-dark);}
+.pt img{width:100%;height:100%;object-fit:cover;display:block;}
+.pt .dp{position:absolute;top:4px;right:4px;background:rgba(42,37,32,0.65);color:#fff;border:none;border-radius:5px;width:20px;height:20px;font-size:13px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.pt:hover .dp{display:flex;}
+.pa{aspect-ratio:1;border-radius:10px;border:0.5px dashed var(--accent-light);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:transparent;gap:4px;transition:background 0.12s;}
+.pa:hover{background:var(--accent-pale);}
+.pa-icon{font-size:20px;color:var(--accent-light);}
+.pa-lbl{font-size:10px;color:var(--ink-light);}
+.save-row{display:flex;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border);}
+.btn-ink{padding:9px 20px;background:var(--ink);color:#fff;border:none;border-radius:9px;font-family:'Noto Sans TC',sans-serif;font-size:12px;letter-spacing:0.06em;cursor:pointer;transition:background 0.15s;}
+.btn-ink:hover{background:var(--accent);}
+.btn-ghost{padding:8px 16px;background:none;border:0.5px solid var(--border);border-radius:9px;font-family:'Noto Sans TC',sans-serif;font-size:12px;color:var(--ink-muted);cursor:pointer;}
+.btn-ghost:hover{background:var(--sand);}
+.btn-sm{padding:5px 12px;background:none;border:0.5px solid var(--border);border-radius:7px;font-family:'Noto Sans TC',sans-serif;font-size:11px;color:var(--ink-muted);cursor:pointer;}
+.btn-sm:hover{background:var(--sand);color:var(--ink);}
+.btn-sm.danger{color:var(--red);}.btn-sm.danger:hover{background:var(--red-pale);}
+
+/* CHECKLIST */
+.stabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+.stab{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;}
+.stab:hover{background:var(--sand);}
+.stab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.tbl-wrap{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:480px;}
+thead th{font-size:11px;letter-spacing:0.06em;color:var(--ink-light);text-align:left;padding:9px 11px;border-bottom:0.5px solid var(--border);font-weight:400;background:var(--sand);text-transform:uppercase;white-space:nowrap;}
+tbody td{padding:0;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#FDFAF6;}
+.ci{width:100%;padding:9px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;background:transparent;color:var(--ink);outline:none;}
+.ci:focus{background:var(--accent-pale);}
+.cs{width:100%;padding:9px 8px;font-family:'Noto Sans TC',sans-serif;font-size:12px;border:none;background:transparent;color:var(--ink);outline:none;cursor:pointer;}
+.av{font-size:12px;color:var(--ink-muted);padding:9px 10px;white-space:nowrap;}
+.add-row-btn{width:100%;padding:10px 14px;font-size:12px;color:var(--ink-light);cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif;border-top:0.5px solid var(--border);background:#fff;text-align:left;}
+.add-row-btn:hover{background:var(--sand);color:var(--ink);}
+.db{width:26px;text-align:center;cursor:pointer;color:var(--ink-light);font-size:15px;padding:5px 2px;border:none;background:none;}
+.db:hover{color:var(--red);}
+.psm{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;}
+.loc-客廳{background:#EEF2F8;color:#2E5A8B;}.loc-廚房{background:#F5EEE8;color:#8B4A2E;}
+.loc-考慮中{background:#F1EFE8;color:#6B6258;}.loc-不需要{background:#F5ECEA;color:#8B3A2E;}
+.loc-餐廳{background:#FBF4E8;color:#7A5E1A;}.loc-主臥{background:#F0EBF5;color:#5A3A8B;}
+.loc-次臥{background:#F0F5EB;color:#3A6741;}.loc-陽台{background:#F5F0E8;color:#6B5A2E;}
+.loc-儲藏室{background:#EEEEF5;color:#3A3A8B;}.loc-電器櫃{background:#F5EBF0;color:#8B2E5A;}
+.loc-餐邊櫃{background:#EFF5EB;color:#3A6B2E;}.loc-書房{background:#E8F5F5;color:#2E6B6B;}
+.loc-浴室{background:#E8F0F5;color:#2E5A8B;}
+.st-已採購{background:var(--green-pale);color:var(--green);}
+.st-未採購{background:var(--blue-pale);color:var(--blue);}
+.st-舊有{background:var(--sand-dark);color:var(--ink-muted);}
+.cir-一般插座{background:var(--green-pale);color:var(--green);}
+.cir-需專用迴路{background:var(--red-pale);color:var(--red);}
+
+
+
+/* NOTICE DESC */
+.notice-desc{font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:1.2rem;padding:12px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;}
+
+/* DOCS PAGE */
+.doc-section{margin-bottom:2rem;}
+.doc-section-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:0.8rem;display:flex;align-items:center;gap:8px;}
+.doc-section-title::after{content:'';flex:1;height:0.5px;background:var(--border);}
+
+/* drawing viewer */
+.drawing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:0.8rem;}
+@media(max-width:500px){.drawing-grid{grid-template-columns:1fr;}}
+.drawing-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+.drawing-card:hover{border-color:var(--accent-light);}
+.drawing-thumb{height:100px;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--ink-light);}
+.drawing-info{padding:10px 12px;}
+.drawing-name{font-size:13px;font-weight:500;margin-bottom:2px;}
+.drawing-meta{font-size:11px;color:var(--ink-light);}
+
+/* old versions */
+.old-versions-toggle{font-size:12px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;gap:5px;padding:8px 0;user-select:none;}
+.old-versions-toggle:hover{color:var(--ink);}
+.old-versions-body{display:none;background:var(--sand);border-radius:10px;padding:12px 14px;margin-top:4px;}
+.old-versions-body.open{display:block;}
+.old-ver-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--ink-muted);}
+.old-ver-item:last-child{border-bottom:none;}
+
+/* meeting records */
+.meeting-tabs{display:flex;gap:6px;margin-bottom:1.2rem;}
+.meeting-tab{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;}
+.meeting-tab:hover{background:var(--sand);}
+.meeting-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.meeting-record{background:#fff;border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.meeting-record-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background 0.12s;}
+.meeting-record-hd:hover{background:var(--sand);}
+.meeting-record-date{font-size:12px;font-weight:500;color:var(--ink);min-width:80px;}
+.meeting-record-title{font-size:13px;color:var(--ink-muted);flex:1;}
+.meeting-record-arr{font-size:12px;color:var(--ink-light);transition:transform 0.2s;}
+.meeting-record-arr.open{transform:rotate(90deg);}
+.meeting-record-bd{display:none;padding:0 14px 14px;font-size:13px;color:var(--ink-muted);line-height:1.8;border-top:0.5px solid var(--border);}
+.meeting-record-bd.open{display:block;}
+
+/* LINE chat style */
+.line-msg-wrap{display:flex;flex-direction:column;gap:8px;padding:12px 0;}
+.line-msg{display:flex;gap:8px;align-items:flex-end;}
+.line-msg.right{flex-direction:row-reverse;}
+.line-av{width:28px;height:28px;border-radius:50%;background:var(--sand-dark);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-muted);flex-shrink:0;font-weight:500;}
+.line-bubble{max-width:75%;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.6;background:#fff;border:0.5px solid var(--border);}
+.line-msg.right .line-bubble{background:#06C755;color:#fff;border:none;}
+.line-time{font-size:10px;color:var(--ink-light);margin-bottom:2px;}
+.line-msg.right .line-time{text-align:right;}
+.line-name{font-size:10px;color:var(--ink-light);margin-bottom:3px;}
+.line-date-divider{text-align:center;font-size:11px;color:var(--ink-light);margin:10px 0;display:flex;align-items:center;gap:8px;}
+.line-date-divider::before,.line-date-divider::after{content:'';flex:1;height:0.5px;background:var(--border);}
+
+/* ADMIN */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
+@media(max-width:640px){.stats-row{grid-template-columns:1fr 1fr;}}
+.stat-box{background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:1rem;}
+.stat-lbl{font-size:11px;letter-spacing:0.08em;color:var(--ink-light);text-transform:uppercase;margin-bottom:5px;}
+.stat-val{font-size:24px;font-weight:500;font-family:'Noto Serif TC',serif;}
+.stat-val.gn{color:var(--green);}.stat-val.am{color:#7A5E1A;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:12px;}
+.sec-ttl{font-family:'Noto Serif TC',serif;font-size:18px;font-weight:500;}
+.tbl-admin{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow-x:auto;}
+.tbl-admin table{width:100%;border-collapse:collapse;min-width:580px;}
+.tbl-admin thead th{font-size:11px;letter-spacing:0.08em;color:var(--ink-light);text-transform:uppercase;text-align:left;padding:9px 13px;border-bottom:0.5px solid var(--border);font-weight:400;background:var(--sand);}
+.tbl-admin tbody td{padding:11px 13px;border-bottom:0.5px solid var(--border);font-size:13px;vertical-align:middle;}
+.tbl-admin tbody tr:last-child td{border-bottom:none;}
+.tbl-admin tbody tr:hover td{background:var(--sand);}
+.act-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);margin-right:4px;font-family:'Noto Sans TC',sans-serif;}
+.act-btn:hover{background:var(--sand);}
+.act-btn.danger{color:var(--red);}.act-btn.danger:hover{background:var(--red-pale);}
+.pass-cell{display:flex;align-items:center;gap:6px;}
+.pass-txt{font-family:monospace;font-size:12px;color:var(--ink-muted);}
+.eye-btn{font-size:10px;color:var(--ink-light);cursor:pointer;border:none;background:none;padding:2px 6px;border-radius:4px;font-family:'Noto Sans TC',sans-serif;}
+.eye-btn:hover{background:var(--sand);}
+
+/* upload zone */
+.upload-zone{border:1.5px dashed var(--accent-light);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:background 0.15s;background:transparent;}
+.upload-zone:hover{background:var(--accent-pale);}
+.upload-zone-icon{font-size:32px;color:var(--accent-light);margin-bottom:0.5rem;}
+.upload-zone-text{font-size:13px;color:var(--ink-muted);}
+.upload-zone-hint{font-size:11px;color:var(--ink-light);margin-top:4px;}
+
+/* uploaded file row */
+.ufile-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px;}
+.ufile-row:last-child{border-bottom:none;}
+.ufile-icon{width:32px;height:32px;background:var(--accent-pale);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);font-weight:500;flex-shrink:0;}
+.ufile-name{flex:1;font-weight:500;}
+.ufile-meta{font-size:11px;color:var(--ink-light);}
+.ufile-final-badge{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--ink);color:#fff;margin-left:6px;}
+
+/* admin client selector */
+.admin-sel-row{display:flex;align-items:center;gap:12px;margin-bottom:1.2rem;flex-wrap:wrap;}
+.admin-sel-row label{font-size:13px;color:var(--ink-muted);}
+.admin-sel{padding:7px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;cursor:pointer;}
+
+/* form inputs */
+.form-input{width:100%;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;margin-bottom:0.8rem;}
+.form-input:focus{border-color:var(--accent-light);background:#fff;}
+.form-ta{width:100%;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;resize:vertical;min-height:120px;line-height:1.7;margin-bottom:0.8rem;}
+.form-ta:focus{border-color:var(--accent-light);background:#fff;}
+.form-label{font-size:11px;letter-spacing:0.08em;color:var(--ink-muted);text-transform:uppercase;display:block;margin-bottom:5px;}
+.form-group{margin-bottom:1rem;}
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* MODAL */
+.modal-bd{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(42,37,32,0.4);display:flex;align-items:center;justify-content:center;padding:1.5rem;z-index:200;}
+.modal{background:#fff;border:0.5px solid var(--border);border-radius:18px;width:100%;max-width:520px;padding:2rem;max-height:90vh;overflow-y:auto;}
+.modal-ttl{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:500;margin-bottom:1.3rem;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:0.9rem;}
+.fg label{font-size:11px;letter-spacing:0.08em;color:var(--ink-muted);text-transform:uppercase;}
+.fg input,.fg select,.fg textarea{padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent-light);background:#fff;}
+.fg textarea{resize:vertical;min-height:100px;line-height:1.7;}
+.fg-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.2rem;}
+
+/* ART GRID */
+.art-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:640px){.art-grid{grid-template-columns:1fr;}}
+.art-card{background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:1rem 1.2rem;transition:border-color 0.15s;}
+.art-card:hover{border-color:var(--accent-light);}
+.art-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.art-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--accent-pale);color:var(--accent);white-space:nowrap;flex-shrink:0;}
+.art-title{font-size:13px;font-weight:500;line-height:1.4;}
+.art-prev{font-size:12px;color:var(--ink-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.art-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;}
+.art-cnt{font-size:11px;color:var(--ink-light);}
+
+/* ASSIGN */
+.assign-wrap{display:grid;grid-template-columns:230px 1fr;gap:14px;}
+@media(max-width:640px){.assign-wrap{grid-template-columns:1fr;}}
+.clist-box{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow:hidden;}
+.cli-item{padding:12px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.cli-item:last-child{border-bottom:none;}
+.cli-item:hover{background:var(--sand);}
+.cli-item.sel{background:var(--accent-pale);}
+.cli-name{font-size:13px;font-weight:500;}
+.cli-proj{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+.cnt-badge{font-size:10px;background:var(--green-pale);color:var(--green);padding:1px 6px;border-radius:4px;margin-left:5px;}
+.assign-right{background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:1.2rem;}
+.aai{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);}
+.aai:last-child{border-bottom:none;}
+.toggle{width:36px;height:20px;background:var(--sand-dark);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background 0.2s;border:none;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;}
+.toggle.on::after{left:19px;}
+.aai-name{font-size:13px;font-weight:500;line-height:1.4;}
+.aai-tag{font-size:10px;color:var(--ink-light);margin-top:2px;}
+
+/* LOG LIST */
+.log-list-item{padding:12px 0;border-bottom:0.5px solid var(--border);display:flex;gap:13px;}
+.log-list-item:last-child{border-bottom:none;}
+.ldate{font-size:11px;font-weight:500;color:var(--accent);background:var(--accent-pale);padding:4px 10px;border-radius:6px;white-space:nowrap;height:fit-content;flex-shrink:0;margin-top:2px;}
+.lwt{font-size:13px;color:var(--ink);line-height:1.7;white-space:pre-wrap;}
+.lpr{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+.lmp{width:54px;height:54px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);}
+
+.empty-state{font-size:13px;color:var(--ink-light);padding:2rem 0;text-align:center;}
+.divider{height:0.5px;background:var(--border);margin:1.2rem 0;}
+</style>
+</head>
+<body>
+
+<!-- ====== LOGIN ====== -->
+<div id="s-login" class="screen active">
+  <div class="login-wrap">
+    <div class="logo-area">
+      <svg class="logo-svg-lg" viewBox="0 0 70 60" fill="none">
+        <path d="M35 5 L63 27 L63 55 L7 55 L7 27 Z" stroke="#8B6F4E" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M25 55 L25 37 Q25 30 31 30 L39 30 Q45 30 45 37 L45 55" stroke="#8B6F4E" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M35 21 C33 16 26 16 26 23 C26 29 35 35 35 35 C35 35 44 29 44 23 C44 16 37 16 35 21Z" fill="#8B6F4E" opacity="0.8"/>
+      </svg>
+      <div class="logo-name">有心制作</div>
+      <div class="logo-sub">· 空間設計 ·</div>
+    </div>
+    <div class="mode-switch">
+      <button class="mdbtn active" onclick="setMode('client',this)">客戶登入</button>
+      <button class="mdbtn" onclick="setMode('admin',this)">設計師後台</button>
+    </div>
+    <label class="fl">帳號</label>
+    <input class="fi" id="l-user" placeholder="請輸入帳號">
+    <label class="fl">密碼</label>
+    <input class="fi" type="password" id="l-pass" placeholder="請輸入密碼">
+    <button class="btn-enter" onclick="doLogin()">進入</button>
+    <div class="l-err" id="l-err"></div>
+    <div class="l-hint">客戶：fengyi / oxy2024　｜　後台：admin / admin123</div>
+  </div>
+</div>
+
+<!-- ====== CLIENT SHELL ====== -->
+<div id="s-client" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">
+      <svg class="tb-logo-svg" viewBox="0 0 70 60" fill="none">
+        <path d="M35 5 L63 27 L63 55 L7 55 L7 27 Z" stroke="#8B6F4E" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M25 55 L25 37 Q25 30 31 30 L39 30 Q45 30 45 37 L45 55" stroke="#8B6F4E" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M35 21 C33 16 26 16 26 23 C26 29 35 35 35 35 C35 35 44 29 44 23 C44 16 37 16 35 21Z" fill="#8B6F4E" opacity="0.8"/>
+      </svg>
+      <div><div class="tb-name">有心制作</div><div class="tb-sub">· 空間設計 ·</div></div>
+    </div>
+    <div class="tb-nav">
+      <button class="tnav active" onclick="goPage('p-overview',this)">專案總覽</button>
+      <button class="tnav" onclick="goPage('p-docs',this)">資料文件</button>
+      <button class="tnav" onclick="goPage('p-knowledge',this)">注意事項</button>
+      <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
+      <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
+      <button class="tnav" onclick="goPage('p-payment',this)">付款明細</button>
+
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-user" id="tb-client-name"></div>
+    <button class="btn-out" onclick="doLogout()">登出</button>
+  </div>
+  <div class="pb">
+
+    <!-- 專案總覽 -->
+    <div class="page active" id="p-overview">
+      <div style="margin-bottom:1.5rem;">
+        <div id="p-proj-title" style="font-family:'Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;margin-bottom:0.5rem;"></div>
+        <div style="font-size:13px;color:var(--ink-light);">合約起始：2024.06 ｜ 預計完工：2026.06 ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">專案進度</div>
+        <div class="prog-grid">
+          <div><div class="prog-col-lbl"><span class="pdot dot-gr"></span>未開始</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
+          <div><div class="prog-col-lbl"><span class="pdot dot-am"></span>修改中</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
+          <div><div class="prog-col-lbl"><span class="pdot dot-bl"></span>進行中</div>
+            <div class="prog-item">油漆工程<div class="prog-item-sub">4/9 → 4/17</div></div>
+            <div class="prog-item">木作工程<div class="prog-item-sub">4/12 → 4/14</div></div>
+          </div>
+          <div><div class="prog-col-lbl"><span class="pdot dot-gn"></span>已完成</div>
+            <div class="prog-item">現況放樣 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
+            <div class="prog-item">平面配置圖 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
+            <div class="prog-item">報價單製作 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
+            <div class="prog-item">水電工程 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 資料文件 -->
+    <div class="page" id="p-docs">
+      <div class="page-title">資料文件</div>
+
+      <!-- 專案圖紙 -->
+      <div class="doc-section">
+        <div class="doc-section-title">專案圖紙</div>
+        <div class="drawing-grid" id="client-drawings"></div>
+        <div class="old-versions-toggle" onclick="toggleOldVersions('drawings-old')">
+          ▸ 舊版本資料
+        </div>
+        <div class="old-versions-body" id="drawings-old">
+          <div id="client-drawings-old"></div>
+        </div>
+      </div>
+
+      <!-- 會議記錄 -->
+      <div class="doc-section">
+        <div class="doc-section-title">會議記錄</div>
+        <div class="meeting-tabs">
+          <button class="meeting-tab active" onclick="switchMeetingTab('line',this)">LINE 記錄</button>
+          <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議記錄</button>
+        </div>
+        <div id="meeting-line-panel">
+          <div id="client-line-meetings"></div>
+        </div>
+        <div id="meeting-formal-panel" style="display:none;">
+          <div id="client-formal-meetings"></div>
+        </div>
+      </div>
+
+      <!-- 合約資料 -->
+      <div class="doc-section">
+        <div class="doc-section-title">合約資料</div>
+        <div class="card" style="padding:0.8rem 1rem;">
+          <div id="client-contracts"></div>
+        </div>
+      </div>
+
+      <!-- 報價資料 -->
+      <div class="doc-section">
+        <div class="doc-section-title">報價資料</div>
+        <div class="card" style="padding:0.8rem 1rem;">
+          <div id="client-quotes"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 注意事項 -->
+    <div class="page" id="p-knowledge">
+      <div class="page-title">注意事項及知識彙整</div>
+      <div class="notice-desc">以下為設計師為您整理的重要說明，請點擊展開閱讀。</div>
+      <div id="know-list"></div>
+    </div>
+
+    <!-- 必填清單 -->
+    <div class="page" id="p-checklist">
+      <div class="page-title">必填清單</div>
+      <div class="stabs">
+        <button class="stab active" onclick="switchStab('cl-app',this)">家電採購清單</button>
+        <button class="stab" onclick="switchStab('cl-fur',this)">家具採購清單</button>
+        <button class="stab" onclick="switchStab('cl-pow',this)">功率計算表</button>
+      </div>
+      <div id="cl-app">
+        <div class="notice-desc" style="margin-bottom:1rem;">請將您要採購的電器或是原有的設備填入下方表格，可作為外出採購的參考指南。</div>
+        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>品牌</th><th>位置</th><th>型號</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
+      </div>
+      <div id="cl-fur" style="display:none;">
+        <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
+        <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th>位置</th><th>型號／尺寸</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
+      </div>
+      <div id="cl-pow" style="display:none;">
+        <div class="notice-desc" style="margin-bottom:1rem;">填入電器瓦數與電壓，系統自動計算電流並建議是否需要專用迴路（≥10A 建議專用迴路）。</div>
+        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>區域</th><th>瓦數 W</th><th>電壓 V</th><th>數量</th><th>電流 A</th><th>迴路建議</th><th>備註</th><th style="width:28px;"></th></tr></thead><tbody id="pow-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('pow')">＋ 新增一行</button></div>
+      </div>
+    </div>
+
+    <!-- 施工照片 -->
+    <div class="page" id="p-construction">
+      <div class="page-title">施工照片區</div>
+      <div class="cal-hdr">
+        <div class="cal-mnth" id="cal-label"></div>
+        <div class="cal-navs">
+          <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+          <button class="cal-nav" onclick="goToday()">今</button>
+          <button class="cal-nav" onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-wrap"><div class="cal-grid" id="cal-grid"></div></div>
+      <div class="det-card" id="det-card">
+        <div class="det-date" id="det-date"></div>
+        <div id="det-body"><div class="det-empty">請點擊日期查看或新增施工記錄</div></div>
+      </div>
+    </div>
+
+    <!-- 付款明細 -->
+    <div class="page" id="p-payment">
+      <div class="page-title">付款明細及收據</div>
+      <div class="card">
+        <div class="pay-sum">
+          <div class="pay-box"><div class="pay-lbl">合約金額</div><div class="pay-val">$1,737,466</div></div>
+          <div class="pay-box"><div class="pay-lbl">已付總額</div><div class="pay-val">$1,490,720</div></div>
+          <div class="pay-box"><div class="pay-lbl">待付金額</div><div class="pay-val danger">$246,746</div></div>
+        </div>
+        <table class="ptbl">
+          <thead><tr><th>項目</th><th>日期</th><th>金額</th><th>類型</th><th>狀態</th></tr></thead>
+          <tbody>
+            <tr><td>設計費第一期</td><td style="color:var(--ink-muted)">2025/04/26</td><td>$48,860</td><td><span class="pill pill-gray">設計費</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>設計費第二期</td><td style="color:var(--ink-muted)">2026/03/04</td><td>$41,488</td><td><span class="pill pill-gray">設計費</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>設計費尾款</td><td style="color:var(--ink-muted)">2026/04/09</td><td>$10,372</td><td><span class="pill pill-gray">設計費</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>工程款_簽約</td><td style="color:var(--ink-muted)">2026/03/06</td><td>$245,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>工程款_水電進場</td><td style="color:var(--ink-muted)">2026/03/13</td><td>$409,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>工程款_木作中</td><td style="color:var(--ink-muted)">2026/03/23</td><td>$409,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>工程款_油漆開始</td><td style="color:var(--ink-muted)">2026/04/15</td><td>$327,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
+            <tr><td>工程款_系統櫃開始</td><td style="color:var(--ink-muted)">2026/05/11</td><td>$163,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-amber">待請款</span></td></tr>
+            <tr><td>工程款_尾款</td><td style="color:var(--ink-muted)">2026/06/01</td><td>$83,746</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-amber">待請款</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
+
+<!-- ====== ADMIN SHELL ====== -->
+<div id="s-admin" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">
+      <svg class="tb-logo-svg" viewBox="0 0 70 60" fill="none">
+        <path d="M35 5 L63 27 L63 55 L7 55 L7 27 Z" stroke="#8B6F4E" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M25 55 L25 37 Q25 30 31 30 L39 30 Q45 30 45 37 L45 55" stroke="#8B6F4E" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M35 21 C33 16 26 16 26 23 C26 29 35 35 35 35 C35 35 44 29 44 23 C44 16 37 16 35 21Z" fill="#8B6F4E" opacity="0.8"/>
+      </svg>
+      <div><div class="tb-name">有心制作</div><div class="tb-sub">設計師後台</div></div>
+    </div>
+    <div class="tb-nav">
+      <button class="tnav active" onclick="goAdminPage('a-projects',this)">專案管理</button>
+      <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
+      <button class="tnav" onclick="goAdminPage('a-docs',this)">文件管理</button>
+      <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
+      <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
+      <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
+    </div>
+    <div class="tb-spacer"></div>
+    <button class="btn-out" onclick="doLogout()">登出</button>
+  </div>
+  <div class="pb">
+
+    <!-- 專案管理 -->
+    <div class="page active" id="a-projects">
+      <div class="sec-head"><div class="sec-ttl">專案管理</div><button class="btn-ink" onclick="openPM()">＋ 新增專案</button></div>
+      <div style="font-size:13px;color:var(--ink-muted);margin-bottom:1.2rem;">建立專案後，可在客戶管理中將客戶歸屬至對應專案。</div>
+      <div class="tbl-admin"><table>
+        <thead><tr><th style="width:26%">專案名稱</th><th style="width:12%">狀態</th><th style="width:22%">地址</th><th style="width:13%">開案日期</th><th style="width:13%">預計完工</th><th style="width:14%">操作</th></tr></thead>
+        <tbody id="projects-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 客戶管理 -->
+    <div class="page" id="a-clients">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-lbl">客戶總數</div><div class="stat-val" id="st-total">0</div></div>
+        <div class="stat-box"><div class="stat-lbl">進行中</div><div class="stat-val gn" id="st-active">0</div></div>
+        <div class="stat-box"><div class="stat-lbl">待付款</div><div class="stat-val am" id="st-pending">0</div></div>
+        <div class="stat-box"><div class="stat-lbl">已完工</div><div class="stat-val" id="st-done">0</div></div>
+      </div>
+      <div class="sec-head"><div class="sec-ttl">客戶帳號列表</div><button class="btn-ink" onclick="openCM()">＋ 新增客戶</button></div>
+      <div class="tbl-admin"><table>
+        <thead><tr><th style="width:11%">帳號</th><th style="width:11%">密碼</th><th style="width:16%">客戶名稱</th><th style="width:22%">歸屬專案</th><th style="width:10%">狀態</th><th style="width:20%">操作</th></tr></thead>
+        <tbody id="clients-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 文件管理 -->
+    <div class="page" id="a-docs">
+      <div class="sec-head"><div class="sec-ttl">文件管理</div></div>
+      <div class="admin-sel-row">
+        <label>選擇客戶：</label>
+        <select class="admin-sel" id="docs-client-sel" onchange="renderAdminDocs()"></select>
+      </div>
+
+      <!-- 圖紙管理 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">專案圖紙</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可上傳多個版本，標記「最終版」的顯示在客戶主要區域，其餘自動歸入舊版本。</div>
+        <div class="stabs" id="drawing-type-tabs">
+          <button class="stab active" onclick="switchDrawingType('平面系統圖',this)">平面系統圖</button>
+          <button class="stab" onclick="switchDrawingType('立面系統圖',this)">立面系統圖</button>
+          <button class="stab" onclick="switchDrawingType('效果圖',this)">效果圖</button>
+        </div>
+        <div id="admin-drawing-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <label class="form-label">版本說明</label>
+            <input class="form-input" id="drawing-version-note" placeholder="例：v3 調整主臥隔間" style="margin-bottom:0;">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1px;">
+            <input type="checkbox" id="drawing-is-final" style="width:16px;height:16px;cursor:pointer;">
+            <label for="drawing-is-final" style="font-size:13px;cursor:pointer;">標記為最終版</label>
+          </div>
+          <button class="btn-ink" onclick="addDrawingVersion()">＋ 新增版本</button>
+        </div>
+      </div>
+
+      <!-- 會議記錄管理 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">會議記錄</div>
+        <div class="stabs">
+          <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
+          <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
+        </div>
+
+        <!-- LINE 記錄：上傳截圖 -->
+        <div id="admin-line-panel">
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳 LINE 對話截圖，依日期分組顯示給客戶。</div>
+          <div id="admin-line-list" style="margin-bottom:1rem;"></div>
+          <div class="divider"></div>
+          <div class="form-group">
+            <label class="form-label">截圖日期</label>
+            <input type="date" class="form-input" id="line-date" style="max-width:200px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">上傳截圖</label>
+            <div class="upload-zone" onclick="document.getElementById('line-img-input').click()">
+              <div class="upload-zone-icon">📷</div>
+              <div class="upload-zone-text">點擊上傳 LINE 對話截圖</div>
+              <div class="upload-zone-hint">支援 JPG、PNG，可多張同時上傳</div>
+            </div>
+            <input type="file" id="line-img-input" accept="image/*" multiple style="display:none;" onchange="previewLineImgs(event)">
+            <div id="line-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addLineScreenshot()">儲存截圖</button></div>
+        </div>
+
+        <!-- 會議記錄：文字 + 圖片 -->
+        <div id="admin-formal-panel" style="display:none;">
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫正式會議記錄，可附上會議現場照片或手寫記錄圖片。</div>
+          <div id="admin-formal-list" style="margin-bottom:1rem;"></div>
+          <div class="divider"></div>
+          <div class="form-grid2" style="margin-bottom:0.8rem;">
+            <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;"></div>
+            <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;"></div>
+          </div>
+          <div class="form-group"><label class="form-label">會議內容</label><textarea class="form-ta" id="formal-content" placeholder="填寫會議重點、決議事項…" style="margin-bottom:0;"></textarea></div>
+          <div class="form-group" style="margin-top:0.8rem;">
+            <label class="form-label">附件圖片（選填）</label>
+            <div class="upload-zone" onclick="document.getElementById('formal-img-input').click()">
+              <div class="upload-zone-icon">🖼</div>
+              <div class="upload-zone-text">點擊上傳會議記錄圖片</div>
+              <div class="upload-zone-hint">手寫記錄、白板照片均可</div>
+            </div>
+            <input type="file" id="formal-img-input" accept="image/*" multiple style="display:none;" onchange="previewFormalImgs(event)">
+            <div id="formal-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議記錄</button></div>
+        </div>
+      </div>
+
+      <!-- 合約管理 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">合約資料</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此區僅保留最終版合約。上傳新版後，舊版自動移除。<span style="color:var(--accent-light);margin-left:4px;">（正式上線後可直接上傳 PDF）</span></div>
+        <div id="admin-contract-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-name" placeholder="例：2026.3.8 室內工程合約" style="margin-bottom:0;"></div>
+          <button class="btn-ink" onclick="addContract()">＋ 新增合約</button>
+        </div>
+      </div>
+
+      <!-- 報價管理 -->
+      <div class="card">
+        <div class="card-title">報價資料</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可依日期新增多個版本，所有版本客戶均可查看。<span style="color:var(--accent-light);margin-left:4px;">（正式上線後可直接上傳 PDF）</span></div>
+        <div id="admin-quote-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;"><label class="form-label">報價名稱</label><input class="form-input" id="quote-name" placeholder="例：2026.3.8 工程報價單" style="margin-bottom:0;"></div>
+          <button class="btn-ink" onclick="addQuote()">＋ 新增報價</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 知識文章 -->
+    <div class="page" id="a-knowledge">
+      <div class="sec-head"><div class="sec-ttl">知識文章資料庫</div><button class="btn-ink" onclick="openAM()">＋ 新增文章</button></div>
+      <div class="art-grid" id="art-grid"></div>
+    </div>
+
+    <!-- 文章指派 -->
+    <div class="page" id="a-assign">
+      <div class="sec-head"><div class="sec-ttl">專案文章設定</div></div>
+      <p style="font-size:13px;color:var(--ink-muted);margin-bottom:1.2rem;">選擇左側客戶，開關右側文章，決定該客戶看到哪些注意事項。</p>
+      <div class="assign-wrap">
+        <div class="clist-box" id="assign-clist"></div>
+        <div class="assign-right">
+          <div id="assign-ph" class="empty-state">← 請先選擇左側客戶</div>
+          <div id="assign-body" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 施工日誌 -->
+    <div class="page" id="a-logs">
+      <div class="sec-head"><div class="sec-ttl">施工日誌管理</div></div>
+      <div class="admin-sel-row">
+        <label>選擇客戶：</label>
+        <select class="admin-sel" id="log-client-sel" onchange="renderAdminLogs()"></select>
+      </div>
+      <div class="g2" style="margin-bottom:0;">
+        <!-- 左側：新增日誌 -->
+        <div class="card">
+          <div class="card-title">新增施工日誌</div>
+          <div class="form-group">
+            <label class="form-label">施工日期</label>
+            <input type="date" class="form-input" id="log-date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">工程項目標籤</label>
+            <input class="form-input" id="log-tag" placeholder="例：木作工程、油漆工程">
+          </div>
+          <div class="form-group">
+            <label class="form-label">本日施工記錄</label>
+            <textarea class="form-ta" id="log-notes" placeholder="記錄今日施工內容、進度說明…" style="min-height:100px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">施工照片</label>
+            <div class="upload-zone" onclick="document.getElementById('log-img-input').click()">
+              <div class="upload-zone-icon">📸</div>
+              <div class="upload-zone-text">點擊上傳施工照片</div>
+              <div class="upload-zone-hint">可多張同時上傳</div>
+            </div>
+            <input type="file" id="log-img-input" accept="image/*" multiple style="display:none;" onchange="previewLogImgs(event)">
+            <div id="log-img-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;">
+            <button class="btn-ink" onclick="addAdminLog()">儲存日誌</button>
+          </div>
+        </div>
+        <!-- 右側：已有日誌列表 -->
+        <div class="card">
+          <div class="card-title">已有施工日誌</div>
+          <div id="admin-log-list"></div>
+        </div>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div id="cm-modal" style="display:none;">
+  <div class="modal-bd">
+    <div class="modal">
+      <div class="modal-ttl" id="cm-ttl">新增客戶</div>
+      <div class="fg-2">
+        <div class="fg"><label>客戶名稱</label><input id="cm-name" placeholder="例：豐邑氧森業主"></div>
+        <div class="fg"><label>歸屬專案</label><select id="cm-proj-sel"></select></div>
+        <div class="fg">
+          <label>登入帳號</label>
+          <div style="display:flex;gap:6px;">
+            <input id="cm-user" placeholder="例：fengyi" style="flex:1;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
+          </div>
+        </div>
+        <div class="fg">
+          <label>登入密碼</label>
+          <div style="display:flex;gap:6px;">
+            <input id="cm-pass" placeholder="例：pass1234" style="flex:1;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
+            <button onclick="genPass()" style="padding:9px 12px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:10px;font-size:12px;cursor:pointer;color:var(--ink-muted);white-space:nowrap;font-family:'Noto Sans TC',sans-serif;">自動產生</button>
+          </div>
+        </div>
+        <div class="fg"><label>狀態</label><select id="cm-status"><option>進行中</option><option>待付款</option><option>已完工</option></select></div>
+        <div class="fg"><label>備註（選填）</label><input id="cm-note"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeCM()">取消</button>
+        <button class="btn-ink" onclick="saveClient()">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div id="pm-modal" style="display:none;">
+  <div class="modal-bd">
+    <div class="modal">
+      <div class="modal-ttl" id="pm-ttl">新增專案</div>
+      <div class="fg"><label>專案名稱</label><input id="pm-name" placeholder="例：豐邑氧森設計專案"></div>
+      <div class="fg"><label>地址</label><input id="pm-address" placeholder="例：台北市大安區信義路四段 100 號 10 樓"></div>
+      <div class="fg-2">
+        <div class="fg"><label>開案日期</label><input type="date" id="pm-date"></div>
+        <div class="fg"><label>預計完工日</label><input type="date" id="pm-end-date"></div>
+      </div>
+      <div class="fg"><label>狀態</label>
+        <select id="pm-status">
+          <option>待開案</option><option>進行中</option><option>待付款</option><option>已完工</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closePM()">取消</button>
+        <button class="btn-ink" onclick="saveProject()">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE MODAL -->
+<div id="am-modal" style="display:none;">
+  <div class="modal-bd">
+    <div class="modal">
+      <div class="modal-ttl" id="am-ttl">新增文章</div>
+      <div class="fg"><label>文章標題</label><input id="am-t" placeholder="設計流程說明"></div>
+      <div class="fg"><label>分類標籤</label><select id="am-tag">
+        <option>施工注意</option><option>設計流程</option><option>材料知識</option>
+        <option>付款說明</option><option>售後保固</option><option>開工前準備</option><option>其他</option>
+      </select></div>
+      <div class="fg"><label>文章內容</label><textarea id="am-body" placeholder="輸入文章內容…"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeAM()">取消</button>
+        <button class="btn-ink" onclick="saveArticle()">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-input" style="display:none;" accept="image/*" multiple onchange="handleFiles(event)">
+
+<script>
+// ========== DATA ==========
+let loginMode='client', currentClientId=null;
+
+let projects=[
+  {id:1,name:'豐邑氧森設計專案',status:'進行中',address:'台北市大安區',date:'2024/06/01',endDate:'2026/06/30'},
+  {id:2,name:'台北市大安區設計專案',status:'待付款',address:'台北市大安區',date:'2025/01/15',endDate:'2026/08/01'},
+  {id:3,name:'新北市信義區設計專案',status:'已完工',address:'新北市信義區',date:'2024/03/01',endDate:'2025/03/01'},
+];
+let nextPId=4, editPId=null;
+
+let clients=[
+  {id:1,user:'fengyi',pass:'oxy2024',name:'豐邑氧森 A5-10F',projectId:1,status:'進行中',note:'',assigned:[1,2,3,4]},
+  {id:2,user:'demo1',pass:'pass1234',name:'示範客戶 A',projectId:2,status:'待付款',note:'',assigned:[1,2,5]},
+  {id:3,user:'demo2',pass:'pass5678',name:'示範客戶 B',projectId:3,status:'已完工',note:'',assigned:[1,5]},
+];
+let nextCId=4, editCId=null, showPass={};
+
+let articles=[
+  {id:1,title:'設計流程說明（請務必閱讀）',tag:'設計流程',body:'本設計專案分為需求訪談、平面規劃、立面設計、材料選定、施工監管五個階段。每個階段完成後，設計師將與業主確認後方可進行下一步驟。整體流程約 6–12 個月，視工程規模而定。'},
+  {id:2,title:'裝修流程說明（請務必閱讀）',tag:'設計流程',body:'裝修工程分為拆除、水電配管、泥作、木作、油漆、系統傢俱、軟裝收尾七大工序。各工序間有一定的先後順序，請配合設計師安排的工程時程，避免因業主決策延遲影響施工進度。'},
+  {id:3,title:'施工認知落差注意事項（開工前必讀）',tag:'施工注意',body:'現場施工成果可能與效果圖有視覺差異，此為正常現象。建議業主在木作完工後、油漆前到場確認空間感受，此階段是最佳調整時機。'},
+  {id:4,title:'自行找空調外包需注意事項',tag:'施工注意',body:'若業主自行發包空調工程，須注意配合室內設計圖說預留冷媒管路走向及出風口位置，須於木作進場前完成管路規劃。'},
+  {id:5,title:'超耐磨木地板保養及注意事項',tag:'售後保固',body:'超耐磨木地板應避免長期浸水，日常以擰乾的濕拖把清潔。切勿使用強效清潔劑或打蠟。家具腳建議加貼氈墊。保固期一年。'},
+  {id:6,title:'如何申請瓦斯掛錶',tag:'開工前準備',body:'新屋瓦斯掛錶需由業主向當地瓦斯公司申請，準備好房屋所有權狀或買賣合約、身分證正本，提前 2–4 週申請。'},
+];
+let nextAId=7, editAId=null, selectedAssignC=null;
+
+let docsData={
+  1:{
+    drawings:{
+      '平面系統圖':[{id:1,note:'v3 最終版',date:'2026/03/20',isFinal:true},{id:2,note:'v2 調整廚房',date:'2026/02/10',isFinal:false},{id:3,note:'v1 初稿',date:'2026/01/05',isFinal:false}],
+      '立面系統圖':[{id:4,note:'v2 最終版',date:'2026/03/18',isFinal:true},{id:5,note:'v1 初稿',date:'2026/01/20',isFinal:false}],
+      '效果圖':[{id:6,note:'客廳+主臥 最終',date:'2026/02/28',isFinal:true}],
+    },
+    lineScreenshots:[
+      {date:'2026/01/19',images:[]},
+      {date:'2026/02/24',images:[]},
+    ],
+    formalMeetings:[
+      {date:'2025/12/04',title:'需求訪談會議',content:'討論業主生活習慣、風格偏好、預算範圍。決議：走自然溫潤風格，主色系為木色+白。',images:[]},
+      {date:'2026/01/17',title:'平面確認會議',content:'確認平面配置圖 v1。決議：主臥衣帽間改為開放式，廚房增加中島。',images:[]},
+      {date:'2026/03/06',title:'簽約紀錄',content:'工程合約正式簽署。工程款分五期繳納，預計 2026/06 完工。',images:[]},
+    ],
+    contracts:[{id:1,name:'2026.3.8 室內工程合約',date:'2026/03/08',size:'3 MB'}],
+    quotes:[
+      {id:1,name:'2026.1.17 工程報價',date:'2026/01/17',size:'664 KB'},
+      {id:2,name:'2026.3.8 工程報價單（修正版）',date:'2026/03/08',size:'1.1 MB'},
+    ],
+  },
+  2:{drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]},
+  3:{drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]},
+};
+
+let currentDrawingType='平面系統圖', adminMeetingTab='line', nextDocId=100;
+let pendingLineImgs=[], pendingFormalImgs=[], pendingLogImgs=[];
+
+const LOC=['客廳','廚房','餐廳','主臥','次臥','書房','浴室','陽台','儲藏室','電器櫃','餐邊櫃','考慮中','不需要'];
+const STAT=['未採購','已採購','舊有'];
+let appData=[
+  {name:'電視',brand:'LG',loc:'客廳',model:'OLED65C5PTA',status:'已採購'},
+  {name:'Soundbar',brand:'Harman kardon',loc:'客廳',model:'enchant 1100',status:'已採購'},
+  {name:'電玩遊戲機',brand:'Nintendo',loc:'客廳',model:'Switch',status:'舊有'},
+  {name:'吸塵器',brand:'Electrolux',loc:'儲藏室',model:'EFP72314',status:'已採購'},
+  {name:'空氣清淨機',brand:'',loc:'考慮中',model:'',status:'未採購'},
+];
+let furData=[{name:'沙發',brand:'',loc:'客廳',model:'',status:'未採購'},{name:'餐桌',brand:'',loc:'餐廳',model:'',status:'未採購'}];
+let powData=[
+  {name:'大同電鍋',loc:'電器櫃',w:'800',v:'110',qty:'1',note:''},
+  {name:'象印電子鍋',loc:'電器櫃',w:'1115',v:'110',qty:'1',note:''},
+  {name:'洗脫烘衣機',loc:'陽台',w:'1350',v:'110',qty:'1',note:''},
+];
+
+const CAL_EVENTS={
+  '2026-04-01':[{label:'木作工程',type:'bk'}],'2026-04-03':[{label:'國定假日',type:'hol'}],
+  '2026-04-06':[{label:'國定假日',type:'hol'}],'2026-04-07':[{label:'木作工程',type:'bk'}],
+  '2026-04-09':[{label:'油漆工程',type:'bk'}],'2026-04-12':[{label:'油漆工程',type:'bk'},{label:'木作工程',type:'bk'}],
+  '2026-04-14':[{label:'木作工程',type:'bk'},{label:'嵌燈挖孔',type:'bk'}],'2026-04-20':[{label:'油漆工程',type:'bk'}],
+};
+let calLogs={
+  '2026-04-10':{work:'4/10 本日作業：\n1. 油漆全室批土\n2. 鐵工安裝吊衣桿',tag:'油漆工程',photos:['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=70']},
+  '2026-04-07':{work:'4/7 本日作業：\n1. 木作隔間牆骨架完成',tag:'木作工程',photos:[]},
+};
+let curYear=2026, curMonth=3, selDate=null;
+
+// ========== UTILS ==========
+function todayStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');}
+function nowStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function genPass(){const chars='abcdefghjkmnpqrstuvwxyz23456789';let p='';for(let i=0;i<8;i++)p+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('cm-pass').value=p;}
+
+// ========== AUTH ==========
+function setMode(m,el){loginMode=m;document.querySelectorAll('.mdbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function doLogin(){
+  const u=document.getElementById('l-user').value.trim(), p=document.getElementById('l-pass').value.trim();
+  const err=document.getElementById('l-err');err.textContent='';
+  if(loginMode==='admin'){
+    if(u==='admin'&&p==='admin123'){
+      showScreen('s-admin');
+      renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
+      populateDocsClientSel();renderAdminDocs();populateLogClientSel();renderAdminLogs();
+    } else err.textContent='帳號或密碼錯誤';
+  } else {
+    const c=clients.find(x=>x.user===u&&x.pass===p);
+    if(c){
+      currentClientId=c.id;
+      const proj=projects.find(q=>q.id===c.projectId);
+      document.getElementById('tb-client-name').textContent=c.name;
+      document.getElementById('p-proj-title').textContent=proj?proj.name:'';
+      showScreen('s-client');
+      renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
+    } else err.textContent='帳號或密碼錯誤，請再試一次';
+  }
+}
+document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){showScreen('s-login');document.getElementById('l-user').value='';document.getElementById('l-pass').value='';document.getElementById('l-err').textContent='';currentClientId=null;}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ========== NAV ==========
+function goPage(id,el){
+  document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
+}
+function goAdminPage(id,el){
+  document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
+  if(id==='a-docs'){populateDocsClientSel();renderAdminDocs();}
+  if(id==='a-logs'){populateLogClientSel();renderAdminLogs();}
+}
+
+// ========== PROJECTS ==========
+function renderProjects(){
+  const tb=document.getElementById('projects-tbody');tb.innerHTML='';
+  if(!projects.length){tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">尚無專案，請點擊右上角新增</td></tr>';return;}
+  projects.forEach(p=>{
+    const pc=p.status==='進行中'?'pill-green':p.status==='已完工'?'pill-gray':p.status==='待付款'?'pill-amber':'pill-blue';
+    const client=clients.find(c=>c.projectId===p.id);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><div style="font-weight:500;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
+      <td><span class="pill ${pc}">${p.status}</span></td>
+      <td style="font-size:12px;color:var(--ink-muted);">${p.address||'—'}</td>
+      <td style="font-size:12px;color:var(--ink-muted);">${p.date||'—'}</td>
+      <td style="font-size:12px;color:var(--ink-muted);">${p.endDate||'—'}</td>
+      <td><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function openPM(id){
+  editPId=id||null;
+  document.getElementById('pm-ttl').textContent=id?'編輯專案':'新增專案';
+  if(id){
+    const p=projects.find(x=>x.id===id);
+    document.getElementById('pm-name').value=p.name;
+    document.getElementById('pm-status').value=p.status;
+    document.getElementById('pm-address').value=p.address||'';
+    document.getElementById('pm-date').value=(p.date||'').replace(/\//g,'-');
+    document.getElementById('pm-end-date').value=(p.endDate||'').replace(/\//g,'-');
+  } else {
+    ['pm-name','pm-address'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('pm-status').value='進行中';
+    document.getElementById('pm-date').value='';
+    document.getElementById('pm-end-date').value='';
+  }
+  document.getElementById('pm-modal').style.display='block';
+}
+function closePM(){document.getElementById('pm-modal').style.display='none';}
+function saveProject(){
+  const name=document.getElementById('pm-name').value.trim();
+  if(!name){alert('請填寫專案名稱');return;}
+  const status=document.getElementById('pm-status').value;
+  const address=document.getElementById('pm-address').value.trim();
+  const date=document.getElementById('pm-date').value.replace(/-/g,'/');
+  const endDate=document.getElementById('pm-end-date').value.replace(/-/g,'/');
+  if(editPId){
+    const p=projects.find(x=>x.id===editPId);
+    Object.assign(p,{name,status,address,date,endDate});
+    // 同步更新客戶的狀態顯示
+    const c=clients.find(x=>x.projectId===editPId);
+    if(c)c.status=status;
+  } else {
+    const newId=nextPId++;
+    projects.push({id:newId,name,status,address,date,endDate});
+    docsData[newId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+  }
+  closePM();renderProjects();renderAdminClients();populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
+}
+function deleteProject(id){
+  if(clients.find(c=>c.projectId===id)){alert('此專案已有關聯客戶，請先刪除或調整客戶的歸屬專案。');return;}
+  if(!confirm('確定刪除此專案？'))return;
+  projects=projects.filter(x=>x.id!==id);
+  renderProjects();renderAdminClients();populateCMProjectSel();
+}
+
+// ========== ADMIN CLIENTS ==========
+function renderAdminClients(){
+  document.getElementById('st-total').textContent=clients.length;
+  document.getElementById('st-active').textContent=clients.filter(c=>c.status==='進行中').length;
+  document.getElementById('st-pending').textContent=clients.filter(c=>c.status==='待付款').length;
+  document.getElementById('st-done').textContent=clients.filter(c=>c.status==='已完工').length;
+  const tb=document.getElementById('clients-tbody');tb.innerHTML='';
+  clients.forEach(c=>{
+    const proj=projects.find(p=>p.id===c.projectId);
+    const pc=c.status==='進行中'?'pill-green':c.status==='待付款'?'pill-amber':'pill-gray';
+    const isShow=showPass[c.id];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-family:monospace;font-size:12px;">${c.user}</td>
+      <td><div class="pass-cell"><span class="pass-txt">${isShow?c.pass:'••••••'}</span><button class="eye-btn" onclick="togglePw(${c.id})">${isShow?'隱藏':'顯示'}</button></div></td>
+      <td>${c.name}${c.note?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+c.note+'</div>':''}</td>
+      <td style="font-size:12px;color:var(--ink-muted);">${proj?proj.name:'<span style="color:var(--red)">未設定</span>'}</td>
+      <td><span class="pill ${pc}">${c.status}</span></td>
+      <td><button class="act-btn" onclick="openCM(${c.id})">編輯</button><button class="act-btn danger" onclick="deleteClient(${c.id})">刪除</button><button class="act-btn" onclick="goToClientDocs(${c.id})">文件</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function togglePw(id){showPass[id]=!showPass[id];renderAdminClients();}
+function populateProjSel(selId,currentVal){
+  const sel=document.getElementById(selId);if(!sel)return;
+  sel.innerHTML='<option value="">— 選擇歸屬專案 —</option>';
+  projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  if(currentVal)sel.value=currentVal;
+}
+function populateCMProjectSel(){populateProjSel('cm-proj-sel',null);}
+function openCM(id){
+  editCId=id||null;
+  document.getElementById('cm-ttl').textContent=id?'編輯客戶':'新增客戶';
+  populateProjSel('cm-proj-sel',null);
+  if(id){const c=clients.find(x=>x.id===id);document.getElementById('cm-user').value=c.user;document.getElementById('cm-pass').value=c.pass;document.getElementById('cm-name').value=c.name;document.getElementById('cm-status').value=c.status;document.getElementById('cm-note').value=c.note||'';document.getElementById('cm-proj-sel').value=c.projectId||'';}
+  else{['cm-user','cm-pass','cm-name','cm-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('cm-status').value='進行中';}
+  document.getElementById('cm-modal').style.display='block';
+}
+function closeCM(){document.getElementById('cm-modal').style.display='none';}
+function saveClient(){
+  const u=document.getElementById('cm-user').value.trim(), p=document.getElementById('cm-pass').value.trim();
+  const n=document.getElementById('cm-name').value.trim();
+  const projId=parseInt(document.getElementById('cm-proj-sel').value)||null;
+  const st=document.getElementById('cm-status').value, no=document.getElementById('cm-note').value.trim();
+  if(!u||!p||!n){alert('請填寫帳號、密碼和客戶名稱');return;}
+  if(editCId){const c=clients.find(x=>x.id===editCId);Object.assign(c,{user:u,pass:p,name:n,projectId:projId,status:st,note:no});}
+  else{
+    if(clients.find(x=>x.user===u)){alert('帳號已存在');return;}
+    const newId=nextCId++;
+    clients.push({id:newId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[1]});
+    if(!docsData[newId])docsData[newId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+  }
+  closeCM();renderAdminClients();populateDocsClientSel();populateLogClientSel();
+}
+function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('確定刪除「'+c.name+'」？'))return;clients=clients.filter(x=>x.id!==id);renderAdminClients();}
+function goToClientDocs(cid){
+  populateDocsClientSel();document.getElementById('docs-client-sel').value=cid;
+  goAdminPage('a-docs',document.querySelectorAll('#s-admin .tb-nav .tnav')[2]);renderAdminDocs();
+}
+
+// ========== CLIENT DOCS ==========
+function renderClientDocs(){
+  const d=docsData[currentClientId];if(!d)return;
+  const dg=document.getElementById('client-drawings');dg.innerHTML='';
+  const dgo=document.getElementById('client-drawings-old');dgo.innerHTML='';
+  const types=['平面系統圖','立面系統圖','效果圖'];
+  const icons={'平面系統圖':'📐','立面系統圖':'📏','效果圖':'🖼'};
+  types.forEach(t=>{
+    const vers=d.drawings[t]||[];
+    const finalVer=vers.find(v=>v.isFinal)||vers[0];
+    const oldVers=vers.filter(v=>!v.isFinal);
+    if(finalVer){const c=document.createElement('div');c.className='drawing-card';c.innerHTML=`<div class="drawing-thumb">${icons[t]||'📄'}</div><div class="drawing-info"><div class="drawing-name">${t} <span class="pill pill-final" style="font-size:9px;">最終版</span></div><div class="drawing-meta">${finalVer.note} ｜ ${finalVer.date}</div></div>`;dg.appendChild(c);}
+    oldVers.forEach(v=>{const r=document.createElement('div');r.className='old-ver-item';r.innerHTML=`<span style="font-size:16px;">${icons[t]||'📄'}</span><span style="flex:1;">${t} — ${v.note}</span><span class="fdate">${v.date}</span>`;dgo.appendChild(r);});
+  });
+  if(!dgo.children.length)dgo.innerHTML='<div style="font-size:12px;color:var(--ink-light);">無舊版本資料</div>';
+  renderClientLineScreenshots(d);renderClientFormalMeetings(d);
+  const cl=document.getElementById('client-contracts');cl.innerHTML='';
+  if(!d.contracts.length){cl.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無合約資料</div>';}
+  else d.contracts.forEach(c=>{const r=document.createElement('div');r.className='fi-item';r.innerHTML=`<div class="ficon">PDF</div><span>${c.name}</span><span class="fsize">${c.size}</span><span class="fdate" style="margin-left:8px;">${c.date}</span>`;cl.appendChild(r);});
+  const ql=document.getElementById('client-quotes');ql.innerHTML='';
+  if(!d.quotes.length){ql.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無報價資料</div>';}
+  else d.quotes.forEach(q=>{const r=document.createElement('div');r.className='fi-item';r.innerHTML=`<div class="ficon">PDF</div><span>${q.name}</span><span class="fsize">${q.size}</span><span class="fdate" style="margin-left:8px;">${q.date}</span>`;ql.appendChild(r);});
+}
+function renderClientLineScreenshots(d){
+  const el=document.getElementById('client-line-meetings');el.innerHTML='';
+  const shots=d.lineScreenshots||[];
+  if(!shots.length){el.innerHTML='<div class="empty-state">尚無 LINE 截圖記錄</div>';return;}
+  const grouped={};
+  shots.forEach(s=>{grouped[s.date]=grouped[s.date]||[];grouped[s.date].push(...(s.images||[]));});
+  Object.keys(grouped).sort().forEach(date=>{
+    const imgs=grouped[date];
+    const imgHtml=imgs.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;">${imgs.map(src=>`<img src="${src}" style="height:120px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'<div style="padding:12px 14px;font-size:12px;color:var(--ink-light);">（截圖未載入）</div>';
+    const item=document.createElement('div');item.className='meeting-record';
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${date}</span><span class="meeting-record-title">${imgs.length} 張截圖</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd">${imgHtml}</div>`;
+    el.appendChild(item);
+  });
+}
+function renderClientFormalMeetings(d){
+  const el=document.getElementById('client-formal-meetings');el.innerHTML='';
+  const sorted=[...(d.formalMeetings||[])].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議記錄</div>';return;}
+  sorted.forEach(m=>{
+    const imgHtml=(m.images&&m.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${m.images.map(src=>`<img src="${src}" style="height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
+    const item=document.createElement('div');item.className='meeting-record';
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${m.content}${imgHtml}</div>`;
+    el.appendChild(item);
+  });
+}
+function toggleMeetingRecord(hd){hd.querySelector('.meeting-record-arr').classList.toggle('open');hd.nextElementSibling.classList.toggle('open');}
+function toggleOldVersions(id){const el=document.getElementById(id);el.classList.toggle('open');el.previousElementSibling.textContent=(el.classList.contains('open')?'▾':'▸')+' 舊版本資料';}
+function switchMeetingTab(tab,el){document.querySelectorAll('#p-docs .meeting-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('meeting-line-panel').style.display=tab==='line'?'block':'none';document.getElementById('meeting-formal-panel').style.display=tab==='formal'?'block':'none';}
+
+// ========== ADMIN DOCS ==========
+function populateDocsClientSel(){
+  const sel=document.getElementById('docs-client-sel');if(!sel)return;
+  const cur=sel.value;sel.innerHTML='';
+  clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  if(cur)sel.value=cur;
+}
+function getAdminDocClientId(){return parseInt(document.getElementById('docs-client-sel').value)||1;}
+function renderAdminDocs(){
+  const cid=getAdminDocClientId();
+  if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+  renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);
+}
+function switchDrawingType(type,el){currentDrawingType=type;document.querySelectorAll('#drawing-type-tabs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderAdminDrawingList(getAdminDocClientId());}
+function renderAdminDrawingList(cid){
+  const vers=docsData[cid].drawings[currentDrawingType]||[];
+  const el=document.getElementById('admin-drawing-list');el.innerHTML='';
+  if(!vers.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無版本</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  vers.forEach((v,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${currentDrawingType} — ${v.note}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div><div class="ufile-meta">${v.date}</div><button class="btn-sm" onclick="toggleFinal(${cid},'${currentDrawingType}',${i})">${v.isFinal?'取消最終':'設為最終'}</button><button class="btn-sm danger" onclick="removeDrawing(${cid},'${currentDrawingType}',${i})">刪除</button>`;wrap.appendChild(r);});
+  el.appendChild(wrap);
+}
+function addDrawingVersion(){
+  const cid=getAdminDocClientId();const note=document.getElementById('drawing-version-note').value.trim();
+  if(!note){alert('請填寫版本說明');return;}
+  const isFinal=document.getElementById('drawing-is-final').checked;
+  if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
+  if(isFinal)docsData[cid].drawings[currentDrawingType].forEach(v=>v.isFinal=false);
+  docsData[cid].drawings[currentDrawingType].unshift({id:nextDocId++,note,date:todayStr(),isFinal});
+  document.getElementById('drawing-version-note').value='';document.getElementById('drawing-is-final').checked=false;
+  renderAdminDrawingList(cid);
+}
+function toggleFinal(cid,type,idx){const vers=docsData[cid].drawings[type];const cur=vers[idx].isFinal;vers.forEach(v=>v.isFinal=false);vers[idx].isFinal=!cur;renderAdminDrawingList(cid);}
+function removeDrawing(cid,type,idx){if(!confirm('確定刪除？'))return;docsData[cid].drawings[type].splice(idx,1);renderAdminDrawingList(cid);}
+
+function switchAdminMeetingTab(tab,el){
+  adminMeetingTab=tab;
+  document.querySelectorAll('#a-docs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('admin-line-panel').style.display=tab==='line'?'block':'none';
+  document.getElementById('admin-formal-panel').style.display=tab==='formal'?'block':'none';
+}
+
+// LINE 截圖
+function previewLineImgs(e){
+  pendingLineImgs=[];document.getElementById('line-img-preview').innerHTML='';
+  Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingLineImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('line-img-preview').appendChild(img);};r.readAsDataURL(f);});
+}
+function renderAdminLineList(cid){
+  const shots=docsData[cid].lineScreenshots||[];
+  const el=document.getElementById('admin-line-list');el.innerHTML='';
+  if(!shots.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無截圖記錄</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  shots.forEach((s,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">📷</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${s.date}</div><div style="font-size:11px;color:var(--ink-light);">${(s.images||[]).length} 張截圖</div></div><button class="btn-sm danger" onclick="removeLineShot(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  el.appendChild(wrap);
+}
+function addLineScreenshot(){
+  const cid=getAdminDocClientId();const date=document.getElementById('line-date').value;
+  if(!date){alert('請選擇日期');return;}if(!pendingLineImgs.length){alert('請上傳至少一張截圖');return;}
+  const dateStr=date.replace(/-/g,'/');
+  const existing=docsData[cid].lineScreenshots.find(s=>s.date===dateStr);
+  if(existing){existing.images.push(...pendingLineImgs);}else{docsData[cid].lineScreenshots.push({date:dateStr,images:[...pendingLineImgs]});}
+  pendingLineImgs=[];document.getElementById('line-img-preview').innerHTML='';document.getElementById('line-img-input').value='';document.getElementById('line-date').value='';
+  renderAdminLineList(cid);
+}
+function removeLineShot(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);}
+
+// 正式會議
+function previewFormalImgs(e){
+  pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';
+  Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingFormalImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('formal-img-preview').appendChild(img);};r.readAsDataURL(f);});
+}
+function renderAdminFormalList(cid){
+  const meetings=docsData[cid].formalMeetings||[];
+  const el=document.getElementById('admin-formal-list');el.innerHTML='';
+  if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議記錄</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  meetings.forEach((m,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">📝</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${m.content.substring(0,50)}${m.content.length>50?'…':''}</div></div><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  el.appendChild(wrap);
+}
+function addFormalMeeting(){
+  const cid=getAdminDocClientId();
+  const date=document.getElementById('formal-date').value,title=document.getElementById('formal-title').value.trim(),content=document.getElementById('formal-content').value.trim();
+  if(!date||!title||!content){alert('請填寫日期、標題和內容');return;}
+  docsData[cid].formalMeetings.push({date:date.replace(/-/g,'/'),title,content,images:[...pendingFormalImgs]});
+  document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
+  pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
+  renderAdminFormalList(cid);
+}
+function removeFormal(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].formalMeetings.splice(idx,1);renderAdminFormalList(cid);}
+
+function renderAdminContractList(cid){
+  const el=document.getElementById('admin-contract-list');el.innerHTML='';const contracts=docsData[cid].contracts||[];
+  if(!contracts.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無合約</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  contracts.forEach((c,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${c.name}</div><div class="ufile-meta">${c.date}</div><button class="btn-sm danger" onclick="removeContract(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  el.appendChild(wrap);
+}
+function addContract(){const cid=getAdminDocClientId();const name=document.getElementById('contract-name').value.trim();if(!name){alert('請填寫合約名稱');return;}docsData[cid].contracts=[{id:nextDocId++,name,date:todayStr(),size:'—'}];document.getElementById('contract-name').value='';renderAdminContractList(cid);}
+function removeContract(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);}
+
+function renderAdminQuoteList(cid){
+  const el=document.getElementById('admin-quote-list');el.innerHTML='';const quotes=docsData[cid].quotes||[];
+  if(!quotes.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無報價</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  quotes.forEach((q,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${q.name}</div><div class="ufile-meta">${q.date}</div><button class="btn-sm danger" onclick="removeQuote(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  el.appendChild(wrap);
+}
+function addQuote(){const cid=getAdminDocClientId();const name=document.getElementById('quote-name').value.trim();if(!name){alert('請填寫報價名稱');return;}docsData[cid].quotes.unshift({id:nextDocId++,name,date:todayStr(),size:'—'});document.getElementById('quote-name').value='';renderAdminQuoteList(cid);}
+function removeQuote(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);}
+
+// ========== ADMIN LOGS ==========
+function populateLogClientSel(){
+  const sel=document.getElementById('log-client-sel');if(!sel)return;
+  const cur=sel.value;sel.innerHTML='';
+  clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  if(cur)sel.value=cur;
+}
+function previewLogImgs(e){
+  pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';
+  Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingLogImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('log-img-preview').appendChild(img);};r.readAsDataURL(f);});
+}
+function addAdminLog(){
+  const date=document.getElementById('log-date').value;const tag=document.getElementById('log-tag').value.trim();const notes=document.getElementById('log-notes').value.trim();
+  if(!date){alert('請選擇施工日期');return;}
+  calLogs[date]={work:notes,tag,photos:[...pendingLogImgs]};
+  document.getElementById('log-date').value='';document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
+  pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';document.getElementById('log-img-input').value='';
+  renderAdminLogs();renderCalendar();
+  alert('施工日誌已儲存！');
+}
+function renderAdminLogs(){
+  const el=document.getElementById('admin-log-list');el.innerHTML='';
+  const entries=Object.entries(calLogs).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(!entries.length){el.innerHTML='<div class="empty-state">尚無施工記錄</div>';return;}
+  entries.forEach(([key,log])=>{
+    const[y,m,d]=key.split('-');const item=document.createElement('div');item.className='log-list-item';
+    const badge=document.createElement('div');badge.className='ldate';badge.textContent=parseInt(m)+'/'+parseInt(d);item.appendChild(badge);
+    const cont=document.createElement('div');cont.style.flex='1';
+    if(log.tag){const t=document.createElement('span');t.className='pill pill-blue';t.style.cssText='font-size:10px;margin-bottom:6px;display:inline-block;';t.textContent=log.tag;cont.appendChild(t);}
+    if(log.work){const t=document.createElement('div');t.className='lwt';t.style.marginTop='4px';t.textContent=log.work;cont.appendChild(t);}
+    if(log.photos&&log.photos.length){const row=document.createElement('div');row.className='lpr';log.photos.forEach(src=>{const img=document.createElement('img');img.className='lmp';img.src=src;row.appendChild(img);});cont.appendChild(row);}
+    const del=document.createElement('button');del.className='btn-sm danger';del.style.marginTop='6px';del.textContent='刪除';del.onclick=()=>{if(confirm('確定刪除此日誌？')){delete calLogs[key];renderAdminLogs();renderCalendar();}};cont.appendChild(del);
+    item.appendChild(cont);el.appendChild(item);
+  });
+}
+
+// ========== KNOWLEDGE ==========
+function renderKnowledge(){
+  const c=clients.find(x=>x.id===currentClientId);
+  const el=document.getElementById('know-list');el.innerHTML='';
+  (c?c.assigned:[]).forEach(aid=>{
+    const a=articles.find(x=>x.id===aid);if(!a)return;
+    const d=document.createElement('div');d.className='know-item';
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">${a.tag}</span></div></div><div class="know-bd">${a.body}</div>`;
+    el.appendChild(d);
+  });
+  if(!el.children.length)el.innerHTML='<div class="empty-state">尚未指派任何文章</div>';
+}
+function toggleKnow(hd){hd.querySelector('.know-arr').classList.toggle('open');hd.nextElementSibling.classList.toggle('open');}
+
+// ========== CHECKLIST ==========
+function switchStab(id,el){
+  document.querySelectorAll('#p-checklist .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  ['cl-app','cl-fur','cl-pow'].forEach(t=>{document.getElementById(t).style.display=t===id?'block':'none';});
+}
+function renderChecklists(){renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();}
+function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
+function renderAppTable(type,data){
+  const tb=document.getElementById(type+'-tbody');tb.innerHTML='';
+  data.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    ['name','brand'].forEach(k=>{const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.placeholder=k==='name'?'名稱':'品牌';inp.oninput=e=>r[k]=e.target.value;td.appendChild(inp);tr.appendChild(td);});
+    const tdL=document.createElement('td');tdL.appendChild(mkSel(LOC,r.loc,e=>r.loc=e.target.value));tr.appendChild(tdL);
+    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model;mi.placeholder='型號';mi.oninput=e=>r.model=e.target.value;tdM.appendChild(mi);tr.appendChild(tdM);
+    const tdS=document.createElement('td');tdS.appendChild(mkSel(STAT,r.status,e=>r.status=e.target.value));tr.appendChild(tdS);
+    const tdD=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';db.onclick=()=>{data.splice(i,1);renderAppTable(type,data);};tdD.appendChild(db);tr.appendChild(tdD);
+    tb.appendChild(tr);
+  });
+}
+function renderPowTable(){
+  const tb=document.getElementById('pow-tbody');tb.innerHTML='';
+  powData.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const n=document.createElement('td');const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';ni.oninput=e=>r.name=e.target.value;n.appendChild(ni);tr.appendChild(n);
+    const tl=document.createElement('td');tl.appendChild(mkSel(LOC,r.loc,e=>r.loc=e.target.value));tr.appendChild(tl);
+    ['w','v','qty'].forEach(k=>{const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.style.width='65px';inp.oninput=e=>{r[k]=e.target.value;refreshPow(tr,r);};td.appendChild(inp);tr.appendChild(td);});
+    const ta=document.createElement('td');ta.className='av';tr.appendChild(ta);
+    const tc=document.createElement('td');tr.appendChild(tc);
+    const tn=document.createElement('td');const ni2=document.createElement('input');ni2.className='ci';ni2.value=r.note;ni2.placeholder='備註';ni2.oninput=e=>r.note=e.target.value;tn.appendChild(ni2);tr.appendChild(tn);
+    const td2=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';db.onclick=()=>{powData.splice(i,1);renderPowTable();};td2.appendChild(db);tr.appendChild(td2);
+    tb.appendChild(tr);refreshPow(tr,r);
+  });
+}
+function refreshPow(tr,r){const w=parseFloat(r.w)||0,v=parseFloat(r.v)||110,q=parseInt(r.qty)||1;const a=w?Math.round(w*q/v*10)/10:0;const circ=a>=10?'需專用迴路':'一般插座';tr.children[5].textContent=w?a+' A':'—';tr.children[6].innerHTML=w?`<span class="psm cir-${circ}">${circ}</span>`:''; }
+function addRow(type){if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('app',appData);}else if(type==='fur'){furData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('fur',furData);}else{powData.push({name:'',loc:'客廳',w:'',v:'110',qty:'1',note:''});renderPowTable();}}
+
+// ========== CALENDAR ==========
+function dkey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function renderCalendar(){
+  const MN=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const DL=['日','一','二','三','四','五','六'];
+  document.getElementById('cal-label').textContent=curYear+'年 '+MN[curMonth];
+  const g=document.getElementById('cal-grid');g.innerHTML='';
+  DL.forEach(l=>{const d=document.createElement('div');d.className='cdl';d.textContent=l;g.appendChild(d);});
+  const first=new Date(curYear,curMonth,1).getDay(), dim=new Date(curYear,curMonth+1,0).getDate(), prevDim=new Date(curYear,curMonth,0).getDate(), today=new Date();
+  for(let i=0;i<first;i++){const c=document.createElement('div');c.className='cday om';const n=document.createElement('div');n.className='cdn';n.textContent=prevDim-first+1+i;c.appendChild(n);g.appendChild(c);}
+  for(let d=1;d<=dim;d++){
+    const key=dkey(curYear,curMonth,d);const evts=CAL_EVENTS[key]||[],hasLog=!!calLogs[key],isHol=evts.some(e=>e.type==='hol'),isToday=d===today.getDate()&&curMonth===today.getMonth()&&curYear===today.getFullYear();
+    const c=document.createElement('div');c.className='cday'+(isHol?' hol':'')+(hasLog?' has-log':'')+(isToday?' today':'')+(selDate===key?' sel':'');c.onclick=()=>selectDate(key);
+    const n=document.createElement('div');n.className='cdn';n.textContent=d;c.appendChild(n);
+    evts.slice(0,2).forEach(e=>{const t=document.createElement('div');t.className='cetag'+(e.type==='bk'?' bk':'');t.textContent=e.label;c.appendChild(t);});
+    if(hasLog){const p=document.createElement('div');p.className='cpc';p.textContent=calLogs[key].photos.length+' 張照片';c.appendChild(p);}
+    g.appendChild(c);
+  }
+  const rem=(7-(first+dim)%7)%7;for(let i=1;i<=rem;i++){const c=document.createElement('div');c.className='cday om';const n=document.createElement('div');n.className='cdn';n.textContent=i;c.appendChild(n);g.appendChild(c);}
+  if(selDate)renderDetail();
+}
+function selectDate(key){selDate=key;renderCalendar();document.getElementById('det-card').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function renderDetail(){
+  if(!selDate){document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看或新增施工記錄</div>';return;}
+  const[y,m,d]=selDate.split('-');document.getElementById('det-date').textContent=y+'年'+parseInt(m)+'月'+parseInt(d)+'日';
+  const evts=CAL_EVENTS[selDate]||[],log=calLogs[selDate]||{work:'',photos:[]};
+  const body=document.getElementById('det-body');body.innerHTML='';
+  if(evts.length){const chips=document.createElement('div');chips.className='det-chips';evts.forEach(e=>{const c=document.createElement('span');c.className='det-chip chip-'+(e.type==='hol'?'hol':'bk');c.textContent=e.label;chips.appendChild(c);});body.appendChild(chips);}
+  const sl=document.createElement('div');sl.className='sec-lbl';sl.textContent='本日施工記錄';body.appendChild(sl);
+  const ta=document.createElement('textarea');ta.className='log-ta';ta.placeholder='記錄今日施工內容…';ta.value=log.work;ta.oninput=e=>{if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};calLogs[selDate].work=e.target.value;};body.appendChild(ta);
+  const pl=document.createElement('div');pl.className='sec-lbl';pl.textContent='施工照片';body.appendChild(pl);
+  const pg=document.createElement('div');pg.className='photo-grid';
+  (log.photos||[]).forEach((src,i)=>{const w=document.createElement('div');w.className='pt';const img=document.createElement('img');img.src=src;img.alt='施工照片';const dp=document.createElement('button');dp.className='dp';dp.textContent='×';dp.onclick=ev=>{ev.stopPropagation();calLogs[selDate].photos.splice(i,1);renderDetail();renderCalendar();};w.appendChild(img);w.appendChild(dp);pg.appendChild(w);});
+  const ab=document.createElement('div');ab.className='pa';ab.innerHTML='<div class="pa-icon">+</div><div class="pa-lbl">上傳照片</div>';ab.onclick=()=>document.getElementById('file-input').click();pg.appendChild(ab);body.appendChild(pg);
+  const sr=document.createElement('div');sr.className='save-row';const sb=document.createElement('button');sb.className='btn-ink';sb.textContent='儲存記錄';sb.onclick=()=>{if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};calLogs[selDate].work=ta.value;renderCalendar();sb.textContent='已儲存 ✓';setTimeout(()=>sb.textContent='儲存記錄',1500);};sr.appendChild(sb);body.appendChild(sr);
+}
+function handleFiles(e){
+  if(!selDate)return;if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};
+  const files=Array.from(e.target.files);let loaded=0;
+  files.forEach(f=>{const r=new FileReader();r.onload=ev=>{calLogs[selDate].photos.push(ev.target.result);loaded++;if(loaded===files.length){renderDetail();renderCalendar();}};r.readAsDataURL(f);});e.target.value='';
+}
+function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}selDate=null;renderCalendar();document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看或新增施工記錄</div>';document.getElementById('det-date').textContent='';}
+function goToday(){const t=new Date();curYear=t.getFullYear();curMonth=t.getMonth();selDate=null;renderCalendar();}
+
+// ========== ARTICLES ==========
+function renderArtGrid(){
+  const g=document.getElementById('art-grid');g.innerHTML='';
+  if(!articles.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">尚無文章</div>';return;}
+  articles.forEach(a=>{const cnt=clients.filter(c=>c.assigned.includes(a.id)).length;const d=document.createElement('div');d.className='art-card';d.innerHTML=`<div class="art-top"><div class="art-title">${a.title}</div><div class="art-tag">${a.tag}</div></div><div class="art-prev">${a.body}</div><div class="art-foot"><div class="art-cnt">已指派 ${cnt} 位客戶</div><div style="display:flex;gap:5px;"><button class="act-btn" onclick="openAM(${a.id})">編輯</button><button class="act-btn danger" onclick="deleteArt(${a.id})">刪除</button></div></div>`;g.appendChild(d);});
+}
+function openAM(id){editAId=id||null;document.getElementById('am-ttl').textContent=id?'編輯文章':'新增文章';if(id){const a=articles.find(x=>x.id===id);document.getElementById('am-t').value=a.title;document.getElementById('am-tag').value=a.tag;document.getElementById('am-body').value=a.body;}else{document.getElementById('am-t').value='';document.getElementById('am-body').value='';document.getElementById('am-tag').value='施工注意';}document.getElementById('am-modal').style.display='block';}
+function closeAM(){document.getElementById('am-modal').style.display='none';}
+function saveArticle(){const t=document.getElementById('am-t').value.trim(),tg=document.getElementById('am-tag').value,b=document.getElementById('am-body').value.trim();if(!t||!b){alert('請填寫標題和內容');return;}if(editAId){const a=articles.find(x=>x.id===editAId);Object.assign(a,{title:t,tag:tg,body:b});}else{articles.push({id:nextAId++,title:t,tag:tg,body:b});}closeAM();renderArtGrid();}
+function deleteArt(id){if(!confirm('確定刪除？'))return;articles=articles.filter(x=>x.id!==id);clients.forEach(c=>{c.assigned=c.assigned.filter(aid=>aid!==id);});renderArtGrid();}
+
+// ========== ASSIGN ==========
+function renderAssignClist(){
+  const el=document.getElementById('assign-clist');el.innerHTML='';
+  clients.forEach(c=>{const proj=projects.find(p=>p.id===c.projectId);const d=document.createElement('div');d.className='cli-item'+(selectedAssignC===c.id?' sel':'');d.innerHTML=`<div class="cli-name">${c.name}<span class="cnt-badge">${c.assigned.length} 篇</span></div><div class="cli-proj">${proj?proj.name:'—'}</div>`;d.onclick=()=>{selectedAssignC=c.id;renderAssignClist();renderAssignBody();};el.appendChild(d);});
+}
+function renderAssignBody(){
+  const c=clients.find(x=>x.id===selectedAssignC);if(!c)return;
+  const proj=projects.find(p=>p.id===c.projectId);
+  document.getElementById('assign-ph').style.display='none';const body=document.getElementById('assign-body');body.style.display='block';
+  body.innerHTML=`<div style="font-size:14px;font-weight:500;margin-bottom:3px;">${c.name}</div><div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">${proj?proj.name:'—'}</div>`;
+  articles.forEach(a=>{const isOn=c.assigned.includes(a.id);const item=document.createElement('div');item.className='aai';item.innerHTML=`<button class="toggle${isOn?' on':''}" onclick="toggleAssign(${c.id},${a.id},this)"></button><div><div class="aai-name">${a.title}</div><div class="aai-tag">${a.tag}</div></div>`;body.appendChild(item);});
+}
+function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();}
+
+document.getElementById('cm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
+document.getElementById('am-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
+document.getElementById('pm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
+</script>
+</body>
+</html>
+
+let articles=[
+  {id:1,title:'設計流程說明（請務必閱讀）',tag:'設計流程',body:'本設計專案分為需求訪談、平面規劃、立面設計、材料選定、施工監管五個階段。每個階段完成後，設計師將與業主確認後方可進行下一步驟。整體流程約 6–12 個月，視工程規模而定。'},
+  {id:2,title:'裝修流程說明（請務必閱讀）',tag:'設計流程',body:'裝修工程分為拆除、水電配管、泥作、木作、油漆、系統傢俱、軟裝收尾七大工序。各工序間有一定的先後順序，請配合設計師安排的工程時程，避免因業主決策延遲影響施工進度。'},
+  {id:3,title:'施工認知落差注意事項（開工前必讀）',tag:'施工注意',body:'現場施工成果可能與效果圖有視覺差異，此為正常現象。建議業主在木作完工後、油漆前到場確認空間感受，此階段是最佳調整時機。'},
+  {id:4,title:'自行找空調外包需注意事項',tag:'施工注意',body:'若業主自行發包空調工程，須注意配合室內設計圖說預留冷媒管路走向及出風口位置，須於木作進場前完成管路規劃。'},
+  {id:5,title:'超耐磨木地板保養及注意事項',tag:'售後保固',body:'超耐磨木地板應避免長期浸水，日常以擰乾的濕拖把清潔。切勿使用強效清潔劑或打蠟。家具腳建議加貼氈墊。保固期一年。'},
+  {id:6,title:'如何申請瓦斯掛錶',tag:'開工前準備',body:'新屋瓦斯掛錶需由業主向當地瓦斯公司申請，準備好房屋所有權狀或買賣合約、身分證正本，提前 2–4 週申請。'},
+];
+let nextAId=7, editAId=null, selectedAssignC=null;
+
+// 文件資料（依客戶 id）
+let docsData = {
+  1: {
+    drawings: {
+      '平面系統圖': [
+        {id:1,note:'v3 最終版',date:'2026/03/20',isFinal:true},
+        {id:2,note:'v2 調整廚房',date:'2026/02/10',isFinal:false},
+        {id:3,note:'v1 初稿',date:'2026/01/05',isFinal:false},
+      ],
+      '立面系統圖': [
+        {id:4,note:'v2 最終版',date:'2026/03/18',isFinal:true},
+        {id:5,note:'v1 初稿',date:'2026/01/20',isFinal:false},
+      ],
+      '效果圖': [
+        {id:6,note:'客廳+主臥 最終',date:'2026/02/28',isFinal:true},
+      ],
+    },
+    lineMsgs: [
+      {date:'2026/01/19',sender:'designer',content:'您好！平面圖已完成初稿，請確認附件。'},
+      {date:'2026/01/19',sender:'client',content:'好的，謝謝！我看一下。'},
+      {date:'2026/02/24',sender:'designer',content:'二次修改版已完成，主要調整了廚房動線。'},
+      {date:'2026/02/24',sender:'client',content:'這個版本可以！確認沒問題。'},
+      {date:'2026/03/06',sender:'designer',content:'合約已準備好，請安排時間簽約。'},
+    ],
+    formalMeetings: [
+      {date:'2025/12/04',title:'需求訪談會議',content:'討論業主生活習慣、風格偏好、預算範圍。決議：走自然溫潤風格，主色系為木色+白。'},
+      {date:'2026/01/17',title:'平面確認會議',content:'確認平面配置圖 v1。決議：主臥衣帽間改為開放式，廚房增加中島。'},
+      {date:'2026/03/06',title:'簽約紀錄',content:'工程合約正式簽署。工程款分五期繳納，預計 2026/06 完工。'},
+    ],
+    contracts: [
+      {id:1,name:'2026.3.8 室內工程合約',date:'2026/03/08',size:'3 MB'},
+    ],
+    quotes: [
+      {id:1,name:'2026.1.17 工程報價',date:'2026/01/17',size:'664 KB'},
+      {id:2,name:'2026.3.8 工程報價單（修正版）',date:'2026/03/08',size:'1.1 MB'},
+    ],
+  },
+  2: { drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]}, lineMsgs:[], formalMeetings:[], contracts:[], quotes:[] },
+  3: { drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]}, lineMsgs:[], formalMeetings:[], contracts:[], quotes:[] },
+};
+
+let currentDrawingType = '平面系統圖';
+let adminMeetingTab = 'line';
+let nextDocId = 100;
+
+const LOC=['客廳','廚房','餐廳','主臥','次臥','書房','浴室','陽台','儲藏室','電器櫃','餐邊櫃','考慮中','不需要'];
+const STAT=['未採購','已採購','舊有'];
+let appData=[
+  {name:'電視',brand:'LG',loc:'客廳',model:'OLED65C5PTA',status:'已採購'},
+  {name:'Soundbar',brand:'Harman kardon',loc:'客廳',model:'enchant 1100',status:'已採購'},
+  {name:'電玩遊戲機',brand:'Nintendo',loc:'客廳',model:'Switch',status:'舊有'},
+  {name:'吸塵器',brand:'Electrolux',loc:'儲藏室',model:'EFP72314',status:'已採購'},
+  {name:'空氣清淨機',brand:'',loc:'考慮中',model:'',status:'未採購'},
+];
+let furData=[{name:'沙發',brand:'',loc:'客廳',model:'',status:'未採購'},{name:'餐桌',brand:'',loc:'餐廳',model:'',status:'未採購'}];
+let powData=[
+  {name:'大同電鍋',loc:'電器櫃',w:'800',v:'110',qty:'1',note:''},
+  {name:'象印電子鍋',loc:'電器櫃',w:'1115',v:'110',qty:'1',note:''},
+  {name:'洗脫烘衣機',loc:'陽台',w:'1350',v:'110',qty:'1',note:''},
+];
+
+const CAL_EVENTS={
+  '2026-04-01':[{label:'木作工程',type:'bk'}],'2026-04-03':[{label:'國定假日',type:'hol'}],
+  '2026-04-06':[{label:'國定假日',type:'hol'}],'2026-04-07':[{label:'木作工程',type:'bk'}],
+  '2026-04-09':[{label:'油漆工程',type:'bk'}],'2026-04-12':[{label:'油漆工程',type:'bk'},{label:'木作工程',type:'bk'}],
+  '2026-04-14':[{label:'木作工程',type:'bk'},{label:'嵌燈挖孔',type:'bk'}],'2026-04-20':[{label:'油漆工程',type:'bk'}],
+};
+let calLogs={
+  '2026-04-10':{work:'4/10 本日作業：\n1. 油漆全室批土\n2. 鐵工安裝吊衣桿',photos:['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=70']},
+  '2026-04-07':{work:'4/7 本日作業：\n1. 木作隔間牆骨架完成',photos:[]},
+};
+let curYear=2026,curMonth=3,selDate=null;
+
+
+
+// ========== AUTH ==========
+function setMode(m,el){loginMode=m;document.querySelectorAll('.mdbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function doLogin(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value.trim();
+  const err=document.getElementById('l-err'); err.textContent='';
+  if(loginMode==='admin'){
+    if(u==='admin'&&p==='admin123'){
+      showScreen('s-admin');
+      renderAdminClients();renderArtGrid();renderAssignClist();renderAdminLogs();
+      populateDocsClientSel();renderAdminDocs();
+    } else err.textContent='帳號或密碼錯誤';
+  } else {
+    const c=clients.find(x=>x.user===u&&x.pass===p);
+    if(c){
+      currentClientId=c.id;
+      document.getElementById('tb-client-name').textContent=c.name;
+      document.getElementById('p-proj-title').textContent=c.project;
+      showScreen('s-client');
+      renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
+    } else err.textContent='帳號或密碼錯誤，請再試一次';
+  }
+}
+document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){showScreen('s-login');document.getElementById('l-user').value='';document.getElementById('l-pass').value='';document.getElementById('l-err').textContent='';currentClientId=null;}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ========== NAV ==========
+function goPage(id,el){
+  document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
+}
+function goAdminPage(id,el){
+  document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
+  if(id==='a-docs'){populateDocsClientSel();renderAdminDocs();}
+}
+
+// ========== CLIENT DOCS ==========
+function renderClientDocs(){
+  const d=docsData[currentClientId];
+  if(!d) return;
+
+  // 圖紙
+  const dg=document.getElementById('client-drawings'); dg.innerHTML='';
+  const dgo=document.getElementById('client-drawings-old'); dgo.innerHTML='';
+  const types=['平面系統圖','立面系統圖','效果圖'];
+  const icons={'平面系統圖':'📐','立面系統圖':'📏','效果圖':'🖼'};
+  types.forEach(t=>{
+    const vers=d.drawings[t]||[];
+    const finalVer=vers.find(v=>v.isFinal)||vers[0];
+    const oldVers=vers.filter(v=>!v.isFinal);
+    if(finalVer){
+      const c=document.createElement('div');c.className='drawing-card';
+      c.innerHTML=`<div class="drawing-thumb">${icons[t]||'📄'}</div><div class="drawing-info"><div class="drawing-name">${t} <span class="pill pill-final" style="font-size:9px;">最終版</span></div><div class="drawing-meta">${finalVer.note} ｜ ${finalVer.date}</div></div>`;
+      dg.appendChild(c);
+    }
+    oldVers.forEach(v=>{
+      const r=document.createElement('div');r.className='old-ver-item';
+      r.innerHTML=`<span style="font-size:16px;">${icons[t]||'📄'}</span><span style="flex:1;">${t} — ${v.note}</span><span class="fdate">${v.date}</span>`;
+      dgo.appendChild(r);
+    });
+  });
+  if(!dgo.children.length) dgo.innerHTML='<div style="font-size:12px;color:var(--ink-light);">無舊版本資料</div>';
+
+  // LINE 記錄（依日期分組）
+  renderClientLineMeetings(d);
+  // 正式會議記錄
+  renderClientFormalMeetings(d);
+  // 合約
+  const cl=document.getElementById('client-contracts');cl.innerHTML='';
+  if(!d.contracts.length){cl.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無合約資料</div>';}
+  else d.contracts.forEach(c=>{
+    const r=document.createElement('div');r.className='fi-item';
+    r.innerHTML=`<div class="ficon">PDF</div><span>${c.name}</span><span class="fsize">${c.size}</span><span class="fdate" style="margin-left:8px;">${c.date}</span>`;
+    cl.appendChild(r);
+  });
+  // 報價
+  const ql=document.getElementById('client-quotes');ql.innerHTML='';
+  if(!d.quotes.length){ql.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無報價資料</div>';}
+  else d.quotes.forEach(q=>{
+    const r=document.createElement('div');r.className='fi-item';
+    r.innerHTML=`<div class="ficon">PDF</div><span>${q.name}</span><span class="fsize">${q.size}</span><span class="fdate" style="margin-left:8px;">${q.date}</span>`;
+    ql.appendChild(r);
+  });
+}
+
+function renderClientLineMeetings(d){
+  const el=document.getElementById('client-line-meetings');el.innerHTML='';
+  const grouped={};
+  (d.lineMsgs||[]).forEach(m=>{grouped[m.date]=grouped[m.date]||[];grouped[m.date].push(m);});
+  const dates=Object.keys(grouped).sort();
+  if(!dates.length){el.innerHTML='<div class="empty-state">尚無 LINE 記錄</div>';return;}
+  dates.forEach(date=>{
+    const item=document.createElement('div');item.className='meeting-record';
+    const msgs=grouped[date];
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${date}</span><span class="meeting-record-title">共 ${msgs.length} 則訊息</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd"><div class="line-msg-wrap">${msgs.map(m=>`<div class="line-date-divider">${date}</div><div class="line-msg ${m.sender==='designer'?'right':''}"><div class="line-av">${m.sender==='designer'?'設':'客'}</div><div><div class="line-name">${m.sender==='designer'?'設計師':'客戶'}</div><div class="line-bubble">${m.content}</div></div></div>`).join('')}</div></div>`;
+    el.appendChild(item);
+  });
+}
+
+function renderClientFormalMeetings(d){
+  const el=document.getElementById('client-formal-meetings');el.innerHTML='';
+  const sorted=[...(d.formalMeetings||[])].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議記錄</div>';return;}
+  sorted.forEach(m=>{
+    const item=document.createElement('div');item.className='meeting-record';
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${m.content}</div>`;
+    el.appendChild(item);
+  });
+}
+
+function toggleMeetingRecord(hd){
+  hd.querySelector('.meeting-record-arr').classList.toggle('open');
+  hd.nextElementSibling.classList.toggle('open');
+}
+function toggleOldVersions(id){
+  const el=document.getElementById(id);el.classList.toggle('open');
+  const toggle=el.previousElementSibling;toggle.textContent=(el.classList.contains('open')?'▾':'▸')+' 舊版本資料';
+}
+function switchMeetingTab(tab,el){
+  document.querySelectorAll('#p-docs .meeting-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('meeting-line-panel').style.display=tab==='line'?'block':'none';
+  document.getElementById('meeting-formal-panel').style.display=tab==='formal'?'block':'none';
+}
+
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+
+function addDrawingVersion(){
+  const cid=getAdminDocClientId();
+  const note=document.getElementById('drawing-version-note').value.trim();
+  if(!note){alert('請填寫版本說明');return;}
+  const isFinal=document.getElementById('drawing-is-final').checked;
+  if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
+  if(isFinal)docsData[cid].drawings[currentDrawingType].forEach(v=>v.isFinal=false);
+  docsData[cid].drawings[currentDrawingType].unshift({id:nextDocId++,note,date:todayStr(),isFinal});
+  document.getElementById('drawing-version-note').value='';document.getElementById('drawing-is-final').checked=false;
+  renderAdminDrawingList(cid);
+}
+function toggleFinal(cid,type,idx){
+  const vers=docsData[cid].drawings[type];
+  const cur=vers[idx].isFinal;
+  vers.forEach(v=>v.isFinal=false);
+  vers[idx].isFinal=!cur;
+  renderAdminDrawingList(cid);
+}
+function removeDrawing(cid,type,idx){
+  if(!confirm('確定刪除此版本？'))return;
+  docsData[cid].drawings[type].splice(idx,1);renderAdminDrawingList(cid);
+}
+
+function switchAdminMeetingTab(tab,el){
+  adminMeetingTab=tab;
+  document.querySelectorAll('#a-docs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('admin-line-panel').style.display=tab==='line'?'block':'none';
+  document.getElementById('admin-formal-panel').style.display=tab==='formal'?'block':'none';
+}
+
+function renderAdminLineList(cid){
+  const msgs=docsData[cid].lineMsgs||[];
+  const el=document.getElementById('admin-line-list');el.innerHTML='';
+  if(!msgs.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無 LINE 訊息</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  msgs.forEach((m,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon" style="background:${m.sender==='designer'?'var(--ink)':'var(--green-pale)'};color:${m.sender==='designer'?'#fff':'var(--green)'};">${m.sender==='designer'?'設':'客'}</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${m.date}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${m.content}</div></div><button class="btn-sm danger" onclick="removeLineMsg(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+
+function addLineMsg(){
+  const cid=getAdminDocClientId();
+  const date=document.getElementById('line-date').value;
+  const sender=document.getElementById('line-sender').value;
+  const content=document.getElementById('line-content').value.trim();
+  if(!date||!content){alert('請填寫日期和內容');return;}
+  docsData[cid].lineMsgs.push({date:date.replace(/-/g,'/'),sender,content});
+  document.getElementById('line-content').value='';
+  renderAdminLineList(cid);
+}
+function removeLineMsg(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].lineMsgs.splice(idx,1);renderAdminLineList(cid);}
+
+function renderAdminFormalList(cid){
+  const meetings=docsData[cid].formalMeetings||[];
+  const el=document.getElementById('admin-formal-list');el.innerHTML='';
+  if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議記錄</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  meetings.forEach((m,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">📝</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${m.content.substring(0,40)}…</div></div><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+function addFormalMeeting(){
+  const cid=getAdminDocClientId();
+  const date=document.getElementById('formal-date').value;
+  const title=document.getElementById('formal-title').value.trim();
+  const content=document.getElementById('formal-content').value.trim();
+  if(!date||!title||!content){alert('請填寫所有欄位');return;}
+  docsData[cid].formalMeetings.push({date:date.replace(/-/g,'/'),title,content});
+  document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
+  renderAdminFormalList(cid);
+}
+function removeFormal(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].formalMeetings.splice(idx,1);renderAdminFormalList(cid);}
+
+function renderAdminContractList(cid){
+  const el=document.getElementById('admin-contract-list');el.innerHTML='';
+  const contracts=docsData[cid].contracts||[];
+  if(!contracts.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無合約</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  contracts.forEach((c,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${c.name}</div><div class="ufile-meta">${c.date}</div><button class="btn-sm danger" onclick="removeContract(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+function addContract(){
+  const cid=getAdminDocClientId();
+  const name=document.getElementById('contract-name').value.trim();
+  if(!name){alert('請填寫合約名稱');return;}
+  docsData[cid].contracts=[{id:nextDocId++,name,date:todayStr(),size:'—'}];
+  document.getElementById('contract-name').value='';
+  renderAdminContractList(cid);
+}
+function removeContract(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);}
+
+function renderAdminQuoteList(cid){
+  const el=document.getElementById('admin-quote-list');el.innerHTML='';
+  const quotes=docsData[cid].quotes||[];
+  if(!quotes.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無報價</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  quotes.forEach((q,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${q.name}</div><div class="ufile-meta">${q.date}</div><button class="btn-sm danger" onclick="removeQuote(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+function addQuote(){
+  const cid=getAdminDocClientId();
+  const name=document.getElementById('quote-name').value.trim();
+  if(!name){alert('請填寫報價名稱');return;}
+  docsData[cid].quotes.unshift({id:nextDocId++,name,date:todayStr(),size:'—'});
+  document.getElementById('quote-name').value='';
+  renderAdminQuoteList(cid);
+}
+function removeQuote(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);}
+
+function todayStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');}
+function nowStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+
+// ========== KNOWLEDGE ==========
+function renderKnowledge(){
+  const c=clients.find(x=>x.id===currentClientId);
+  const el=document.getElementById('know-list');el.innerHTML='';
+  (c?c.assigned:[]).forEach(aid=>{
+    const a=articles.find(x=>x.id===aid);if(!a)return;
+    const d=document.createElement('div');d.className='know-item';
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">${a.tag}</span></div></div><div class="know-bd">${a.body}</div>`;
+    el.appendChild(d);
+  });
+  if(!el.children.length)el.innerHTML='<div class="empty-state">尚未指派任何文章</div>';
+}
+function toggleKnow(hd){hd.querySelector('.know-arr').classList.toggle('open');hd.nextElementSibling.classList.toggle('open');}
+
+// ========== CHECKLIST ==========
+function switchStab(id,el){
+  document.querySelectorAll('#p-checklist .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  ['cl-app','cl-fur','cl-pow'].forEach(t=>{document.getElementById(t).style.display=t===id?'block':'none';});
+}
+function renderChecklists(){renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();}
+function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
+function renderAppTable(type,data){
+  const tb=document.getElementById(type+'-tbody');tb.innerHTML='';
+  data.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    ['name','brand'].forEach(k=>{const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.placeholder=k==='name'?'名稱':'品牌';inp.oninput=e=>r[k]=e.target.value;td.appendChild(inp);tr.appendChild(td);});
+    const tdL=document.createElement('td');tdL.appendChild(mkSel(LOC,r.loc,e=>r.loc=e.target.value));tr.appendChild(tdL);
+    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model;mi.placeholder='型號';mi.oninput=e=>r.model=e.target.value;tdM.appendChild(mi);tr.appendChild(tdM);
+    const tdS=document.createElement('td');tdS.appendChild(mkSel(STAT,r.status,e=>r.status=e.target.value));tr.appendChild(tdS);
+    const tdD=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';db.onclick=()=>{data.splice(i,1);renderAppTable(type,data);};tdD.appendChild(db);tr.appendChild(tdD);
+    tb.appendChild(tr);
+  });
+}
+function renderPowTable(){
+  const tb=document.getElementById('pow-tbody');tb.innerHTML='';
+  powData.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const n=document.createElement('td');const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';ni.oninput=e=>r.name=e.target.value;n.appendChild(ni);tr.appendChild(n);
+    const tl=document.createElement('td');tl.appendChild(mkSel(LOC,r.loc,e=>r.loc=e.target.value));tr.appendChild(tl);
+    ['w','v','qty'].forEach(k=>{const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.style.width='65px';inp.oninput=e=>{r[k]=e.target.value;refreshPow(tr,r);};td.appendChild(inp);tr.appendChild(td);});
+    const ta=document.createElement('td');ta.className='av';tr.appendChild(ta);
+    const tc=document.createElement('td');tr.appendChild(tc);
+    const tn=document.createElement('td');const ni2=document.createElement('input');ni2.className='ci';ni2.value=r.note;ni2.placeholder='備註';ni2.oninput=e=>r.note=e.target.value;tn.appendChild(ni2);tr.appendChild(tn);
+    const td2=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';db.onclick=()=>{powData.splice(i,1);renderPowTable();};td2.appendChild(db);tr.appendChild(td2);
+    tb.appendChild(tr);refreshPow(tr,r);
+  });
+}
+function refreshPow(tr,r){
+  const w=parseFloat(r.w)||0,v=parseFloat(r.v)||110,q=parseInt(r.qty)||1;
+  const a=w?Math.round(w*q/v*10)/10:0;const circ=a>=10?'需專用迴路':'一般插座';
+  tr.children[5].textContent=w?a+' A':'—';
+  tr.children[6].innerHTML=w?`<span class="psm cir-${circ}">${circ}</span>`:'';
+}
+function addRow(type){
+  if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('app',appData);}
+  else if(type==='fur'){furData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('fur',furData);}
+  else{powData.push({name:'',loc:'客廳',w:'',v:'110',qty:'1',note:''});renderPowTable();}
+}
+
+// ========== CALENDAR ==========
+function dkey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function renderCalendar(){
+  const MN=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const DL=['日','一','二','三','四','五','六'];
+  document.getElementById('cal-label').textContent=curYear+'年 '+MN[curMonth];
+  const g=document.getElementById('cal-grid');g.innerHTML='';
+  DL.forEach(l=>{const d=document.createElement('div');d.className='cdl';d.textContent=l;g.appendChild(d);});
+  const first=new Date(curYear,curMonth,1).getDay();
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+  const prevDim=new Date(curYear,curMonth,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++){const c=document.createElement('div');c.className='cday om';const n=document.createElement('div');n.className='cdn';n.textContent=prevDim-first+1+i;c.appendChild(n);g.appendChild(c);}
+  for(let d=1;d<=dim;d++){
+    const key=dkey(curYear,curMonth,d);
+    const evts=CAL_EVENTS[key]||[],hasLog=!!calLogs[key];
+    const isHol=evts.some(e=>e.type==='hol');
+    const isToday=d===today.getDate()&&curMonth===today.getMonth()&&curYear===today.getFullYear();
+    const c=document.createElement('div');
+    c.className='cday'+(isHol?' hol':'')+(hasLog?' has-log':'')+(isToday?' today':'')+(selDate===key?' sel':'');
+    c.onclick=()=>selectDate(key);
+    const n=document.createElement('div');n.className='cdn';n.textContent=d;c.appendChild(n);
+    evts.slice(0,2).forEach(e=>{const t=document.createElement('div');t.className='cetag'+(e.type==='bk'?' bk':'');t.textContent=e.label;c.appendChild(t);});
+    if(hasLog){const p=document.createElement('div');p.className='cpc';p.textContent=calLogs[key].photos.length+' 張照片';c.appendChild(p);}
+    g.appendChild(c);
+  }
+  const rem=(7-(first+dim)%7)%7;
+  for(let i=1;i<=rem;i++){const c=document.createElement('div');c.className='cday om';const n=document.createElement('div');n.className='cdn';n.textContent=i;c.appendChild(n);g.appendChild(c);}
+  if(selDate)renderDetail();
+}
+function selectDate(key){selDate=key;renderCalendar();document.getElementById('det-card').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function renderDetail(){
+  if(!selDate){document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看或新增施工記錄</div>';return;}
+  const[y,m,d]=selDate.split('-');
+  document.getElementById('det-date').textContent=y+'年'+parseInt(m)+'月'+parseInt(d)+'日';
+  const evts=CAL_EVENTS[selDate]||[],log=calLogs[selDate]||{work:'',photos:[]};
+  const body=document.getElementById('det-body');body.innerHTML='';
+  if(evts.length){const chips=document.createElement('div');chips.className='det-chips';evts.forEach(e=>{const c=document.createElement('span');c.className='det-chip chip-'+(e.type==='hol'?'hol':'bk');c.textContent=e.label;chips.appendChild(c);});body.appendChild(chips);}
+  const sl=document.createElement('div');sl.className='sec-lbl';sl.textContent='本日施工記錄';body.appendChild(sl);
+  const ta=document.createElement('textarea');ta.className='log-ta';ta.placeholder='記錄今日施工內容…';ta.value=log.work;ta.oninput=e=>{if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};calLogs[selDate].work=e.target.value;};body.appendChild(ta);
+  const pl=document.createElement('div');pl.className='sec-lbl';pl.textContent='施工照片';body.appendChild(pl);
+  const pg=document.createElement('div');pg.className='photo-grid';
+  (log.photos||[]).forEach((src,i)=>{const w=document.createElement('div');w.className='pt';const img=document.createElement('img');img.src=src;img.alt='施工照片';const dp=document.createElement('button');dp.className='dp';dp.textContent='×';dp.onclick=ev=>{ev.stopPropagation();calLogs[selDate].photos.splice(i,1);renderDetail();renderCalendar();};w.appendChild(img);w.appendChild(dp);pg.appendChild(w);});
+  const ab=document.createElement('div');ab.className='pa';ab.innerHTML='<div class="pa-icon">+</div><div class="pa-lbl">上傳照片</div>';ab.onclick=()=>document.getElementById('file-input').click();pg.appendChild(ab);body.appendChild(pg);
+  const sr=document.createElement('div');sr.className='save-row';const sb=document.createElement('button');sb.className='btn-ink';sb.textContent='儲存記錄';
+  sb.onclick=()=>{if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};calLogs[selDate].work=ta.value;renderCalendar();sb.textContent='已儲存 ✓';setTimeout(()=>sb.textContent='儲存記錄',1500);};sr.appendChild(sb);body.appendChild(sr);
+}
+function handleFiles(e){
+  if(!selDate)return;if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};
+  const files=Array.from(e.target.files);let loaded=0;
+  files.forEach(f=>{const r=new FileReader();r.onload=ev=>{calLogs[selDate].photos.push(ev.target.result);loaded++;if(loaded===files.length){renderDetail();renderCalendar();}};r.readAsDataURL(f);});e.target.value='';
+}
+function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}selDate=null;renderCalendar();document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看或新增施工記錄</div>';document.getElementById('det-date').textContent='';}
+function goToday(){const t=new Date();curYear=t.getFullYear();curMonth=t.getMonth();selDate=null;renderCalendar();}
+
+
+
+document.getElementById('cm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
+document.getElementById('am-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
+document.getElementById('pm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
+</script>
+</body>
+</html>
