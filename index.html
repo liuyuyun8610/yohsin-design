@@ -1211,6 +1211,7 @@ async function loadAllData() {
 
     dbReady = true;
     console.log('✅ DB loaded — projects:', projects.length, 'clients:', clients.length, 'articles:', articles.length);
+    console.log('Clients loaded:', clients.map(c=>({user:c.user, pass:c.pass, name:c.name})));
     console.log('clients data:', clients.map(c=>({user:c.user,pass:c.pass,name:c.name})));
   } catch(e) {
     console.error('❌ loadAllData error:', e);
@@ -1235,10 +1236,14 @@ function showLoader(show) {
 async function dbSaveProject(proj) {
   const row = { name:proj.name, status:proj.status, address:proj.address||'', unit:proj.unit||'', date:proj.date||'', end_date:proj.endDate||'' };
   if (proj.id && projects.find(p=>p.id===proj.id)) {
+    console.log('📝 Updating project', proj.id, row);
     await sb.from('projects').update(row, 'id=eq.'+proj.id);
+    console.log('✅ Project updated');
   } else {
+    console.log('📝 Inserting project', row);
     const res = await sb.from('projects').insert(row);
     if (res && res[0]) proj.id = res[0].id;
+    console.log('✅ Project inserted, id=', proj.id);
   }
 }
 
