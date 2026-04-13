@@ -628,6 +628,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <div><div class="tb-name">有心制作</div><div class="tb-sub">設計師後台</div></div>
     </div>
     <div class="tb-nav">
+      <button class="tnav" id="nav-dashboard" onclick="goAdminPage('a-dashboard',this)" style="display:none;">總覽看板</button>
       <button class="tnav active" onclick="goAdminPage('a-projects',this)">專案管理</button>
       <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
       <button class="tnav" onclick="goAdminPage('a-docs',this)">文件管理</button>
@@ -646,6 +647,7 @@ tbody tr:hover td{background:#FDFAF6;}
   <!-- Mobile menu admin -->
   <div class="mobile-menu" id="mobile-menu-admin" onclick="closeMobileMenu('admin')">
     <div class="mobile-menu-inner" onclick="event.stopPropagation()">
+      <button class="mobile-tnav" id="mobile-nav-dashboard" onclick="goAdminPageMobile('a-dashboard',this)" style="display:none;">總覽看板</button>
       <button class="mobile-tnav active" onclick="goAdminPageMobile('a-projects',this)">專案管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-docs',this)">文件管理</button>
@@ -660,6 +662,70 @@ tbody tr:hover td{background:#FDFAF6;}
     </div>
   </div>
   <div class="pb">
+
+    <!-- 總覽看板 -->
+    <div class="page" id="a-dashboard">
+      <div class="sec-head">
+        <div class="sec-ttl">總覽看板</div>
+        <div style="font-size:12px;color:var(--ink-muted);" id="dash-year-label"></div>
+      </div>
+
+      <!-- 年度統計 -->
+      <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.5rem;">
+        <div class="stat-box"><div class="stat-lbl">當年度合約總額</div><div class="stat-val" id="dash-total" style="font-size:20px;">$0</div></div>
+        <div class="stat-box"><div class="stat-lbl">已收款</div><div class="stat-val gn" id="dash-received" style="font-size:20px;">$0</div></div>
+        <div class="stat-box"><div class="stat-lbl">未收款</div><div class="stat-val am" id="dash-pending" style="font-size:20px;">$0</div></div>
+        <div class="stat-box"><div class="stat-lbl">進行中專案</div><div class="stat-val" id="dash-active-proj" style="font-size:20px;">0</div></div>
+      </div>
+
+      <!-- 利潤彙總 -->
+      <div class="g2" style="margin-bottom:1.5rem;">
+        <div class="card">
+          <div class="card-title">所有專案利潤彙總</div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
+            <span style="font-size:13px;color:var(--ink-muted);">廠商報價總計</span>
+            <span style="font-size:14px;font-family:'Noto Serif TC',serif;" id="dash-vendor-total">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
+            <span style="font-size:13px;color:var(--ink-muted);">客戶報價總計</span>
+            <span style="font-size:14px;font-family:'Noto Serif TC',serif;" id="dash-client-total">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
+            <span style="font-size:13px;color:var(--ink-muted);">利潤總計</span>
+            <span style="font-size:16px;font-weight:500;font-family:'Noto Serif TC',serif;color:var(--green);" id="dash-profit-total">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;">
+            <span style="font-size:13px;color:var(--ink-muted);">平均利潤率</span>
+            <span style="font-size:16px;font-weight:500;color:var(--green);" id="dash-profit-pct">0%</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">各專案收款狀況</div>
+          <div id="dash-proj-list"></div>
+        </div>
+      </div>
+
+      <!-- 各專案利潤明細 -->
+      <div class="card">
+        <div class="card-title">各專案利潤明細</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;min-width:600px;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">專案</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">廠商報價</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">客戶報價</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">利潤</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">利潤率</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">狀態</th>
+              </tr>
+            </thead>
+            <tbody id="dash-profit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <!-- 專案管理 -->
     <div class="page active" id="a-projects">
@@ -840,7 +906,7 @@ tbody tr:hover td{background:#FDFAF6;}
     <div class="page" id="a-docs">
       <div class="sec-head"><div class="sec-ttl">文件管理</div></div>
       <div class="admin-sel-row">
-        <label>選擇客戶：</label>
+        <label>選擇專案：</label>
         <select class="admin-sel" id="docs-client-sel" onchange="renderAdminDocs()"></select>
       </div>
 
@@ -863,7 +929,11 @@ tbody tr:hover td{background:#FDFAF6;}
             <input type="checkbox" id="drawing-is-final" style="width:16px;height:16px;cursor:pointer;">
             <label for="drawing-is-final" style="font-size:13px;cursor:pointer;">標記為最終版</label>
           </div>
-          <button class="btn-ink" onclick="addDrawingVersion()">＋ 新增版本</button>
+          <div>
+            <label class="form-label">選擇檔案（PDF/圖片）</label>
+            <input type="file" id="drawing-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);">
+          </div>
+          <button class="btn-ink" onclick="addDrawingVersion()">＋ 上傳新版本</button>
         </div>
       </div>
 
@@ -877,12 +947,18 @@ tbody tr:hover td{background:#FDFAF6;}
 
         <!-- LINE 記錄：上傳截圖 -->
         <div id="admin-line-panel">
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳 LINE 對話截圖，依日期分組顯示給客戶。</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳 LINE 對話截圖，依日期分組顯示給客戶。備注方便設計師快速識別內容。</div>
           <div id="admin-line-list" style="margin-bottom:1rem;"></div>
           <div class="divider"></div>
-          <div class="form-group">
-            <label class="form-label">截圖日期</label>
-            <input type="date" class="form-input" id="line-date" style="max-width:200px;">
+          <div class="form-grid2" style="margin-bottom:0.8rem;">
+            <div class="form-group">
+              <label class="form-label">截圖日期</label>
+              <input type="date" class="form-input" id="line-date" style="margin-bottom:0;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">備注（設計師內部用）</label>
+              <input class="form-input" id="line-note" placeholder="例：確認平面圖、討論廚房動線" style="margin-bottom:0;">
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">上傳截圖</label>
@@ -924,22 +1000,24 @@ tbody tr:hover td{background:#FDFAF6;}
       <!-- 合約管理 -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-title">合約資料</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此區僅保留最終版合約。上傳新版後，舊版自動移除。<span style="color:var(--accent-light);margin-left:4px;">（正式上線後可直接上傳 PDF）</span></div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此區僅保留最終版合約。上傳新版後，舊版自動移除。</div>
         <div id="admin-contract-list" style="margin-bottom:1rem;"></div>
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div style="flex:1;min-width:200px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-name" placeholder="例：2026.3.8 室內工程合約" style="margin-bottom:0;"></div>
-          <button class="btn-ink" onclick="addContract()">＋ 新增合約</button>
+          <div style="flex:1;min-width:180px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-name" placeholder="例：2026.3.8 室內工程合約" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇 PDF</label><input type="file" id="contract-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addContract()">＋ 上傳合約</button>
         </div>
       </div>
 
       <!-- 報價管理 -->
       <div class="card">
         <div class="card-title">報價資料</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可依日期新增多個版本，所有版本客戶均可查看。<span style="color:var(--accent-light);margin-left:4px;">（正式上線後可直接上傳 PDF）</span></div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可依日期新增多個版本，所有版本客戶均可查看。</div>
         <div id="admin-quote-list" style="margin-bottom:1rem;"></div>
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div style="flex:1;min-width:200px;"><label class="form-label">報價名稱</label><input class="form-input" id="quote-name" placeholder="例：2026.3.8 工程報價單" style="margin-bottom:0;"></div>
-          <button class="btn-ink" onclick="addQuote()">＋ 新增報價</button>
+          <div style="flex:1;min-width:180px;"><label class="form-label">報價名稱</label><input class="form-input" id="quote-name" placeholder="例：2026.3.8 工程報價單" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇 PDF</label><input type="file" id="quote-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addQuote()">＋ 上傳報價</button>
         </div>
       </div>
     </div>
@@ -967,7 +1045,7 @@ tbody tr:hover td{background:#FDFAF6;}
     <div class="page" id="a-logs">
       <div class="sec-head"><div class="sec-ttl">施工日誌管理</div></div>
       <div class="admin-sel-row">
-        <label>選擇客戶：</label>
+        <label>選擇專案：</label>
         <select class="admin-sel" id="log-client-sel" onchange="renderAdminLogs()"></select>
       </div>
       <div class="g2" style="margin-bottom:0;">
@@ -1082,6 +1160,12 @@ tbody tr:hover td{background:#FDFAF6;}
         </div>
         <div class="fg"><label>狀態</label><select id="cm-status"><option>進行中</option><option>待付款</option><option>已完工</option></select></div>
         <div class="fg"><label>備註（選填）</label><input id="cm-note"></div>
+        <div class="fg" style="grid-column:1/-1;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+            <input type="checkbox" id="cm-is-boss" style="width:16px;height:16px;cursor:pointer;">
+            開放「總覽看板」權限（適用老闆或高層帳號）
+          </label>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closeCM()">取消</button>
@@ -1107,6 +1191,10 @@ tbody tr:hover td{background:#FDFAF6;}
         <select id="pm-status">
           <option>待開案</option><option>進行中</option><option>待付款</option><option>已完工</option>
         </select>
+      </div>
+      <div class="fg-2">
+        <div class="fg"><label>合約總金額（元）</label><input type="number" id="pm-contract-amount" placeholder="0" style="padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;width:100%;"></div>
+        <div class="fg"><label>已收款金額（元）</label><input type="number" id="pm-received-amount" placeholder="0" style="padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;width:100%;"></div>
       </div>
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closePM()">取消</button>
@@ -1213,14 +1301,17 @@ async function loadAllData() {
     projects = (projData||[]).map(p => ({
       id:p.id, name:p.name, status:p.status,
       address:p.address||'', unit:p.unit||'',
-      date:p.date||'', endDate:p.end_date||''
+      date:p.date||'', endDate:p.end_date||'',
+      contractAmount:Number(p.contract_amount)||0,
+      receivedAmount:Number(p.received_amount)||0
     }));
     nextPId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
 
     clients = (clientData||[]).map(c => ({
       id:c.id, user:c.username||'', pass:c.password||'', name:c.name||'',
       projectId:c.project_id||null, status:c.status||'進行中', note:c.note||'',
-      assigned: Array.isArray(c.assigned_articles) ? c.assigned_articles.map(Number) : []
+      assigned: Array.isArray(c.assigned_articles) ? c.assigned_articles.map(Number) : [],
+      isBoss: c.is_boss||false
     }));
     nextCId = clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1;
 
@@ -1261,7 +1352,7 @@ function showLoader(show) {
 // =============================================
 
 async function dbSaveProject(proj) {
-  const row = { name:proj.name, status:proj.status, address:proj.address||'', unit:proj.unit||'', date:proj.date||'', end_date:proj.endDate||'' };
+  const row = { name:proj.name, status:proj.status, address:proj.address||'', unit:proj.unit||'', date:proj.date||'', end_date:proj.endDate||'', contract_amount:proj.contractAmount||0, received_amount:proj.receivedAmount||0 };
   if (proj.id && projects.find(p=>p.id===proj.id)) {
     console.log('📝 Updating project', proj.id, row);
     await sb.from('projects').update(row, 'id=eq.'+proj.id);
@@ -1490,6 +1581,7 @@ function doLogin(){
   if(loginMode==='admin'){
     if(u==='admin'&&p===adminPassword){
       showScreen('s-admin');
+      showDashboardNav(true);
       renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
       populateDocsClientSel();renderAdminDocs();populateLogClientSel();renderAdminLogs();
     } else err.textContent='帳號或密碼錯誤';
@@ -1501,13 +1593,37 @@ function doLogin(){
       document.getElementById('tb-client-name').textContent=c.name;
       const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
       document.getElementById('p-proj-title').textContent=proj?proj.name:'';
+      // Boss client → redirect to admin dashboard view
+      if(c.isBoss){
+        showScreen('s-admin');
+        showDashboardNav(true);
+        // Hide all nav except dashboard
+        document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>{
+          if(b.id!=='nav-dashboard') b.style.display='none';
+        });
+        const dashBtn=document.getElementById('nav-dashboard');
+        if(dashBtn){ document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>b.classList.remove('active')); dashBtn.classList.add('active'); }
+        document.querySelectorAll('#s-admin .pb .page').forEach(pg=>pg.classList.remove('active'));
+        document.getElementById('a-dashboard').classList.add('active');
+        renderDashboard();
+        return;
+      }
       showScreen('s-client');
       renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();
     } else err.textContent='帳號或密碼錯誤，請再試一次';
   }
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogout(){showScreen('s-login');document.getElementById('l-user').value='';document.getElementById('l-pass').value='';document.getElementById('l-err').textContent='';currentClientId=null;}
+function doLogout(){
+  showScreen('s-login');
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
+  document.getElementById('l-err').textContent='';
+  currentClientId=null;
+  showDashboardNav(false);
+  // Restore all admin nav buttons
+  document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>b.style.display='');
+}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
 // ========== NAV ==========
@@ -1520,6 +1636,7 @@ function goAdminPage(id,el){
   if(el)el.classList.add('active');
   document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if(id==='a-dashboard') renderDashboard();
   if(id==='a-docs'){populateDocsClientSel();renderAdminDocs();}
   if(id==='a-logs'){populateLogClientSel();renderAdminLogs();}
   if(id==='a-assign'){renderAssignClist();}
@@ -1635,17 +1752,17 @@ function renderProgressTable(){
           ${PROG_STATUSES.map(s=>`<option value="${s}" ${s===item.status?'selected':''}>${s}</option>`).join('')}
         </select>
       </td>
-      <td style="padding:10px 10px;">
-        <input style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;"
-               value="${item.startDate}" placeholder="例：4/9"
-               oninput="progressData[${pid}][${i}].startDate=this.value;updateProgressPreview()"
+      <td style="padding:6px 10px;">
+        <input type="date" style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;"
+               value="${item.startDate?item.startDate.replace(/\//g,'-'):''}"
+               onchange="progressData[${pid}][${i}].startDate=this.value?this.value.replace(/-/g,'/'):'';updateProgressPreview()"
                onfocus="this.style.borderColor='var(--accent-light)';this.style.background='#fff'"
                onblur="this.style.borderColor='var(--border)';this.style.background='var(--sand)'">
       </td>
-      <td style="padding:10px 10px;">
-        <input style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;"
-               value="${item.endDate}" placeholder="例：4/17"
-               oninput="progressData[${pid}][${i}].endDate=this.value;updateProgressPreview()"
+      <td style="padding:6px 10px;">
+        <input type="date" style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;"
+               value="${item.endDate?item.endDate.replace(/\//g,'-'):''}"
+               onchange="progressData[${pid}][${i}].endDate=this.value?this.value.replace(/-/g,'/'):'';updateProgressPreview()"
                onfocus="this.style.borderColor='var(--accent-light)';this.style.background='#fff'"
                onblur="this.style.borderColor='var(--border)';this.style.background='var(--sand)'">
       </td>
@@ -1687,6 +1804,105 @@ function updateProgressPreview(){
       ${colItems.length ? colItems.map(it=>`<div class="prog-item">${it.name}${it.startDate||it.endDate?'<div class="prog-item-sub">'+[it.startDate,it.endDate].filter(Boolean).join(' → ')+'</div>':''}</div>`).join('') : '<div style="font-size:12px;color:var(--ink-light);">（無）</div>'}
     </div>`;
   }).join('');
+}
+
+// ========== DASHBOARD ==========
+function showDashboardNav(show){
+  const d=document.getElementById('nav-dashboard');
+  const md=document.getElementById('mobile-nav-dashboard');
+  if(d)d.style.display=show?'':'none';
+  if(md)md.style.display=show?'':'none';
+}
+
+async function renderDashboard(){
+  const year=new Date().getFullYear();
+  document.getElementById('dash-year-label').textContent=year+'年度';
+
+  // Load profit data for all projects
+  for(const p of projects){
+    if(!profitData[p.id]){
+      initProjData(p.id);
+      try{ await dbLoadProfit(p.id); }catch(e){}
+    }
+  }
+
+  // Year's projects (by start date)
+  const yearProjects = projects.filter(p=>{
+    if(!p.date) return true;
+    return p.date.startsWith(String(year)) || p.date.startsWith(String(year-1)) || p.status==='進行中';
+  });
+
+  // Contract amounts
+  const totalContract = projects.reduce((s,p)=>s+(p.contractAmount||0),0);
+  const totalReceived = projects.reduce((s,p)=>s+(p.receivedAmount||0),0);
+  const totalPending  = totalContract - totalReceived;
+  const activeProj    = projects.filter(p=>p.status==='進行中').length;
+
+  document.getElementById('dash-total').textContent    = '$'+fmtN(totalContract);
+  document.getElementById('dash-received').textContent = '$'+fmtN(totalReceived);
+  document.getElementById('dash-pending').textContent  = '$'+fmtN(totalPending);
+  document.getElementById('dash-active-proj').textContent = activeProj;
+
+  // Profit totals across all projects
+  let grandVendor=0, grandClient=0;
+  projects.forEach(p=>{
+    if(!profitData[p.id]) return;
+    Object.values(profitData[p.id]).forEach(item=>{
+      grandVendor += item.vendor||0;
+      grandClient += item.client||0;
+    });
+  });
+  const grandProfit = grandClient - grandVendor;
+  const grandPct = grandClient>0 ? (grandProfit/grandClient*100) : 0;
+
+  document.getElementById('dash-vendor-total').textContent = '$'+fmtN(grandVendor);
+  document.getElementById('dash-client-total').textContent = '$'+fmtN(grandClient);
+  document.getElementById('dash-profit-total').textContent = '$'+fmtN(grandProfit);
+  document.getElementById('dash-profit-pct').textContent   = grandPct.toFixed(1)+'%';
+
+  // Per-project payment list
+  const pl = document.getElementById('dash-proj-list');
+  pl.innerHTML = projects.length ? '' : '<div class="empty-state">尚無專案</div>';
+  projects.forEach(p=>{
+    const contract = p.contractAmount||0;
+    const received = p.receivedAmount||0;
+    const pending  = contract - received;
+    const pct      = contract>0 ? Math.round(received/contract*100) : 0;
+    const sc       = p.status==='進行中'?'pill-green':p.status==='待付款'?'pill-amber':'pill-gray';
+    const row = document.createElement('div');
+    row.style.cssText='padding:10px 0;border-bottom:0.5px solid var(--border);';
+    row.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:500;">${p.name}</span>
+        <span class="pill ${sc}" style="font-size:10px;">${p.status}</span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--ink-muted);margin-bottom:6px;">
+        <span>合約：<b style="color:var(--ink);">$${fmtN(contract)}</b></span>
+        <span>已收：<b style="color:var(--green);">$${fmtN(received)}</b></span>
+        <span>待收：<b style="color:${pending>0?'var(--red)':'var(--ink-muted)'};">$${fmtN(pending)}</b></span>
+      </div>
+      ${contract>0?`<div style="height:5px;background:var(--sand-dark);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px;transition:width 0.4s;"></div></div>`:''}`;
+    pl.appendChild(row);
+  });
+
+  // Per-project profit table
+  const tb = document.getElementById('dash-profit-tbody');
+  tb.innerHTML = '';
+  projects.forEach(p=>{
+    let v=0,c=0;
+    if(profitData[p.id]) Object.values(profitData[p.id]).forEach(item=>{v+=item.vendor||0;c+=item.client||0;});
+    const profit=c-v; const pct=c>0?(profit/c*100):null;
+    const sc=p.status==='進行中'?'pill-green':p.status==='待付款'?'pill-amber':'pill-gray';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="padding:10px 14px;font-weight:500;">${p.name}</td>
+      <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;">$${fmtN(v)}</td>
+      <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;">$${fmtN(c)}</td>
+      <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;color:${profit>=0?'var(--green)':'var(--red)'};">$${fmtN(profit)}</td>
+      <td style="padding:10px 14px;text-align:right;color:${pct!==null&&pct>=0?'var(--green)':'var(--red)'};">${pct!==null?pct.toFixed(1)+'%':'—'}</td>
+      <td style="padding:10px 14px;"><span class="pill ${sc}">${p.status}</span></td>`;
+    tb.appendChild(tr);
+  });
 }
 
 // ========== PROJECTS ==========
@@ -1887,13 +2103,15 @@ function openPM(id){
     document.getElementById('pm-end-date').value=(p.endDate||'').replace(/\//g,'-');
     document.getElementById('pm-address').value=p.address||'';
     document.getElementById('pm-unit').value=p.unit||'';
+    document.getElementById('pm-contract-amount').value=p.contractAmount||'';
+    document.getElementById('pm-received-amount').value=p.receivedAmount||'';
   } else {
-    document.getElementById('pm-name').value='';
-    document.getElementById('pm-address').value='';
-    document.getElementById('pm-unit').value='';
+    ['pm-name','pm-address','pm-unit'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('pm-status').value='進行中';
     document.getElementById('pm-date').value='';
     document.getElementById('pm-end-date').value='';
+    document.getElementById('pm-contract-amount').value='';
+    document.getElementById('pm-received-amount').value='';
   }
   document.getElementById('pm-modal').style.display='block';
 }
@@ -1906,16 +2124,18 @@ async function saveProject(){
   const unit=document.getElementById('pm-unit').value.trim();
   const date=document.getElementById('pm-date').value.replace(/-/g,'/');
   const endDate=document.getElementById('pm-end-date').value.replace(/-/g,'/');
+  const contractAmount=parseFloat(document.getElementById('pm-contract-amount').value)||0;
+  const receivedAmount=parseFloat(document.getElementById('pm-received-amount').value)||0;
   showLoader(true);
   try {
     if(editPId){
       const p=projects.find(x=>x.id===editPId);
-      Object.assign(p,{name,status,address,unit,date,endDate});
+      Object.assign(p,{name,status,address,unit,date,endDate,contractAmount,receivedAmount});
       await dbSaveProject(p);
       const c=clients.find(x=>x.projectId===editPId);
       if(c){c.status=status;await dbSaveClient(c);}
     } else {
-      const proj={name,status,address,unit,date,endDate};
+      const proj={name,status,address,unit,date,endDate,contractAmount,receivedAmount};
       await dbSaveProject(proj);
       projects.push(proj);
       docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
@@ -1966,7 +2186,7 @@ function openCM(id){
   editCId=id||null;
   document.getElementById('cm-ttl').textContent=id?'編輯客戶':'新增客戶';
   populateProjSel('cm-proj-sel',null);
-  if(id){const c=clients.find(x=>x.id===id);document.getElementById('cm-user').value=c.user;document.getElementById('cm-pass').value=c.pass;document.getElementById('cm-name').value=c.name;document.getElementById('cm-status').value=c.status;document.getElementById('cm-note').value=c.note||'';document.getElementById('cm-proj-sel').value=c.projectId||'';}
+  if(id){const c=clients.find(x=>x.id===id);document.getElementById('cm-user').value=c.user;document.getElementById('cm-pass').value=c.pass;document.getElementById('cm-name').value=c.name;document.getElementById('cm-status').value=c.status;document.getElementById('cm-note').value=c.note||'';document.getElementById('cm-proj-sel').value=c.projectId||'';document.getElementById('cm-is-boss').checked=c.isBoss||false;}
   else{['cm-user','cm-pass','cm-name','cm-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('cm-status').value='進行中';}
   document.getElementById('cm-modal').style.display='block';
 }
@@ -1976,26 +2196,24 @@ async function saveClient(){
   const n=document.getElementById('cm-name').value.trim();
   const projId=parseInt(document.getElementById('cm-proj-sel').value)||null;
   const st=document.getElementById('cm-status').value, no=document.getElementById('cm-note').value.trim();
+  const isBoss=document.getElementById('cm-is-boss').checked;
   if(!u||!p||!n){alert('請填寫帳號、密碼和客戶名稱');return;}
   showLoader(true);
   try{
     if(editCId){
       const c=clients.find(x=>x.id===editCId);
-      Object.assign(c,{user:u,pass:p,name:n,projectId:projId,status:st,note:no});
-      const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:c.assigned||[]};
+      Object.assign(c,{user:u,pass:p,name:n,projectId:projId,status:st,note:no,isBoss});
+      const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:c.assigned||[],is_boss:isBoss};
       const {error}=await sbClient.from('clients').update(row).eq('id',editCId);
       if(error) throw new Error('更新失敗：'+error.message);
-      console.log('✅ Client updated id=',editCId);
     } else {
       if(clients.find(x=>x.user===u)){alert('帳號已存在');showLoader(false);return;}
-      const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:[]};
-      console.log('📝 Inserting client:', JSON.stringify(row));
+      const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:[],is_boss:isBoss};
       const {data,error}=await sbClient.from('clients').insert(row).select();
       if(error) throw new Error('新增失敗：'+error.message);
       if(!data||!data[0]) throw new Error('新增後未取得 id，請重試');
       const dbId=data[0].id;
-      console.log('✅ Client inserted, id=',dbId);
-      const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[]};
+      const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[],isBoss};
       clients.push(newClient);
       nextCId=Math.max(nextCId,dbId+1);
       docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
@@ -2010,7 +2228,10 @@ async function saveClient(){
 }
 async function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('確定刪除「'+c.name+'」？'))return;showLoader(true);try{await dbDeleteClient(id);}catch(e){alert('刪除失敗：'+e.message);showLoader(false);return;}clients=clients.filter(x=>x.id!==id);showLoader(false);renderAdminClients();populateDocsClientSel();populateLogClientSel();}
 function goToClientDocs(cid){
-  populateDocsClientSel();document.getElementById('docs-client-sel').value=cid;
+  const c=clients.find(x=>x.id===cid);
+  const pid=c?c.projectId:null;
+  populateDocsClientSel();
+  if(pid) document.getElementById('docs-client-sel').value=pid;
   goAdminPage('a-docs',document.querySelectorAll('#s-admin .tb-nav .tnav')[2]);renderAdminDocs();
 }
 
@@ -2070,10 +2291,11 @@ function switchMeetingTab(tab,el){document.querySelectorAll('#p-docs .meeting-ta
 function populateDocsClientSel(){
   const sel=document.getElementById('docs-client-sel');if(!sel)return;
   const cur=sel.value;sel.innerHTML='';
-  clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  if(!projects.length){const o=document.createElement('option');o.value='';o.textContent='（尚無專案）';sel.appendChild(o);return;}
+  projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
   if(cur)sel.value=cur;
 }
-function getAdminDocClientId(){return parseInt(document.getElementById('docs-client-sel').value)||1;}
+function getAdminDocClientId(){return parseInt(document.getElementById('docs-client-sel').value)||projects[0]?.id||0;}
 function renderAdminDocs(){
   const cid=getAdminDocClientId();
   if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
@@ -2088,18 +2310,85 @@ function renderAdminDrawingList(cid){
   vers.forEach((v,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${currentDrawingType} — ${v.note}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div><div class="ufile-meta">${v.date}</div><button class="btn-sm" onclick="toggleFinal(${cid},'${currentDrawingType}',${i})">${v.isFinal?'取消最終':'設為最終'}</button><button class="btn-sm danger" onclick="removeDrawing(${cid},'${currentDrawingType}',${i})">刪除</button>`;wrap.appendChild(r);});
   el.appendChild(wrap);
 }
+// ========== STORAGE UPLOAD ==========
+async function uploadToStorage(file, folder){
+  const ext=file.name.split('.').pop().toLowerCase();
+  const fileName=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const {data,error}=await sbClient.storage.from('documents').upload(fileName,file,{cacheControl:'3600',upsert:false});
+  if(error) throw new Error('上傳失敗：'+error.message);
+  const {data:u}=sbClient.storage.from('documents').getPublicUrl(fileName);
+  return u.publicUrl;
+}
+function fmtFileSize(b){if(!b)return '—';if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(1)+'MB';}
+
 function addDrawingVersion(){
-  const cid=getAdminDocClientId();const note=document.getElementById('drawing-version-note').value.trim();
+  const cid=getAdminDocClientId();
+  const note=document.getElementById('drawing-version-note').value.trim();
   if(!note){alert('請填寫版本說明');return;}
   const isFinal=document.getElementById('drawing-is-final').checked;
-  if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
-  if(isFinal)docsData[cid].drawings[currentDrawingType].forEach(v=>v.isFinal=false);
-  docsData[cid].drawings[currentDrawingType].unshift({id:nextDocId++,note,date:todayStr(),isFinal});
-  document.getElementById('drawing-version-note').value='';document.getElementById('drawing-is-final').checked=false;
-  renderAdminDrawingList(cid);
+  const fi=document.getElementById('drawing-file-input');
+  const file=fi&&fi.files[0]?fi.files[0]:null;
+  showLoader(true);
+  (async()=>{
+    try{
+      let fileUrl='',size='—';
+      if(file){fileUrl=await uploadToStorage(file,'drawings');size=fmtFileSize(file.size);}
+      if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+      if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
+      if(isFinal)docsData[cid].drawings[currentDrawingType].forEach(v=>v.isFinal=false);
+      docsData[cid].drawings[currentDrawingType].unshift({id:nextDocId++,note,date:todayStr(),isFinal,fileUrl,size});
+      document.getElementById('drawing-version-note').value='';
+      document.getElementById('drawing-is-final').checked=false;
+      if(fi)fi.value='';
+      renderAdminDrawingList(cid);
+    }catch(e){alert(e.message);}
+    showLoader(false);
+  })();
 }
-function toggleFinal(cid,type,idx){const vers=docsData[cid].drawings[type];const cur=vers[idx].isFinal;vers.forEach(v=>v.isFinal=false);vers[idx].isFinal=!cur;renderAdminDrawingList(cid);}
+function toggleFinal(cid,type,idx){const vers=docsData[cid].drawings[type];vers.forEach(v=>v.isFinal=false);vers[idx].isFinal=!vers[idx].isFinal;renderAdminDrawingList(cid);}
 function removeDrawing(cid,type,idx){if(!confirm('確定刪除？'))return;docsData[cid].drawings[type].splice(idx,1);renderAdminDrawingList(cid);}
+
+function addContract(){
+  const cid=getAdminDocClientId();
+  const name=document.getElementById('contract-name').value.trim();
+  if(!name){alert('請填寫合約名稱');return;}
+  const fi=document.getElementById('contract-file-input');
+  const file=fi&&fi.files[0]?fi.files[0]:null;
+  showLoader(true);
+  (async()=>{
+    try{
+      let fileUrl='',size='—';
+      if(file){fileUrl=await uploadToStorage(file,'contracts');size=fmtFileSize(file.size);}
+      docsData[cid].contracts=[{id:nextDocId++,name,date:todayStr(),size,fileUrl}];
+      document.getElementById('contract-name').value='';
+      if(fi)fi.value='';
+      renderAdminContractList(cid);
+    }catch(e){alert(e.message);}
+    showLoader(false);
+  })();
+}
+function removeContract(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);}
+
+function addQuote(){
+  const cid=getAdminDocClientId();
+  const name=document.getElementById('quote-name').value.trim();
+  if(!name){alert('請填寫報價名稱');return;}
+  const fi=document.getElementById('quote-file-input');
+  const file=fi&&fi.files[0]?fi.files[0]:null;
+  showLoader(true);
+  (async()=>{
+    try{
+      let fileUrl='',size='—';
+      if(file){fileUrl=await uploadToStorage(file,'quotes');size=fmtFileSize(file.size);}
+      docsData[cid].quotes.unshift({id:nextDocId++,name,date:todayStr(),size,fileUrl});
+      document.getElementById('quote-name').value='';
+      if(fi)fi.value='';
+      renderAdminQuoteList(cid);
+    }catch(e){alert(e.message);}
+    showLoader(false);
+  })();
+}
+function removeQuote(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);}
 
 function switchAdminMeetingTab(tab,el){
   adminMeetingTab=tab;
@@ -2118,16 +2407,33 @@ function renderAdminLineList(cid){
   const el=document.getElementById('admin-line-list');el.innerHTML='';
   if(!shots.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無截圖記錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  shots.forEach((s,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">📷</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${s.date}</div><div style="font-size:11px;color:var(--ink-light);">${(s.images||[]).length} 張截圖</div></div><button class="btn-sm danger" onclick="removeLineShot(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  shots.forEach((s,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">📷</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:500;">${s.date}</div>
+        <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${(s.images||[]).length} 張截圖${s.note?'　<span style="color:var(--accent);">📝 '+s.note+'</span>':''}</div>
+      </div>
+      <button class="btn-sm danger" onclick="removeLineShot(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
   el.appendChild(wrap);
 }
 function addLineScreenshot(){
-  const cid=getAdminDocClientId();const date=document.getElementById('line-date').value;
-  if(!date){alert('請選擇日期');return;}if(!pendingLineImgs.length){alert('請上傳至少一張截圖');return;}
+  const cid=getAdminDocClientId();
+  const date=document.getElementById('line-date').value;
+  const note=document.getElementById('line-note')?document.getElementById('line-note').value.trim():'';
+  if(!date){alert('請選擇日期');return;}
+  if(!pendingLineImgs.length){alert('請上傳至少一張截圖');return;}
   const dateStr=date.replace(/-/g,'/');
   const existing=docsData[cid].lineScreenshots.find(s=>s.date===dateStr);
-  if(existing){existing.images.push(...pendingLineImgs);}else{docsData[cid].lineScreenshots.push({date:dateStr,images:[...pendingLineImgs]});}
-  pendingLineImgs=[];document.getElementById('line-img-preview').innerHTML='';document.getElementById('line-img-input').value='';document.getElementById('line-date').value='';
+  if(existing){existing.images.push(...pendingLineImgs);if(note)existing.note=note;}
+  else{docsData[cid].lineScreenshots.push({date:dateStr,images:[...pendingLineImgs],note});}
+  pendingLineImgs=[];
+  document.getElementById('line-img-preview').innerHTML='';
+  document.getElementById('line-img-input').value='';
+  document.getElementById('line-date').value='';
+  if(document.getElementById('line-note'))document.getElementById('line-note').value='';
   renderAdminLineList(cid);
 }
 function removeLineShot(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);}
@@ -2160,44 +2466,55 @@ function renderAdminContractList(cid){
   const el=document.getElementById('admin-contract-list');el.innerHTML='';const contracts=docsData[cid].contracts||[];
   if(!contracts.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無合約</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  contracts.forEach((c,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${c.name}</div><div class="ufile-meta">${c.date}</div><button class="btn-sm danger" onclick="removeContract(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  contracts.forEach((c,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${c.fileUrl?`<a href="${c.fileUrl}" target="_blank" style="color:var(--accent);text-decoration:none;">${c.name}</a>`:c.name}</div><div class="ufile-meta">${c.size||'—'}</div><div class="ufile-meta" style="margin-left:8px;">${c.date}</div><button class="btn-sm danger" onclick="removeContract(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
   el.appendChild(wrap);
 }
-function addContract(){const cid=getAdminDocClientId();const name=document.getElementById('contract-name').value.trim();if(!name){alert('請填寫合約名稱');return;}docsData[cid].contracts=[{id:nextDocId++,name,date:todayStr(),size:'—'}];document.getElementById('contract-name').value='';renderAdminContractList(cid);}
-function removeContract(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);}
 
 function renderAdminQuoteList(cid){
   const el=document.getElementById('admin-quote-list');el.innerHTML='';const quotes=docsData[cid].quotes||[];
   if(!quotes.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無報價</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  quotes.forEach((q,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${q.name}</div><div class="ufile-meta">${q.date}</div><button class="btn-sm danger" onclick="removeQuote(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  quotes.forEach((q,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${q.fileUrl?`<a href="${q.fileUrl}" target="_blank" style="color:var(--accent);text-decoration:none;">${q.name}</a>`:q.name}</div><div class="ufile-meta">${q.size||'—'}</div><div class="ufile-meta" style="margin-left:8px;">${q.date}</div><button class="btn-sm danger" onclick="removeQuote(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
   el.appendChild(wrap);
 }
-function addQuote(){const cid=getAdminDocClientId();const name=document.getElementById('quote-name').value.trim();if(!name){alert('請填寫報價名稱');return;}docsData[cid].quotes.unshift({id:nextDocId++,name,date:todayStr(),size:'—'});document.getElementById('quote-name').value='';renderAdminQuoteList(cid);}
-function removeQuote(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);}
 
 // ========== ADMIN LOGS ==========
 function populateLogClientSel(){
   const sel=document.getElementById('log-client-sel');if(!sel)return;
   const cur=sel.value;sel.innerHTML='';
-  clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  if(!projects.length){const o=document.createElement('option');o.value='';o.textContent='（尚無專案）';sel.appendChild(o);return;}
+  projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
   if(cur)sel.value=cur;
 }
+function getLogProjectId(){return parseInt(document.getElementById('log-client-sel').value)||projects[0]?.id||0;}
 function previewLogImgs(e){
   pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';
   Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingLogImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('log-img-preview').appendChild(img);};r.readAsDataURL(f);});
 }
 async function addAdminLog(){
-  const date=document.getElementById('log-date').value;const tag=document.getElementById('log-tag').value.trim();const notes=document.getElementById('log-notes').value.trim();
+  const date=document.getElementById('log-date').value;
+  const tag=document.getElementById('log-tag').value.trim();
+  const notes=document.getElementById('log-notes').value.trim();
   if(!date){alert('請選擇施工日期');return;}
+  const pid=getLogProjectId();
   calLogs[date]={work:notes,tag,photos:[...pendingLogImgs]};
   document.getElementById('log-date').value='';document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
   pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';document.getElementById('log-img-input').value='';
-  if(currentDetailProjId){try{await dbSaveLog(currentDetailProjId,date,calLogs[date]);}catch(e){console.error('log save failed',e);}}
+  if(pid){try{await dbSaveLog(pid,date,calLogs[date]);}catch(e){console.error('log save failed',e);}}
   renderAdminLogs();renderCalendar();
   alert('施工日誌已儲存！');
 }
-function renderAdminLogs(){
+async function renderAdminLogs(){
+  const pid=getLogProjectId();
+  if(pid){try{await dbLoadLogs(pid);}catch(e){console.warn('load logs failed',e);}}
   const el=document.getElementById('admin-log-list');el.innerHTML='';
   const entries=Object.entries(calLogs).sort((a,b)=>b[0].localeCompare(a[0]));
   if(!entries.length){el.innerHTML='<div class="empty-state">尚無施工記錄</div>';return;}
@@ -2208,7 +2525,9 @@ function renderAdminLogs(){
     if(log.tag){const t=document.createElement('span');t.className='pill pill-blue';t.style.cssText='font-size:10px;margin-bottom:6px;display:inline-block;';t.textContent=log.tag;cont.appendChild(t);}
     if(log.work){const t=document.createElement('div');t.className='lwt';t.style.marginTop='4px';t.textContent=log.work;cont.appendChild(t);}
     if(log.photos&&log.photos.length){const row=document.createElement('div');row.className='lpr';log.photos.forEach(src=>{const img=document.createElement('img');img.className='lmp';img.src=src;row.appendChild(img);});cont.appendChild(row);}
-    const del=document.createElement('button');del.className='btn-sm danger';del.style.marginTop='6px';del.textContent='刪除';del.onclick=()=>{if(confirm('確定刪除此日誌？')){delete calLogs[key];renderAdminLogs();renderCalendar();}};cont.appendChild(del);
+    const del=document.createElement('button');del.className='btn-sm danger';del.style.marginTop='6px';del.textContent='刪除';
+    del.onclick=async()=>{if(confirm('確定刪除此日誌？')){if(pid)try{await dbDeleteLog(pid,key);}catch(e){}; delete calLogs[key];renderAdminLogs();renderCalendar();}};
+    cont.appendChild(del);
     item.appendChild(cont);el.appendChild(item);
   });
 }
