@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>有心制作・空間設計 — 客戶專案入口</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap');
@@ -1114,12 +1117,9 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 // supabase init deferred to after SDK loads
 let sbClient = null;
 // =============================================
-// SUPABASE CONFIG (using supabase-js SDK)
+// SUPABASE WRAPPER
 // =============================================
-const SB_URL = 'https://vqxxaameifyvezvozvnf.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxeHhhYW1laWZ5dmV6dm96dm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjYwNjAsImV4cCI6MjA5MTYwMjA2MH0.RHCaYPLv8HDzUYvjqTwch-Xy5j0vQZCeE_ETcykr-Qk';
-
-// Thin wrapper using supabase-js REST directly
+// Thin wrapper using supabase-js SDK
 const sb = {
   from: (table) => ({
     select: async (cols='*') => {
@@ -1176,12 +1176,10 @@ let dbReady = false;
 async function loadAllData() {
   showLoader(true);
   try {
-    const [r1, r2, r3, r4] = await Promise.all([
-      sbClient.from('projects').select('*').order('id',{ascending:true}),
-      sbClient.from('clients').select('*').order('id',{ascending:true}),
-      sbClient.from('articles').select('*').order('sort_order',{ascending:true}),
-      sbClient.from('system_settings').select('*'),
-    ]);
+    const r1 = await sbClient.from('projects').select('*').order('id',{ascending:true});
+    const r2 = await sbClient.from('clients').select('*').order('id',{ascending:true});
+    const r3 = await sbClient.from('articles').select('*').order('sort_order',{ascending:true});
+    const r4 = await sbClient.from('system_settings').select('*');
     if(r1.error) throw new Error('projects: '+r1.error.message);
     if(r2.error) throw new Error('clients: '+r2.error.message);
     if(r3.error) throw new Error('articles: '+r3.error.message);
