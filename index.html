@@ -1740,6 +1740,84 @@ function applyPassword(){
   alert('密碼已更新！下次登入請使用新密碼。');
 }
 
+
+// ========== DB: DOCS ==========
+async function dbLoadDocs(pid){
+  try{
+    const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('sort_order',{ascending:true});
+    if(error) throw error;
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+    // Reset
+    docsData[pid].drawings={'平面系統圖':[],'立面系統圖':[],'效果圖':[]};
+    docsData[pid].contracts=[];
+    docsData[pid].quotes=[];
+    (data||[]).forEach(r=>{
+      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,fileUrl:r.file_url||'',size:r.file_size||'—'};
+      if(r.doc_type.startsWith('drawing_')){
+        const dtype=r.doc_type.replace('drawing_','');
+        if(!docsData[pid].drawings[dtype])docsData[pid].drawings[dtype]=[];
+        docsData[pid].drawings[dtype].push(item);
+      } else if(r.doc_type==='contract'){
+        docsData[pid].contracts.push(item);
+      } else if(r.doc_type==='quote'){
+        docsData[pid].quotes.push(item);
+      }
+    });
+  }catch(e){console.warn('dbLoadDocs failed:',e.message);}
+}
+
+async function dbSaveDoc(pid, docType, item){
+  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr(), sort_order:item.sortOrder||0};
+  if(item.dbId){
+    const {error}=await sbClient.from('project_docs').update(row).eq('id',item.dbId);
+    if(error) throw error;
+  } else {
+    const {data,error}=await sbClient.from('project_docs').insert(row).select();
+    if(error) throw error;
+    if(data&&data[0]) item.dbId=data[0].id;
+  }
+}
+
+async function dbDeleteDoc(dbId){
+  const {error}=await sbClient.from('project_docs').delete().eq('id',dbId);
+  if(error) throw error;
+}
+
+// ========== DB: MEETINGS ==========
+async function dbLoadMeetings(pid){
+  try{
+    const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('sort_order',{ascending:true});
+    if(error) throw error;
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+    docsData[pid].lineScreenshots=[];
+    docsData[pid].formalMeetings=[];
+    (data||[]).forEach(r=>{
+      if(r.meet_type==='line'){
+        docsData[pid].lineScreenshots.push({dbId:r.id, date:r.meet_date, note:r.note||'', images:Array.isArray(r.images)?r.images:[]});
+      } else {
+        docsData[pid].formalMeetings.push({dbId:r.id, date:r.meet_date, title:r.title, content:r.content, images:Array.isArray(r.images)?r.images:[]});
+      }
+    });
+  }catch(e){console.warn('dbLoadMeetings failed:',e.message);}
+}
+
+async function dbSaveMeeting(pid, meetType, item){
+  const row={project_id:pid, meet_type:meetType, meet_date:item.date||'', title:item.title||'', content:item.content||'', note:item.note||'', images:item.images||[], sort_order:item.sortOrder||0};
+  if(item.dbId){
+    const {error}=await sbClient.from('meetings').update(row).eq('id',item.dbId);
+    if(error) throw error;
+  } else {
+    const {data,error}=await sbClient.from('meetings').insert(row).select();
+    if(error) throw error;
+    if(data&&data[0]) item.dbId=data[0].id;
+  }
+}
+
+async function dbDeleteMeeting(dbId){
+  const {error}=await sbClient.from('meetings').delete().eq('id',dbId);
+  if(error) throw error;
+}
+
 // ========== PROGRESS ITEMS ==========
 // progressData[projectId] = [{id, name, status, startDate, endDate}]
 let progressData = {};
@@ -2162,8 +2240,8 @@ function renderProfitTable(){
     if(it.type==='equip')tr.style.background='#EBF2F5';
     tr.innerHTML=`
       <td style="padding:6px 12px;font-size:13px;font-family:'Noto Sans TC',sans-serif;">${it.label}${it.type==='equip'?'<span style="font-size:10px;color:var(--blue);background:var(--blue-pale);padding:1px 6px;border-radius:4px;margin-left:6px;font-family:\'Noto Sans TC\',sans-serif;">設備空調</span>':''}</td>
-      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.vendor||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','vendor',this.value)"></td>
-      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.client||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','client',this.value)"></td>
+      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.vendor||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','vendor',this.value)" onblur="dbSaveProfitItem('${pid}','${it.key}',profitData['${pid}']['${it.key}'].vendor,profitData['${pid}']['${it.key}'].client)"></td>
+      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.client||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','client',this.value)" onblur="dbSaveProfitItem('${pid}','${it.key}',profitData['${pid}']['${it.key}'].vendor,profitData['${pid}']['${it.key}'].client)"></td>
       <td><div class="profit-auto ${profit>=0?'positive':'negative'}">${d.vendor>0||d.client>0?fmtN(profit):'—'}</div></td>
       <td><div class="profit-auto ${pct!==null&&pct>=0?'positive':'negative'}">${pct!==null?pct.toFixed(1)+'%':'—'}</div></td>
       <td style="padding:6px 12px;font-size:11px;color:var(--ink-light);">${it.type==='equip'?'設備空調類':'裝修工程類'}</td>`;
@@ -2438,9 +2516,13 @@ function populateDocsClientSel(){
   if(cur)sel.value=cur;
 }
 function getAdminDocClientId(){return parseInt(document.getElementById('docs-client-sel').value)||projects[0]?.id||0;}
-function renderAdminDocs(){
+async function renderAdminDocs(){
   const cid=getAdminDocClientId();
   if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+  showLoader(true);
+  await dbLoadDocs(cid);
+  await dbLoadMeetings(cid);
+  showLoader(false);
   renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);
 }
 function switchDrawingType(type,el){currentDrawingType=type;document.querySelectorAll('#drawing-type-tabs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderAdminDrawingList(getAdminDocClientId());}
@@ -2477,8 +2559,15 @@ function addDrawingVersion(){
       if(file){fileUrl=await uploadToStorage(file,'drawings');size=fmtFileSize(file.size);}
       if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
       if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
-      if(isFinal)docsData[cid].drawings[currentDrawingType].forEach(v=>v.isFinal=false);
-      docsData[cid].drawings[currentDrawingType].unshift({id:nextDocId++,note,date:todayStr(),isFinal,fileUrl,size});
+      if(isFinal){
+        for(const v of docsData[cid].drawings[currentDrawingType]){
+          if(v.isFinal&&v.dbId){v.isFinal=false;await dbSaveDoc(cid,'drawing_'+currentDrawingType,v);}
+          else{v.isFinal=false;}
+        }
+      }
+      const newItem={note,date:todayStr(),isFinal,fileUrl,size};
+      await dbSaveDoc(cid,'drawing_'+currentDrawingType,newItem);
+      docsData[cid].drawings[currentDrawingType].unshift(newItem);
       document.getElementById('drawing-version-note').value='';
       document.getElementById('drawing-is-final').checked=false;
       if(fi)fi.value='';
@@ -2488,7 +2577,13 @@ function addDrawingVersion(){
   })();
 }
 function toggleFinal(cid,type,idx){const vers=docsData[cid].drawings[type];vers.forEach(v=>v.isFinal=false);vers[idx].isFinal=!vers[idx].isFinal;renderAdminDrawingList(cid);}
-function removeDrawing(cid,type,idx){if(!confirm('確定刪除？'))return;docsData[cid].drawings[type].splice(idx,1);renderAdminDrawingList(cid);}
+function removeDrawing(cid,type,idx){
+  if(!confirm('確定刪除？'))return;
+  const item=docsData[cid].drawings[type][idx];
+  if(item&&item.dbId){(async()=>{try{await dbDeleteDoc(item.dbId);}catch(e){console.warn(e);}})();}
+  docsData[cid].drawings[type].splice(idx,1);
+  renderAdminDrawingList(cid);
+}
 
 function addContract(){
   const cid=getAdminDocClientId();
@@ -2501,7 +2596,11 @@ function addContract(){
     try{
       let fileUrl='',size='—';
       if(file){fileUrl=await uploadToStorage(file,'contracts');size=fmtFileSize(file.size);}
-      docsData[cid].contracts=[{id:nextDocId++,name,date:todayStr(),size,fileUrl}];
+      // Delete old contracts from DB first
+      for(const c of docsData[cid].contracts){if(c.dbId){try{await dbDeleteDoc(c.dbId);}catch(e){}}}
+      const newItem={name,date:todayStr(),size,fileUrl};
+      await dbSaveDoc(cid,'contract',newItem);
+      docsData[cid].contracts=[newItem];
       document.getElementById('contract-name').value='';
       if(fi)fi.value='';
       renderAdminContractList(cid);
@@ -2509,7 +2608,12 @@ function addContract(){
     showLoader(false);
   })();
 }
-function removeContract(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);}
+function removeContract(cid,idx){
+  if(!confirm('確定刪除？'))return;
+  const item=docsData[cid].contracts[idx];
+  if(item&&item.dbId){(async()=>{try{await dbDeleteDoc(item.dbId);}catch(e){console.warn(e);}})();}
+  docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);
+}
 
 function addQuote(){
   const cid=getAdminDocClientId();
@@ -2522,7 +2626,9 @@ function addQuote(){
     try{
       let fileUrl='',size='—';
       if(file){fileUrl=await uploadToStorage(file,'quotes');size=fmtFileSize(file.size);}
-      docsData[cid].quotes.unshift({id:nextDocId++,name,date:todayStr(),size,fileUrl});
+      const newItem={name,date:todayStr(),size,fileUrl};
+      await dbSaveDoc(cid,'quote',newItem);
+      docsData[cid].quotes.unshift(newItem);
       document.getElementById('quote-name').value='';
       if(fi)fi.value='';
       renderAdminQuoteList(cid);
@@ -2530,7 +2636,12 @@ function addQuote(){
     showLoader(false);
   })();
 }
-function removeQuote(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);}
+function removeQuote(cid,idx){
+  if(!confirm('確定刪除？'))return;
+  const item=docsData[cid].quotes[idx];
+  if(item&&item.dbId){(async()=>{try{await dbDeleteDoc(item.dbId);}catch(e){console.warn(e);}})();}
+  docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);
+}
 
 function switchAdminMeetingTab(tab,el){
   adminMeetingTab=tab;
@@ -2568,17 +2679,35 @@ function addLineScreenshot(){
   if(!date){alert('請選擇日期');return;}
   if(!pendingLineImgs.length){alert('請上傳至少一張截圖');return;}
   const dateStr=date.replace(/-/g,'/');
-  const existing=docsData[cid].lineScreenshots.find(s=>s.date===dateStr);
-  if(existing){existing.images.push(...pendingLineImgs);if(note)existing.note=note;}
-  else{docsData[cid].lineScreenshots.push({date:dateStr,images:[...pendingLineImgs],note});}
-  pendingLineImgs=[];
-  document.getElementById('line-img-preview').innerHTML='';
-  document.getElementById('line-img-input').value='';
-  document.getElementById('line-date').value='';
-  if(document.getElementById('line-note'))document.getElementById('line-note').value='';
-  renderAdminLineList(cid);
+  showLoader(true);
+  (async()=>{
+    try{
+      const existing=docsData[cid].lineScreenshots.find(s=>s.date===dateStr);
+      if(existing){
+        existing.images.push(...pendingLineImgs);
+        if(note)existing.note=note;
+        await dbSaveMeeting(cid,'line',existing);
+      } else {
+        const newItem={date:dateStr,images:[...pendingLineImgs],note};
+        await dbSaveMeeting(cid,'line',newItem);
+        docsData[cid].lineScreenshots.push(newItem);
+      }
+    }catch(e){alert('儲存失敗：'+e.message);}
+    pendingLineImgs=[];
+    document.getElementById('line-img-preview').innerHTML='';
+    document.getElementById('line-img-input').value='';
+    document.getElementById('line-date').value='';
+    if(document.getElementById('line-note'))document.getElementById('line-note').value='';
+    showLoader(false);
+    renderAdminLineList(cid);
+  })();
 }
-function removeLineShot(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);}
+function removeLineShot(cid,idx){
+  if(!confirm('確定刪除？'))return;
+  const item=docsData[cid].lineScreenshots[idx];
+  if(item&&item.dbId){(async()=>{try{await dbDeleteMeeting(item.dbId);}catch(e){console.warn(e);}})();}
+  docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);
+}
 
 // 正式會議
 function previewFormalImgs(e){
@@ -2597,12 +2726,25 @@ function addFormalMeeting(){
   const cid=getAdminDocClientId();
   const date=document.getElementById('formal-date').value,title=document.getElementById('formal-title').value.trim(),content=document.getElementById('formal-content').value.trim();
   if(!date||!title||!content){alert('請填寫日期、標題和內容');return;}
-  docsData[cid].formalMeetings.push({date:date.replace(/-/g,'/'),title,content,images:[...pendingFormalImgs]});
-  document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
-  pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
-  renderAdminFormalList(cid);
+  showLoader(true);
+  (async()=>{
+    try{
+      const newItem={date:date.replace(/-/g,'/'),title,content,images:[...pendingFormalImgs]};
+      await dbSaveMeeting(cid,'formal',newItem);
+      docsData[cid].formalMeetings.push(newItem);
+      document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
+      pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
+      renderAdminFormalList(cid);
+    }catch(e){alert('儲存失敗：'+e.message);}
+    showLoader(false);
+  })();
 }
-function removeFormal(cid,idx){if(!confirm('確定刪除？'))return;docsData[cid].formalMeetings.splice(idx,1);renderAdminFormalList(cid);}
+function removeFormal(cid,idx){
+  if(!confirm('確定刪除？'))return;
+  const item=docsData[cid].formalMeetings[idx];
+  if(item&&item.dbId){(async()=>{try{await dbDeleteMeeting(item.dbId);}catch(e){console.warn(e);}})();}
+  docsData[cid].formalMeetings.splice(idx,1);renderAdminFormalList(cid);
+}
 
 function renderAdminContractList(cid){
   const el=document.getElementById('admin-contract-list');el.innerHTML='';const contracts=docsData[cid].contracts||[];
@@ -2721,34 +2863,72 @@ function switchStab(id,el){
 }
 function renderChecklists(){renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();}
 function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
+function getClientProjId(){
+  const c=clients.find(x=>x.id===currentClientId);
+  return c?c.projectId:null;
+}
 function renderAppTable(type,data){
   const tb=document.getElementById(type+'-tbody');tb.innerHTML='';
+  const pid=getClientProjId();
+  const dbType=type==='app'?'appliance':'furniture';
   data.forEach((r,i)=>{
     const tr=document.createElement('tr');
-    ['name','brand'].forEach(k=>{const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.placeholder=k==='name'?'名稱':'品牌';inp.oninput=e=>r[k]=e.target.value;td.appendChild(inp);tr.appendChild(td);});
-    const tdL=document.createElement('td');tdL.appendChild(mkSel(LOC,r.loc,e=>r.loc=e.target.value));tr.appendChild(tdL);
-    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model;mi.placeholder='型號';mi.oninput=e=>r.model=e.target.value;tdM.appendChild(mi);tr.appendChild(tdM);
-    const tdS=document.createElement('td');tdS.appendChild(mkSel(STAT,r.status,e=>r.status=e.target.value));tr.appendChild(tdS);
-    const tdD=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';db.onclick=()=>{data.splice(i,1);renderAppTable(type,data);};tdD.appendChild(db);tr.appendChild(tdD);
+    ['name','brand'].forEach(k=>{
+      const td=document.createElement('td');const inp=document.createElement('input');
+      inp.className='ci';inp.value=r[k];inp.placeholder=k==='name'?'名稱':'品牌';
+      inp.oninput=e=>r[k]=e.target.value;
+      inp.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
+      td.appendChild(inp);tr.appendChild(td);
+    });
+    const tdL=document.createElement('td');
+    const sel=mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
+    tdL.appendChild(sel);tr.appendChild(tdL);
+    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model;mi.placeholder='型號';
+    mi.oninput=e=>r.model=e.target.value;
+    mi.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
+    tdM.appendChild(mi);tr.appendChild(tdM);
+    const tdS=document.createElement('td');
+    const ssel=mkSel(STAT,r.status,e=>{r.status=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
+    tdS.appendChild(ssel);tr.appendChild(tdS);
+    const tdD=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';
+    db.onclick=()=>{if(r.dbId&&pid)dbDeleteChecklistItem(r.dbId).catch(e=>console.warn(e));data.splice(i,1);renderAppTable(type,data);};
+    tdD.appendChild(db);tr.appendChild(tdD);
     tb.appendChild(tr);
   });
 }
 function renderPowTable(){
   const tb=document.getElementById('pow-tbody');tb.innerHTML='';
+  const pid=getClientProjId();
   powData.forEach((r,i)=>{
     const tr=document.createElement('tr');
-    const n=document.createElement('td');const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';ni.oninput=e=>r.name=e.target.value;n.appendChild(ni);tr.appendChild(n);
-    const tl=document.createElement('td');tl.appendChild(mkSel(LOC,r.loc,e=>r.loc=e.target.value));tr.appendChild(tl);
-    ['w','v','qty'].forEach(k=>{const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.style.width='65px';inp.oninput=e=>{r[k]=e.target.value;refreshPow(tr,r);};td.appendChild(inp);tr.appendChild(td);});
+    const n=document.createElement('td');const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';
+    ni.oninput=e=>r.name=e.target.value;ni.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
+    n.appendChild(ni);tr.appendChild(n);
+    const tl=document.createElement('td');
+    tl.appendChild(mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));}));
+    tr.appendChild(tl);
+    ['w','v','qty'].forEach(k=>{
+      const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.style.width='65px';
+      inp.oninput=e=>{r[k]=e.target.value;refreshPow(tr,r);};
+      inp.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
+      td.appendChild(inp);tr.appendChild(td);
+    });
     const ta=document.createElement('td');ta.className='av';tr.appendChild(ta);
     const tc=document.createElement('td');tr.appendChild(tc);
-    const tn=document.createElement('td');const ni2=document.createElement('input');ni2.className='ci';ni2.value=r.note;ni2.placeholder='備註';ni2.oninput=e=>r.note=e.target.value;tn.appendChild(ni2);tr.appendChild(tn);
-    const td2=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';db.onclick=()=>{powData.splice(i,1);renderPowTable();};td2.appendChild(db);tr.appendChild(td2);
+    const tn=document.createElement('td');const ni2=document.createElement('input');ni2.className='ci';ni2.value=r.note;ni2.placeholder='備註';
+    ni2.oninput=e=>r.note=e.target.value;ni2.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
+    tn.appendChild(ni2);tr.appendChild(tn);
+    const td2=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';
+    db.onclick=()=>{if(r.dbId&&pid)dbDeleteChecklistItem(r.dbId).catch(e=>console.warn(e));powData.splice(i,1);renderPowTable();};
+    td2.appendChild(db);tr.appendChild(td2);
     tb.appendChild(tr);refreshPow(tr,r);
   });
 }
-function refreshPow(tr,r){const w=parseFloat(r.w)||0,v=parseFloat(r.v)||110,q=parseInt(r.qty)||1;const a=w?Math.round(w*q/v*10)/10:0;const circ=a>=10?'需專用迴路':'一般插座';tr.children[5].textContent=w?a+' A':'—';tr.children[6].innerHTML=w?`<span class="psm cir-${circ}">${circ}</span>`:''; }
-function addRow(type){if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('app',appData);}else if(type==='fur'){furData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('fur',furData);}else{powData.push({name:'',loc:'客廳',w:'',v:'110',qty:'1',note:''});renderPowTable();}}
+function addRow(type){
+  if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('app',appData);}
+  else if(type==='fur'){furData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('fur',furData);}
+  else{powData.push({name:'',loc:'客廳',w:'',v:'110',qty:'1',note:''});renderPowTable();}
+}
 
 // ========== CALENDAR ==========
 function dkey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
