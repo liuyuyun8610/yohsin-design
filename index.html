@@ -1573,16 +1573,11 @@ let powData=[
 ];
 
 const CAL_EVENTS={
-  '2026-04-01':[{label:'木作工程',type:'bk'}],'2026-04-03':[{label:'國定假日',type:'hol'}],
-  '2026-04-06':[{label:'國定假日',type:'hol'}],'2026-04-07':[{label:'木作工程',type:'bk'}],
-  '2026-04-09':[{label:'油漆工程',type:'bk'}],'2026-04-12':[{label:'油漆工程',type:'bk'},{label:'木作工程',type:'bk'}],
-  '2026-04-14':[{label:'木作工程',type:'bk'},{label:'嵌燈挖孔',type:'bk'}],'2026-04-20':[{label:'油漆工程',type:'bk'}],
+  '2026-04-03':[{label:'國定假日',type:'hol'}],
+  '2026-04-06':[{label:'國定假日',type:'hol'}],
 };
-let calLogs={
-  '2026-04-10':{work:'4/10 本日作業：\n1. 油漆全室批土\n2. 鐵工安裝吊衣桿',tag:'油漆工程',photos:['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=70']},
-  '2026-04-07':{work:'4/7 本日作業：\n1. 木作隔間牆骨架完成',tag:'木作工程',photos:[]},
-};
-let curYear=2026, curMonth=3, selDate=null;
+let calLogs={};
+let curYear=new Date().getFullYear(), curMonth=new Date().getMonth(), selDate=null;
 
 // ========== UTILS ==========
 function todayStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');}
@@ -1626,48 +1621,60 @@ function doLogin(){
   const err=document.getElementById('l-err');err.textContent='';
   if(loginMode==='admin'){
     if(u==='admin'&&p===adminPassword){
-      showScreen('s-admin');
-      showDashboardNav(true);
-      renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
-      populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
+      localStorage.setItem('ys_session', JSON.stringify({mode:'admin',u,p}));
+      _enterAdmin();
     } else err.textContent='帳號或密碼錯誤';
   } else {
     const c=clients.find(x=>x.user===u&&x.pass===p);
     if(c){
-      currentClientId=c.id;
-      const proj=projects.find(q=>q.id===c.projectId);
-      document.getElementById('tb-client-name').textContent=c.name;
-      const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
-      document.getElementById('p-proj-title').textContent=proj?proj.name:'';
-      // Boss client → redirect to admin dashboard view
-      if(c.isBoss){
-        showScreen('s-admin');
-        showDashboardNav(true);
-        // Hide all nav except dashboard
-        document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>{
-          if(b.id!=='nav-dashboard') b.style.display='none';
-        });
-        const dashBtn=document.getElementById('nav-dashboard');
-        if(dashBtn){ document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>b.classList.remove('active')); dashBtn.classList.add('active'); }
-        document.querySelectorAll('#s-admin .pb .page').forEach(pg=>pg.classList.remove('active'));
-        document.getElementById('a-dashboard').classList.add('active');
-        renderDashboard();
-        return;
-      }
-      showScreen('s-client');
-      renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();
+      localStorage.setItem('ys_session', JSON.stringify({mode:'client',u,p}));
+      _enterClient(c);
     } else err.textContent='帳號或密碼錯誤，請再試一次';
   }
 }
+
+function _enterAdmin(){
+  showScreen('s-admin');
+  showDashboardNav(true);
+  renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
+  populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
+}
+
+function _enterClient(c){
+  currentClientId=c.id;
+  const proj=projects.find(q=>Number(q.id)===Number(c.projectId));
+  document.getElementById('tb-client-name').textContent=c.name;
+  const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
+  document.getElementById('p-proj-title').textContent=proj?proj.name:'';
+  if(c.isBoss){
+    showScreen('s-admin');
+    showDashboardNav(true);
+    document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>{
+      if(b.id!=='nav-dashboard') b.style.display='none';
+    });
+    const dashBtn=document.getElementById('nav-dashboard');
+    if(dashBtn){ document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>b.classList.remove('active')); dashBtn.classList.add('active'); }
+    document.querySelectorAll('#s-admin .pb .page').forEach(pg=>pg.classList.remove('active'));
+    document.getElementById('a-dashboard').classList.add('active');
+    renderDashboard();
+    return;
+  }
+  showScreen('s-client');
+  (async()=>{
+    const pid=proj?proj.id:null;
+    if(pid){ try{ await dbLoadLogs(pid); }catch(e){ console.warn('load logs failed',e); } }
+    renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();
+  })();
+}
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function doLogout(){
+  localStorage.removeItem('ys_session');
   showScreen('s-login');
   document.getElementById('l-user').value='';
   document.getElementById('l-pass').value='';
   document.getElementById('l-err').textContent='';
   currentClientId=null;
   showDashboardNav(false);
-  // Restore all admin nav buttons
   document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>b.style.display='');
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -2958,11 +2965,12 @@ function renderCalendar(){
   const first=new Date(curYear,curMonth,1).getDay(), dim=new Date(curYear,curMonth+1,0).getDate(), prevDim=new Date(curYear,curMonth,0).getDate(), today=new Date();
   for(let i=0;i<first;i++){const c=document.createElement('div');c.className='cday om';const n=document.createElement('div');n.className='cdn';n.textContent=prevDim-first+1+i;c.appendChild(n);g.appendChild(c);}
   for(let d=1;d<=dim;d++){
-    const key=dkey(curYear,curMonth,d);const evts=CAL_EVENTS[key]||[],hasLog=!!calLogs[key],isHol=evts.some(e=>e.type==='hol'),isToday=d===today.getDate()&&curMonth===today.getMonth()&&curYear===today.getFullYear();
+    const key=dkey(curYear,curMonth,d);const evts=CAL_EVENTS[key]||[],log=calLogs[key],hasLog=!!log,isHol=evts.some(e=>e.type==='hol'),isToday=d===today.getDate()&&curMonth===today.getMonth()&&curYear===today.getFullYear();
     const c=document.createElement('div');c.className='cday'+(isHol?' hol':'')+(hasLog?' has-log':'')+(isToday?' today':'')+(selDate===key?' sel':'');c.onclick=()=>selectDate(key);
     const n=document.createElement('div');n.className='cdn';n.textContent=d;c.appendChild(n);
     evts.slice(0,2).forEach(e=>{const t=document.createElement('div');t.className='cetag'+(e.type==='bk'?' bk':'');t.textContent=e.label;c.appendChild(t);});
-    if(hasLog){const p=document.createElement('div');p.className='cpc';p.textContent=calLogs[key].photos.length+' 張照片';c.appendChild(p);}
+    if(hasLog&&log.tag){const t=document.createElement('div');t.className='cetag bk';t.textContent=log.tag;c.appendChild(t);}
+    if(hasLog&&log.photos&&log.photos.length){const p=document.createElement('div');p.className='cpc';p.textContent=log.photos.length+' 張照片';c.appendChild(p);}
     g.appendChild(c);
   }
   const rem=(7-(first+dim)%7)%7;for(let i=1;i<=rem;i++){const c=document.createElement('div');c.className='cday om';const n=document.createElement('div');n.className='cdn';n.textContent=i;c.appendChild(n);g.appendChild(c);}
@@ -3024,7 +3032,21 @@ document.addEventListener('DOMContentLoaded', function() {
   if(cm) cm.addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
   if(am) am.addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
   if(pm) pm.addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
-  loadAllData();
+  loadAllData().then(()=>{
+    // Auto-restore session after data loaded
+    try{
+      const sess=localStorage.getItem('ys_session');
+      if(!sess) return;
+      const {mode,u,p}=JSON.parse(sess);
+      if(mode==='admin'&&u==='admin'&&p===adminPassword){
+        _enterAdmin();
+      } else if(mode==='client'){
+        const c=clients.find(x=>x.user===u&&x.pass===p);
+        if(c) _enterClient(c);
+        else localStorage.removeItem('ys_session'); // 密碼已更改，清除
+      }
+    }catch(e){ localStorage.removeItem('ys_session'); }
+  });
 });
 </script>
 
