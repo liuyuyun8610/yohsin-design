@@ -402,6 +402,8 @@ tbody tr:hover td{background:#FDFAF6;}
 /* PROFIT TABLE */
 .profit-input{width:100%;padding:7px 9px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:right;-moz-appearance:textfield;}
 .profit-input::-webkit-inner-spin-button,.profit-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .profit-input:focus{border-color:var(--accent-light);background:#fff;}
 .profit-auto{font-size:13px;text-align:right;padding:8px 10px;font-family:'Noto Serif TC',serif;}
 .profit-auto.positive{color:var(--green);}
@@ -433,7 +435,7 @@ tbody tr:hover td{background:#FDFAF6;}
     <input class="fi" type="password" id="l-pass" placeholder="請輸入密碼">
     <button class="btn-enter" onclick="doLogin()">進入</button>
     <div class="l-err" id="l-err"></div>
-    <div class="l-hint">客戶：fengyi / oxy2024　｜　後台：admin / admin123</div>
+    <div class="l-hint"></div>
     <div id="db-status" style="display:none;margin-top:0.8rem;font-size:11px;color:#8B3A2E;background:#F5ECEA;border-radius:8px;padding:8px 12px;"></div>
   </div>
 </div>
@@ -452,6 +454,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
       <button class="tnav" onclick="goPage('p-payment',this)">付款明細</button>
+      <button class="tnav" id="nav-changes" onclick="goPage('p-changes',this)" style="display:none;">追加減</button>
 
     </div>
     <div class="tb-spacer"></div>
@@ -470,6 +473,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">付款明細</button>
+      <button class="mobile-tnav" id="mobile-nav-changes" onclick="goPageMobile('p-changes',this,'client')" style="display:none;">追加減</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
         <span id="mobile-client-name"></span>
         <button onclick="doLogout()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
@@ -480,17 +484,69 @@ tbody tr:hover td{background:#FDFAF6;}
 
     <!-- 專案總覽 -->
     <div class="page active" id="p-overview">
-      <div style="margin-bottom:1.5rem;">
-        <div id="p-proj-title" style="font-family:'Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;margin-bottom:0.5rem;"></div>
-        <div style="font-size:13px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：— ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
+      <!-- 專案標題 -->
+      <div style="margin-bottom:1.2rem;">
+        <div id="p-proj-title" style="font-family:'Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;margin-bottom:0.4rem;"></div>
+        <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：— ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
       </div>
-      <div class="card">
-        <div class="card-title">專案進度</div>
-        <div class="prog-grid" id="client-progress-grid">
-          <div><div class="prog-col-lbl"><span class="pdot dot-gr"></span>未開始</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
-          <div><div class="prog-col-lbl"><span class="pdot dot-am"></span>修改中</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
-          <div><div class="prog-col-lbl"><span class="pdot dot-bl"></span>進行中</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
-          <div><div class="prog-col-lbl"><span class="pdot dot-gn"></span>已完成</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
+
+      <!-- 1. 目前施工進度 -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-title">目前施工進度</div>
+        <div id="dash-progress-now" style="margin-bottom:10px;"></div>
+        <div id="dash-progress-done" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+      </div>
+
+      <!-- 2. 最新施工照片 -->
+      <div class="card" id="dash-photo-card" style="margin-bottom:12px;display:none;">
+        <div class="card-title" style="display:flex;justify-content:space-between;">
+          <span>最新施工照片</span>
+          <span id="dash-photo-date" style="font-size:10px;color:var(--ink-light);font-weight:400;text-transform:none;letter-spacing:0;"></span>
+        </div>
+        <div id="dash-photo-strip" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;"></div>
+      </div>
+
+      <!-- 3. 追加減摘要 -->
+      <div class="card" id="dash-co-card" style="margin-bottom:12px;display:none;">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>追加減狀況</span>
+          <button onclick="goPage('p-changes',document.querySelector('#s-client .tnav:last-child'))" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;">明細 ›</button>
+        </div>
+        <div id="dash-co-list" style="margin-bottom:8px;"></div>
+        <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--ink-muted);">含監工費總計</span>
+          <span id="dash-co-grand" style="font-weight:500;"></span>
+        </div>
+      </div>
+
+      <!-- 4+5. 收款狀況 + 下次提醒 -->
+      <div class="card" id="dash-pay-card" style="margin-bottom:12px;">
+        <div class="card-title">收款狀況</div>
+        <!-- 進度條 -->
+        <div style="height:6px;background:var(--sand-dark,#E0D9CE);border-radius:3px;margin-bottom:12px;overflow:hidden;">
+          <div id="dash-pay-bar" style="height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .4s;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">已請款</div>
+            <div id="dash-pay-received" style="font-size:18px;font-weight:500;color:var(--green);">$—</div>
+          </div>
+          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">待請款</div>
+            <div id="dash-pay-pending" style="font-size:18px;font-weight:500;color:#854F0B;">$—</div>
+          </div>
+        </div>
+        <!-- 下次請款提醒 -->
+        <div id="dash-next-pay" style="display:none;background:#FAEEDA;border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:10px;letter-spacing:.05em;color:#854F0B;margin-bottom:3px;">下次請款提醒</div>
+            <div id="dash-next-name" style="font-size:14px;font-weight:500;color:#633806;"></div>
+            <div id="dash-next-date" style="font-size:12px;color:#854F0B;margin-top:2px;"></div>
+          </div>
+          <div style="text-align:right;">
+            <div id="dash-next-amt" style="font-size:18px;font-weight:500;color:#633806;"></div>
+            <div style="font-size:10px;color:#854F0B;margin-top:2px;">預計請款金額</div>
+          </div>
         </div>
       </div>
     </div>
@@ -587,6 +643,49 @@ tbody tr:hover td{background:#FDFAF6;}
       <div class="det-card" id="det-card">
         <div class="det-date" id="det-date"></div>
         <div id="det-body"><div class="det-empty">請點擊日期查看施工記錄</div></div>
+      </div>
+    </div>
+
+    <!-- 追加減明細 -->
+    <div class="page" id="p-changes">
+      <div class="page-title">追加減明細</div>
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">追加合計</div>
+            <div id="cli-co-add" style="font-size:16px;font-weight:500;color:var(--red);">$0</div>
+          </div>
+          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">減項合計</div>
+            <div id="cli-co-sub" style="font-size:16px;font-weight:500;color:var(--green);">$0</div>
+          </div>
+          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">含監工費</div>
+            <div id="cli-co-grand" style="font-size:16px;font-weight:500;">$0</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;">序</th>
+              <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);">內容</th>
+              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:80px;">單價</th>
+              <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:48px;">數量</th>
+              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:90px;">小計</th>
+            </tr>
+          </thead>
+          <tbody id="cli-co-tbody"></tbody>
+        </table>
+        <div id="cli-co-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);">尚無追加減記錄</div>
+        <!-- 合計區 -->
+        <div id="cli-co-summary" style="padding:12px 16px;border-top:0.5px solid var(--border);display:none;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>追加小計</span><span id="cli-sum-add"></span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>減項小計</span><span id="cli-sum-sub"></span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>監工費</span><span id="cli-sum-fee"></span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;padding:8px 0;border-top:1.5px solid var(--border);margin-top:4px;"><span>含監工費總計</span><span id="cli-sum-grand"></span></div>
+        </div>
       </div>
     </div>
 
@@ -827,7 +926,7 @@ tbody tr:hover td{background:#FDFAF6;}
                 <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-size:14px;font-weight:500;" id="pay-construction-total">$0</td>
                 <td style="padding:6px 8px;text-align:center;">
                   <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
-                    <input type="number" id="pay-construction-pct" min="0" max="100" step="0.1" placeholder="8" style="width:60px;padding:6px 8px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;" oninput="calcPayment()">
+                    <input type="number" id="pay-construction-pct" min="0" max="100" step="0.1" placeholder="8" style="width:60px;padding:6px 8px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield;" oninput="calcPayment()">
                     <span style="font-size:12px;color:var(--ink-muted);">%</span>
                   </div>
                 </td>
@@ -841,7 +940,12 @@ tbody tr:hover td{background:#FDFAF6;}
               <tr>
                 <td style="padding:10px 12px;color:var(--ink-muted);font-size:13px;">設備及空調費合計</td>
                 <td style="padding:10px 12px;text-align:right;font-family:'Noto Serif TC',serif;font-size:14px;font-weight:500;" id="pay-equip-total">$0</td>
-                <td style="padding:10px 12px;text-align:center;font-size:13px;color:var(--ink-muted);">3%（固定）</td>
+                <td style="padding:6px 8px;text-align:center;">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+                    <input type="number" id="pay-equip-pct" min="0" max="100" step="0.1" value="3" placeholder="3" style="width:60px;padding:6px 8px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield;" oninput="calcPayment()">
+                    <span style="font-size:12px;color:var(--ink-muted);">%</span>
+                  </div>
+                </td>
                 <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--green);font-weight:500;" id="pay-equip-fee">$0</td>
               </tr>
             </tbody>
@@ -865,7 +969,7 @@ tbody tr:hover td{background:#FDFAF6;}
               <span style="font-size:13px;font-family:'Noto Serif TC',serif;" id="sum-equip">$0</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border);">
-              <span style="font-size:13px;color:var(--ink-muted);">設備及空調監工費（3%）</span>
+              <span style="font-size:13px;color:var(--ink-muted);" id="sum-equip-fee-label">設備及空調監工費（3%）</span>
               <span style="font-size:13px;font-family:'Noto Serif TC',serif;" id="sum-equip-fee">$0</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-top:4px;">
@@ -877,6 +981,9 @@ tbody tr:hover td{background:#FDFAF6;}
             <div style="font-size:12px;color:var(--ink-muted);">另計：設計費</div>
             <input type="text" id="pay-design-fee" placeholder="例：100,000" style="width:140px;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;" oninput="calcPayment()">
             <div style="font-size:11px;color:var(--ink-muted);">元<span style="font-size:10px;">（不含在工程總報價內）</span></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;padding-top:1rem;margin-top:0.5rem;border-top:0.5px solid var(--border);">
+            <button class="btn-ink" onclick="savePaymentSettings()">儲存付款設定</button>
           </div>
         </div>
       </div>
@@ -1548,13 +1655,26 @@ async function dbLoadProfit(projectId) {
     sb.from('payment_settings').selectWhere('*','project_id=eq.'+projectId),
   ]);
   initProjData(projectId);
+  customProfitRows[projectId]=[];
   (profitRows||[]).forEach(r => {
-    if (profitData[projectId][r.item_key] !== undefined) {
+    if(r.item_key && r.item_key.startsWith('__custom__')){
+      // Custom row
+      customProfitRows[projectId].push({
+        dbId:r.id,
+        label:r.item_key.replace('__custom__',''),
+        vendor:Number(r.vendor_price)||0,
+        client:Number(r.client_price)||0
+      });
+    } else if (profitData[projectId][r.item_key] !== undefined) {
       profitData[projectId][r.item_key] = {vendor:Number(r.vendor_price)||0, client:Number(r.client_price)||0};
     }
   });
   if (payRow && payRow[0]) {
-    paymentData[projectId] = { constructionPct: String(payRow[0].construction_pct||''), designFee: payRow[0].design_fee||'' };
+    paymentData[projectId] = {
+      constructionPct: String(payRow[0].construction_pct||''),
+      designFee: payRow[0].design_fee||'',
+      equipPct: String(payRow[0].equip_pct!=null ? payRow[0].equip_pct : 3)
+    };
     if(payRow[0].schedule_json){
       try{ scheduleData[projectId]=JSON.parse(payRow[0].schedule_json); }catch(e){}
     }
@@ -1565,8 +1685,8 @@ async function dbSaveProfitItem(projectId, key, vendor, client) {
   await sb.from('profit_items').upsert({ project_id:projectId, item_key:key, vendor_price:vendor, client_price:client }, 'project_id,item_key');
 }
 
-async function dbSavePaymentSettings(projectId, pct, designFee) {
-  await sb.from('payment_settings').upsert({ project_id:projectId, construction_pct:pct||0, design_fee:designFee||'' }, 'project_id');
+async function dbSavePaymentSettings(projectId, pct, designFee, equipPct) {
+  await sb.from('payment_settings').upsert({ project_id:projectId, construction_pct:pct||0, design_fee:designFee||'', equip_pct:parseFloat(equipPct)||3 }, 'project_id');
 }
 
 
@@ -1650,17 +1770,17 @@ function closeMobileMenu(type){
   document.getElementById('mobile-menu-'+type).classList.remove('open');
 }
 function goPageMobile(id,el,type){
-  // sync desktop nav active state
   const desktopBtns=document.querySelectorAll('#s-client .tnav');
-  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-construction','p-payment'];
+  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-construction','p-payment','p-changes'];
   const idx=pages.indexOf(id);
   desktopBtns.forEach((t,i)=>{if(i===idx)t.classList.add('active');else t.classList.remove('active');});
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  // mobile nav active
   document.querySelectorAll('#mobile-menu-client .mobile-tnav').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   closeMobileMenu('client');
+  if(id==='p-overview') renderClientDashboard();
+  if(id==='p-payment') renderClientPayment();
 }
 function goAdminPageMobile(id,el){
   goAdminPage(id,document.querySelector('#s-admin .tb-nav .tnav[onclick*="'+id+'"]')||document.querySelector('#s-admin .tnav'));
@@ -1718,7 +1838,8 @@ function _enterClient(c){
   (async()=>{
     const pid=proj?proj.id:null;
     if(pid){ try{ await dbLoadLogs(pid); }catch(e){ console.warn('load logs failed',e); } }
-    renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();renderClientPayment();
+    renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
+    renderClientPayment();renderClientDashboard();
   })();
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
@@ -1736,8 +1857,12 @@ function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classL
 
 // ========== NAV ==========
 function goPage(id,el){
-  document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));el.classList.add('active');
-  document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='p-overview') renderClientDashboard();
+  if(id==='p-payment') renderClientPayment();
 }
 async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
@@ -2099,6 +2224,23 @@ let scheduleData = {};
 
 function initScheduleData(pid){ if(!scheduleData[pid]) scheduleData[pid]=[]; }
 
+async function savePaymentSettings(){
+  const pid=currentDetailProjId; if(!pid) return;
+  const pct=parseFloat(document.getElementById('pay-construction-pct')?.value)||0;
+  const equipPct=parseFloat(document.getElementById('pay-equip-pct')?.value)||3;
+  const designFee=document.getElementById('pay-design-fee')?.value||'';
+  if(!paymentData[pid]) paymentData[pid]={};
+  paymentData[pid].constructionPct=String(pct);
+  paymentData[pid].equipPct=String(equipPct);
+  paymentData[pid].designFee=designFee;
+  showLoader(true);
+  try{
+    await dbSavePaymentSettings(pid, pct, designFee, equipPct);
+    alert('付款設定已儲存！');
+  }catch(e){ alert('儲存失敗：'+e.message); }
+  showLoader(false);
+}
+
 function getScheduleTotal(pid){
   // Priority 1: use contractAmount from project record
   const proj=projects.find(p=>Number(p.id)===Number(pid));
@@ -2115,13 +2257,39 @@ function getScheduleTotal(pid){
   initProjData(pid);
   let conTotal=0,eqTotal=0;
   PROFIT_ITEMS.forEach(it=>{const v=profitData[pid][it.key].client||0;if(it.type==='equip')eqTotal+=v;else conTotal+=v;});
+  (customProfitRows[pid]||[]).forEach(r=>{conTotal+=r.client||0;});
   const pct=parseFloat(paymentData[pid]?.constructionPct)||0;
-  return conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*0.03);
+  const equipPct=parseFloat(paymentData[pid]?.equipPct)||3;
+  return conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*equipPct/100);
 }
 
-function renderSchedule(){
+async function renderSchedule(){
   const pid=currentDetailProjId; if(!pid) return;
   initScheduleData(pid);
+
+  // 自動抓追加減總金額，更新最後一筆
+  try{
+    const {data}=await sbClient.from('change_orders').select('*').eq('project_id',pid);
+    const coItems=data||[];
+    if(coItems.length){
+      const supPct=Number(coItems[0].supervision_pct)||0;
+      let addT=0,subT=0;
+      coItems.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addT+=amt;else subT+=amt;});
+      const net=addT-subT;
+      const coGrand=net+Math.round(net*supPct/100);
+      // 存入最後一筆記憶體（不影響其他欄位）
+      const items=scheduleData[pid];
+      if(items.length>0){
+        items[items.length-1].amount=coGrand;
+        items[items.length-1].isCoAuto=true;
+      }
+    } else {
+      // 清除 isCoAuto 標記
+      const items=scheduleData[pid];
+      if(items.length>0) items[items.length-1].isCoAuto=false;
+    }
+  }catch(e){ console.warn('co load in renderSchedule:',e.message); }
+
   const items=scheduleData[pid];
   const total=getScheduleTotal(pid);
   const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
@@ -2137,17 +2305,27 @@ function renderSchedule(){
 
   const tb=document.getElementById('schedule-tbody'); tb.innerHTML='';
   const inp=`padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;width:100%;`;
+  const inpAuto=`padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--accent-light);border-radius:9px;background:#EBF5FF;color:#185FA5;outline:none;width:100%;text-align:right;font-weight:500;`;
 
   items.forEach((r,i)=>{
+    const isLast=(i===items.length-1)&&r.isCoAuto;
     const pctStr=total>0?((r.amount||0)/total*100).toFixed(1)+'%':'—';
     const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
-    // Convert stored YYYY/MM/DD or YYYY-MM-DD to YYYY-MM-DD for date input
     const toDateVal=s=>(s||'').replace(/\//g,'-');
     const tr=document.createElement('tr');
     tr.style.borderBottom='0.5px solid var(--border)';
+    if(isLast) tr.style.background='#F5FAFF';
+
+    const amtCell=isLast
+      ? `<td style="padding:6px 8px;">
+           <input style="${inpAuto}" value="${r.amount||0}" readonly title="自動帶入追加減含監工費總計">
+           <div style="font-size:9px;color:#378ADD;margin-top:2px;text-align:right;">↑ 追加減自動帶入</div>
+         </td>`
+      : `<td style="padding:6px 8px;"><input type="number" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;updateSchStats(${pid})"></td>`;
+
     tr.innerHTML=`
       <td style="padding:6px 10px;"><input style="${inp}" value="${r.name}" placeholder="例：簽約款" oninput="scheduleData[${pid}][${i}].name=this.value"></td>
-      <td style="padding:6px 8px;"><input type="number" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;updateSchStats(${pid})"></td>
+      ${amtCell}
       <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);" id="sch-pct-${pid}-${i}">${pctStr}</td>
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})"></td>
       <td style="padding:6px 8px;">
@@ -2227,7 +2405,7 @@ async function saveSchedule(){
     const scheduleJson=JSON.stringify(items);
     console.log('儲存收款進度:', scheduleJson);
     const {error:e2}=await sbClient.from('payment_settings').upsert(
-      {project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', schedule_json:scheduleJson},
+      {project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', equip_pct:parseFloat(paymentData[pid]?.equipPct)||3, schedule_json:scheduleJson},
       {onConflict:'project_id'}
     );
     if(e2) throw e2;
@@ -2370,6 +2548,8 @@ async function saveChangeOrders(){
       if(error) throw error;
     }
     alert('追加減已儲存！');
+    // 若目前收款進度頁面是同一專案，自動更新最後一筆金額
+    if(currentDetailProjId===pid) renderSchedule();
   }catch(e){ alert('儲存失敗：'+e.message); }
   showLoader(false);
 }
@@ -2400,6 +2580,7 @@ const PROFIT_ITEMS = [
 ];
 
 let profitData = {};
+let customProfitRows = {}; // {pid: [{label,vendor,client,dbId}]}
 let paymentData = {};
 
 function initProjData(pid){
@@ -2469,7 +2650,11 @@ function switchProjTab(tab,el){
   if(tab==='payment'){
     const pid=currentDetailProjId;
     const pctEl=document.getElementById('pay-construction-pct');
-    if(pctEl&&paymentData[pid])pctEl.value=paymentData[pid].constructionPct||'';
+    const eqPctEl=document.getElementById('pay-equip-pct');
+    if(pctEl&&paymentData[pid]) pctEl.value=paymentData[pid].constructionPct||'';
+    if(eqPctEl&&paymentData[pid]) eqPctEl.value=paymentData[pid].equipPct!=null?paymentData[pid].equipPct:3;
+    const dfEl=document.getElementById('pay-design-fee');
+    if(dfEl&&paymentData[pid]) dfEl.value=paymentData[pid].designFee||'';
     syncPaymentDisplay(pid);
   }
   if(tab==='progress') renderProgressTable();
@@ -2482,6 +2667,7 @@ function renderProfitTable(){
   const tbody=document.getElementById('profit-tbody');
   const tfoot=document.getElementById('profit-tfoot');
   tbody.innerHTML='';tfoot.innerHTML='';
+  if(!customProfitRows[pid]) customProfitRows[pid]=[];
   let totV=0,totC=0,totP=0;
   PROFIT_ITEMS.forEach(it=>{
     const d=data[it.key];
@@ -2499,6 +2685,26 @@ function renderProfitTable(){
       <td style="padding:6px 12px;font-size:11px;color:var(--ink-light);">${it.type==='equip'?'設備空調類':'裝修工程類'}</td>`;
     tbody.appendChild(tr);
   });
+  // 自定義工種
+  customProfitRows[pid].forEach((r,i)=>{
+    const profit=(r.client||0)-(r.vendor||0);
+    const pct=(r.client>0)?(profit/r.client*100):null;
+    totV+=r.vendor||0;totC+=r.client||0;totP+=profit;
+    const tr=document.createElement('tr');
+    tr.style.background='#FFF9F0';
+    tr.innerHTML=`
+      <td style="padding:4px 8px;"><input class="profit-input" style="width:100%;text-align:left;" value="${r.label||''}" placeholder="工種名稱" oninput="customProfitRows['${pid}'][${i}].label=this.value" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
+      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${r.vendor||''}" placeholder="0" oninput="customProfitRows['${pid}'][${i}].vendor=parseFloat(this.value)||0;updateCustomProfit('${pid}')" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
+      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${r.client||''}" placeholder="0" oninput="customProfitRows['${pid}'][${i}].client=parseFloat(this.value)||0;updateCustomProfit('${pid}')" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
+      <td><div class="profit-auto ${profit>=0?'positive':'negative'}">${r.vendor>0||r.client>0?fmtN(profit):'—'}</div></td>
+      <td><div class="profit-auto ${pct!==null&&pct>=0?'positive':'negative'}">${pct!==null?pct.toFixed(1)+'%':'—'}</div></td>
+      <td style="padding:4px 8px;text-align:center;"><button onclick="removeCustomProfitRow('${pid}',${i})" style="width:26px;height:26px;border:none;background:none;cursor:pointer;font-size:14px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
+    tbody.appendChild(tr);
+  });
+  // 新增按鈕行
+  const addTr=document.createElement('tr');
+  addTr.innerHTML=`<td colspan="6" style="padding:0;"><button onclick="addCustomProfitRow('${pid}')" style="width:100%;padding:10px 14px;font-size:12px;color:var(--ink-muted);border:none;background:none;font-family:'Noto Sans TC',sans-serif;text-align:left;cursor:pointer;border-top:0.5px dashed var(--border);" onmouseover="this.style.background='var(--sand)';this.style.color='var(--ink)'" onmouseout="this.style.background='none';this.style.color='var(--ink-muted)'">＋ 新增自定義工種</button></td>`;
+  tbody.appendChild(addTr);
   const totPct=totC>0?(totP/totC*100):null;
   tfoot.innerHTML=`<tr style="background:var(--sand);">
     <td style="padding:10px 12px;font-weight:500;border-top:1.5px solid var(--border);">合計</td>
@@ -2536,15 +2742,69 @@ function updateProfit(pid,key,field,val){
   syncPaymentDisplay(pid);
 }
 
+function addCustomProfitRow(pid){
+  if(!customProfitRows[pid]) customProfitRows[pid]=[];
+  customProfitRows[pid].push({label:'',vendor:0,client:0,dbId:null});
+  renderProfitTable();
+  // Focus the new label input
+  const inputs=document.getElementById('profit-tbody').querySelectorAll('tr');
+  const lastDataRow=inputs[inputs.length-2]; // -1 is add button row, -2 is new row
+  if(lastDataRow){const inp=lastDataRow.querySelector('input');if(inp)inp.focus();}
+}
+
+function removeCustomProfitRow(pid,i){
+  const row=customProfitRows[pid][i];
+  if(row&&row.dbId){
+    sbClient.from('profit_items').delete().eq('id',row.dbId).then(()=>{});
+  }
+  customProfitRows[pid].splice(i,1);
+  renderProfitTable();
+}
+
+function updateCustomProfit(pid){
+  // Update totals in tfoot without full re-render
+  let totV=0,totC=0,totP=0;
+  PROFIT_ITEMS.forEach(it=>{const d=profitData[pid][it.key];totV+=d.vendor;totC+=d.client;totP+=(d.client-d.vendor);});
+  (customProfitRows[pid]||[]).forEach(r=>{totV+=r.vendor||0;totC+=r.client||0;totP+=((r.client||0)-(r.vendor||0));});
+  const totPct=totC>0?(totP/totC*100):null;
+  const tfoot=document.getElementById('profit-tfoot');
+  if(tfoot&&tfoot.rows[0]){
+    tfoot.rows[0].cells[1].textContent=fmtN(totV);
+    tfoot.rows[0].cells[2].textContent=fmtN(totC);
+    tfoot.rows[0].cells[3].textContent=fmtN(totP);
+    tfoot.rows[0].cells[3].style.color=totP>=0?'var(--green)':'var(--red)';
+    tfoot.rows[0].cells[4].textContent=totPct!==null?totPct.toFixed(1)+'%':'—';
+    tfoot.rows[0].cells[4].style.color=totPct!==null&&totPct>=0?'var(--green)':'var(--red)';
+  }
+  syncPaymentDisplay(pid);
+}
+
+async function dbSaveCustomProfitRow(pid,i){
+  const r=customProfitRows[pid]?.[i]; if(!r) return;
+  const key='custom_'+i+'_'+Date.now(); // fallback key
+  try{
+    if(r.dbId){
+      await sbClient.from('profit_items').update({item_key:r.label||'custom',vendor_price:r.vendor||0,client_price:r.client||0}).eq('id',r.dbId);
+    } else {
+      const {data,error}=await sbClient.from('profit_items').insert({project_id:pid,item_key:'__custom__'+(r.label||'custom'),vendor_price:r.vendor||0,client_price:r.client||0}).select();
+      if(!error&&data&&data[0]) customProfitRows[pid][i].dbId=data[0].id;
+    }
+  }catch(e){console.warn('dbSaveCustomProfitRow:',e.message);}
+}
+
 function syncPaymentDisplay(pid){
   const data=profitData[pid];
   let conTotal=0,eqTotal=0;
   PROFIT_ITEMS.forEach(it=>{const v=data[it.key].client||0;if(it.type==='equip')eqTotal+=v;else conTotal+=v;});
+  // Also add custom rows
+  (customProfitRows[pid]||[]).forEach(r=>{conTotal+=r.client||0;});
   const savedPct=paymentData[pid]?paymentData[pid].constructionPct:0;
   const pct=parseFloat(savedPct)||0;
+  const equipPct=parseFloat(paymentData[pid]?.equipPct||3)||3;
   const conFee=Math.round(conTotal*pct/100);
-  const eqFee=Math.round(eqTotal*0.03);
+  const eqFee=Math.round(eqTotal*equipPct/100);
   const total=conTotal+conFee+eqTotal+eqFee;
+  const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent='$'+v;};
   setText('pay-construction-total',fmtN(conTotal));
   setText('pay-equip-total',fmtN(eqTotal));
   setText('pay-construction-fee',fmtN(conFee));
@@ -2554,14 +2814,18 @@ function syncPaymentDisplay(pid){
   setText('sum-equip',fmtN(eqTotal));
   setText('sum-equip-fee',fmtN(eqFee));
   setText('sum-total',fmtN(total));
+  // Update equip fee label in summary
+  const eqLabel=document.getElementById('sum-equip-fee-label');
+  if(eqLabel) eqLabel.textContent=`設備及空調監工費（${equipPct}%）`;
 }
 
 function calcPayment(){
   const pid=currentDetailProjId;if(!pid)return;
   initProjData(pid);
-  // 先把目前輸入欄的值存起來
   const pctEl=document.getElementById('pay-construction-pct');
-  if(pctEl)paymentData[pid].constructionPct=pctEl.value;
+  const eqPctEl=document.getElementById('pay-equip-pct');
+  if(pctEl) paymentData[pid].constructionPct=pctEl.value;
+  if(eqPctEl) paymentData[pid].equipPct=eqPctEl.value;
   syncPaymentDisplay(pid);
 }
 function openPM(id){
@@ -3098,6 +3362,185 @@ async function renderClientProgress(){
       ${colItems.length ? colItems.map(it=>`<div class="prog-item">${it.name}${it.startDate||it.endDate?`<div class="prog-item-sub">${[it.startDate,it.endDate].filter(Boolean).join(' → ')}</div>`:''}</div>`).join('') : '<div style="font-size:12px;color:var(--ink-light);">（無）</div>'}
     </div>`;
   }).join('');
+}
+
+// ========== CLIENT DASHBOARD ==========
+async function renderClientDashboard(){
+  const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
+  const pid=Number(c.projectId);
+  const proj=projects.find(p=>Number(p.id)===pid);
+
+  // --- 專案 meta ---
+  if(proj){
+    const titleEl=document.getElementById('p-proj-title');
+    if(titleEl) titleEl.textContent=proj.name;
+    const metaEl=document.getElementById('p-proj-meta');
+    const sc=proj.status==='進行中'?'pill-green':proj.status==='已完工'?'pill-gray':'pill-amber';
+    const parts=[];
+    if(proj.date) parts.push('合約起始：'+proj.date);
+    if(proj.endDate) parts.push('預計完工：'+proj.endDate);
+    if(metaEl) metaEl.innerHTML=(parts.join(' ｜ ')+(parts.length?' ｜ ':' '))+`<span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
+  }
+
+  // --- 1. 施工進度 ---
+  await dbLoadProgress(pid);
+  const progItems=progressData[pid]||[];
+  const nowItems=progItems.filter(r=>r.status==='進行中'&&r.name.trim());
+  const doneItems=progItems.filter(r=>r.status==='已完成'&&r.name.trim());
+  const nowEl=document.getElementById('dash-progress-now');
+  const doneEl=document.getElementById('dash-progress-done');
+  if(nowEl){
+    if(nowItems.length){
+      nowEl.innerHTML=nowItems.map(r=>`
+        <div style="background:#F0F6FF;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#185FA5;">${r.name}</div>
+            ${r.startDate||r.endDate?`<div style="font-size:11px;color:#378ADD;margin-top:2px;">${[r.startDate,r.endDate].filter(Boolean).join(' → ')}</div>`:''}
+          </div>
+          <span class="pill pill-green" style="font-size:10px;">進行中</span>
+        </div>`).join('');
+    } else {
+      nowEl.innerHTML='<div style="font-size:12px;color:var(--ink-light);">暫無進行中的工程</div>';
+    }
+  }
+  if(doneEl){
+    if(doneItems.length){
+      doneEl.innerHTML=`<span style="font-size:11px;color:var(--ink-light);margin-right:4px;">已完成：</span>`+
+        doneItems.map(r=>`<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:4px 10px;border-radius:6px;">${r.name}</span>`).join('');
+    } else { doneEl.innerHTML=''; }
+  }
+
+  // --- 2. 最新施工照片 ---
+  const logEntries=Object.entries(calLogs).sort((a,b)=>b[0].localeCompare(a[0]));
+  const latestLog=logEntries.find(([,v])=>v.photos&&v.photos.length);
+  const photoCard=document.getElementById('dash-photo-card');
+  const photoStrip=document.getElementById('dash-photo-strip');
+  const photoDate=document.getElementById('dash-photo-date');
+  if(latestLog&&photoStrip&&photoCard){
+    const [dateKey,log]=latestLog;
+    const [y,m,d]=dateKey.split('-');
+    if(photoDate) photoDate.textContent=`${y}/${m}/${d}`;
+    photoStrip.innerHTML='';
+    const show=log.photos.slice(0,4);
+    const rest=log.photos.length-4;
+    show.forEach(src=>{
+      const img=document.createElement('img');
+      img.src=src; img.alt='施工照片';
+      img.style.cssText='height:80px;width:80px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer;';
+      img.onclick=()=>{window.open(src,'_blank');};
+      photoStrip.appendChild(img);
+    });
+    if(rest>0){
+      const more=document.createElement('div');
+      more.style.cssText='height:80px;width:80px;border-radius:10px;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ink-muted);flex-shrink:0;';
+      more.textContent=`+${rest} 張`;
+      photoStrip.appendChild(more);
+    }
+    photoCard.style.display='block';
+  } else if(photoCard){ photoCard.style.display='none'; }
+
+  // --- 3. 追加減摘要 ---
+  await loadClientChangeOrders(pid);
+
+  // --- 4+5. 收款狀況 + 下次請款 ---
+  try{
+    const {data}=await sbClient.from('payment_settings').select('schedule_json').eq('project_id',pid).single();
+    if(data&&data.schedule_json) scheduleData[pid]=JSON.parse(data.schedule_json);
+  }catch(e){}
+  const schedule=scheduleData[pid]||[];
+  const contractAmt=proj?Number(proj.contractAmount)||0:0;
+  const total=contractAmt>0?contractAmt:schedule.reduce((s,r)=>s+(r.amount||0),0);
+  const received=schedule.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const pending=total-received;
+  const pct=total>0?Math.round(received/total*100):0;
+  const barEl=document.getElementById('dash-pay-bar');
+  if(barEl) barEl.style.width=pct+'%';
+  const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setT('dash-pay-received','$'+fmtN(received));
+  setT('dash-pay-pending','$'+fmtN(pending));
+  // 下次請款
+  const nextItem=schedule.find(r=>r.status==='未收'||r.status==='逾期');
+  const nextEl=document.getElementById('dash-next-pay');
+  if(nextItem&&nextEl){
+    nextEl.style.display='flex';
+    setT('dash-next-name',nextItem.name||'—');
+    setT('dash-next-date',nextItem.due?'預計 '+nextItem.due:'—');
+    setT('dash-next-amt','$'+fmtN(nextItem.amount||0));
+  } else if(nextEl){ nextEl.style.display='none'; }
+
+  // --- 顯示追加減 nav ---
+  const coNav=document.getElementById('nav-changes');
+  const coMobile=document.getElementById('mobile-nav-changes');
+  if(coNav) coNav.style.display='';
+  if(coMobile) coMobile.style.display='';
+}
+
+async function loadClientChangeOrders(pid){
+  try{
+    const {data,error}=await sbClient.from('change_orders').select('*').eq('project_id',pid).order('seq_no',{ascending:true});
+    if(error) throw error;
+    const items=data||[];
+    const pct=items.length?Number(items[0].supervision_pct)||0:0;
+    let addTotal=0,subTotal=0;
+    items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addTotal+=amt;else subTotal+=amt;});
+    const net=addTotal-subTotal;
+    const fee=Math.round(net*pct/100);
+    const grand=net+fee;
+    const coCard=document.getElementById('dash-co-card');
+    if(!items.length){if(coCard)coCard.style.display='none';return;}
+    if(coCard) coCard.style.display='block';
+    // Render summary list (max 3)
+    const listEl=document.getElementById('dash-co-list');
+    if(listEl){
+      listEl.innerHTML='';
+      items.slice(0,3).forEach(r=>{
+        const amt=Number(r.unit_price)*Number(r.quantity);
+        const isAdd=r.type==='追加';
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:13px;';
+        row.innerHTML=`<span style="color:var(--ink);">${r.content||'—'}</span><span style="font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</span>`;
+        listEl.appendChild(row);
+      });
+      if(items.length>3){
+        const more=document.createElement('div');
+        more.style.cssText='font-size:11px;color:var(--ink-light);padding:4px 0;';
+        more.textContent=`還有 ${items.length-3} 項…`;
+        listEl.appendChild(more);
+      }
+    }
+    const fmtS=n=>n>=0?'+$'+fmtN(n):'-$'+fmtN(Math.abs(n));
+    const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    setT('dash-co-grand',fmtS(grand));
+    // Full detail page
+    setT('cli-co-add','+$'+fmtN(addTotal));
+    setT('cli-co-sub','-$'+fmtN(subTotal));
+    setT('cli-co-grand',fmtS(grand));
+    const tb=document.getElementById('cli-co-tbody');
+    const empty=document.getElementById('cli-co-empty');
+    const summary=document.getElementById('cli-co-summary');
+    if(tb){
+      tb.innerHTML='';
+      if(empty) empty.style.display='none';
+      if(summary) summary.style.display='block';
+      items.forEach(r=>{
+        const amt=Number(r.unit_price)*Number(r.quantity);
+        const isAdd=r.type==='追加';
+        const tr=document.createElement('tr');
+        tr.style.borderBottom='0.5px solid var(--border)';
+        tr.innerHTML=`
+          <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${r.seq_no}</td>
+          <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}</td>
+          <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
+          <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
+          <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
+        tb.appendChild(tr);
+      });
+      setT('cli-sum-add','+$'+fmtN(addTotal));
+      setT('cli-sum-sub','-$'+fmtN(subTotal));
+      setT('cli-sum-fee',fmtS(fee));
+      setT('cli-sum-grand',fmtS(grand));
+    }
+  }catch(e){console.warn('loadClientChangeOrders:',e.message);}
 }
 
 // ========== CLIENT PAYMENT ==========
