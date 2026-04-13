@@ -1626,7 +1626,7 @@ function doLogin(){
       showScreen('s-admin');
       showDashboardNav(true);
       renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
-      populateDocsClientSel();renderAdminDocs();populateLogClientSel();renderAdminLogs();
+      populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
     } else err.textContent='帳號或密碼錯誤';
   } else {
     const c=clients.find(x=>x.user===u&&x.pass===p);
@@ -1674,31 +1674,32 @@ function goPage(id,el){
   document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
 }
-function goAdminPage(id,el){
+async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
   document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(id==='a-dashboard') renderDashboard();
-  if(id==='a-docs'){populateDocsClientSel();renderAdminDocs();}
-  if(id==='a-logs'){populateLogClientSel();renderAdminLogs();}
-  if(id==='a-assign'){renderAssignClist();}
-  if(id==='a-clients'){renderAdminClients();}
-  if(id==='a-projects'){renderProjects();}
-  if(id==='a-settings'){initSettings();}
+  if(id==='a-docs'){populateDocsClientSel();await renderAdminDocs();}
+  if(id==='a-logs'){populateLogClientSel();await renderAdminLogs();}
+  if(id==='a-assign') renderAssignClist();
+  if(id==='a-clients') renderAdminClients();
+  if(id==='a-projects') renderProjects();
+  if(id==='a-settings') initSettings();
 }
 
 function syncAllData(){
   const btn=document.querySelector('.btn-sync');
   btn.textContent='↺ 同步中…';btn.classList.add('syncing');
   populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
-  renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();renderAdminLogs();
+  renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
   const activePage=document.querySelector('#s-admin .page.active');
+  const finish=()=>{setTimeout(()=>{btn.textContent='↺ 同步資料';btn.classList.remove('syncing');},600);};
   if(activePage){
-    if(activePage.id==='a-docs')renderAdminDocs();
-    if(activePage.id==='a-logs')renderAdminLogs();
+    if(activePage.id==='a-docs'){renderAdminDocs().then(finish);return;}
+    if(activePage.id==='a-logs'){renderAdminLogs().then(finish);return;}
   }
-  setTimeout(()=>{btn.textContent='↺ 同步資料';btn.classList.remove('syncing');},600);
+  finish();
 }
 
 // ========== SETTINGS ==========
