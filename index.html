@@ -624,6 +624,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <button class="tnav active" onclick="goAdminPage('a-projects',this)">專案管理</button>
       <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
       <button class="tnav" onclick="goAdminPage('a-docs',this)">文件管理</button>
+      <button class="tnav" onclick="goAdminPage('a-changes',this)">追加減</button>
       <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
       <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
@@ -643,6 +644,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <button class="mobile-tnav active" onclick="goAdminPageMobile('a-projects',this)">專案管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-docs',this)">文件管理</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-changes',this)">追加減</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
@@ -1053,6 +1055,68 @@ tbody tr:hover td{background:#FDFAF6;}
           <div><label class="form-label">選擇 PDF</label><input type="file" id="quote-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
           <button class="btn-ink" onclick="addQuote()">＋ 上傳報價</button>
         </div>
+      </div>
+    </div>
+
+    <!-- 追加減明細 -->
+    <div class="page" id="a-changes">
+      <div class="sec-head"><div class="sec-ttl">追加減明細</div></div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">記錄各專案的追加或減項，儲存後自動同步至客戶端首頁。</div>
+      <div class="admin-sel-row" style="margin-bottom:1.2rem;">
+        <label>選擇專案：</label>
+        <select class="admin-sel" id="co-proj-sel" onchange="loadChangeOrders()"></select>
+      </div>
+
+      <!-- 統計卡 -->
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem;">
+        <div class="stat-box"><div class="stat-lbl">追加合計</div><div class="stat-val" id="co-add-total" style="color:var(--red);">$0</div></div>
+        <div class="stat-box"><div class="stat-lbl">減項合計</div><div class="stat-val" id="co-sub-total" style="color:var(--green);">$0</div></div>
+        <div class="stat-box"><div class="stat-lbl">含監工費淨額</div><div class="stat-val" id="co-net-total">$0</div></div>
+      </div>
+
+      <!-- 監工費率 -->
+      <div class="card" style="margin-bottom:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label style="font-size:13px;color:var(--ink);">追加減監工費率：</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="co-sup-pct" value="8" min="0" max="100" step="0.1"
+            style="width:70px;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:14px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;text-align:center;"
+            oninput="updateCoStats()">
+          <span style="font-size:13px;color:var(--ink-muted);">%</span>
+        </div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-left:8px;">監工費：<span id="co-sup-fee" style="color:var(--ink);font-weight:500;">$0</span>　含監工費總計：<span id="co-total-with-fee" style="color:var(--ink);font-weight:500;">$0</span></div>
+      </div>
+
+      <!-- 明細表格 -->
+      <div class="card" style="padding:0;margin-bottom:1rem;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:580px;">
+          <thead>
+            <tr>
+              <th style="text-align:center;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:44px;">序號</th>
+              <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:34%;">內容</th>
+              <th style="text-align:left;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:10%;">類型</th>
+              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">單價（元）</th>
+              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:9%;">數量</th>
+              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">小計（元）</th>
+              <th style="border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="co-tbody"></tbody>
+        </table>
+        <button class="add-row-btn" onclick="addCoRow()">＋ 新增項目</button>
+      </div>
+
+      <!-- 合計 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">追加小計</span><span id="co-sum-add" style="font-weight:500;color:var(--red);">$0</span></div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">減項小計</span><span id="co-sum-sub" style="font-weight:500;color:var(--green);">$0</span></div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">追加減淨額</span><span id="co-sum-net" style="font-weight:500;">$0</span></div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">監工費</span><span id="co-sum-fee" style="font-weight:500;">$0</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;border-top:1.5px solid var(--border);margin-top:4px;"><span style="font-weight:500;">含監工費總計</span><span id="co-sum-grand" style="font-weight:500;font-size:18px;">$0</span></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:2rem;">
+        <button class="btn-ghost" onclick="loadChangeOrders()">重設</button>
+        <button class="btn-ink" onclick="saveChangeOrders()">儲存並同步客戶端</button>
       </div>
     </div>
 
@@ -1681,6 +1745,7 @@ async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(id==='a-dashboard') renderDashboard();
+  if(id==='a-changes'){populateCoProjectSel();loadChangeOrders();}
   if(id==='a-docs'){populateDocsClientSel();await renderAdminDocs();}
   if(id==='a-logs'){populateLogClientSel();await renderAdminLogs();}
   if(id==='a-assign') renderAssignClist();
@@ -2169,6 +2234,143 @@ async function saveSchedule(){
     alert('收款進度已儲存！');
     renderSchedule();
   }catch(e){ alert('儲存失敗：'+e.message); console.error(e); }
+  showLoader(false);
+}
+
+// ========== CHANGE ORDERS ==========
+let changeOrders = {}; // {projectId: [{content,type,unitPrice,qty,seqNo}]}
+
+function populateCoProjectSel(){
+  const sel=document.getElementById('co-proj-sel'); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  if(!projects.length){const o=document.createElement('option');o.value='';o.textContent='（尚無專案）';sel.appendChild(o);return;}
+  projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  if(cur) sel.value=cur;
+}
+
+async function loadChangeOrders(){
+  const pid=parseInt(document.getElementById('co-proj-sel')?.value)||0;
+  if(!pid) return;
+  showLoader(true);
+  try{
+    const {data,error}=await sbClient.from('change_orders').select('*').eq('project_id',pid).order('seq_no',{ascending:true});
+    if(error) throw error;
+    changeOrders[pid]=(data||[]).map(r=>({dbId:r.id,seqNo:r.seq_no,content:r.content,type:r.type,unitPrice:Number(r.unit_price)||0,qty:Number(r.quantity)||1,supPct:Number(r.supervision_pct)||8}));
+    const pct=changeOrders[pid].length?changeOrders[pid][0].supPct:8;
+    const pctEl=document.getElementById('co-sup-pct');
+    if(pctEl) pctEl.value=pct;
+  }catch(e){console.warn('loadChangeOrders:',e.message);changeOrders[pid]=[];}
+  showLoader(false);
+  renderCoTable();
+}
+
+function getCoProjectId(){return parseInt(document.getElementById('co-proj-sel')?.value)||0;}
+
+function renderCoTable(){
+  const pid=getCoProjectId(); if(!pid) return;
+  const items=changeOrders[pid]||[];
+  const tb=document.getElementById('co-tbody'); if(!tb) return;
+  tb.innerHTML='';
+  const inp=`padding:9px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;background:transparent;color:var(--ink);outline:none;width:100%;`;
+  items.forEach((r,i)=>{
+    const subtotal=r.unitPrice*(r.qty||1);
+    const isAdd=r.type==='追加';
+    const subColor=isAdd?'color:var(--red);':'color:var(--green);';
+    const subStr=(isAdd?'+':'-')+'$'+fmtN(Math.abs(subtotal));
+    const tr=document.createElement('tr');
+    tr.style.borderBottom='0.5px solid var(--border)';
+    tr.innerHTML=`
+      <td style="text-align:center;padding:9px 8px;font-size:12px;color:var(--ink-light);">${i+1}</td>
+      <td style="padding:4px 6px;"><input style="${inp}" value="${r.content}" placeholder="項目內容…" oninput="changeOrders[${pid}][${i}].content=this.value"></td>
+      <td style="padding:4px 6px;">
+        <select style="${inp}cursor:pointer;" onchange="changeOrders[${pid}][${i}].type=this.value;updateCoRow(${pid},${i},this.closest('tr'))">
+          <option ${r.type==='追加'?'selected':''}>追加</option>
+          <option ${r.type==='減項'?'selected':''}>減項</option>
+        </select>
+      </td>
+      <td style="padding:4px 6px;"><input type="number" style="${inp}text-align:right;" value="${r.unitPrice||''}" placeholder="0" oninput="changeOrders[${pid}][${i}].unitPrice=parseFloat(this.value)||0;updateCoRow(${pid},${i},this.closest('tr'))"></td>
+      <td style="padding:4px 6px;"><input type="number" style="${inp}text-align:right;" value="${r.qty||1}" min="0.01" step="0.01" oninput="changeOrders[${pid}][${i}].qty=parseFloat(this.value)||1;updateCoRow(${pid},${i},this.closest('tr'))"></td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:500;${subColor}" id="co-sub-${i}">${subStr}</td>
+      <td style="padding:4px 4px;text-align:center;">
+        <button onclick="removeCoRow(${pid},${i})" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  updateCoStats();
+}
+
+function updateCoRow(pid,i,tr){
+  const r=changeOrders[pid][i];
+  const subtotal=r.unitPrice*(r.qty||1);
+  const isAdd=r.type==='追加';
+  const cell=tr.querySelector(`#co-sub-${i}`)||tr.children[5];
+  if(cell){
+    cell.textContent=(isAdd?'+':'-')+'$'+fmtN(Math.abs(subtotal));
+    cell.style.color=isAdd?'var(--red)':'var(--green)';
+  }
+  updateCoStats();
+}
+
+function updateCoStats(){
+  const pid=getCoProjectId(); if(!pid) return;
+  const items=changeOrders[pid]||[];
+  const pct=parseFloat(document.getElementById('co-sup-pct')?.value)||0;
+  let addTotal=0, subTotal=0;
+  items.forEach(r=>{
+    const amt=r.unitPrice*(r.qty||1);
+    if(r.type==='追加') addTotal+=amt; else subTotal+=amt;
+  });
+  const net=addTotal-subTotal;
+  const fee=Math.round(net*pct/100);
+  const grand=net+fee;
+  const s=id=>{const el=document.getElementById(id);return el;};
+  const fmt=n=>'$'+fmtN(n);
+  const fmtSigned=n=>n>=0?'+'+fmt(n):'-'+fmt(Math.abs(n));
+  if(s('co-add-total')) s('co-add-total').textContent='+'+fmt(addTotal);
+  if(s('co-sub-total')) s('co-sub-total').textContent='-'+fmt(subTotal);
+  if(s('co-net-total')) s('co-net-total').textContent=fmtSigned(net);
+  if(s('co-sup-fee')) s('co-sup-fee').textContent=fmt(fee);
+  if(s('co-total-with-fee')) s('co-total-with-fee').textContent=fmtSigned(grand);
+  if(s('co-sum-add')) s('co-sum-add').textContent='+'+fmt(addTotal);
+  if(s('co-sum-sub')) s('co-sum-sub').textContent='-'+fmt(subTotal);
+  if(s('co-sum-net')) s('co-sum-net').textContent=fmtSigned(net);
+  if(s('co-sum-fee')) s('co-sum-fee').textContent='+'+fmt(fee);
+  if(s('co-sum-grand')) s('co-sum-grand').textContent=fmtSigned(grand);
+}
+
+function addCoRow(){
+  const pid=getCoProjectId(); if(!pid) return;
+  if(!changeOrders[pid]) changeOrders[pid]=[];
+  changeOrders[pid].push({content:'',type:'追加',unitPrice:0,qty:1,supPct:parseFloat(document.getElementById('co-sup-pct')?.value)||8});
+  renderCoTable();
+  const rows=document.getElementById('co-tbody').querySelectorAll('tr');
+  if(rows.length){const inp=rows[rows.length-1].querySelector('input');if(inp)inp.focus();}
+}
+
+function removeCoRow(pid,i){
+  changeOrders[pid].splice(i,1);
+  renderCoTable();
+}
+
+async function saveChangeOrders(){
+  const pid=getCoProjectId(); if(!pid) return;
+  const items=changeOrders[pid]||[];
+  const pct=parseFloat(document.getElementById('co-sup-pct')?.value)||0;
+  showLoader(true);
+  try{
+    // Delete all existing for this project then re-insert
+    await sbClient.from('change_orders').delete().eq('project_id',pid);
+    if(items.length){
+      const rows=items.map((r,i)=>({
+        project_id:pid, seq_no:i+1, content:r.content||'',
+        type:r.type||'追加', unit_price:r.unitPrice||0,
+        quantity:r.qty||1, supervision_pct:pct
+      }));
+      const {error}=await sbClient.from('change_orders').insert(rows);
+      if(error) throw error;
+    }
+    alert('追加減已儲存！');
+  }catch(e){ alert('儲存失敗：'+e.message); }
   showLoader(false);
 }
 
