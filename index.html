@@ -2823,8 +2823,8 @@ async function renderAdminLogs(){
 // ========== CLIENT PROGRESS ==========
 async function renderClientProgress(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
-  const pid=c.projectId;
-  const proj=projects.find(p=>p.id===pid);
+  const pid=Number(c.projectId);
+  const proj=projects.find(p=>Number(p.id)===pid);
   // Update project title and meta immediately
   if(proj){
     const titleEl=document.getElementById('p-proj-title');
@@ -2933,6 +2933,13 @@ function renderPowTable(){
     td2.appendChild(db);tr.appendChild(td2);
     tb.appendChild(tr);refreshPow(tr,r);
   });
+}
+function refreshPow(tr,r){
+  const w=parseFloat(r.w)||0,v=parseFloat(r.v)||110,q=parseInt(r.qty)||1;
+  const a=w?Math.round(w*q/v*10)/10:0;
+  const circ=a>=10?'需專用迴路':'一般插座';
+  tr.children[5].textContent=w?a+' A':'—';
+  tr.children[6].innerHTML=w?`<span class="psm cir-${circ}">${circ}</span>`:'';
 }
 function addRow(type){
   if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('app',appData);}
