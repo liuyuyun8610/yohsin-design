@@ -481,23 +481,15 @@ tbody tr:hover td{background:#FDFAF6;}
     <div class="page active" id="p-overview">
       <div style="margin-bottom:1.5rem;">
         <div id="p-proj-title" style="font-family:'Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;margin-bottom:0.5rem;"></div>
-        <div style="font-size:13px;color:var(--ink-light);">合約起始：2024.06 ｜ 預計完工：2026.06 ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
+        <div style="font-size:13px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：— ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
       </div>
       <div class="card">
         <div class="card-title">專案進度</div>
-        <div class="prog-grid">
+        <div class="prog-grid" id="client-progress-grid">
           <div><div class="prog-col-lbl"><span class="pdot dot-gr"></span>未開始</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
           <div><div class="prog-col-lbl"><span class="pdot dot-am"></span>修改中</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
-          <div><div class="prog-col-lbl"><span class="pdot dot-bl"></span>進行中</div>
-            <div class="prog-item">油漆工程<div class="prog-item-sub">4/9 → 4/17</div></div>
-            <div class="prog-item">木作工程<div class="prog-item-sub">4/12 → 4/14</div></div>
-          </div>
-          <div><div class="prog-col-lbl"><span class="pdot dot-gn"></span>已完成</div>
-            <div class="prog-item">現況放樣 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
-            <div class="prog-item">平面配置圖 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
-            <div class="prog-item">報價單製作 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
-            <div class="prog-item">水電工程 <span class="pill pill-green" style="font-size:10px;">完成</span></div>
-          </div>
+          <div><div class="prog-col-lbl"><span class="pdot dot-bl"></span>進行中</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
+          <div><div class="prog-col-lbl"><span class="pdot dot-gn"></span>已完成</div><div style="font-size:12px;color:var(--ink-light);">（無）</div></div>
         </div>
       </div>
     </div>
@@ -693,8 +685,42 @@ tbody tr:hover td{background:#FDFAF6;}
 
       <!-- 頁籤 -->
       <div class="stabs" id="proj-detail-tabs">
-        <button class="stab active" onclick="switchProjTab('profit',this)">利潤分析</button>
+        <button class="stab active" onclick="switchProjTab('progress',this)">專案進度</button>
+        <button class="stab" onclick="switchProjTab('profit',this)">利潤分析</button>
         <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
+      </div>
+
+      <!-- 專案進度 -->
+      <div id="proj-tab-progress">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">新增工程項目、設定狀態與日期，客戶端「專案總覽」看板會同步顯示。</div>
+
+        <!-- 進度表格 -->
+        <div class="card" style="margin-bottom:1rem;padding:0;">
+          <table style="width:100%;border-collapse:collapse;min-width:520px;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:10px 16px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:36%;">工程項目</th>
+                <th style="text-align:left;padding:10px 16px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:18%;">狀態</th>
+                <th style="text-align:left;padding:10px 16px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:18%;">開始日期</th>
+                <th style="text-align:left;padding:10px 16px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:18%;">結束日期</th>
+                <th style="border-bottom:0.5px solid var(--border);background:var(--sand);width:10%;"></th>
+              </tr>
+            </thead>
+            <tbody id="progress-tbody"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addProgressRow()">＋ 新增工程項目</button>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
+          <div style="font-size:12px;color:var(--ink-light);">共 <span id="progress-count">0</span> 個項目</div>
+          <button class="btn-ink" onclick="saveProgressItems()">儲存並同步客戶端</button>
+        </div>
+
+        <!-- 客戶端預覽 -->
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.8rem;font-weight:500;">客戶端預覽</div>
+        <div class="card">
+          <div class="prog-grid" id="progress-preview"></div>
+        </div>
       </div>
 
       <!-- 利潤分析 -->
@@ -1476,7 +1502,7 @@ function doLogin(){
       const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
       document.getElementById('p-proj-title').textContent=proj?proj.name:'';
       showScreen('s-client');
-      renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
+      renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();
     } else err.textContent='帳號或密碼錯誤，請再試一次';
   }
 }
@@ -1554,6 +1580,115 @@ function applyPassword(){
   alert('密碼已更新！下次登入請使用新密碼。');
 }
 
+// ========== PROGRESS ITEMS ==========
+// progressData[projectId] = [{id, name, status, startDate, endDate}]
+let progressData = {};
+let nextProgId = 1;
+const PROG_STATUSES = ['未開始','修改中','進行中','已完成'];
+const PROG_STATUS_COLORS = {'未開始':'color:var(--ink-light);','修改中':'color:#7A5E1A;','進行中':'color:var(--blue);','已完成':'color:var(--green);'};
+
+function initProgressData(pid){ if(!progressData[pid]) progressData[pid]=[]; }
+
+async function dbLoadProgress(pid){
+  try {
+    const {data,error} = await sbClient.from('progress_items').select('*').eq('project_id',pid).order('sort_order',{ascending:true});
+    if(error) throw error;
+    progressData[pid] = (data||[]).map(r=>({dbId:r.id, name:r.name, status:r.status, startDate:r.start_date||'', endDate:r.end_date||'', sortOrder:r.sort_order}));
+    nextProgId = progressData[pid].length ? Math.max(...progressData[pid].map(r=>r.dbId||0))+1 : 1;
+  } catch(e){ console.warn('dbLoadProgress failed (table may not exist yet):', e.message); progressData[pid]=[]; }
+}
+
+async function saveProgressItems(){
+  const pid=currentDetailProjId; if(!pid) return;
+  showLoader(true);
+  try {
+    // Delete all existing for this project then re-insert
+    await sbClient.from('progress_items').delete().eq('project_id',pid);
+    const rows = progressData[pid].map((r,i)=>({project_id:pid, name:r.name, status:r.status, start_date:r.startDate||'', end_date:r.endDate||'', sort_order:i}));
+    if(rows.length){ const {error}=await sbClient.from('progress_items').insert(rows); if(error) throw error; }
+    alert('進度已儲存！');
+  } catch(e){ alert('儲存失敗：'+e.message); }
+  showLoader(false);
+}
+
+function renderProgressTable(){
+  const pid=currentDetailProjId; if(!pid) return;
+  initProgressData(pid);
+  const items=progressData[pid];
+  const tb=document.getElementById('progress-tbody'); if(!tb) return;
+  tb.innerHTML='';
+  items.forEach((item,i)=>{
+    const tr=document.createElement('tr');
+    tr.style.cssText='border-bottom:0.5px solid var(--border);';
+    const statusColor = {'未開始':'#888','修改中':'#7A5E1A','進行中':'var(--blue)','已完成':'var(--green)'}[item.status]||'#888';
+    tr.innerHTML=`
+      <td style="padding:10px 14px;">
+        <input style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;" 
+               value="${item.name}" placeholder="工程名稱" 
+               oninput="progressData[${pid}][${i}].name=this.value;updateProgressPreview()" 
+               onfocus="this.style.borderColor='var(--accent-light)';this.style.background='#fff'" 
+               onblur="this.style.borderColor='var(--border)';this.style.background='var(--sand)'">
+      </td>
+      <td style="padding:10px 10px;">
+        <select style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:${statusColor};outline:none;cursor:pointer;"
+                onchange="progressData[${pid}][${i}].status=this.value;this.style.color=({'未開始':'#888','修改中':'#7A5E1A','進行中':'var(--blue)','已完成':'var(--green)'}[this.value]||'#888');updateProgressPreview()">
+          ${PROG_STATUSES.map(s=>`<option value="${s}" ${s===item.status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td style="padding:10px 10px;">
+        <input style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;"
+               value="${item.startDate}" placeholder="例：4/9"
+               oninput="progressData[${pid}][${i}].startDate=this.value;updateProgressPreview()"
+               onfocus="this.style.borderColor='var(--accent-light)';this.style.background='#fff'"
+               onblur="this.style.borderColor='var(--border)';this.style.background='var(--sand)'">
+      </td>
+      <td style="padding:10px 10px;">
+        <input style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;"
+               value="${item.endDate}" placeholder="例：4/17"
+               oninput="progressData[${pid}][${i}].endDate=this.value;updateProgressPreview()"
+               onfocus="this.style.borderColor='var(--accent-light)';this.style.background='#fff'"
+               onblur="this.style.borderColor='var(--border)';this.style.background='var(--sand)'">
+      </td>
+      <td style="padding:10px 8px;text-align:center;">
+        <button onclick="removeProgressRow(${i})" style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:var(--ink-light);font-size:16px;border-radius:6px;" onmouseover="this.style.background='var(--red-pale)';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  const cnt=document.getElementById('progress-count'); if(cnt) cnt.textContent=items.length;
+  updateProgressPreview();
+}
+
+function addProgressRow(){
+  const pid=currentDetailProjId; if(!pid) return;
+  initProgressData(pid);
+  progressData[pid].push({name:'',status:'未開始',startDate:'',endDate:''});
+  renderProgressTable();
+  // Focus last name input
+  const rows=document.getElementById('progress-tbody').querySelectorAll('tr');
+  if(rows.length){ const inp=rows[rows.length-1].querySelector('input'); if(inp) inp.focus(); }
+}
+
+function removeProgressRow(i){
+  const pid=currentDetailProjId; if(!pid) return;
+  progressData[pid].splice(i,1);
+  renderProgressTable();
+}
+
+function updateProgressPreview(){
+  const pid=currentDetailProjId; if(!pid) return;
+  const preview=document.getElementById('progress-preview'); if(!preview) return;
+  const items=progressData[pid]||[];
+  const cols=['未開始','修改中','進行中','已完成'];
+  const dotColors={'未開始':'#bbb','修改中':'#D4A020','進行中':'var(--blue)','已完成':'var(--green)'};
+  preview.innerHTML=cols.map(col=>{
+    const colItems=items.filter(it=>it.status===col&&it.name.trim());
+    return `<div>
+      <div class="prog-col-lbl"><span class="pdot" style="background:${dotColors[col]};width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;"></span>${col}</div>
+      ${colItems.length ? colItems.map(it=>`<div class="prog-item">${it.name}${it.startDate||it.endDate?'<div class="prog-item-sub">'+[it.startDate,it.endDate].filter(Boolean).join(' → ')+'</div>':''}</div>`).join('') : '<div style="font-size:12px;color:var(--ink-light);">（無）</div>'}
+    </div>`;
+  }).join('');
+}
+
 // ========== PROJECTS ==========
 let currentDetailProjId = null;
 
@@ -1617,6 +1752,7 @@ async function openProjectDetail(pid){
     await dbLoadProfit(pid);
     await dbLoadLogs(pid);
     await dbLoadChecklist(pid);
+    await dbLoadProgress(pid);
   }catch(e){console.error('load project detail failed',e);}
   showLoader(false);
   const p=projects.find(x=>x.id===pid);
@@ -1626,27 +1762,30 @@ async function openProjectDetail(pid){
   document.getElementById('detail-proj-meta').textContent=([p.address,p.unit].filter(Boolean).join(' ')||'')+(p.date?' ｜ 開案：'+p.date:'')+(p.endDate?' ｜ 預計完工：'+p.endDate:'');
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   document.querySelector('#proj-detail-tabs .stab').classList.add('active');
-  document.getElementById('proj-tab-profit').style.display='block';
+  document.getElementById('proj-tab-progress').style.display='block';
+  document.getElementById('proj-tab-profit').style.display='none';
   document.getElementById('proj-tab-payment').style.display='none';
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#s-admin .page').forEach(pg=>pg.classList.remove('active'));
   document.getElementById('a-project-detail').classList.add('active');
   renderProfitTable();
   calcPayment();
+  renderProgressTable();
 }
 
 function switchProjTab(tab,el){
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
+  document.getElementById('proj-tab-progress').style.display=tab==='progress'?'block':'none';
   document.getElementById('proj-tab-profit').style.display=tab==='profit'?'block':'none';
   document.getElementById('proj-tab-payment').style.display=tab==='payment'?'block':'none';
   if(tab==='payment'){
-    // 還原儲存的監工費百分比
     const pid=currentDetailProjId;
     const pctEl=document.getElementById('pay-construction-pct');
     if(pctEl&&paymentData[pid])pctEl.value=paymentData[pid].constructionPct||'';
     syncPaymentDisplay(pid);
   }
+  if(tab==='progress') renderProgressTable();
 }
 
 function renderProfitTable(){
@@ -1841,25 +1980,31 @@ async function saveClient(){
   showLoader(true);
   try{
     if(editCId){
-      // 編輯現有客戶
       const c=clients.find(x=>x.id===editCId);
       Object.assign(c,{user:u,pass:p,name:n,projectId:projId,status:st,note:no});
-      await dbSaveClient(c);
+      const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:c.assigned||[]};
+      const {error}=await sbClient.from('clients').update(row).eq('id',editCId);
+      if(error) throw new Error('更新失敗：'+error.message);
+      console.log('✅ Client updated id=',editCId);
     } else {
-      // 新增客戶：先存進 DB 取得真實 id，再加入本地陣列
       if(clients.find(x=>x.user===u)){alert('帳號已存在');showLoader(false);return;}
-      const newClient={user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[]};
       const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:[]};
-      const res=await sbClient.from('clients').insert(row).select();
-      if(res.error) throw new Error(res.error.message);
-      const dbId=res.data[0].id;
-      newClient.id=dbId;
+      console.log('📝 Inserting client:', JSON.stringify(row));
+      const {data,error}=await sbClient.from('clients').insert(row).select();
+      if(error) throw new Error('新增失敗：'+error.message);
+      if(!data||!data[0]) throw new Error('新增後未取得 id，請重試');
+      const dbId=data[0].id;
+      console.log('✅ Client inserted, id=',dbId);
+      const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[]};
       clients.push(newClient);
       nextCId=Math.max(nextCId,dbId+1);
       docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
-      console.log('✅ Client inserted, id=',dbId, 'user=',u);
     }
-  }catch(e){alert('儲存失敗：'+e.message);showLoader(false);return;}
+  }catch(e){
+    console.error('saveClient error:', e);
+    alert('儲存客戶失敗：'+e.message);
+    showLoader(false);return;
+  }
   showLoader(false);
   closeCM();renderAdminClients();populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
@@ -2066,6 +2211,32 @@ function renderAdminLogs(){
     const del=document.createElement('button');del.className='btn-sm danger';del.style.marginTop='6px';del.textContent='刪除';del.onclick=()=>{if(confirm('確定刪除此日誌？')){delete calLogs[key];renderAdminLogs();renderCalendar();}};cont.appendChild(del);
     item.appendChild(cont);el.appendChild(item);
   });
+}
+
+// ========== CLIENT PROGRESS ==========
+async function renderClientProgress(){
+  const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
+  const pid=c.projectId;
+  // Load from DB
+  await dbLoadProgress(pid);
+  const items=progressData[pid]||[];
+  const grid=document.getElementById('client-progress-grid'); if(!grid) return;
+  const cols=['未開始','修改中','進行中','已完成'];
+  const dotCls={'未開始':'dot-gr','修改中':'dot-am','進行中':'dot-bl','已完成':'dot-gn'};
+  grid.innerHTML=cols.map(col=>{
+    const colItems=items.filter(it=>it.status===col&&it.name.trim());
+    return `<div>
+      <div class="prog-col-lbl"><span class="pdot ${dotCls[col]}"></span>${col}</div>
+      ${colItems.length ? colItems.map(it=>`<div class="prog-item">${it.name}${it.startDate||it.endDate?`<div class="prog-item-sub">${[it.startDate,it.endDate].filter(Boolean).join(' → ')}</div>`:''}</div>`).join('') : '<div style="font-size:12px;color:var(--ink-light);">（無）</div>'}
+    </div>`;
+  }).join('');
+  // Update project meta
+  const proj=projects.find(p=>p.id===pid);
+  if(proj){
+    const metaEl=document.getElementById('p-proj-meta');
+    const sc=proj.status==='進行中'?'pill-green':proj.status==='已完工'?'pill-gray':'pill-amber';
+    if(metaEl) metaEl.innerHTML=`${proj.date?'合約起始：'+proj.date+' ｜ ':''} ${proj.endDate?'預計完工：'+proj.endDate+' ｜ ':''} <span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
+  }
 }
 
 // ========== KNOWLEDGE ==========
