@@ -2135,24 +2135,40 @@ function addScheduleRow(){
 
 async function saveSchedule(){
   const pid=currentDetailProjId; if(!pid) return;
-  // Save as JSON in payment_settings table's schedule column
-  // For now save to projects as received_amount (sum of received rows)
-  const items=scheduleData[pid]||[];
-  const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  // Read ALL values directly from DOM at save time - most reliable approach
+  const rows=document.getElementById('schedule-tbody').querySelectorAll('tr');
+  const items=[];
+  rows.forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const sel=tr.querySelector('select');
+    if(inputs.length<4) return;
+    const name=inputs[0].value.trim();
+    const amount=parseFloat(inputs[1].value)||0;
+    const due=inputs[2].value; // YYYY-MM-DD
+    const received=inputs[3].value; // YYYY-MM-DD
+    const status=sel?sel.value:'未收';
+    items.push({name,amount,due,status,received});
+  });
+  // Update memory
+  scheduleData[pid]=items;
+  const receivedAmt=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const total=getScheduleTotal(pid);
-  // Update project receivedAmount
-  const proj=projects.find(p=>p.id===pid);
-  if(proj){ proj.receivedAmount=received; proj.contractAmount=total||proj.contractAmount; }
+  const proj=projects.find(p=>Number(p.id)===Number(pid));
+  if(proj){ proj.receivedAmount=receivedAmt; if(total>0) proj.contractAmount=total; }
   showLoader(true);
   try{
-    const {error}=await sbClient.from('projects').update({received_amount:received,contract_amount:total||0}).eq('id',pid);
-    if(error) throw error;
-    // Also save schedule JSON to payment_settings
+    const {error:e1}=await sbClient.from('projects').update({received_amount:receivedAmt,contract_amount:total||0}).eq('id',pid);
+    if(e1) throw e1;
     const scheduleJson=JSON.stringify(items);
-    await sbClient.from('payment_settings').upsert({project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', schedule_json:scheduleJson},{onConflict:'project_id'});
+    console.log('儲存收款進度:', scheduleJson);
+    const {error:e2}=await sbClient.from('payment_settings').upsert(
+      {project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', schedule_json:scheduleJson},
+      {onConflict:'project_id'}
+    );
+    if(e2) throw e2;
     alert('收款進度已儲存！');
-    renderSchedule(); // refresh to show clean state
-  }catch(e){ alert('儲存失敗：'+e.message); }
+    renderSchedule();
+  }catch(e){ alert('儲存失敗：'+e.message); console.error(e); }
   showLoader(false);
 }
 
