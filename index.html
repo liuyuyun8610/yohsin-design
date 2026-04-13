@@ -595,24 +595,15 @@ tbody tr:hover td{background:#FDFAF6;}
       <div class="page-title">付款明細及收據</div>
       <div class="card">
         <div class="pay-sum">
-          <div class="pay-box"><div class="pay-lbl">合約金額</div><div class="pay-val">$1,737,466</div></div>
-          <div class="pay-box"><div class="pay-lbl">已付總額</div><div class="pay-val">$1,490,720</div></div>
-          <div class="pay-box"><div class="pay-lbl">待付金額</div><div class="pay-val danger">$246,746</div></div>
+          <div class="pay-box"><div class="pay-lbl">合約金額</div><div class="pay-val" id="client-pay-total">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">已收總額</div><div class="pay-val" id="client-pay-received">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">待收金額</div><div class="pay-val danger" id="client-pay-pending">$—</div></div>
         </div>
         <table class="ptbl">
-          <thead><tr><th>項目</th><th>日期</th><th>金額</th><th>類型</th><th>狀態</th></tr></thead>
-          <tbody>
-            <tr><td>設計費第一期</td><td style="color:var(--ink-muted)">2025/04/26</td><td>$48,860</td><td><span class="pill pill-gray">設計費</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>設計費第二期</td><td style="color:var(--ink-muted)">2026/03/04</td><td>$41,488</td><td><span class="pill pill-gray">設計費</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>設計費尾款</td><td style="color:var(--ink-muted)">2026/04/09</td><td>$10,372</td><td><span class="pill pill-gray">設計費</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>工程款_簽約</td><td style="color:var(--ink-muted)">2026/03/06</td><td>$245,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>工程款_水電進場</td><td style="color:var(--ink-muted)">2026/03/13</td><td>$409,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>工程款_木作中</td><td style="color:var(--ink-muted)">2026/03/23</td><td>$409,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>工程款_油漆開始</td><td style="color:var(--ink-muted)">2026/04/15</td><td>$327,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-green">已收</span></td></tr>
-            <tr><td>工程款_系統櫃開始</td><td style="color:var(--ink-muted)">2026/05/11</td><td>$163,000</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-amber">待請款</span></td></tr>
-            <tr><td>工程款_尾款</td><td style="color:var(--ink-muted)">2026/06/01</td><td>$83,746</td><td><span class="pill pill-blue">工程款</span></td><td><span class="pill pill-amber">待請款</span></td></tr>
-          </tbody>
+          <thead><tr><th>期別</th><th>預計日期</th><th>金額</th><th>狀態</th><th>實收日期</th></tr></thead>
+          <tbody id="client-pay-tbody"></tbody>
         </table>
+        <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
       </div>
     </div>
 
@@ -890,7 +881,7 @@ tbody tr:hover td{background:#FDFAF6;}
 
       <!-- 收款進度 -->
       <div id="proj-tab-schedule" style="display:none;">
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">合約總額自動從「付款計算」的工程總報價帶入，每期金額由您自行填寫，百分比自動換算。</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">合約總額來自「編輯專案」的合約金額欄位。每期金額由您自行填寫，百分比自動換算。儲存後客戶端「付款明細」自動同步。</div>
 
         <!-- 統計卡 -->
         <div class="stats-row" style="margin-bottom:1.5rem;">
@@ -1663,7 +1654,7 @@ function _enterClient(c){
   (async()=>{
     const pid=proj?proj.id:null;
     if(pid){ try{ await dbLoadLogs(pid); }catch(e){ console.warn('load logs failed',e); } }
-    renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();
+    renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();renderClientProgress();renderClientPayment();
   })();
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
@@ -2860,6 +2851,46 @@ async function renderClientProgress(){
       ${colItems.length ? colItems.map(it=>`<div class="prog-item">${it.name}${it.startDate||it.endDate?`<div class="prog-item-sub">${[it.startDate,it.endDate].filter(Boolean).join(' → ')}</div>`:''}</div>`).join('') : '<div style="font-size:12px;color:var(--ink-light);">（無）</div>'}
     </div>`;
   }).join('');
+}
+
+// ========== CLIENT PAYMENT ==========
+async function renderClientPayment(){
+  const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
+  const pid=Number(c.projectId);
+  const proj=projects.find(p=>Number(p.id)===pid);
+  // Load schedule from DB
+  try{
+    const {data,error}=await sbClient.from('payment_settings').select('schedule_json').eq('project_id',pid).single();
+    if(!error&&data&&data.schedule_json){
+      try{ scheduleData[pid]=JSON.parse(data.schedule_json); }catch(e){}
+    }
+  }catch(e){}
+  const items=scheduleData[pid]||[];
+  const contractAmt=proj?Number(proj.contractAmount)||0:0;
+  const total=contractAmt>0?contractAmt:items.reduce((s,r)=>s+(r.amount||0),0);
+  const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const pending=total-received;
+  const setEl=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  setEl('client-pay-total','$'+fmtN(total));
+  setEl('client-pay-received','$'+fmtN(received));
+  setEl('client-pay-pending','$'+fmtN(pending));
+  const tb=document.getElementById('client-pay-tbody');
+  const empty=document.getElementById('client-pay-empty');
+  if(!items.length){if(tb)tb.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
+  if(!tb)return;
+  tb.innerHTML='';
+  const statusPill={'已收':'pill-green','未收':'pill-amber','逾期':'pill-danger'};
+  items.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${r.name||'—'}</td>
+      <td style="color:var(--ink-muted)">${r.due||'—'}</td>
+      <td>$${fmtN(r.amount||0)}</td>
+      <td><span class="pill ${statusPill[r.status]||'pill-gray'}">${r.status}</span></td>
+      <td style="color:var(--ink-muted)">${r.received||'—'}</td>`;
+    tb.appendChild(tr);
+  });
 }
 
 // ========== KNOWLEDGE ==========
