@@ -1316,24 +1316,13 @@ async function dbSavePaymentSettings(projectId, pct, designFee) {
 // ========== DATA ==========
 let loginMode='client', currentClientId=null;
 
-let projects=[
-  {id:1,name:'豐邑氧森設計專案',status:'進行中',address:'台北市大安區信義路四段 100 號',unit:'A5-10F',date:'2024/06/01',endDate:'2026/06/30'},
-  {id:2,name:'台北市大安區設計專案',status:'待付款',address:'台北市大安區仁愛路二段 50 號',unit:'B3-5F',date:'2025/01/15',endDate:'2026/08/01'},
-  {id:3,name:'新北市信義區設計專案',status:'已完工',address:'新北市板橋區文化路一段 200 號',unit:'C2-8F',date:'2024/03/01',endDate:'2025/03/01'},
-];
+let projects=[];
 let nextPId=1, editPId=null;
 
 let clients=[];
 let nextCId=1, editCId=null, showPass={};
 
-let articles=[
-  {id:1,title:'設計流程說明（請務必閱讀）',tag:'設計流程',body:'本設計專案分為需求訪談、平面規劃、立面設計、材料選定、施工監管五個階段。每個階段完成後，設計師將與業主確認後方可進行下一步驟。整體流程約 6–12 個月，視工程規模而定。'},
-  {id:2,title:'裝修流程說明（請務必閱讀）',tag:'設計流程',body:'裝修工程分為拆除、水電配管、泥作、木作、油漆、系統傢俱、軟裝收尾七大工序。各工序間有一定的先後順序，請配合設計師安排的工程時程，避免因業主決策延遲影響施工進度。'},
-  {id:3,title:'施工認知落差注意事項（開工前必讀）',tag:'施工注意',body:'現場施工成果可能與效果圖有視覺差異，此為正常現象。建議業主在木作完工後、油漆前到場確認空間感受，此階段是最佳調整時機。'},
-  {id:4,title:'自行找空調外包需注意事項',tag:'施工注意',body:'若業主自行發包空調工程，須注意配合室內設計圖說預留冷媒管路走向及出風口位置，須於木作進場前完成管路規劃。'},
-  {id:5,title:'超耐磨木地板保養及注意事項',tag:'售後保固',body:'超耐磨木地板應避免長期浸水，日常以擰乾的濕拖把清潔。切勿使用強效清潔劑或打蠟。家具腳建議加貼氈墊。保固期一年。'},
-  {id:6,title:'如何申請瓦斯掛錶',tag:'開工前準備',body:'新屋瓦斯掛錶需由業主向當地瓦斯公司申請，準備好房屋所有權狀或買賣合約、身分證正本，提前 2–4 週申請。'},
-];
+let articles=[];
 let nextAId=7, editAId=null, selectedAssignC=null;
 
 let docsData={
@@ -1804,7 +1793,7 @@ function openCM(id){
   document.getElementById('cm-modal').style.display='block';
 }
 function closeCM(){document.getElementById('cm-modal').style.display='none';}
-function saveClient(){
+async function saveClient(){
   const u=document.getElementById('cm-user').value.trim(), p=document.getElementById('cm-pass').value.trim();
   const n=document.getElementById('cm-name').value.trim();
   const projId=parseInt(document.getElementById('cm-proj-sel').value)||null;
@@ -2146,10 +2135,15 @@ function renderAssignBody(){
 }
 async function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();try{await dbUpdateClientArticles(cid,c.assigned);}catch(e){console.error('assign save failed',e);}}
 
-loadAllData();
-document.getElementById('cm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
-document.getElementById('am-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
-document.getElementById('pm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
+document.addEventListener('DOMContentLoaded', function() {
+  var cm=document.getElementById('cm-modal');
+  var am=document.getElementById('am-modal');
+  var pm=document.getElementById('pm-modal');
+  if(cm) cm.addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
+  if(am) am.addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
+  if(pm) pm.addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
+  loadAllData();
+});
 </script>
 
 <div id="db-loader" style="display:none;position:fixed;inset:0;background:rgba(245,240,232,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
