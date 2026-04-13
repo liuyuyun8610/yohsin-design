@@ -2086,7 +2086,7 @@ function renderSchedule(){
       <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);" id="sch-pct-${pid}-${i}">${pctStr}</td>
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})"></td>
       <td style="padding:6px 8px;">
-        <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;this.style.cssText='${inp}cursor:pointer;'+({'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[this.value]||'');updateSchStats(${pid})">
+        <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;setSchSelColor(this);updateSchStats(${pid})">
           <option ${r.status==='未收'?'selected':''}>未收</option>
           <option ${r.status==='已收'?'selected':''}>已收</option>
           <option ${r.status==='逾期'?'selected':''}>逾期</option>
@@ -2096,6 +2096,12 @@ function renderSchedule(){
       <td style="padding:4px 6px;text-align:center;"><button onclick="scheduleData[${pid}].splice(${i},1);renderSchedule()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='#A32D2D'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
     tb.appendChild(tr);
   });
+}
+
+function setSchSelColor(el){
+  const colors={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'};
+  const base='padding:9px 12px;font-family:\'Noto Sans TC\',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;outline:none;width:100%;cursor:pointer;';
+  el.style.cssText=base+(colors[el.value]||'');
 }
 
 function updateSchStats(pid){
