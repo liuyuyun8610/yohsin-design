@@ -1124,13 +1124,12 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = {
   from: (table) => ({
     select: async (cols='*') => {
-      const {data,error} = await supabase.from(table).select(cols).order('id',{ascending:true});
+      const {data,error} = await supabase.from(table).select(cols);
       if(error) throw new Error(error.message);
       return data;
     },
     selectWhere: async (cols, filter) => {
-      let q = supabase.from(table).select(cols).order('id',{ascending:true});
-      // Parse filters like "project_id=eq.5&item_type=eq.appliance"
+      let q = supabase.from(table).select(cols);
       const parts = filter.split('&');
       parts.forEach(part => {
         const m = part.match(/^(\w+)=eq\.(.+)$/);
@@ -1178,12 +1177,16 @@ let dbReady = false;
 async function loadAllData() {
   showLoader(true);
   try {
-    const [projData, clientData, artData, settingsData] = await Promise.all([
-      sb.from('projects').select('*'),
-      sb.from('clients').select('*'),
-      sb.from('articles').select('*'),
-      sb.from('system_settings').select('*'),
+    const [r1, r2, r3, r4] = await Promise.all([
+      supabase.from('projects').select('*').order('id',{ascending:true}),
+      supabase.from('clients').select('*').order('id',{ascending:true}),
+      supabase.from('articles').select('*').order('sort_order',{ascending:true}),
+      supabase.from('system_settings').select('*'),
     ]);
+    if(r1.error) throw new Error('projects: '+r1.error.message);
+    if(r2.error) throw new Error('clients: '+r2.error.message);
+    if(r3.error) throw new Error('articles: '+r3.error.message);
+    const projData=r1.data, clientData=r2.data, artData=r3.data, settingsData=r4.data;
     projects = (projData||[]).map(p => ({
       id:p.id, name:p.name, status:p.status,
       address:p.address||'', unit:p.unit||'',
