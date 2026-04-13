@@ -1706,7 +1706,6 @@ function calcPayment(){
 }
 function openPM(id){
   editPId=id||null;
-  populateCities();
   document.getElementById('pm-ttl').textContent=id?'編輯專案':'新增專案';
   if(id){
     const p=projects.find(x=>x.id===id);
