@@ -415,7 +415,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 /* ================================================
    CLIENT SCREEN — PREMIUM MILK TEA THEME
    ================================================ */
-#s-client{--cli-bg:#F2EDE6;--cli-card:#FBF8F4;--cli-card-alt:#F5EFE7;--cli-border:rgba(139,107,72,0.13);--cli-ink:#2C2218;--cli-muted:#6E5E4E;--cli-light:#A09080;--cli-accent:#7A5C3A;--cli-accent2:#B8936A;--cli-gold:#C9A96E;--cli-green:#4A6741;--cli-amber:#8A5F1A;--cli-shadow:0 2px 16px rgba(90,60,30,0.07);}
+#s-client{--cli-bg:#F2EDE6;--cli-card:#FBF8F4;--cli-card-alt:#F5EFE7;--cli-border:rgba(139,107,72,0.13);--cli-ink:#2C2218;--cli-muted:#6E5E4E;--cli-light:#A09080;--cli-accent:#7A5C3A;--cli-accent2:#B8936A;--cli-green:#4A6741;--cli-amber:#8A5F1A;--cli-shadow:0 2px 16px rgba(90,60,30,0.07);}
 #s-client{background:var(--cli-bg);}
 #s-client .topbar{background:rgba(251,248,244,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:0.5px solid var(--cli-border);box-shadow:0 1px 12px rgba(90,60,30,0.06);}
 #s-client .tb-brand{border-color:var(--cli-border);}
@@ -458,10 +458,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client .ficon{background:rgba(201,169,110,0.15);color:var(--cli-accent);}
 #s-client #p-proj-title{color:var(--cli-ink);}
 #s-client #p-proj-meta{color:var(--cli-muted);}
-#s-client #dash-pay-bar{background:linear-gradient(90deg,var(--cli-gold),var(--cli-accent))!important;}
+#s-client #dash-pay-bar{background:var(--cli-accent)!important;}
 #s-client #dash-photo-strip img{border-radius:12px;box-shadow:0 2px 10px rgba(90,60,30,0.12);}
-#s-client #dash-co-card{border-left:3px solid var(--cli-gold);}
-#s-client #dash-next-pay{background:linear-gradient(135deg,#FDF5E8 0%,#F5E8D0 100%);border:0.5px solid rgba(201,169,110,0.3);}
+#s-client #dash-co-card{border-left:none;}
+#s-client #dash-next-pay{background:var(--cli-card-alt);border:0.5px solid var(--cli-border);}
 #s-client #dash-next-name{color:var(--cli-accent);}
 #s-client #dash-next-date{color:var(--cli-accent2);}
 #s-client #dash-next-amt{color:var(--cli-accent);}
@@ -1783,6 +1783,16 @@ let docsData={
 
 let currentDrawingType='平面系統圖', adminMeetingTab='line', nextDocId=100;
 let pendingLineImgs=[], pendingFormalImgs=[], pendingLogImgs=[];
+// Helper: upload multiple File objects to Storage, return URL array
+async function uploadFilesToStorage(files, folder){
+  const urls=[];
+  for(const f of files){
+    if(typeof f==='string'){ urls.push(f); continue; } // already a URL
+    const url=await uploadToStorage(f, folder);
+    urls.push(url);
+  }
+  return urls;
+}
 
 const LOC=['客廳','廚房','餐廳','主臥','次臥','書房','浴室','陽台','儲藏室','電器櫃','餐邊櫃','考慮中','不需要'];
 const STAT=['未採購','已採購','舊有'];
@@ -3252,7 +3262,13 @@ function switchAdminMeetingTab(tab,el){
 // LINE 截圖
 function previewLineImgs(e){
   pendingLineImgs=[];document.getElementById('line-img-preview').innerHTML='';
-  Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingLineImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('line-img-preview').appendChild(img);};r.readAsDataURL(f);});
+  Array.from(e.target.files).forEach(f=>{
+    pendingLineImgs.push(f); // store File object
+    const img=document.createElement('img');
+    img.src=URL.createObjectURL(f);
+    img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
+    document.getElementById('line-img-preview').appendChild(img);
+  });
 }
 function renderAdminLineList(cid){
   const shots=docsData[cid].lineScreenshots||[];
@@ -3281,13 +3297,15 @@ function addLineScreenshot(){
   showLoader(true);
   (async()=>{
     try{
+      // Upload File objects to Storage, get URLs
+      const urls=await uploadFilesToStorage(pendingLineImgs,'line-screenshots');
       const existing=docsData[cid].lineScreenshots.find(s=>s.date===dateStr);
       if(existing){
-        existing.images.push(...pendingLineImgs);
+        existing.images.push(...urls);
         if(note)existing.note=note;
         await dbSaveMeeting(cid,'line',existing);
       } else {
-        const newItem={date:dateStr,images:[...pendingLineImgs],note};
+        const newItem={date:dateStr,images:urls,note};
         await dbSaveMeeting(cid,'line',newItem);
         docsData[cid].lineScreenshots.push(newItem);
       }
@@ -3311,7 +3329,14 @@ function removeLineShot(cid,idx){
 // 正式會議
 function previewFormalImgs(e){
   pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';
-  Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingFormalImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('formal-img-preview').appendChild(img);};r.readAsDataURL(f);});
+  Array.from(e.target.files).forEach(f=>{
+    pendingFormalImgs.push(f); // store File object
+    const img=document.createElement('img');
+    img.src=URL.createObjectURL(f);
+    img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
+    document.getElementById('formal-img-preview').appendChild(img);
+  });
+}
 }
 function renderAdminFormalList(cid){
   const meetings=docsData[cid].formalMeetings||[];
@@ -3328,7 +3353,8 @@ function addFormalMeeting(){
   showLoader(true);
   (async()=>{
     try{
-      const newItem={date:date.replace(/-/g,'/'),title,content,images:[...pendingFormalImgs]};
+      const urls=await uploadFilesToStorage(pendingFormalImgs,'meeting-photos');
+      const newItem={date:date.replace(/-/g,'/'),title,content,images:urls};
       await dbSaveMeeting(cid,'formal',newItem);
       docsData[cid].formalMeetings.push(newItem);
       document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
@@ -3380,7 +3406,13 @@ function populateLogClientSel(){
 function getLogProjectId(){return parseInt(document.getElementById('log-client-sel').value)||projects[0]?.id||0;}
 function previewLogImgs(e){
   pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';
-  Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingLogImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('log-img-preview').appendChild(img);};r.readAsDataURL(f);});
+  Array.from(e.target.files).forEach(f=>{
+    pendingLogImgs.push(f); // store File object
+    const img=document.createElement('img');
+    img.src=URL.createObjectURL(f);
+    img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
+    document.getElementById('log-img-preview').appendChild(img);
+  });
 }
 async function addAdminLog(){
   const date=document.getElementById('log-date').value;
@@ -3388,12 +3420,18 @@ async function addAdminLog(){
   const notes=document.getElementById('log-notes').value.trim();
   if(!date){alert('請選擇施工日期');return;}
   const pid=getLogProjectId();
-  calLogs[date]={work:notes,tag,photos:[...pendingLogImgs]};
-  document.getElementById('log-date').value='';document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
-  pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';document.getElementById('log-img-input').value='';
-  if(pid){try{await dbSaveLog(pid,date,calLogs[date]);}catch(e){console.error('log save failed',e);}}
-  renderAdminLogs();renderCalendar();
-  alert('施工日誌已儲存！');
+  showLoader(true);
+  try{
+    // Upload photos to Storage first
+    const photoUrls=await uploadFilesToStorage(pendingLogImgs,'construction-logs');
+    calLogs[date]={work:notes,tag,photos:photoUrls};
+    document.getElementById('log-date').value='';document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
+    pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';document.getElementById('log-img-input').value='';
+    if(pid){await dbSaveLog(pid,date,calLogs[date]);}
+    renderAdminLogs();renderCalendar();
+    alert('施工日誌已儲存！');
+  }catch(e){alert('儲存失敗：'+e.message);console.error(e);}
+  showLoader(false);
 }
 async function renderAdminLogs(){
   const pid=getLogProjectId();
