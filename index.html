@@ -37,24 +37,62 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .l-hint{margin-top:1rem;font-size:11px;color:var(--ink-light);line-height:1.9;background:var(--sand);border-radius:8px;padding:10px 14px;}
 
 /* TOPBAR */
-.topbar{background:#fff;border-bottom:0.5px solid var(--border);height:56px;display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:100;}
-.tb-brand{display:flex;align-items:center;gap:10px;padding-right:1.4rem;border-right:0.5px solid var(--border);margin-right:0.8rem;}
+.topbar{background:#fff;border-bottom:0.5px solid var(--border);height:56px;display:flex;align-items:center;padding:0 1.2rem;position:sticky;top:0;z-index:200;}
+.tb-brand{display:flex;align-items:center;gap:9px;padding-right:1.2rem;border-right:0.5px solid var(--border);margin-right:0.8rem;flex-shrink:0;}
 .tb-logo-svg{width:30px;height:26px;flex-shrink:0;}
 .tb-name{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:500;letter-spacing:0.08em;line-height:1.2;color:var(--ink);}
 .tb-sub{font-size:10px;letter-spacing:0.14em;color:var(--ink-light);}
-.tb-nav{display:flex;gap:2px;flex-wrap:wrap;}
-.tnav{font-size:12px;letter-spacing:0.05em;color:var(--ink-muted);padding:6px 11px;cursor:pointer;border-radius:8px;border:none;background:none;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;white-space:nowrap;}
+.tb-nav{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tb-nav::-webkit-scrollbar{display:none;}
+.tnav{font-size:12px;letter-spacing:0.05em;color:var(--ink-muted);padding:6px 11px;cursor:pointer;border-radius:8px;border:none;background:none;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;white-space:nowrap;flex-shrink:0;}
 .tnav:hover{background:var(--sand);color:var(--ink);}
 .tnav.active{background:var(--ink);color:#fff;}
 .tb-spacer{flex:1;}
-.tb-user{font-size:12px;color:var(--ink-muted);margin-right:1rem;white-space:nowrap;}
-.btn-out{font-size:11px;color:var(--ink-light);background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;}
+.tb-user{font-size:12px;color:var(--ink-muted);margin-right:0.8rem;white-space:nowrap;}
+.btn-out{font-size:11px;color:var(--ink-light);background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;flex-shrink:0;}
 .btn-out:hover{color:var(--ink);background:var(--sand);}
-.btn-sync{font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent-light);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;margin-right:8px;transition:all 0.15s;}
+.btn-sync{font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent-light);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;margin-right:6px;transition:all 0.15s;flex-shrink:0;}
 .btn-sync:hover{background:var(--accent-pale);}
 .btn-sync.syncing{opacity:0.6;}
 
+/* MOBILE NAV — hamburger */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border:none;background:none;flex-shrink:0;}
+.hamburger span{display:block;width:20px;height:2px;background:var(--ink);border-radius:2px;transition:all 0.2s;}
+.mobile-menu{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(42,37,32,0.35);z-index:199;}
+.mobile-menu.open{display:block;}
+.mobile-menu-inner{background:#fff;padding:0.8rem 0;border-bottom:0.5px solid var(--border);max-height:calc(100vh - 56px);overflow-y:auto;}
+.mobile-tnav{display:block;width:100%;text-align:left;padding:13px 1.5rem;font-size:14px;font-family:'Noto Sans TC',sans-serif;border:none;background:none;color:var(--ink-muted);cursor:pointer;border-bottom:0.5px solid var(--border);}
+.mobile-tnav:last-child{border-bottom:none;}
+.mobile-tnav.active{background:var(--accent-pale);color:var(--accent);font-weight:500;}
+.mobile-tnav:hover{background:var(--sand);}
+
+@media(max-width:720px){
+  .tb-nav{display:none;}
+  .hamburger{display:flex;}
+  .tb-user{display:none;}
+  .btn-sync{display:none;}
+  .tb-brand{border-right:none;padding-right:0;margin-right:0;}
+}
+
 .pb{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+@media(max-width:720px){
+  .pb{padding:1.2rem 1rem 3rem;}
+  .card{padding:1rem;}
+  .g2{grid-template-columns:1fr;}
+  .prog-grid{grid-template-columns:1fr 1fr;}
+  .pay-sum{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .art-grid{grid-template-columns:1fr;}
+  .assign-wrap{grid-template-columns:1fr;}
+  .tbl-wrap{border-radius:10px;}
+  .sec-head{flex-wrap:wrap;gap:8px;}
+  .modal{padding:1.4rem;}
+  .fg-2{grid-template-columns:1fr;}
+  .photo-grid{grid-template-columns:repeat(3,1fr);}
+  .drawing-grid{grid-template-columns:1fr 1fr;}
+  .page-title{font-size:18px;}
+  .sec-ttl{font-size:16px;}
+}
 .page{display:none;}
 .page.active{display:block;}
 .page-title{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:500;margin-bottom:1.3rem;}
@@ -413,6 +451,24 @@ tbody tr:hover td{background:#FDFAF6;}
     <div class="tb-spacer"></div>
     <div class="tb-user" id="tb-client-name"></div>
     <button class="btn-out" onclick="doLogout()">登出</button>
+    <button class="hamburger" onclick="toggleMobileMenu('client')" id="hamburger-client" aria-label="選單">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- Mobile menu client -->
+  <div class="mobile-menu" id="mobile-menu-client" onclick="closeMobileMenu('client')">
+    <div class="mobile-menu-inner" onclick="event.stopPropagation()">
+      <button class="mobile-tnav active" onclick="goPageMobile('p-overview',this,'client')">專案總覽</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-docs',this,'client')">資料文件</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">注意事項</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">付款明細</button>
+      <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
+        <span id="mobile-client-name"></span>
+        <button onclick="doLogout()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
+      </div>
+    </div>
   </div>
   <div class="pb">
 
@@ -586,6 +642,25 @@ tbody tr:hover td{background:#FDFAF6;}
     <div class="tb-spacer"></div>
     <button class="btn-sync" onclick="syncAllData()" title="重新整理所有下拉選單資料">↺ 同步資料</button>
     <button class="btn-out" onclick="doLogout()">登出</button>
+    <button class="hamburger" onclick="toggleMobileMenu('admin')" id="hamburger-admin" aria-label="選單">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- Mobile menu admin -->
+  <div class="mobile-menu" id="mobile-menu-admin" onclick="closeMobileMenu('admin')">
+    <div class="mobile-menu-inner" onclick="event.stopPropagation()">
+      <button class="mobile-tnav active" onclick="goAdminPageMobile('a-projects',this)">專案管理</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-docs',this)">文件管理</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-settings',this)">設定</button>
+      <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;display:flex;justify-content:space-between;align-items:center;">
+        <button onclick="syncAllData();closeMobileMenu('admin')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">↺ 同步資料</button>
+        <button onclick="doLogout()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
+      </div>
+    </div>
   </div>
   <div class="pb">
 
@@ -991,23 +1066,8 @@ tbody tr:hover td{background:#FDFAF6;}
     <div class="modal">
       <div class="modal-ttl" id="pm-ttl">新增專案</div>
       <div class="fg"><label>專案名稱</label><input id="pm-name" placeholder="例：豐邑氧森設計專案"></div>
-
-      <!-- 地址：縣市 + 行政區 + 路街地址 -->
-      <div class="fg"><label>縣市 / 行政區</label>
-        <div style="display:flex;gap:8px;">
-          <select id="pm-city" onchange="updateDistricts()" style="flex:1;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
-            <option value="">選擇縣市</option>
-          </select>
-          <select id="pm-district" style="flex:1;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
-            <option value="">選擇行政區</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg"><label>路段門牌</label>
-        <input id="pm-street" placeholder="例：信義路四段 100 號" autocomplete="off"></div>
-      <div class="fg"><label>戶號 / 樓層</label>
-        <input id="pm-unit" placeholder="例：B5-10F、A棟3樓" autocomplete="off"></div>
-
+      <div class="fg"><label>地址</label><input id="pm-address" placeholder="例：台北市大安區信義路四段 100 號"></div>
+      <div class="fg"><label>戶號 / 樓層</label><input id="pm-unit" placeholder="例：B5-10F、A棟3樓" autocomplete="off"></div>
       <div class="fg-2">
         <div class="fg"><label>開案日期</label><input type="date" id="pm-date"></div>
         <div class="fg"><label>預計完工日</label><input type="date" id="pm-end-date"></div>
@@ -1047,10 +1107,215 @@ tbody tr:hover td{background:#FDFAF6;}
 <input type="file" id="file-input" style="display:none;" accept="image/*" multiple onchange="handleFiles(event)">
 
 <script>
+// =============================================
+// SUPABASE CONFIG
+// =============================================
+const SB_URL = 'https://vqxxaameifyvezvozvnf.supabase.co';
+const SB_KEY = 'sb_publishable_GuI62iy0EP5Y_qihaFGb5A_p7bUTswP';
+
+async function sbFetch(path, options={}) {
+  const url = SB_URL + '/rest/v1/' + path;
+  const res = await fetch(url, {
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...options.headers
+    },
+    ...options
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Supabase error: ' + res.status + ' ' + err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+const sb = {
+  from: (table) => ({
+    select: (cols='*') => sbFetch(table + '?select=' + encodeURIComponent(cols) + '&order=id.asc'),
+    selectWhere: (cols, filter) => sbFetch(table + '?select=' + encodeURIComponent(cols) + '&' + filter + '&order=id.asc'),
+    insert: (data) => sbFetch(table, { method:'POST', body: JSON.stringify(data) }),
+    update: (data, filter) => sbFetch(table + '?' + filter, { method:'PATCH', body: JSON.stringify(data) }),
+    upsert: (data, onConflict) => sbFetch(table + '?on_conflict=' + onConflict, { method:'POST', prefer:'resolution=merge-duplicates,return=representation', body: JSON.stringify(data), headers:{ 'Prefer':'resolution=merge-duplicates,return=representation' } }),
+    delete: (filter) => sbFetch(table + '?' + filter, { method:'DELETE', prefer:'return=minimal' }),
+  })
+};
+
+// =============================================
+// LOAD ALL DATA FROM SUPABASE ON INIT
+// =============================================
+let dbReady = false;
+
+async function loadAllData() {
+  showLoader(true);
+  try {
+    const [projData, clientData, artData] = await Promise.all([
+      sb.from('projects').select('*'),
+      sb.from('clients').select('*'),
+      sb.from('articles').select('*'),
+    ]);
+    projects = (projData||[]).map(p => ({
+      id:p.id, name:p.name, status:p.status,
+      address:p.address||'', unit:p.unit||'',
+      date:p.date||'', endDate:p.end_date||''
+    }));
+    nextPId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
+
+    clients = (clientData||[]).map(c => ({
+      id:c.id, user:c.username, pass:c.password, name:c.name,
+      projectId:c.project_id, status:c.status, note:c.note||'',
+      assigned: Array.isArray(c.assigned_articles) ? c.assigned_articles : []
+    }));
+    nextCId = clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1;
+
+    articles = (artData||[]).map(a => ({
+      id:a.id, title:a.title, tag:a.tag, body:a.body
+    }));
+    nextAId = articles.length ? Math.max(...articles.map(a=>a.id))+1 : 1;
+
+    dbReady = true;
+  } catch(e) {
+    console.error('loadAllData error:', e);
+    alert('資料庫連線失敗：' + e.message);
+  }
+  showLoader(false);
+}
+
+function showLoader(show) {
+  let el = document.getElementById('db-loader');
+  if (!el) return;
+  el.style.display = show ? 'flex' : 'none';
+}
+
+// =============================================
+// DB HELPERS — replace in-memory operations
+// =============================================
+
+async function dbSaveProject(proj) {
+  const row = { name:proj.name, status:proj.status, address:proj.address||'', unit:proj.unit||'', date:proj.date||'', end_date:proj.endDate||'' };
+  if (proj.id && projects.find(p=>p.id===proj.id)) {
+    await sb.from('projects').update(row, 'id=eq.'+proj.id);
+  } else {
+    const res = await sb.from('projects').insert(row);
+    if (res && res[0]) proj.id = res[0].id;
+  }
+}
+
+async function dbDeleteProject(id) {
+  await sb.from('projects').delete('id=eq.'+id);
+}
+
+async function dbSaveClient(c) {
+  const row = { username:c.user, password:c.pass, name:c.name, project_id:c.projectId||null, status:c.status, note:c.note||'', assigned_articles:c.assigned||[] };
+  if (c.id && clients.find(x=>x.id===c.id)) {
+    await sb.from('clients').update(row, 'id=eq.'+c.id);
+  } else {
+    const res = await sb.from('clients').insert(row);
+    if (res && res[0]) c.id = res[0].id;
+  }
+}
+
+async function dbDeleteClient(id) {
+  await sb.from('clients').delete('id=eq.'+id);
+}
+
+async function dbSaveArticle(a) {
+  const row = { title:a.title, tag:a.tag, body:a.body, sort_order:a.id||0 };
+  if (a.id && articles.find(x=>x.id===a.id)) {
+    await sb.from('articles').update(row, 'id=eq.'+a.id);
+  } else {
+    const res = await sb.from('articles').insert(row);
+    if (res && res[0]) a.id = res[0].id;
+  }
+}
+
+async function dbDeleteArticle(id) {
+  await sb.from('articles').delete('id=eq.'+id);
+}
+
+async function dbUpdateClientArticles(clientId, assigned) {
+  await sb.from('clients').update({ assigned_articles: assigned }, 'id=eq.'+clientId);
+}
+
+async function dbLoadLogs(projectId) {
+  const data = await sb.from('construction_logs').selectWhere('*','project_id=eq.'+projectId);
+  calLogs = {};
+  (data||[]).forEach(l => {
+    calLogs[l.log_date] = { id:l.id, work:l.work_notes||'', tag:l.tag||'', photos:l.photos||[] };
+  });
+}
+
+async function dbSaveLog(projectId, date, log) {
+  const row = { project_id:projectId, log_date:date, tag:log.tag||'', work_notes:log.work||'', photos:log.photos||[] };
+  await sb.from('construction_logs').upsert(row, 'project_id,log_date');
+}
+
+async function dbDeleteLog(projectId, date) {
+  await sb.from('construction_logs').delete('project_id=eq.'+projectId+'&log_date=eq.'+date);
+}
+
+async function dbLoadChecklist(projectId) {
+  const [appData2, furData2, powData2] = await Promise.all([
+    sb.from('checklist_items').selectWhere('*','project_id=eq.'+projectId+'&item_type=eq.appliance'),
+    sb.from('checklist_items').selectWhere('*','project_id=eq.'+projectId+'&item_type=eq.furniture'),
+    sb.from('power_items').selectWhere('*','project_id=eq.'+projectId),
+  ]);
+  appData = (appData2||[]).map(r=>({dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:r.model,status:r.status}));
+  furData = (furData2||[]).map(r=>({dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:r.model,status:r.status}));
+  powData = (powData2||[]).map(r=>({dbId:r.id,name:r.name,loc:r.location,w:String(r.watt||''),v:String(r.voltage||110),qty:String(r.quantity||1),note:r.note}));
+}
+
+async function dbSaveChecklistItem(projectId, type, item) {
+  if (item.dbId) {
+    const row = { name:item.name||'', brand:item.brand||'', location:item.loc, model:item.model||'', status:item.status };
+    await sb.from('checklist_items').update(row, 'id=eq.'+item.dbId);
+  } else {
+    const row = { project_id:projectId, item_type:type, name:item.name||'', brand:item.brand||'', location:item.loc, model:item.model||'', status:item.status };
+    const res = await sb.from('checklist_items').insert(row);
+    if (res&&res[0]) item.dbId = res[0].id;
+  }
+}
+
+async function dbDeleteChecklistItem(id) {
+  await sb.from('checklist_items').delete('id=eq.'+id);
+}
+
+async function dbLoadProfit(projectId) {
+  const [profitRows, payRow] = await Promise.all([
+    sb.from('profit_items').selectWhere('*','project_id=eq.'+projectId),
+    sb.from('payment_settings').selectWhere('*','project_id=eq.'+projectId),
+  ]);
+  initProjData(projectId);
+  (profitRows||[]).forEach(r => {
+    if (profitData[projectId][r.item_key] !== undefined) {
+      profitData[projectId][r.item_key] = {vendor:Number(r.vendor_price)||0, client:Number(r.client_price)||0};
+    }
+  });
+  if (payRow && payRow[0]) {
+    paymentData[projectId] = { constructionPct: String(payRow[0].construction_pct||''), designFee: payRow[0].design_fee||'' };
+  }
+}
+
+async function dbSaveProfitItem(projectId, key, vendor, client) {
+  await sb.from('profit_items').upsert({ project_id:projectId, item_key:key, vendor_price:vendor, client_price:client }, 'project_id,item_key');
+}
+
+async function dbSavePaymentSettings(projectId, pct, designFee) {
+  await sb.from('payment_settings').upsert({ project_id:projectId, construction_pct:pct||0, design_fee:designFee||'' }, 'project_id');
+}
+
+
 // ========== DATA ==========
 let loginMode='client', currentClientId=null;
 
-let projects=[];
+let projects=[
+  {id:1,name:'豐邑氧森設計專案',status:'進行中',address:'台北市大安區信義路四段 100 號',unit:'A5-10F',date:'2024/06/01',endDate:'2026/06/30'},
+  {id:2,name:'台北市大安區設計專案',status:'待付款',address:'台北市大安區仁愛路二段 50 號',unit:'B3-5F',date:'2025/01/15',endDate:'2026/08/01'},
+  {id:3,name:'新北市信義區設計專案',status:'已完工',address:'新北市板橋區文化路一段 200 號',unit:'C2-8F',date:'2024/03/01',endDate:'2025/03/01'},
+];
 let nextPId=1, editPId=null;
 
 let clients=[];
@@ -1128,6 +1393,36 @@ function todayStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+
 function nowStr(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
 function genPass(){const chars='abcdefghjkmnpqrstuvwxyz23456789';let p='';for(let i=0;i<8;i++)p+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('cm-pass').value=p;}
 
+// ========== MOBILE MENU ==========
+function toggleMobileMenu(type){
+  const menu=document.getElementById('mobile-menu-'+type);
+  const isOpen=menu.classList.contains('open');
+  document.querySelectorAll('.mobile-menu').forEach(m=>m.classList.remove('open'));
+  if(!isOpen)menu.classList.add('open');
+}
+function closeMobileMenu(type){
+  document.getElementById('mobile-menu-'+type).classList.remove('open');
+}
+function goPageMobile(id,el,type){
+  // sync desktop nav active state
+  const desktopBtns=document.querySelectorAll('#s-client .tnav');
+  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-construction','p-payment'];
+  const idx=pages.indexOf(id);
+  desktopBtns.forEach((t,i)=>{if(i===idx)t.classList.add('active');else t.classList.remove('active');});
+  document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // mobile nav active
+  document.querySelectorAll('#mobile-menu-client .mobile-tnav').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  closeMobileMenu('client');
+}
+function goAdminPageMobile(id,el){
+  goAdminPage(id,document.querySelector('#s-admin .tb-nav .tnav[onclick*="'+id+'"]')||document.querySelector('#s-admin .tnav'));
+  document.querySelectorAll('#mobile-menu-admin .mobile-tnav').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  closeMobileMenu('admin');
+}
+
 // ========== AUTH ==========
 function setMode(m,el){loginMode=m;document.querySelectorAll('.mdbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
 function doLogin(){
@@ -1145,6 +1440,7 @@ function doLogin(){
       currentClientId=c.id;
       const proj=projects.find(q=>q.id===c.projectId);
       document.getElementById('tb-client-name').textContent=c.name;
+      const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
       document.getElementById('p-proj-title').textContent=proj?proj.name:'';
       showScreen('s-client');
       renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
@@ -1272,7 +1568,7 @@ function renderProjects(){
     tr.innerHTML=`
       <td><div style="font-weight:500;color:var(--accent);text-decoration:underline;text-underline-offset:3px;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
       <td><span class="pill ${pc}">${p.status}</span></td>
-      <td style="font-size:12px;color:var(--ink-muted);">${p.address||'—'}</td>
+      <td style="font-size:12px;color:var(--ink-muted);">${[p.address,p.unit].filter(Boolean).join(' ') || '—'}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.date||'—'}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.endDate||'—'}</td>
       <td onclick="event.stopPropagation()"><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
@@ -1280,14 +1576,21 @@ function renderProjects(){
   });
 }
 
-function openProjectDetail(pid){
+async function openProjectDetail(pid){
   currentDetailProjId=pid;
   initProjData(pid);
+  showLoader(true);
+  try{
+    await dbLoadProfit(pid);
+    await dbLoadLogs(pid);
+    await dbLoadChecklist(pid);
+  }catch(e){console.error('load project detail failed',e);}
+  showLoader(false);
   const p=projects.find(x=>x.id===pid);
   document.getElementById('detail-proj-name').textContent=p.name;
   const sc=p.status==='進行中'?'pill-green':p.status==='已完工'?'pill-gray':p.status==='待付款'?'pill-amber':'pill-blue';
   const sEl=document.getElementById('detail-proj-status');sEl.textContent=p.status;sEl.className='pill '+sc;
-  document.getElementById('detail-proj-meta').textContent=(p.address||'')+(p.date?' ｜ 開案：'+p.date:'')+(p.endDate?' ｜ 預計完工：'+p.endDate:'');
+  document.getElementById('detail-proj-meta').textContent=([p.address,p.unit].filter(Boolean).join(' ')||'')+(p.date?' ｜ 開案：'+p.date:'')+(p.endDate?' ｜ 預計完工：'+p.endDate:'');
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   document.querySelector('#proj-detail-tabs .stab').classList.add('active');
   document.getElementById('proj-tab-profit').style.display='block';
@@ -1403,16 +1706,20 @@ function calcPayment(){
 }
 function openPM(id){
   editPId=id||null;
+  populateCities();
   document.getElementById('pm-ttl').textContent=id?'編輯專案':'新增專案';
   if(id){
     const p=projects.find(x=>x.id===id);
     document.getElementById('pm-name').value=p.name;
     document.getElementById('pm-status').value=p.status;
-    document.getElementById('pm-address').value=p.address||'';
     document.getElementById('pm-date').value=(p.date||'').replace(/\//g,'-');
     document.getElementById('pm-end-date').value=(p.endDate||'').replace(/\//g,'-');
+    document.getElementById('pm-address').value=p.address||'';
+    document.getElementById('pm-unit').value=p.unit||'';
   } else {
-    ['pm-name','pm-address'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('pm-name').value='';
+    document.getElementById('pm-address').value='';
+    document.getElementById('pm-unit').value='';
     document.getElementById('pm-status').value='進行中';
     document.getElementById('pm-date').value='';
     document.getElementById('pm-end-date').value='';
@@ -1420,31 +1727,39 @@ function openPM(id){
   document.getElementById('pm-modal').style.display='block';
 }
 function closePM(){document.getElementById('pm-modal').style.display='none';}
-function saveProject(){
+async function saveProject(){
   const name=document.getElementById('pm-name').value.trim();
   if(!name){alert('請填寫專案名稱');return;}
   const status=document.getElementById('pm-status').value;
   const address=document.getElementById('pm-address').value.trim();
+  const unit=document.getElementById('pm-unit').value.trim();
   const date=document.getElementById('pm-date').value.replace(/-/g,'/');
   const endDate=document.getElementById('pm-end-date').value.replace(/-/g,'/');
-  if(editPId){
-    const p=projects.find(x=>x.id===editPId);
-    Object.assign(p,{name,status,address,date,endDate});
-    // 同步更新客戶的狀態顯示
-    const c=clients.find(x=>x.projectId===editPId);
-    if(c)c.status=status;
-  } else {
-    const newId=nextPId++;
-    projects.push({id:newId,name,status,address,date,endDate});
-    docsData[newId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
-  }
+  showLoader(true);
+  try {
+    if(editPId){
+      const p=projects.find(x=>x.id===editPId);
+      Object.assign(p,{name,status,address,unit,date,endDate});
+      await dbSaveProject(p);
+      const c=clients.find(x=>x.projectId===editPId);
+      if(c){c.status=status;await dbSaveClient(c);}
+    } else {
+      const proj={name,status,address,unit,date,endDate};
+      await dbSaveProject(proj);
+      projects.push(proj);
+      docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+    }
+  } catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
   closePM();renderProjects();renderAdminClients();populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
-function deleteProject(id){
+async function deleteProject(id){
   if(clients.find(c=>c.projectId===id)){alert('此專案已有關聯客戶，請先刪除或調整客戶的歸屬專案。');return;}
   if(!confirm('確定刪除此專案？'))return;
+  showLoader(true);
+  try{await dbDeleteProject(id);}catch(e){alert('刪除失敗：'+e.message);showLoader(false);return;}
   projects=projects.filter(x=>x.id!==id);
-  renderProjects();renderAdminClients();populateCMProjectSel();
+  showLoader(false);renderProjects();renderAdminClients();populateCMProjectSel();
 }
 
 // ========== ADMIN CLIENTS ==========
@@ -1498,9 +1813,12 @@ function saveClient(){
     clients.push({id:newId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[1]});
     if(!docsData[newId])docsData[newId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
   }
+  showLoader(true);
+  try{await dbSaveClient(editCId?clients.find(x=>x.id===editCId):clients[clients.length-1]);}catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
   closeCM();renderAdminClients();populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
-function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('確定刪除「'+c.name+'」？'))return;clients=clients.filter(x=>x.id!==id);renderAdminClients();populateDocsClientSel();populateLogClientSel();}
+async function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('確定刪除「'+c.name+'」？'))return;showLoader(true);try{await dbDeleteClient(id);}catch(e){alert('刪除失敗：'+e.message);showLoader(false);return;}clients=clients.filter(x=>x.id!==id);showLoader(false);renderAdminClients();populateDocsClientSel();populateLogClientSel();}
 function goToClientDocs(cid){
   populateDocsClientSel();document.getElementById('docs-client-sel').value=cid;
   goAdminPage('a-docs',document.querySelectorAll('#s-admin .tb-nav .tnav')[2]);renderAdminDocs();
@@ -1679,12 +1997,13 @@ function previewLogImgs(e){
   pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';
   Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{pendingLogImgs.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';document.getElementById('log-img-preview').appendChild(img);};r.readAsDataURL(f);});
 }
-function addAdminLog(){
+async function addAdminLog(){
   const date=document.getElementById('log-date').value;const tag=document.getElementById('log-tag').value.trim();const notes=document.getElementById('log-notes').value.trim();
   if(!date){alert('請選擇施工日期');return;}
   calLogs[date]={work:notes,tag,photos:[...pendingLogImgs]};
   document.getElementById('log-date').value='';document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
   pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';document.getElementById('log-img-input').value='';
+  if(currentDetailProjId){try{await dbSaveLog(currentDetailProjId,date,calLogs[date]);}catch(e){console.error('log save failed',e);}}
   renderAdminLogs();renderCalendar();
   alert('施工日誌已儲存！');
 }
@@ -1806,8 +2125,8 @@ function renderArtGrid(){
 }
 function openAM(id){editAId=id||null;document.getElementById('am-ttl').textContent=id?'編輯文章':'新增文章';if(id){const a=articles.find(x=>x.id===id);document.getElementById('am-t').value=a.title;document.getElementById('am-tag').value=a.tag;document.getElementById('am-body').value=a.body;}else{document.getElementById('am-t').value='';document.getElementById('am-body').value='';document.getElementById('am-tag').value='施工注意';}document.getElementById('am-modal').style.display='block';}
 function closeAM(){document.getElementById('am-modal').style.display='none';}
-function saveArticle(){const t=document.getElementById('am-t').value.trim(),tg=document.getElementById('am-tag').value,b=document.getElementById('am-body').value.trim();if(!t||!b){alert('請填寫標題和內容');return;}if(editAId){const a=articles.find(x=>x.id===editAId);Object.assign(a,{title:t,tag:tg,body:b});}else{articles.push({id:nextAId++,title:t,tag:tg,body:b});}closeAM();renderArtGrid();}
-function deleteArt(id){if(!confirm('確定刪除？'))return;articles=articles.filter(x=>x.id!==id);clients.forEach(c=>{c.assigned=c.assigned.filter(aid=>aid!==id);});renderArtGrid();}
+async function saveArticle(){const t=document.getElementById('am-t').value.trim(),tg=document.getElementById('am-tag').value,b=document.getElementById('am-body').value.trim();if(!t||!b){alert('請填寫標題和內容');return;}showLoader(true);try{if(editAId){const a=articles.find(x=>x.id===editAId);Object.assign(a,{title:t,tag:tg,body:b});await dbSaveArticle(a);}else{const a={title:t,tag:tg,body:b};await dbSaveArticle(a);articles.push(a);}}catch(e){alert('儲存失敗：'+e.message);}showLoader(false);closeAM();renderArtGrid();}
+async function deleteArt(id){if(!confirm('確定刪除？'))return;showLoader(true);try{await dbDeleteArticle(id);}catch(e){alert('刪除失敗：'+e.message);showLoader(false);return;}articles=articles.filter(x=>x.id!==id);clients.forEach(c=>{c.assigned=c.assigned.filter(aid=>aid!==id);});showLoader(false);renderArtGrid();}
 
 // ========== ASSIGN ==========
 function renderAssignClist(){
@@ -1821,11 +2140,18 @@ function renderAssignBody(){
   body.innerHTML=`<div style="font-size:14px;font-weight:500;margin-bottom:3px;">${c.name}</div><div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">${proj?proj.name:'—'}</div>`;
   articles.forEach(a=>{const isOn=c.assigned.includes(a.id);const item=document.createElement('div');item.className='aai';item.innerHTML=`<button class="toggle${isOn?' on':''}" onclick="toggleAssign(${c.id},${a.id},this)"></button><div><div class="aai-name">${a.title}</div><div class="aai-tag">${a.tag}</div></div>`;body.appendChild(item);});
 }
-function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();}
+async function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();try{await dbUpdateClientArticles(cid,c.assigned);}catch(e){console.error('assign save failed',e);}}
 
+loadAllData();
 document.getElementById('cm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
 document.getElementById('am-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
 document.getElementById('pm-modal').addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
 </script>
+
+<div id="db-loader" style="display:none;position:fixed;inset:0;background:rgba(245,240,232,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <div style="width:36px;height:36px;border:3px solid #C4A882;border-top-color:#8B6F4E;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
+  <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#8B6F4E;">連接資料庫中…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </body>
 </html>
