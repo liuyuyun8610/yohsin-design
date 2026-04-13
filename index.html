@@ -429,6 +429,7 @@ tbody tr:hover td{background:#FDFAF6;}
     <button class="btn-enter" onclick="doLogin()">進入</button>
     <div class="l-err" id="l-err"></div>
     <div class="l-hint">客戶：fengyi / oxy2024　｜　後台：admin / admin123</div>
+    <div id="db-status" style="display:none;margin-top:0.8rem;font-size:11px;color:#8B3A2E;background:#F5ECEA;border-radius:8px;padding:8px 12px;"></div>
   </div>
 </div>
 
@@ -1177,9 +1178,13 @@ async function loadAllData() {
     nextAId = articles.length ? Math.max(...articles.map(a=>a.id))+1 : 1;
 
     dbReady = true;
+    console.log('✅ 資料庫連線成功，載入', projects.length, '個專案');
   } catch(e) {
-    console.error('loadAllData error:', e);
-    alert('資料庫連線失敗：' + e.message);
+    console.error('❌ loadAllData error:', e);
+    // 即使 DB 連線失敗，仍讓頁面可操作（記憶體模式）
+    dbReady = true;
+    const errEl = document.getElementById('db-status');
+    if(errEl) { errEl.textContent = '⚠️ 資料庫連線失敗，暫以記憶體模式運作'; errEl.style.display='block'; }
   }
   showLoader(false);
 }
