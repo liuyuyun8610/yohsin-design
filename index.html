@@ -3145,11 +3145,14 @@ function renderAdminDrawingList(cid){
 }
 // ========== STORAGE UPLOAD ==========
 async function uploadToStorage(file, folder){
-  const ext=file.name.split('.').pop().toLowerCase();
+  const ext=file.name.split('.').pop().toLowerCase()||'jpg';
   const fileName=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-  const {data,error}=await sbClient.storage.from('documents').upload(fileName,file,{cacheControl:'3600',upsert:false});
+  // Photos go to 'photos' bucket, documents go to 'documents' bucket
+  const photoFolders=['construction-logs','line-screenshots','meeting-photos'];
+  const bucket=photoFolders.includes(folder)?'photos':'documents';
+  const {data,error}=await sbClient.storage.from(bucket).upload(fileName,file,{cacheControl:'3600',upsert:false});
   if(error) throw new Error('上傳失敗：'+error.message);
-  const {data:u}=sbClient.storage.from('documents').getPublicUrl(fileName);
+  const {data:u}=sbClient.storage.from(bucket).getPublicUrl(fileName);
   return u.publicUrl;
 }
 function fmtFileSize(b){if(!b)return '—';if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(1)+'MB';}
@@ -3336,7 +3339,6 @@ function previewFormalImgs(e){
     img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
     document.getElementById('formal-img-preview').appendChild(img);
   });
-}
 }
 function renderAdminFormalList(cid){
   const meetings=docsData[cid].formalMeetings||[];
@@ -3851,11 +3853,7 @@ function renderDetail(){
     const empty=document.createElement('div');empty.className='det-empty';empty.textContent='此日尚無施工記錄';body.appendChild(empty);
   }
 }
-function handleFiles(e){
-  if(!selDate)return;if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};
-  const files=Array.from(e.target.files);let loaded=0;
-  files.forEach(f=>{const r=new FileReader();r.onload=ev=>{calLogs[selDate].photos.push(ev.target.result);loaded++;if(loaded===files.length){renderDetail();renderCalendar();}};r.readAsDataURL(f);});e.target.value='';
-}
+function handleFiles(e){ /* client calendar is read-only - no upload */ }
 function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}selDate=null;renderCalendar();document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看施工記錄</div>';document.getElementById('det-date').textContent='';}
 function goToday(){const t=new Date();curYear=t.getFullYear();curMonth=t.getMonth();selDate=null;renderCalendar();}
 
