@@ -2824,7 +2824,20 @@ async function renderAdminLogs(){
 async function renderClientProgress(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
   const pid=c.projectId;
-  // Load from DB
+  const proj=projects.find(p=>p.id===pid);
+  // Update project title and meta immediately
+  if(proj){
+    const titleEl=document.getElementById('p-proj-title');
+    if(titleEl) titleEl.textContent=proj.name;
+    const metaEl=document.getElementById('p-proj-meta');
+    const sc=proj.status==='進行中'?'pill-green':proj.status==='已完工'?'pill-gray':'pill-amber';
+    const dateParts=[];
+    if(proj.date) dateParts.push('合約起始：'+proj.date);
+    if(proj.endDate) dateParts.push('預計完工：'+proj.endDate);
+    const dateStr=dateParts.length?dateParts.join(' ｜ ')+' ｜ ':' ';
+    if(metaEl) metaEl.innerHTML=`${dateStr}<span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
+  }
+  // Load progress from DB
   await dbLoadProgress(pid);
   const items=progressData[pid]||[];
   const grid=document.getElementById('client-progress-grid'); if(!grid) return;
@@ -2837,13 +2850,6 @@ async function renderClientProgress(){
       ${colItems.length ? colItems.map(it=>`<div class="prog-item">${it.name}${it.startDate||it.endDate?`<div class="prog-item-sub">${[it.startDate,it.endDate].filter(Boolean).join(' → ')}</div>`:''}</div>`).join('') : '<div style="font-size:12px;color:var(--ink-light);">（無）</div>'}
     </div>`;
   }).join('');
-  // Update project meta
-  const proj=projects.find(p=>p.id===pid);
-  if(proj){
-    const metaEl=document.getElementById('p-proj-meta');
-    const sc=proj.status==='進行中'?'pill-green':proj.status==='已完工'?'pill-gray':'pill-amber';
-    if(metaEl) metaEl.innerHTML=`${proj.date?'合約起始：'+proj.date+' ｜ ':''} ${proj.endDate?'預計完工：'+proj.endDate+' ｜ ':''} <span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
-  }
 }
 
 // ========== KNOWLEDGE ==========
