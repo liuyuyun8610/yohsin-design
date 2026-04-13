@@ -586,7 +586,7 @@ tbody tr:hover td{background:#FDFAF6;}
       <div class="cal-wrap"><div class="cal-grid" id="cal-grid"></div></div>
       <div class="det-card" id="det-card">
         <div class="det-date" id="det-date"></div>
-        <div id="det-body"><div class="det-empty">請點擊日期查看或新增施工記錄</div></div>
+        <div id="det-body"><div class="det-empty">請點擊日期查看施工記錄</div></div>
       </div>
     </div>
 
@@ -2044,14 +2044,17 @@ let scheduleData = {};
 function initScheduleData(pid){ if(!scheduleData[pid]) scheduleData[pid]=[]; }
 
 function getScheduleTotal(pid){
-  // Get from payment calculation's sum-total element if currently displayed
+  // Priority 1: use contractAmount from project record
+  const proj=projects.find(p=>Number(p.id)===Number(pid));
+  if(proj&&proj.contractAmount>0) return proj.contractAmount;
+  // Priority 2: get from payment calculation's sum-total element
   const el=document.getElementById('sum-total');
   if(el&&currentDetailProjId===pid){
     const txt=el.textContent.replace(/[$,]/g,'');
     const n=parseFloat(txt);
     if(n>0) return n;
   }
-  // Fallback: recalc from profitData
+  // Priority 3: recalc from profitData
   if(!profitData[pid]) return 0;
   initProjData(pid);
   let conTotal=0,eqTotal=0;
@@ -2978,25 +2981,40 @@ function renderCalendar(){
 }
 function selectDate(key){selDate=key;renderCalendar();document.getElementById('det-card').scrollIntoView({behavior:'smooth',block:'nearest'});}
 function renderDetail(){
-  if(!selDate){document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看或新增施工記錄</div>';return;}
+  if(!selDate){document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看施工記錄</div>';return;}
   const[y,m,d]=selDate.split('-');document.getElementById('det-date').textContent=y+'年'+parseInt(m)+'月'+parseInt(d)+'日';
   const evts=CAL_EVENTS[selDate]||[],log=calLogs[selDate]||{work:'',photos:[]};
   const body=document.getElementById('det-body');body.innerHTML='';
-  if(evts.length){const chips=document.createElement('div');chips.className='det-chips';evts.forEach(e=>{const c=document.createElement('span');c.className='det-chip chip-'+(e.type==='hol'?'hol':'bk');c.textContent=e.label;chips.appendChild(c);});body.appendChild(chips);}
-  const sl=document.createElement('div');sl.className='sec-lbl';sl.textContent='本日施工記錄';body.appendChild(sl);
-  const ta=document.createElement('textarea');ta.className='log-ta';ta.placeholder='記錄今日施工內容…';ta.value=log.work;ta.oninput=e=>{if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};calLogs[selDate].work=e.target.value;};body.appendChild(ta);
-  const pl=document.createElement('div');pl.className='sec-lbl';pl.textContent='施工照片';body.appendChild(pl);
-  const pg=document.createElement('div');pg.className='photo-grid';
-  (log.photos||[]).forEach((src,i)=>{const w=document.createElement('div');w.className='pt';const img=document.createElement('img');img.src=src;img.alt='施工照片';const dp=document.createElement('button');dp.className='dp';dp.textContent='×';dp.onclick=ev=>{ev.stopPropagation();calLogs[selDate].photos.splice(i,1);renderDetail();renderCalendar();};w.appendChild(img);w.appendChild(dp);pg.appendChild(w);});
-  const ab=document.createElement('div');ab.className='pa';ab.innerHTML='<div class="pa-icon">+</div><div class="pa-lbl">上傳照片</div>';ab.onclick=()=>document.getElementById('file-input').click();pg.appendChild(ab);body.appendChild(pg);
-  const sr=document.createElement('div');sr.className='save-row';const sb=document.createElement('button');sb.className='btn-ink';sb.textContent='儲存記錄';sb.onclick=()=>{if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};calLogs[selDate].work=ta.value;renderCalendar();sb.textContent='已儲存 ✓';setTimeout(()=>sb.textContent='儲存記錄',1500);};sr.appendChild(sb);body.appendChild(sr);
+  // 工程標籤（來自 DB）
+  if(log.tag){const chips=document.createElement('div');chips.className='det-chips';const c=document.createElement('span');c.className='det-chip chip-bk';c.textContent=log.tag;chips.appendChild(c);body.appendChild(chips);}
+  else if(evts.length){const chips=document.createElement('div');chips.className='det-chips';evts.forEach(e=>{const c=document.createElement('span');c.className='det-chip chip-'+(e.type==='hol'?'hol':'bk');c.textContent=e.label;chips.appendChild(c);});body.appendChild(chips);}
+  // 施工記錄（唯讀）
+  if(log.work){
+    const sl=document.createElement('div');sl.className='sec-lbl';sl.textContent='本日施工記錄';body.appendChild(sl);
+    const txt=document.createElement('div');txt.style.cssText='font-size:13px;color:var(--ink);line-height:1.8;white-space:pre-wrap;padding:12px 0;';txt.textContent=log.work;body.appendChild(txt);
+  }
+  // 施工照片（唯讀）
+  if(log.photos&&log.photos.length){
+    const pl=document.createElement('div');pl.className='sec-lbl';pl.textContent='施工照片';body.appendChild(pl);
+    const pg=document.createElement('div');pg.className='photo-grid';
+    log.photos.forEach(src=>{
+      const w=document.createElement('div');w.className='pt';
+      const img=document.createElement('img');img.src=src;img.alt='施工照片';
+      w.appendChild(img);pg.appendChild(w);
+    });
+    body.appendChild(pg);
+  }
+  // 無記錄提示
+  if(!log.work&&(!log.photos||!log.photos.length)){
+    const empty=document.createElement('div');empty.className='det-empty';empty.textContent='此日尚無施工記錄';body.appendChild(empty);
+  }
 }
 function handleFiles(e){
   if(!selDate)return;if(!calLogs[selDate])calLogs[selDate]={work:'',photos:[]};
   const files=Array.from(e.target.files);let loaded=0;
   files.forEach(f=>{const r=new FileReader();r.onload=ev=>{calLogs[selDate].photos.push(ev.target.result);loaded++;if(loaded===files.length){renderDetail();renderCalendar();}};r.readAsDataURL(f);});e.target.value='';
 }
-function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}selDate=null;renderCalendar();document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看或新增施工記錄</div>';document.getElementById('det-date').textContent='';}
+function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}selDate=null;renderCalendar();document.getElementById('det-body').innerHTML='<div class="det-empty">請點擊日期查看施工記錄</div>';document.getElementById('det-date').textContent='';}
 function goToday(){const t=new Date();curYear=t.getFullYear();curMonth=t.getMonth();selDate=null;renderCalendar();}
 
 // ========== ARTICLES ==========
