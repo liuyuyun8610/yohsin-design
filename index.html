@@ -1212,6 +1212,7 @@ async function loadAllData() {
     dbReady = true;
     console.log('✅ DB loaded — projects:', projects.length, 'clients:', clients.length, 'articles:', articles.length);
     console.log('Clients loaded:', clients.map(c=>({user:c.user, pass:c.pass, name:c.name})));
+    console.log('Raw clientData from Supabase:', JSON.stringify(clientData));
     console.log('clients data:', clients.map(c=>({user:c.user,pass:c.pass,name:c.name})));
   } catch(e) {
     console.error('❌ loadAllData error:', e);
@@ -1837,15 +1838,28 @@ async function saveClient(){
   const projId=parseInt(document.getElementById('cm-proj-sel').value)||null;
   const st=document.getElementById('cm-status').value, no=document.getElementById('cm-note').value.trim();
   if(!u||!p||!n){alert('請填寫帳號、密碼和客戶名稱');return;}
-  if(editCId){const c=clients.find(x=>x.id===editCId);Object.assign(c,{user:u,pass:p,name:n,projectId:projId,status:st,note:no});}
-  else{
-    if(clients.find(x=>x.user===u)){alert('帳號已存在');return;}
-    const newId=nextCId++;
-    clients.push({id:newId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[1]});
-    if(!docsData[newId])docsData[newId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
-  }
   showLoader(true);
-  try{await dbSaveClient(editCId?clients.find(x=>x.id===editCId):clients[clients.length-1]);}catch(e){alert('儲存失敗：'+e.message);}
+  try{
+    if(editCId){
+      // 編輯現有客戶
+      const c=clients.find(x=>x.id===editCId);
+      Object.assign(c,{user:u,pass:p,name:n,projectId:projId,status:st,note:no});
+      await dbSaveClient(c);
+    } else {
+      // 新增客戶：先存進 DB 取得真實 id，再加入本地陣列
+      if(clients.find(x=>x.user===u)){alert('帳號已存在');showLoader(false);return;}
+      const newClient={user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[]};
+      const row={username:u,password:p,name:n,project_id:projId||null,status:st,note:no||'',assigned_articles:[]};
+      const res=await sbClient.from('clients').insert(row).select();
+      if(res.error) throw new Error(res.error.message);
+      const dbId=res.data[0].id;
+      newClient.id=dbId;
+      clients.push(newClient);
+      nextCId=Math.max(nextCId,dbId+1);
+      docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+      console.log('✅ Client inserted, id=',dbId, 'user=',u);
+    }
+  }catch(e){alert('儲存失敗：'+e.message);showLoader(false);return;}
   showLoader(false);
   closeCM();renderAdminClients();populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
