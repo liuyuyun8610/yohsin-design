@@ -723,7 +723,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav active" onclick="goAdminPage('a-projects',this)">專案管理</button>
       <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
       <button class="tnav" onclick="goAdminPage('a-docs',this)">文件管理</button>
-      <button class="tnav" onclick="goAdminPage('a-changes',this)">追加減</button>
       <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
       <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
@@ -743,7 +742,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav active" onclick="goAdminPageMobile('a-projects',this)">專案管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-docs',this)">文件管理</button>
-      <button class="mobile-tnav" onclick="goAdminPageMobile('a-changes',this)">追加減</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
@@ -848,6 +846,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="stab" onclick="switchProjTab('profit',this)">利潤分析</button>
         <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
         <button class="stab" onclick="switchProjTab('schedule',this)">收款進度</button>
+        <button class="stab" onclick="switchProjTab('changes',this)">追加減</button>
       </div>
 
       <!-- 專案進度 -->
@@ -1029,6 +1028,63 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
+      <!-- 追加減 -->
+      <div id="proj-tab-changes" style="display:none;">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">記錄此專案的追加或減項，儲存後自動同步至客戶端首頁。</div>
+
+        <!-- 統計卡 -->
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem;">
+          <div class="stat-box"><div class="stat-lbl">追加合計</div><div class="stat-val" id="co-add-total" style="color:var(--red);">$0</div></div>
+          <div class="stat-box"><div class="stat-lbl">減項合計</div><div class="stat-val" id="co-sub-total" style="color:var(--green);">$0</div></div>
+          <div class="stat-box"><div class="stat-lbl">含監工費淨額</div><div class="stat-val" id="co-net-total">$0</div></div>
+        </div>
+
+        <!-- 監工費率 -->
+        <div class="card" style="margin-bottom:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <label style="font-size:13px;color:var(--ink);">追加減監工費率：</label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="number" id="co-sup-pct" value="8" min="0" max="100" step="0.1"
+              style="width:70px;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:14px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;text-align:center;"
+              oninput="updateCoStats()">
+            <span style="font-size:13px;color:var(--ink-muted);">%</span>
+          </div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-left:8px;">監工費：<span id="co-sup-fee" style="color:var(--ink);font-weight:500;">$0</span>　含監工費總計：<span id="co-total-with-fee" style="color:var(--ink);font-weight:500;">$0</span></div>
+        </div>
+
+        <!-- 明細表格 -->
+        <div class="card" style="padding:0;margin-bottom:1rem;overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;min-width:580px;">
+            <thead>
+              <tr>
+                <th style="text-align:center;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:44px;">序號</th>
+                <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:34%;">內容</th>
+                <th style="text-align:left;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:10%;">類型</th>
+                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">單價（元）</th>
+                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:9%;">數量</th>
+                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">小計（元）</th>
+                <th style="border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="co-tbody"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addCoRow()">＋ 新增項目</button>
+        </div>
+
+        <!-- 合計 -->
+        <div class="card" style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">追加小計</span><span id="co-sum-add" style="font-weight:500;color:var(--red);">$0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">減項小計</span><span id="co-sum-sub" style="font-weight:500;color:var(--green);">$0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">追加減淨額</span><span id="co-sum-net" style="font-weight:500;">$0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">監工費</span><span id="co-sum-fee" style="font-weight:500;">$0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;border-top:1.5px solid var(--border);margin-top:4px;"><span style="font-weight:500;">含監工費總計</span><span id="co-sum-grand" style="font-weight:500;font-size:18px;">$0</span></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:2rem;">
+          <button class="btn-ghost" onclick="loadChangeOrders()">重設</button>
+          <button class="btn-ink" onclick="saveChangeOrders()">儲存並同步客戶端</button>
+        </div>
+      </div>
+
     </div><!-- end a-project-detail -->
 
     <div class="page" id="a-clients">
@@ -1165,67 +1221,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div>
 
-    <!-- 追加減明細 -->
-    <div class="page" id="a-changes">
-      <div class="sec-head"><div class="sec-ttl">追加減明細</div></div>
-      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">記錄各專案的追加或減項，儲存後自動同步至客戶端首頁。</div>
-      <div class="admin-sel-row" style="margin-bottom:1.2rem;">
-        <label>選擇專案：</label>
-        <select class="admin-sel" id="co-proj-sel" onchange="loadChangeOrders()"></select>
-      </div>
-
-      <!-- 統計卡 -->
-      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem;">
-        <div class="stat-box"><div class="stat-lbl">追加合計</div><div class="stat-val" id="co-add-total" style="color:var(--red);">$0</div></div>
-        <div class="stat-box"><div class="stat-lbl">減項合計</div><div class="stat-val" id="co-sub-total" style="color:var(--green);">$0</div></div>
-        <div class="stat-box"><div class="stat-lbl">含監工費淨額</div><div class="stat-val" id="co-net-total">$0</div></div>
-      </div>
-
-      <!-- 監工費率 -->
-      <div class="card" style="margin-bottom:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <label style="font-size:13px;color:var(--ink);">追加減監工費率：</label>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <input type="number" id="co-sup-pct" value="8" min="0" max="100" step="0.1"
-            style="width:70px;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:14px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;text-align:center;"
-            oninput="updateCoStats()">
-          <span style="font-size:13px;color:var(--ink-muted);">%</span>
-        </div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-left:8px;">監工費：<span id="co-sup-fee" style="color:var(--ink);font-weight:500;">$0</span>　含監工費總計：<span id="co-total-with-fee" style="color:var(--ink);font-weight:500;">$0</span></div>
-      </div>
-
-      <!-- 明細表格 -->
-      <div class="card" style="padding:0;margin-bottom:1rem;overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;min-width:580px;">
-          <thead>
-            <tr>
-              <th style="text-align:center;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:44px;">序號</th>
-              <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:34%;">內容</th>
-              <th style="text-align:left;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:10%;">類型</th>
-              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">單價（元）</th>
-              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:9%;">數量</th>
-              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">小計（元）</th>
-              <th style="border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;"></th>
-            </tr>
-          </thead>
-          <tbody id="co-tbody"></tbody>
-        </table>
-        <button class="add-row-btn" onclick="addCoRow()">＋ 新增項目</button>
-      </div>
-
-      <!-- 合計 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">追加小計</span><span id="co-sum-add" style="font-weight:500;color:var(--red);">$0</span></div>
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">減項小計</span><span id="co-sum-sub" style="font-weight:500;color:var(--green);">$0</span></div>
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">追加減淨額</span><span id="co-sum-net" style="font-weight:500;">$0</span></div>
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span style="color:var(--ink-muted);">監工費</span><span id="co-sum-fee" style="font-weight:500;">$0</span></div>
-        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;border-top:1.5px solid var(--border);margin-top:4px;"><span style="font-weight:500;">含監工費總計</span><span id="co-sum-grand" style="font-weight:500;font-size:18px;">$0</span></div>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:2rem;">
-        <button class="btn-ghost" onclick="loadChangeOrders()">重設</button>
-        <button class="btn-ink" onclick="saveChangeOrders()">儲存並同步客戶端</button>
-      </div>
-    </div>
 
     <!-- 知識文章 -->
     <div class="page" id="a-knowledge">
@@ -1870,7 +1865,6 @@ async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(id==='a-dashboard') renderDashboard();
-  if(id==='a-changes'){populateCoProjectSel();loadChangeOrders();}
   if(id==='a-docs'){populateDocsClientSel();await renderAdminDocs();}
   if(id==='a-logs'){populateLogClientSel();await renderAdminLogs();}
   if(id==='a-assign') renderAssignClist();
@@ -2442,7 +2436,27 @@ async function loadChangeOrders(){
   renderCoTable();
 }
 
-function getCoProjectId(){return parseInt(document.getElementById('co-proj-sel')?.value)||0;}
+async function loadChangeOrdersForCurrentProject(){
+  const pid=currentDetailProjId; if(!pid) return;
+  if(!changeOrders[pid]) changeOrders[pid]=[];
+  showLoader(true);
+  try{
+    const {data,error}=await sbClient.from('change_orders').select('*').eq('project_id',pid).order('seq_no',{ascending:true});
+    if(error) throw error;
+    changeOrders[pid]=(data||[]).map(r=>({dbId:r.id,seqNo:r.seq_no,content:r.content,type:r.type,unitPrice:Number(r.unit_price)||0,qty:Number(r.quantity)||1,supPct:Number(r.supervision_pct)||8}));
+    const pct=changeOrders[pid].length?changeOrders[pid][0].supPct:8;
+    const pctEl=document.getElementById('co-sup-pct');
+    if(pctEl) pctEl.value=pct;
+  }catch(e){console.warn('loadChangeOrdersForCurrentProject:',e.message);changeOrders[pid]=[];}
+  showLoader(false);
+  renderCoTable();
+}
+
+function getCoProjectId(){
+  // When inside project detail, use currentDetailProjId
+  if(currentDetailProjId) return currentDetailProjId;
+  return parseInt(document.getElementById('co-proj-sel')?.value)||0;
+}
 
 function renderCoTable(){
   const pid=getCoProjectId(); if(!pid) return;
@@ -2632,6 +2646,7 @@ async function openProjectDetail(pid){
   document.getElementById('proj-tab-progress').style.display='block';
   document.getElementById('proj-tab-profit').style.display='none';
   document.getElementById('proj-tab-payment').style.display='none';
+  document.getElementById('proj-tab-changes').style.display='none';
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#s-admin .page').forEach(pg=>pg.classList.remove('active'));
   document.getElementById('a-project-detail').classList.add('active');
@@ -2647,6 +2662,7 @@ function switchProjTab(tab,el){
   document.getElementById('proj-tab-profit').style.display=tab==='profit'?'block':'none';
   document.getElementById('proj-tab-payment').style.display=tab==='payment'?'block':'none';
   document.getElementById('proj-tab-schedule').style.display=tab==='schedule'?'block':'none';
+  document.getElementById('proj-tab-changes').style.display=tab==='changes'?'block':'none';
   if(tab==='payment'){
     const pid=currentDetailProjId;
     const pctEl=document.getElementById('pay-construction-pct');
@@ -2659,6 +2675,7 @@ function switchProjTab(tab,el){
   }
   if(tab==='progress') renderProgressTable();
   if(tab==='schedule') renderSchedule();
+  if(tab==='changes') loadChangeOrdersForCurrentProject();
 }
 
 function renderProfitTable(){
