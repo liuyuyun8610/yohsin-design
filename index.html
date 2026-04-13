@@ -1745,7 +1745,7 @@ function applyPassword(){
 // ========== DB: DOCS ==========
 async function dbLoadDocs(pid){
   try{
-    const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('sort_order',{ascending:true});
+    const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
     if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
     // Reset
@@ -1768,7 +1768,7 @@ async function dbLoadDocs(pid){
 }
 
 async function dbSaveDoc(pid, docType, item){
-  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr(), sort_order:item.sortOrder||0};
+  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr()};
   if(item.dbId){
     const {error}=await sbClient.from('project_docs').update(row).eq('id',item.dbId);
     if(error) throw error;
@@ -1787,7 +1787,7 @@ async function dbDeleteDoc(dbId){
 // ========== DB: MEETINGS ==========
 async function dbLoadMeetings(pid){
   try{
-    const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('sort_order',{ascending:true});
+    const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
     if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
     docsData[pid].lineScreenshots=[];
@@ -1803,7 +1803,7 @@ async function dbLoadMeetings(pid){
 }
 
 async function dbSaveMeeting(pid, meetType, item){
-  const row={project_id:pid, meet_type:meetType, meet_date:item.date||'', title:item.title||'', content:item.content||'', note:item.note||'', images:item.images||[], sort_order:item.sortOrder||0};
+  const row={project_id:pid, meet_type:meetType, meet_date:item.date||'', title:item.title||'', content:item.content||'', note:item.note||'', images:item.images||[]};
   if(item.dbId){
     const {error}=await sbClient.from('meetings').update(row).eq('id',item.dbId);
     if(error) throw error;
