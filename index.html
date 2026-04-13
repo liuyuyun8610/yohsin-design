@@ -400,7 +400,8 @@ tbody tr:hover td{background:#FDFAF6;}
 .divider{height:0.5px;background:var(--border);margin:1.2rem 0;}
 
 /* PROFIT TABLE */
-.profit-input{width:100%;padding:7px 9px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:right;}
+.profit-input{width:100%;padding:7px 9px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:right;-moz-appearance:textfield;}
+.profit-input::-webkit-inner-spin-button,.profit-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .profit-input:focus{border-color:var(--accent-light);background:#fff;}
 .profit-auto{font-size:13px;text-align:right;padding:8px 10px;font-family:'Noto Serif TC',serif;}
 .profit-auto.positive{color:var(--green);}
@@ -754,6 +755,7 @@ tbody tr:hover td{background:#FDFAF6;}
         <button class="stab active" onclick="switchProjTab('progress',this)">專案進度</button>
         <button class="stab" onclick="switchProjTab('profit',this)">利潤分析</button>
         <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
+        <button class="stab" onclick="switchProjTab('schedule',this)">收款進度</button>
       </div>
 
       <!-- 專案進度 -->
@@ -881,13 +883,51 @@ tbody tr:hover td{background:#FDFAF6;}
           <div style="padding-top:1rem;border-top:0.5px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
             <div style="font-size:12px;color:var(--ink-muted);">另計：設計費</div>
             <input type="text" id="pay-design-fee" placeholder="例：100,000" style="width:140px;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;" oninput="calcPayment()">
-            <div style="font-size:12px;color:var(--ink-muted);">元（不含在工程總報價內）</div>
+            <div style="font-size:11px;color:var(--ink-muted);">元<span style="font-size:10px;">（不含在工程總報價內）</span></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 客戶管理 -->
+      <!-- 收款進度 -->
+      <div id="proj-tab-schedule" style="display:none;">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">合約總額自動從「付款計算」的工程總報價帶入，每期金額由您自行填寫，百分比自動換算。</div>
+
+        <!-- 統計卡 -->
+        <div class="stats-row" style="margin-bottom:1.5rem;">
+          <div class="stat-box"><div class="stat-lbl">合約總額</div><div class="stat-val" style="font-size:18px;" id="sch-total">$0</div></div>
+          <div class="stat-box">
+            <div class="stat-lbl">已收款</div>
+            <div class="stat-val gn" style="font-size:18px;" id="sch-received">$0</div>
+            <div style="height:5px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden;"><div id="sch-bar" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .3s;"></div></div>
+          </div>
+          <div class="stat-box"><div class="stat-lbl">未收款</div><div class="stat-val am" style="font-size:18px;" id="sch-pending">$0</div></div>
+          <div class="stat-box"><div class="stat-lbl">收款進度</div><div class="stat-val" style="font-size:18px;" id="sch-pct">0%</div></div>
+        </div>
+
+        <!-- 收款期程表格 -->
+        <div class="card" style="margin-bottom:1rem;padding:0;">
+          <table style="width:100%;border-collapse:collapse;min-width:600px;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:22%;">期別名稱</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:16%;">金額（元）</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:9%;">佔比</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">預計收款日</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:12%;">狀態</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">實收日期</th>
+                <th style="border-bottom:0.5px solid var(--border);background:var(--sand);width:4%;"></th>
+              </tr>
+            </thead>
+            <tbody id="schedule-tbody"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addScheduleRow()">＋ 新增收款期</button>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
+          <div style="font-size:12px;color:var(--ink-light);">共 <span id="sch-count">0</span> 期</div>
+          <button class="btn-ink" onclick="saveSchedule()">儲存收款進度</button>
+        </div>
+      </div>
     <div class="page" id="a-clients">
       <div class="stats-row">
         <div class="stat-box"><div class="stat-lbl">客戶總數</div><div class="stat-val" id="st-total">0</div></div>
@@ -1457,6 +1497,9 @@ async function dbLoadProfit(projectId) {
   });
   if (payRow && payRow[0]) {
     paymentData[projectId] = { constructionPct: String(payRow[0].construction_pct||''), designFee: payRow[0].design_fee||'' };
+    if(payRow[0].schedule_json){
+      try{ scheduleData[projectId]=JSON.parse(payRow[0].schedule_json); }catch(e){}
+    }
   }
 }
 
@@ -1905,6 +1948,102 @@ async function renderDashboard(){
   });
 }
 
+// ========== PAYMENT SCHEDULE ==========
+// scheduleData[projectId] = [{name, amount, due, status, received}]
+let scheduleData = {};
+
+function initScheduleData(pid){ if(!scheduleData[pid]) scheduleData[pid]=[]; }
+
+function getScheduleTotal(pid){
+  // Get from payment calculation's sum-total element if currently displayed
+  const el=document.getElementById('sum-total');
+  if(el&&currentDetailProjId===pid){
+    const txt=el.textContent.replace(/[$,]/g,'');
+    const n=parseFloat(txt);
+    if(n>0) return n;
+  }
+  // Fallback: recalc from profitData
+  if(!profitData[pid]) return 0;
+  initProjData(pid);
+  let conTotal=0,eqTotal=0;
+  PROFIT_ITEMS.forEach(it=>{const v=profitData[pid][it.key].client||0;if(it.type==='equip')eqTotal+=v;else conTotal+=v;});
+  const pct=parseFloat(paymentData[pid]?.constructionPct)||0;
+  return conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*0.03);
+}
+
+function renderSchedule(){
+  const pid=currentDetailProjId; if(!pid) return;
+  initScheduleData(pid);
+  const items=scheduleData[pid];
+  const total=getScheduleTotal(pid);
+  const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const pending=total-received;
+  const pct=total>0?Math.round(received/total*100):0;
+
+  document.getElementById('sch-total').textContent='$'+fmtN(total);
+  document.getElementById('sch-received').textContent='$'+fmtN(received);
+  document.getElementById('sch-pending').textContent='$'+fmtN(pending);
+  document.getElementById('sch-pct').textContent=pct+'%';
+  document.getElementById('sch-bar').style.width=pct+'%';
+  document.getElementById('sch-count').textContent=items.length;
+
+  const tb=document.getElementById('schedule-tbody'); tb.innerHTML='';
+  const inp=`padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;width:100%;`;
+
+  items.forEach((r,i)=>{
+    const pctStr=total>0?((r.amount||0)/total*100).toFixed(1)+'%':'—';
+    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
+    const tr=document.createElement('tr');
+    tr.style.borderBottom='0.5px solid var(--border)';
+    tr.innerHTML=`
+      <td style="padding:6px 10px;"><input style="${inp}" value="${r.name}" placeholder="例：簽約款" oninput="scheduleData[${pid}][${i}].name=this.value"></td>
+      <td style="padding:6px 8px;"><input type="number" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;renderSchedule()"></td>
+      <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);">${pctStr}</td>
+      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${r.due||''}" onchange="scheduleData[${pid}][${i}].due=this.value.replace(/-/g,'/')"></td>
+      <td style="padding:6px 8px;">
+        <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;this.style.cssText='${inp}cursor:pointer;'+({'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[this.value]||'');renderSchedule()">
+          <option ${r.status==='未收'?'selected':''}>未收</option>
+          <option ${r.status==='已收'?'selected':''}>已收</option>
+          <option ${r.status==='逾期'?'selected':''}>逾期</option>
+        </select>
+      </td>
+      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${r.received||''}" onchange="scheduleData[${pid}][${i}].received=this.value.replace(/-/g,'/')"></td>
+      <td style="padding:4px 6px;text-align:center;"><button onclick="scheduleData[${pid}].splice(${i},1);renderSchedule()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='#A32D2D'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function addScheduleRow(){
+  const pid=currentDetailProjId; if(!pid) return;
+  initScheduleData(pid);
+  scheduleData[pid].push({name:'',amount:0,due:'',status:'未收',received:''});
+  renderSchedule();
+  const rows=document.getElementById('schedule-tbody').querySelectorAll('tr');
+  if(rows.length){ const inp=rows[rows.length-1].querySelector('input'); if(inp) inp.focus(); }
+}
+
+async function saveSchedule(){
+  const pid=currentDetailProjId; if(!pid) return;
+  // Save as JSON in payment_settings table's schedule column
+  // For now save to projects as received_amount (sum of received rows)
+  const items=scheduleData[pid]||[];
+  const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const total=getScheduleTotal(pid);
+  // Update project receivedAmount
+  const proj=projects.find(p=>p.id===pid);
+  if(proj){ proj.receivedAmount=received; proj.contractAmount=total||proj.contractAmount; }
+  showLoader(true);
+  try{
+    const {error}=await sbClient.from('projects').update({received_amount:received,contract_amount:total||0}).eq('id',pid);
+    if(error) throw error;
+    // Also save schedule JSON to payment_settings
+    const scheduleJson=JSON.stringify(items);
+    await sbClient.from('payment_settings').upsert({project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', schedule_json:scheduleJson},{onConflict:'project_id'});
+    alert('收款進度已儲存！');
+  }catch(e){ alert('儲存失敗：'+e.message); }
+  showLoader(false);
+}
+
 // ========== PROJECTS ==========
 let currentDetailProjId = null;
 
@@ -1916,6 +2055,7 @@ const PROFIT_ITEMS = [
   {key:'plaster', label:'泥作',   type:'construction'},
   {key:'tile',    label:'磁磚',   type:'construction'},
   {key:'stone',   label:'石材',   type:'construction'},
+  {key:'glass',   label:'玻璃',   type:'construction'},
   {key:'iron',    label:'鐵件',   type:'construction'},
   {key:'wood',    label:'木作',   type:'construction'},
   {key:'paint',   label:'油漆',   type:'construction'},
@@ -1995,6 +2135,7 @@ function switchProjTab(tab,el){
   document.getElementById('proj-tab-progress').style.display=tab==='progress'?'block':'none';
   document.getElementById('proj-tab-profit').style.display=tab==='profit'?'block':'none';
   document.getElementById('proj-tab-payment').style.display=tab==='payment'?'block':'none';
+  document.getElementById('proj-tab-schedule').style.display=tab==='schedule'?'block':'none';
   if(tab==='payment'){
     const pid=currentDetailProjId;
     const pctEl=document.getElementById('pay-construction-pct');
@@ -2002,6 +2143,7 @@ function switchProjTab(tab,el){
     syncPaymentDisplay(pid);
   }
   if(tab==='progress') renderProgressTable();
+  if(tab==='schedule') renderSchedule();
 }
 
 function renderProfitTable(){
@@ -2019,7 +2161,7 @@ function renderProfitTable(){
     const tr=document.createElement('tr');
     if(it.type==='equip')tr.style.background='#EBF2F5';
     tr.innerHTML=`
-      <td style="padding:6px 12px;font-size:13px;font-weight:500;">${it.label}${it.type==='equip'?'<span style="font-size:10px;color:var(--blue);background:var(--blue-pale);padding:1px 6px;border-radius:4px;margin-left:6px;">設備空調</span>':''}</td>
+      <td style="padding:6px 12px;font-size:13px;font-family:'Noto Sans TC',sans-serif;">${it.label}${it.type==='equip'?'<span style="font-size:10px;color:var(--blue);background:var(--blue-pale);padding:1px 6px;border-radius:4px;margin-left:6px;font-family:\'Noto Sans TC\',sans-serif;">設備空調</span>':''}</td>
       <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.vendor||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','vendor',this.value)"></td>
       <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.client||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','client',this.value)"></td>
       <td><div class="profit-auto ${profit>=0?'positive':'negative'}">${d.vendor>0||d.client>0?fmtN(profit):'—'}</div></td>
