@@ -1153,10 +1153,11 @@ let dbReady = false;
 async function loadAllData() {
   showLoader(true);
   try {
-    const [projData, clientData, artData] = await Promise.all([
+    const [projData, clientData, artData, settingsData] = await Promise.all([
       sb.from('projects').select('*'),
       sb.from('clients').select('*'),
       sb.from('articles').select('*'),
+      sb.from('system_settings').select('*'),
     ]);
     projects = (projData||[]).map(p => ({
       id:p.id, name:p.name, status:p.status,
@@ -1166,9 +1167,9 @@ async function loadAllData() {
     nextPId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
 
     clients = (clientData||[]).map(c => ({
-      id:c.id, user:c.username, pass:c.password, name:c.name,
-      projectId:c.project_id, status:c.status, note:c.note||'',
-      assigned: Array.isArray(c.assigned_articles) ? c.assigned_articles : []
+      id:c.id, user:c.username||'', pass:c.password||'', name:c.name||'',
+      projectId:c.project_id||null, status:c.status||'進行中', note:c.note||'',
+      assigned: Array.isArray(c.assigned_articles) ? c.assigned_articles.map(Number) : []
     }));
     nextCId = clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1;
 
@@ -1177,8 +1178,15 @@ async function loadAllData() {
     }));
     nextAId = articles.length ? Math.max(...articles.map(a=>a.id))+1 : 1;
 
+    // Load system settings
+    if(settingsData) settingsData.forEach(s=>{
+      if(s.key==='admin_password') adminPassword=s.value;
+      if(s.key==='site_title'){siteTitle=s.value;const el=document.getElementById('login-site-title');if(el)el.textContent=s.value;}
+    });
+
     dbReady = true;
-    console.log('✅ 資料庫連線成功，載入', projects.length, '個專案');
+    console.log('✅ DB loaded — projects:', projects.length, 'clients:', clients.length, 'articles:', articles.length);
+    console.log('clients data:', clients.map(c=>({user:c.user,pass:c.pass,name:c.name})));
   } catch(e) {
     console.error('❌ loadAllData error:', e);
     // 即使 DB 連線失敗，仍讓頁面可操作（記憶體模式）
@@ -1423,7 +1431,7 @@ function doLogin(){
   const u=document.getElementById('l-user').value.trim(), p=document.getElementById('l-pass').value.trim();
   const err=document.getElementById('l-err');err.textContent='';
   if(loginMode==='admin'){
-    if(u==='admin'&&p==='admin123'){
+    if(u==='admin'&&p===adminPassword){
       showScreen('s-admin');
       renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
       populateDocsClientSel();renderAdminDocs();populateLogClientSel();renderAdminLogs();
