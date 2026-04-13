@@ -2076,23 +2076,45 @@ function renderSchedule(){
   items.forEach((r,i)=>{
     const pctStr=total>0?((r.amount||0)/total*100).toFixed(1)+'%':'—';
     const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
+    // Convert stored YYYY/MM/DD or YYYY-MM-DD to YYYY-MM-DD for date input
+    const toDateVal=s=>(s||'').replace(/\//g,'-');
     const tr=document.createElement('tr');
     tr.style.borderBottom='0.5px solid var(--border)';
     tr.innerHTML=`
       <td style="padding:6px 10px;"><input style="${inp}" value="${r.name}" placeholder="例：簽約款" oninput="scheduleData[${pid}][${i}].name=this.value"></td>
-      <td style="padding:6px 8px;"><input type="number" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;renderSchedule()"></td>
-      <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);">${pctStr}</td>
-      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${r.due||''}" onchange="scheduleData[${pid}][${i}].due=this.value.replace(/-/g,'/')"></td>
+      <td style="padding:6px 8px;"><input type="number" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;updateSchStats(${pid})"></td>
+      <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);" id="sch-pct-${pid}-${i}">${pctStr}</td>
+      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})"></td>
       <td style="padding:6px 8px;">
-        <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;this.style.cssText='${inp}cursor:pointer;'+({'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[this.value]||'');renderSchedule()">
+        <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;this.style.cssText='${inp}cursor:pointer;'+({'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[this.value]||'');updateSchStats(${pid})">
           <option ${r.status==='未收'?'selected':''}>未收</option>
           <option ${r.status==='已收'?'selected':''}>已收</option>
           <option ${r.status==='逾期'?'selected':''}>逾期</option>
         </select>
       </td>
-      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${r.received||''}" onchange="scheduleData[${pid}][${i}].received=this.value.replace(/-/g,'/')"></td>
+      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.received)}" onchange="scheduleData[${pid}][${i}].received=this.value"></td>
       <td style="padding:4px 6px;text-align:center;"><button onclick="scheduleData[${pid}].splice(${i},1);renderSchedule()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='#A32D2D'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
     tb.appendChild(tr);
+  });
+}
+
+function updateSchStats(pid){
+  const items=scheduleData[pid]||[];
+  const total=getScheduleTotal(pid);
+  const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const pending=total-received;
+  const pct=total>0?Math.round(received/total*100):0;
+  const s=id=>document.getElementById(id);
+  if(s('sch-total'))s('sch-total').textContent='$'+fmtN(total);
+  if(s('sch-received'))s('sch-received').textContent='$'+fmtN(received);
+  if(s('sch-pending'))s('sch-pending').textContent='$'+fmtN(pending);
+  if(s('sch-pct'))s('sch-pct').textContent=pct+'%';
+  if(s('sch-bar'))s('sch-bar').style.width=pct+'%';
+  if(s('sch-count'))s('sch-count').textContent=items.length;
+  // Update pct cells inline without re-rendering
+  items.forEach((_,i)=>{
+    const cell=s(`sch-pct-${pid}-${i}`);
+    if(cell) cell.textContent=total>0?((items[i].amount||0)/total*100).toFixed(1)+'%':'—';
   });
 }
 
@@ -2123,6 +2145,7 @@ async function saveSchedule(){
     const scheduleJson=JSON.stringify(items);
     await sbClient.from('payment_settings').upsert({project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', schedule_json:scheduleJson},{onConflict:'project_id'});
     alert('收款進度已儲存！');
+    renderSchedule(); // refresh to show clean state
   }catch(e){ alert('儲存失敗：'+e.message); }
   showLoader(false);
 }
