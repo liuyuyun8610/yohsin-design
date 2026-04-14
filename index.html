@@ -3279,7 +3279,7 @@ async function uploadToStorage(file, folder){
   const ext=file.name.split('.').pop().toLowerCase()||'jpg';
   const fileName=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   // Photos go to 'photos' bucket, documents go to 'documents' bucket
-  const photoFolders=['construction-logs','line-screenshots','meeting-photos'];
+  const photoFolders=['construction-logs','line-screenshots','meeting-photos','furniture-plans','drawings'];
   const bucket=photoFolders.includes(folder)?'photos':'documents';
   const {data,error}=await sbClient.storage.from(bucket).upload(fileName,file,{cacheControl:'3600',upsert:false});
   if(error) throw new Error('上傳失敗：'+error.message);
