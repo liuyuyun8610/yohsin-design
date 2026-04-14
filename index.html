@@ -3436,11 +3436,14 @@ function removeFurniturePlan(cid,idx){
   docsData[cid].furniturePlans.splice(idx,1);renderAdminFurniturePlanList(cid);
 }
 
-function renderCliFurniturePlan(pid){
-  // Load from docsData by projectId mapped from client
+async function renderCliFurniturePlan(){
   const c=clients.find(x=>x.id===currentClientId);
   if(!c) return;
   const cid=Number(c.id);
+  // Ensure docs are loaded
+  if(!docsData[cid]||!docsData[cid].furniturePlans){
+    try{ await dbLoadDocs(cid); }catch(e){ console.warn(e); }
+  }
   const items=(docsData[cid]?.furniturePlans)||[];
   const sec=document.getElementById('cli-furniture-plan-section');
   const list=document.getElementById('cli-furniture-plan-list');
