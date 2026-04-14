@@ -283,6 +283,13 @@ tbody tr:hover td{background:#FDFAF6;}
 .render-lb-counter{font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:.08em;padding:10px 0 14px;}
 .render-lb-caption{font-size:12px;color:rgba(255,255,255,0.65);padding-bottom:6px;letter-spacing:.04em;max-width:480px;text-align:center;}
 
+
+/* Drag-drop zone for 效果圖 */
+#drawing-drop-zone{border:1.5px dashed var(--accent-light);border-radius:14px;padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--sand);}
+#drawing-drop-zone.dz-hover{border-color:var(--accent);background:var(--accent-pale);}
+.dz-icon{font-size:32px;margin-bottom:8px;}
+.dz-text{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;}
+.dz-hint{font-size:12px;color:var(--ink-light);}
 /* old versions */
 .old-versions-toggle{font-size:12px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;gap:5px;padding:8px 0;user-select:none;}
 .old-versions-toggle:hover{color:var(--ink);}
@@ -841,7 +848,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" id="nav-dashboard" onclick="goAdminPage('a-dashboard',this)" style="display:none;">總覽看板</button>
       <button class="tnav active" onclick="goAdminPage('a-projects',this)">專案管理</button>
       <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
-      <button class="tnav" onclick="goAdminPage('a-docs',this)">文件管理</button>
       <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
       <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
@@ -860,7 +866,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" id="mobile-nav-dashboard" onclick="goAdminPageMobile('a-dashboard',this)" style="display:none;">總覽看板</button>
       <button class="mobile-tnav active" onclick="goAdminPageMobile('a-projects',this)">專案管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
-      <button class="mobile-tnav" onclick="goAdminPageMobile('a-docs',this)">文件管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
@@ -984,6 +989,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
         <button class="stab" onclick="switchProjTab('schedule',this)">收款進度</button>
         <button class="stab" onclick="switchProjTab('changes',this)">追加減</button>
+        <button class="stab" onclick="switchProjTab('docs',this)">文件管理</button>
       </div>
 
       <!-- 專案進度 -->
@@ -1222,6 +1228,141 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
+
+      <!-- 文件管理 Tab -->
+      <div id="proj-tab-docs" style="display:none;">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">此專案的所有文件，上傳後自動同步至客戶端。</div>
+        
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">專案圖紙</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可上傳多個版本，標記「最終版」的顯示在客戶主要區域，其餘自動歸入舊版本。</div>
+        <div class="stabs" id="drawing-type-tabs">
+          <button class="stab active" onclick="switchDrawingType('平面系統圖',this)">平面系統圖</button>
+          <button class="stab" onclick="switchDrawingType('立面系統圖',this)">立面系統圖</button>
+          <button class="stab" onclick="switchDrawingType('效果圖',this)">效果圖</button>
+        </div>
+        <div id="admin-drawing-list" style="margin-bottom:1rem;"></div>
+        <!-- 平面/立面：一般上傳 -->
+        <div id="drawing-upload-area" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="drawing-is-final" style="width:16px;height:16px;cursor:pointer;">
+            <label for="drawing-is-final" style="font-size:13px;cursor:pointer;">標記為最終版</label>
+          </div>
+          <div>
+            <label class="form-label" id="drawing-file-label">選擇檔案（PDF/圖片）</label>
+            <input type="file" id="drawing-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);">
+          </div>
+          <button class="btn-ink" onclick="addDrawingVersion()">＋ 上傳新版本</button>
+        </div>
+        <!-- 效果圖：拖曳上傳區 -->
+        <div id="drawing-drop-zone" style="display:none;margin-top:8px;"
+          ondragover="event.preventDefault();this.classList.add('dz-hover')"
+          ondragleave="this.classList.remove('dz-hover')"
+          ondrop="handleDrawingDrop(event)"
+          onclick="document.getElementById('drawing-file-input').click()">
+          <div class="dz-icon">🖼️</div>
+          <div class="dz-text">拖曳圖片到這裡，或點擊選取</div>
+          <div class="dz-hint">支援 JPG、PNG，可一次選取多張</div>
+        </div>
+        <div id="drawing-multi-preview" style="display:none;margin-top:10px;"></div>
+      </div>
+
+      <!-- 會議記錄管理 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">會議記錄</div>
+        <div class="stabs">
+          <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
+          <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
+        </div>
+
+        <!-- LINE 記錄：上傳截圖 -->
+        <div id="admin-line-panel">
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳 LINE 對話截圖，依日期分組顯示給客戶。備注方便設計師快速識別內容。</div>
+          <div id="admin-line-list" style="margin-bottom:1rem;"></div>
+          <div class="divider"></div>
+          <div class="form-grid2" style="margin-bottom:0.8rem;">
+            <div class="form-group">
+              <label class="form-label">截圖日期</label>
+              <input type="date" class="form-input" id="line-date" style="margin-bottom:0;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">備注（設計師內部用）</label>
+              <input class="form-input" id="line-note" placeholder="例：確認平面圖、討論廚房動線" style="margin-bottom:0;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">上傳截圖</label>
+            <div class="upload-zone" onclick="document.getElementById('line-img-input').click()">
+              <div class="upload-zone-icon">📷</div>
+              <div class="upload-zone-text">點擊上傳 LINE 對話截圖</div>
+              <div class="upload-zone-hint">支援 JPG、PNG，可多張同時上傳</div>
+            </div>
+            <input type="file" id="line-img-input" accept="image/*" multiple style="display:none;" onchange="previewLineImgs(event)">
+            <div id="line-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addLineScreenshot()">儲存截圖</button></div>
+        </div>
+
+        <!-- 會議記錄：文字 + 圖片 -->
+        <div id="admin-formal-panel" style="display:none;">
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫正式會議記錄，可附上會議現場照片或手寫記錄圖片。</div>
+          <div id="admin-formal-list" style="margin-bottom:1rem;"></div>
+          <div class="divider"></div>
+          <div class="form-grid2" style="margin-bottom:0.8rem;">
+            <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;"></div>
+            <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;"></div>
+          </div>
+          <div class="form-group"><label class="form-label">會議內容</label><textarea class="form-ta" id="formal-content" placeholder="填寫會議重點、決議事項…" style="margin-bottom:0;"></textarea></div>
+          <div class="form-group" style="margin-top:0.8rem;">
+            <label class="form-label">附件圖片（選填）</label>
+            <div class="upload-zone" onclick="document.getElementById('formal-img-input').click()">
+              <div class="upload-zone-icon">🖼</div>
+              <div class="upload-zone-text">點擊上傳會議記錄圖片</div>
+              <div class="upload-zone-hint">手寫記錄、白板照片均可</div>
+            </div>
+            <input type="file" id="formal-img-input" accept="image/*" multiple style="display:none;" onchange="previewFormalImgs(event)">
+            <div id="formal-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議記錄</button></div>
+        </div>
+      </div>
+
+      <!-- 合約管理 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">合約資料</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此區僅保留最終版合約。上傳新版後，舊版自動移除。</div>
+        <div id="admin-contract-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-name" placeholder="例：2026.3.8 室內工程合約" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇 PDF</label><input type="file" id="contract-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addContract()">＋ 上傳合約</button>
+        </div>
+      </div>
+
+      <!-- 報價管理 -->
+      <div class="card">
+        <div class="card-title">報價資料</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可依日期新增多個版本，所有版本客戶均可查看。</div>
+        <div id="admin-quote-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;"><label class="form-label">報價名稱</label><input class="form-input" id="quote-name" placeholder="例：2026.3.8 工程報價單" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇 PDF</label><input type="file" id="quote-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addQuote()">＋ 上傳報價</button>
+        </div>
+      </div>
+
+      <!-- 家具尺寸圖 -->
+      <div class="card">
+        <div class="card-title">家具尺寸圖</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳後會顯示在客戶端「必填清單 → 家具採購清單」下方。</div>
+        <div id="admin-furniture-plan-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;"><label class="form-label">說明（選填）</label><input class="form-input" id="furniture-plan-name" placeholder="例：家具配置尺寸圖 v2" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇圖片／PDF</label><input type="file" id="furniture-plan-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addFurniturePlan()">＋ 上傳</button>
+        </div>
+      </div>
+      </div>
     </div><!-- end a-project-detail -->
 
     <div class="page" id="a-clients">
@@ -1238,12 +1379,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </table></div>
     </div>
 
-    <!-- 文件管理 -->
-    <div class="page" id="a-docs">
-      <div class="sec-head"><div class="sec-ttl">文件管理</div></div>
-      <div class="admin-sel-row">
-        <label>選擇專案：</label>
-        <select class="admin-sel" id="docs-client-sel" onchange="renderAdminDocs()"></select>
+    <!-- 文件管理 (stub - now inside project detail) -->
+    <div class="page" id="a-docs" style="display:none;">
+      <div class="admin-sel-row" style="display:none;">
+        <select class="admin-sel" id="docs-client-sel"></select>
       </div>
 
       <!-- 圖紙管理 -->
@@ -2960,10 +3099,8 @@ async function openProjectDetail(pid){
   if(completeBtn) completeBtn.style.display=p.status==='已完工'?'none':'inline-block';
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   document.querySelector('#proj-detail-tabs .stab').classList.add('active');
+  ['profit','payment','changes','docs'].forEach(t=>{const el=document.getElementById('proj-tab-'+t);if(el)el.style.display='none';});
   document.getElementById('proj-tab-progress').style.display='block';
-  document.getElementById('proj-tab-profit').style.display='none';
-  document.getElementById('proj-tab-payment').style.display='none';
-  document.getElementById('proj-tab-changes').style.display='none';
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#s-admin .page').forEach(pg=>pg.classList.remove('active'));
   document.getElementById('a-project-detail').classList.add('active');
@@ -2975,11 +3112,10 @@ async function openProjectDetail(pid){
 function switchProjTab(tab,el){
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('proj-tab-progress').style.display=tab==='progress'?'block':'none';
-  document.getElementById('proj-tab-profit').style.display=tab==='profit'?'block':'none';
-  document.getElementById('proj-tab-payment').style.display=tab==='payment'?'block':'none';
-  document.getElementById('proj-tab-schedule').style.display=tab==='schedule'?'block':'none';
-  document.getElementById('proj-tab-changes').style.display=tab==='changes'?'block':'none';
+  ['progress','profit','payment','schedule','changes','docs'].forEach(t=>{
+    const el=document.getElementById('proj-tab-'+t);
+    if(el) el.style.display=t===tab?'block':'none';
+  });
   if(tab==='payment'){
     const pid=currentDetailProjId;
     const pctEl=document.getElementById('pay-construction-pct');
@@ -2993,6 +3129,19 @@ function switchProjTab(tab,el){
   if(tab==='progress') renderProgressTable();
   if(tab==='schedule') renderSchedule();
   if(tab==='changes') loadChangeOrdersForCurrentProject();
+  if(tab==='docs'){
+    // Set docs-client-sel to current project's client
+    const projClient=clients.find(c=>Number(c.projectId)===Number(currentDetailProjId));
+    if(projClient){
+      const sel=document.getElementById('docs-client-sel');
+      if(sel) sel.value=currentDetailProjId;
+    }
+    populateDocsClientSel();
+    renderAdminDocs();
+    // Reset drawing type to 平面系統圖
+    const firstDrawingTab=document.querySelector('#drawing-type-tabs .stab');
+    if(firstDrawingTab) switchDrawingType('平面系統圖',firstDrawingTab);
+  }
 }
 
 function renderProfitTable(){
@@ -3302,7 +3451,7 @@ function goToClientDocs(cid){
   const pid=c?c.projectId:null;
   populateDocsClientSel();
   if(pid) document.getElementById('docs-client-sel').value=pid;
-  goAdminPage('a-docs',document.querySelectorAll('#s-admin .tb-nav .tnav')[2]);renderAdminDocs();
+  // docs now inside project detail
 }
 
 // ========== CLIENT DOCS ==========
@@ -3470,7 +3619,14 @@ function populateDocsClientSel(){
   projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
   if(cur)sel.value=cur;
 }
-function getAdminDocClientId(){return parseInt(document.getElementById('docs-client-sel').value)||projects[0]?.id||0;}
+function getAdminDocClientId(){
+  // When inside project detail, use the project's associated client
+  if(currentDetailProjId){
+    const c=clients.find(x=>Number(x.projectId)===Number(currentDetailProjId));
+    if(c) return Number(c.id);
+  }
+  return parseInt(document.getElementById('docs-client-sel').value)||0;
+}
 async function renderAdminDocs(){
   const cid=getAdminDocClientId();
   if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
@@ -3524,6 +3680,22 @@ async function uploadToStorage(file, folder){
 }
 function fmtFileSize(b){if(!b)return '—';if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(1)+'MB';}
 
+
+function handleDrawingDrop(e){
+  e.preventDefault();
+  document.getElementById('drawing-drop-zone').classList.remove('dz-hover');
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length){alert('請拖入圖片檔案');return;}
+  // Simulate as if fi.files was set - store in pendingDropFiles
+  window._pendingDropFiles=files;
+  // Show preview
+  const preview=document.getElementById('drawing-multi-preview');
+  if(preview){
+    preview.style.display='block';
+    preview.innerHTML=`<div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px;">已選擇 ${files.length} 張圖片</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${files.map(f=>`<img src="${URL.createObjectURL(f)}" style="height:64px;width:64px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);">`).join('')}</div>`;
+  }
+}
 function previewDrawingImgs(e){
   const preview=document.getElementById('drawing-multi-preview');
   if(!preview) return;
@@ -3552,7 +3724,8 @@ function addDrawingVersion(){
 
   // 效果圖：多張上傳
   if(currentDrawingType==='效果圖'){
-    const files=Array.from(fi.files);
+    const files=window._pendingDropFiles||Array.from(fi.files);
+    window._pendingDropFiles=null;
     showLoader(true);
     (async()=>{
       try{
