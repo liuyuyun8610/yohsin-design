@@ -1256,17 +1256,19 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="stab" onclick="switchDrawingType('效果圖',this)">效果圖</button>
         </div>
         <div id="admin-drawing-list" style="margin-bottom:1rem;"></div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div id="drawing-upload-area" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="checkbox" id="drawing-is-final" style="width:16px;height:16px;cursor:pointer;">
             <label for="drawing-is-final" style="font-size:13px;cursor:pointer;">標記為最終版</label>
           </div>
           <div>
-            <label class="form-label">選擇檔案（PDF/圖片）</label>
+            <label class="form-label" id="drawing-file-label">選擇檔案（PDF/圖片）</label>
             <input type="file" id="drawing-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);">
           </div>
           <button class="btn-ink" onclick="addDrawingVersion()">＋ 上傳新版本</button>
         </div>
+        <!-- 效果圖多張預覽 -->
+        <div id="drawing-multi-preview" style="display:none;margin-top:10px;"></div>
       </div>
 
       <!-- 會議記錄管理 -->
@@ -3478,7 +3480,28 @@ async function renderAdminDocs(){
   showLoader(false);
   renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);renderAdminFurniturePlanList(cid);
 }
-function switchDrawingType(type,el){currentDrawingType=type;document.querySelectorAll('#drawing-type-tabs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderAdminDrawingList(getAdminDocClientId());}
+function switchDrawingType(type,el){
+  currentDrawingType=type;
+  document.querySelectorAll('#drawing-type-tabs .stab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Toggle multiple file mode for 效果圖
+  const fi=document.getElementById('drawing-file-input');
+  const finalRow=document.getElementById('drawing-is-final')?.closest('div');
+  const lbl=document.getElementById('drawing-file-label');
+  const preview=document.getElementById('drawing-multi-preview');
+  if(type==='效果圖'){
+    if(fi){ fi.multiple=true; fi.onchange=previewDrawingImgs; }
+    if(lbl) lbl.textContent='選擇圖片（可多選）';
+    if(finalRow) finalRow.style.display='none';
+    if(preview) preview.style.display='block';
+  } else {
+    if(fi){ fi.multiple=false; fi.onchange=null; fi.value=''; }
+    if(lbl) lbl.textContent='選擇檔案（PDF/圖片）';
+    if(finalRow) finalRow.style.display='flex';
+    if(preview){ preview.style.display='none'; preview.innerHTML=''; }
+  }
+  renderAdminDrawingList(getAdminDocClientId());
+}
 function renderAdminDrawingList(cid){
   const vers=docsData[cid].drawings[currentDrawingType]||[];
   const el=document.getElementById('admin-drawing-list');el.innerHTML='';
@@ -3501,19 +3524,71 @@ async function uploadToStorage(file, folder){
 }
 function fmtFileSize(b){if(!b)return '—';if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(1)+'MB';}
 
+function previewDrawingImgs(e){
+  const preview=document.getElementById('drawing-multi-preview');
+  if(!preview) return;
+  preview.innerHTML='';
+  const files=Array.from(e.target.files);
+  if(!files.length) return;
+  const info=document.createElement('div');
+  info.style.cssText='font-size:12px;color:var(--ink-muted);margin-bottom:6px;';
+  info.textContent=`已選擇 ${files.length} 張圖片`;
+  preview.appendChild(info);
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;';
+  files.forEach(f=>{
+    const url=URL.createObjectURL(f);
+    const img=document.createElement('img');
+    img.src=url;img.style.cssText='height:64px;width:64px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);';
+    wrap.appendChild(img);
+  });
+  preview.appendChild(wrap);
+}
+
 function addDrawingVersion(){
   const cid=getAdminDocClientId();
-  const isFinal=document.getElementById('drawing-is-final').checked;
   const fi=document.getElementById('drawing-file-input');
-  const file=fi&&fi.files[0]?fi.files[0]:null;
-  if(!file){alert('請先選擇檔案');return;}
-  // Use filename (without extension) as note
+  if(!fi||!fi.files.length){alert('請先選擇檔案');return;}
+
+  // 效果圖：多張上傳
+  if(currentDrawingType==='效果圖'){
+    const files=Array.from(fi.files);
+    showLoader(true);
+    (async()=>{
+      try{
+        if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+        if(!docsData[cid].drawings['效果圖']) docsData[cid].drawings['效果圖']=[];
+        let successCount=0;
+        for(const file of files){
+          try{
+            const fileUrl=await uploadToStorage(file,'drawings');
+            const note=file.name.replace(/\.[^.]+$/,'');
+            const newItem={note,date:todayStr(),isFinal:false,fileUrl,size:fmtFileSize(file.size)};
+            await dbSaveDoc(cid,'drawing_效果圖',newItem);
+            docsData[cid].drawings['效果圖'].unshift(newItem);
+            successCount++;
+          }catch(err){console.warn('上傳失敗:',file.name,err.message);}
+        }
+        fi.value='';
+        const preview=document.getElementById('drawing-multi-preview');
+        if(preview) preview.innerHTML='';
+        renderAdminDrawingList(cid);
+        alert(`成功上傳 ${successCount} / ${files.length} 張效果圖`);
+      }catch(e){alert(e.message);}
+      showLoader(false);
+    })();
+    return;
+  }
+
+  // 平面/立面系統圖：單張上傳
+  const isFinal=document.getElementById('drawing-is-final').checked;
+  const file=fi.files[0];
   const note=file.name.replace(/\.[^.]+$/,'');
   showLoader(true);
   (async()=>{
     try{
-      let fileUrl='',size='—';
-      if(file){fileUrl=await uploadToStorage(file,'drawings');size=fmtFileSize(file.size);}
+      const fileUrl=await uploadToStorage(file,'drawings');
+      const size=fmtFileSize(file.size);
       if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
       if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
       if(isFinal){
@@ -3526,7 +3601,7 @@ function addDrawingVersion(){
       await dbSaveDoc(cid,'drawing_'+currentDrawingType,newItem);
       docsData[cid].drawings[currentDrawingType].unshift(newItem);
       document.getElementById('drawing-is-final').checked=false;
-      if(fi)fi.value='';
+      fi.value='';
       renderAdminDrawingList(cid);
     }catch(e){alert(e.message);}
     showLoader(false);
