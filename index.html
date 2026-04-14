@@ -1222,12 +1222,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="stab" onclick="switchDrawingType('效果圖',this)">效果圖</button>
         </div>
         <div id="admin-drawing-list" style="margin-bottom:1rem;"></div>
-        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div style="flex:1;min-width:200px;">
-            <label class="form-label">版本說明</label>
-            <input class="form-input" id="drawing-version-note" placeholder="例：v3 調整主臥隔間" style="margin-bottom:0;">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
             <input type="checkbox" id="drawing-is-final" style="width:16px;height:16px;cursor:pointer;">
             <label for="drawing-is-final" style="font-size:13px;cursor:pointer;">標記為最終版</label>
           </div>
@@ -3294,11 +3290,12 @@ function fmtFileSize(b){if(!b)return '—';if(b<1024)return b+'B';if(b<1048576)r
 
 function addDrawingVersion(){
   const cid=getAdminDocClientId();
-  const note=document.getElementById('drawing-version-note').value.trim();
-  if(!note){alert('請填寫版本說明');return;}
   const isFinal=document.getElementById('drawing-is-final').checked;
   const fi=document.getElementById('drawing-file-input');
   const file=fi&&fi.files[0]?fi.files[0]:null;
+  if(!file){alert('請先選擇檔案');return;}
+  // Use filename (without extension) as note
+  const note=file.name.replace(/\.[^.]+$/,'');
   showLoader(true);
   (async()=>{
     try{
@@ -3315,7 +3312,6 @@ function addDrawingVersion(){
       const newItem={note,date:todayStr(),isFinal,fileUrl,size};
       await dbSaveDoc(cid,'drawing_'+currentDrawingType,newItem);
       docsData[cid].drawings[currentDrawingType].unshift(newItem);
-      document.getElementById('drawing-version-note').value='';
       document.getElementById('drawing-is-final').checked=false;
       if(fi)fi.value='';
       renderAdminDrawingList(cid);
