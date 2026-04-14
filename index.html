@@ -458,7 +458,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client .ficon{background:rgba(201,169,110,0.15);color:var(--cli-accent);}
 #s-client #p-proj-title{color:var(--cli-ink);}
 #s-client #p-proj-meta{color:var(--cli-muted);}
-#s-client #dash-pay-bar{background:var(--cli-accent)!important;}
+#s-client #dash-pay-bar{background:#BCA892!important;}
 #s-client #dash-photo-strip img{border-radius:12px;box-shadow:0 2px 10px rgba(90,60,30,0.12);}
 #s-client #dash-co-card{border-left:none;}
 #s-client #dash-next-pay{background:var(--cli-card-alt);border:0.5px solid var(--cli-border);}
@@ -607,6 +607,28 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
         </div>
       </div>
+
+      <!-- 保固資訊卡（已完工才顯示） -->
+      <div class="card" id="dash-warranty-card" style="margin-bottom:12px;display:none;">
+        <div class="card-title">保固資訊</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;background:var(--sand);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🛡️</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--ink);">專案保固中</div>
+            <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">完工後保固一年，如有問題請直接聯繫設計師</div>
+          </div>
+        </div>
+        <div style="background:var(--sand);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:3px;">完工日期</div>
+            <div id="warranty-end-date" style="font-size:14px;font-weight:500;">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:3px;">保固到期</div>
+            <div id="warranty-expire-date" style="font-size:14px;font-weight:500;color:var(--green);">—</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 資料文件 -->
@@ -679,6 +701,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div id="cl-fur" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
         <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th>位置</th><th>型號／尺寸</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
+        <!-- 家具尺寸圖 -->
+        <div id="cli-furniture-plan-section" style="display:none;margin-top:1.4rem;">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cli-accent2,#B8936A);font-weight:500;margin-bottom:0.8rem;">家具尺寸圖</div>
+          <div id="cli-furniture-plan-list"></div>
+        </div>
       </div>
       <div id="cl-pow" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">填入電器瓦數與電壓，系統自動計算電流並建議是否需要專用迴路（≥10A 建議專用迴路）。</div>
@@ -880,10 +907,27 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page active" id="a-projects">
       <div class="sec-head"><div class="sec-ttl">專案管理</div><button class="btn-ink" onclick="openPM()">＋ 新增專案</button></div>
       <div style="font-size:13px;color:var(--ink-muted);margin-bottom:1.2rem;">建立專案後，可在客戶管理中將客戶歸屬至對應專案。點擊專案名稱可進入詳細頁面。</div>
+
+      <!-- 進行中專案 -->
       <div class="tbl-admin"><table>
         <thead><tr><th style="width:26%">專案名稱</th><th style="width:12%">狀態</th><th style="width:22%">地址</th><th style="width:13%">開案日期</th><th style="width:13%">預計完工</th><th style="width:14%">操作</th></tr></thead>
         <tbody id="projects-tbody"></tbody>
       </table></div>
+
+      <!-- 保固中專案 -->
+      <div style="margin-top:2rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.8rem;cursor:pointer;" onclick="toggleWarrantySection()">
+          <div style="font-size:13px;font-weight:500;color:var(--ink-muted);letter-spacing:0.05em;">保固中專案</div>
+          <span id="warranty-count" style="font-size:11px;background:var(--sand-dark);color:var(--ink-muted);padding:2px 8px;border-radius:10px;">0</span>
+          <span id="warranty-toggle-icon" style="font-size:12px;color:var(--ink-light);margin-left:auto;">▼</span>
+        </div>
+        <div id="warranty-section" style="display:none;">
+          <div class="tbl-admin"><table>
+            <thead><tr><th style="width:26%">專案名稱</th><th style="width:12%">狀態</th><th style="width:22%">地址</th><th style="width:13%">完工日期</th><th style="width:13%">保固到期</th><th style="width:14%">操作</th></tr></thead>
+            <tbody id="warranty-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
     </div>
 
     <!-- 專案詳細頁 -->
@@ -895,6 +939,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <span class="pill pill-green" id="detail-proj-status" style="font-size:11px;"></span>
         </div>
         <button class="btn-ghost" onclick="openPM(currentDetailProjId)" style="font-size:12px;">編輯專案資訊</button>
+        <button id="btn-mark-complete" onclick="markProjectComplete()" style="font-size:12px;background:#4A6741;color:#fff;border:none;padding:8px 16px;border-radius:9px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:none;">✓ 標記已完工</button>
       </div>
       <div style="font-size:13px;color:var(--ink-muted);margin-bottom:1.5rem;" id="detail-proj-meta"></div>
 
@@ -1275,6 +1320,18 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div style="flex:1;min-width:180px;"><label class="form-label">報價名稱</label><input class="form-input" id="quote-name" placeholder="例：2026.3.8 工程報價單" style="margin-bottom:0;"></div>
           <div><label class="form-label">選擇 PDF</label><input type="file" id="quote-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
           <button class="btn-ink" onclick="addQuote()">＋ 上傳報價</button>
+        </div>
+      </div>
+
+      <!-- 家具尺寸圖 -->
+      <div class="card">
+        <div class="card-title">家具尺寸圖</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳後會顯示在客戶端「必填清單 → 家具採購清單」下方。</div>
+        <div id="admin-furniture-plan-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;"><label class="form-label">說明（選填）</label><input class="form-input" id="furniture-plan-name" placeholder="例：家具配置尺寸圖 v2" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇圖片／PDF</label><input type="file" id="furniture-plan-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addFurniturePlan()">＋ 上傳</button>
         </div>
       </div>
     </div>
@@ -1777,8 +1834,8 @@ let docsData={
       {id:2,name:'2026.3.8 工程報價單（修正版）',date:'2026/03/08',size:'1.1 MB'},
     ],
   },
-  2:{drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]},
-  3:{drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]},
+  2:{drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]},
+  3:{drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]},
 };
 
 let currentDrawingType='平面系統圖', adminMeetingTab='line', nextDocId=100;
@@ -2000,7 +2057,7 @@ async function dbLoadDocs(pid){
   try{
     const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
     // Reset
     docsData[pid].drawings={'平面系統圖':[],'立面系統圖':[],'效果圖':[]};
     docsData[pid].contracts=[];
@@ -2015,6 +2072,9 @@ async function dbLoadDocs(pid){
         docsData[pid].contracts.push(item);
       } else if(r.doc_type==='quote'){
         docsData[pid].quotes.push(item);
+      } else if(r.doc_type==='furniture_plan'){
+        if(!docsData[pid].furniturePlans) docsData[pid].furniturePlans=[];
+        docsData[pid].furniturePlans.push(item);
       }
     });
   }catch(e){console.warn('dbLoadDocs failed:',e.message);}
@@ -2042,7 +2102,7 @@ async function dbLoadMeetings(pid){
   try{
     const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
     docsData[pid].lineScreenshots=[];
     docsData[pid].formalMeetings=[];
     (data||[]).forEach(r=>{
@@ -2644,6 +2704,41 @@ async function saveChangeOrders(){
   showLoader(false);
 }
 
+function toggleWarrantySection(){
+  const sec=document.getElementById('warranty-section');
+  const icon=document.getElementById('warranty-toggle-icon');
+  if(!sec) return;
+  const open=sec.style.display==='block';
+  sec.style.display=open?'none':'block';
+  if(icon) icon.textContent=open?'▼':'▲';
+}
+
+async function markProjectComplete(){
+  const pid=currentDetailProjId; if(!pid) return;
+  if(!confirm('確定將此專案標記為已完工並進入保固期？\n（將從進行中列表移至保固中）')) return;
+  const proj=projects.find(p=>p.id===pid); if(!proj) return;
+  proj.status='已完工';
+  // Set endDate to today if not set
+  if(!proj.endDate){
+    const d=new Date();
+    proj.endDate=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+  }
+  showLoader(true);
+  try{
+    await dbSaveProject(proj);
+    // Update client status too
+    const c=clients.find(x=>Number(x.projectId)===Number(pid));
+    if(c){c.status='已完工';await dbSaveClient(c);}
+    alert('已標記為完工，進入保固期！');
+    // Refresh UI
+    const sEl=document.getElementById('detail-proj-status');
+    if(sEl){sEl.textContent='已完工';sEl.className='pill pill-gray';}
+    document.getElementById('btn-mark-complete').style.display='none';
+    renderProjects();
+  }catch(e){alert('操作失敗：'+e.message);}
+  showLoader(false);
+}
+
 // ========== PROJECTS ==========
 let currentDetailProjId = null;
 
@@ -2682,23 +2777,60 @@ function fmtN(n){return Math.round(n).toLocaleString('zh-TW');}
 function setText(id,val){const el=document.getElementById(id);if(el)el.textContent='$'+val;}
 
 function renderProjects(){
-  const tb=document.getElementById('projects-tbody');tb.innerHTML='';
+  const tb=document.getElementById('projects-tbody');
+  const wb=document.getElementById('warranty-tbody');
+  const wc=document.getElementById('warranty-count');
+  tb.innerHTML=''; if(wb) wb.innerHTML='';
   if(!projects.length){tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">尚無專案，請點擊右上角新增</td></tr>';return;}
-  projects.forEach(p=>{
-    const pc=p.status==='進行中'?'pill-green':p.status==='已完工'?'pill-gray':p.status==='待付款'?'pill-amber':'pill-blue';
-    const client=clients.find(c=>c.projectId===p.id);
+
+  const active=projects.filter(p=>p.status!=='已完工');
+  const done=projects.filter(p=>p.status==='已完工');
+
+  if(!active.length) tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">目前無進行中專案</td></tr>';
+  active.forEach(p=>{
+    const pc=p.status==='進行中'?'pill-green':p.status==='待付款'?'pill-amber':'pill-blue';
+    const client=clients.find(c=>Number(c.projectId)===Number(p.id));
     const tr=document.createElement('tr');
     tr.className='proj-clickable';
     tr.onclick=()=>openProjectDetail(p.id);
     tr.innerHTML=`
       <td><div style="font-weight:500;color:var(--accent);text-decoration:underline;text-underline-offset:3px;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
       <td><span class="pill ${pc}">${p.status}</span></td>
-      <td style="font-size:12px;color:var(--ink-muted);">${[p.address,p.unit].filter(Boolean).join(' ') || '—'}</td>
+      <td style="font-size:12px;color:var(--ink-muted);">${[p.address,p.unit].filter(Boolean).join(' ')||'—'}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.date||'—'}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${p.endDate||'—'}</td>
       <td onclick="event.stopPropagation()"><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
     tb.appendChild(tr);
   });
+
+  // Warranty section
+  if(wc) wc.textContent=done.length;
+  if(wb){
+    if(!done.length){wb.innerHTML='<tr><td colspan="6" style="padding:1rem;text-align:center;color:var(--ink-light);font-size:12px;">尚無已完工專案</td></tr>';}
+    done.forEach(p=>{
+      const client=clients.find(c=>Number(c.projectId)===Number(p.id));
+      // Warranty expires 1 year after completionDate (endDate)
+      let warrantyEnd='—';
+      if(p.endDate){
+        try{
+          const d=new Date(p.endDate.replace(/\//g,'-'));
+          d.setFullYear(d.getFullYear()+1);
+          warrantyEnd=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+        }catch(e){}
+      }
+      const tr=document.createElement('tr');
+      tr.className='proj-clickable';
+      tr.onclick=()=>openProjectDetail(p.id);
+      tr.innerHTML=`
+        <td><div style="font-weight:500;color:var(--ink-muted);text-decoration:underline;text-underline-offset:3px;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
+        <td><span class="pill pill-gray">保固中</span></td>
+        <td style="font-size:12px;color:var(--ink-muted);">${[p.address,p.unit].filter(Boolean).join(' ')||'—'}</td>
+        <td style="font-size:12px;color:var(--ink-muted);">${p.endDate||'—'}</td>
+        <td style="font-size:12px;color:var(--green);">${warrantyEnd}</td>
+        <td onclick="event.stopPropagation()"><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
+      wb.appendChild(tr);
+    });
+  }
 }
 
 async function openProjectDetail(pid){
@@ -2717,6 +2849,9 @@ async function openProjectDetail(pid){
   const sc=p.status==='進行中'?'pill-green':p.status==='已完工'?'pill-gray':p.status==='待付款'?'pill-amber':'pill-blue';
   const sEl=document.getElementById('detail-proj-status');sEl.textContent=p.status;sEl.className='pill '+sc;
   document.getElementById('detail-proj-meta').textContent=([p.address,p.unit].filter(Boolean).join(' ')||'')+(p.date?' ｜ 開案：'+p.date:'')+(p.endDate?' ｜ 預計完工：'+p.endDate:'');
+  // Show complete button only for non-completed projects
+  const completeBtn=document.getElementById('btn-mark-complete');
+  if(completeBtn) completeBtn.style.display=p.status==='已完工'?'none':'inline-block';
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   document.querySelector('#proj-detail-tabs .stab').classList.add('active');
   document.getElementById('proj-tab-progress').style.display='block';
@@ -2967,7 +3102,7 @@ async function saveProject(){
       const proj={name,status,address,unit,date,endDate,contractAmount,receivedAmount};
       await dbSaveProject(proj);
       projects.push(proj);
-      docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+      docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
     }
   } catch(e){alert('儲存失敗：'+e.message);}
   showLoader(false);
@@ -3045,7 +3180,7 @@ async function saveClient(){
       const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[],isBoss};
       clients.push(newClient);
       nextCId=Math.max(nextCId,dbId+1);
-      docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+      docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
     }
   }catch(e){
     console.error('saveClient error:', e);
@@ -3127,12 +3262,12 @@ function populateDocsClientSel(){
 function getAdminDocClientId(){return parseInt(document.getElementById('docs-client-sel').value)||projects[0]?.id||0;}
 async function renderAdminDocs(){
   const cid=getAdminDocClientId();
-  if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+  if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
   showLoader(true);
   await dbLoadDocs(cid);
   await dbLoadMeetings(cid);
   showLoader(false);
-  renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);
+  renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);renderAdminFurniturePlanList(cid);
 }
 function switchDrawingType(type,el){currentDrawingType=type;document.querySelectorAll('#drawing-type-tabs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderAdminDrawingList(getAdminDocClientId());}
 function renderAdminDrawingList(cid){
@@ -3169,7 +3304,7 @@ function addDrawingVersion(){
     try{
       let fileUrl='',size='—';
       if(file){fileUrl=await uploadToStorage(file,'drawings');size=fmtFileSize(file.size);}
-      if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[]};
+      if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
       if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
       if(isFinal){
         for(const v of docsData[cid].drawings[currentDrawingType]){
@@ -3253,6 +3388,85 @@ function removeQuote(cid,idx){
   const item=docsData[cid].quotes[idx];
   if(item&&item.dbId){(async()=>{try{await dbDeleteDoc(item.dbId);}catch(e){console.warn(e);}})();}
   docsData[cid].quotes.splice(idx,1);renderAdminQuoteList(cid);
+}
+
+// ========== FURNITURE PLAN ==========
+function renderAdminFurniturePlanList(cid){
+  const el=document.getElementById('admin-furniture-plan-list'); if(!el) return;
+  const items=(docsData[cid]?.furniturePlans)||[];
+  el.innerHTML='';
+  if(!items.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無家具尺寸圖</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  items.forEach((item,i)=>{
+    const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(item.fileUrl||'');
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">${isImg?'🖼️':'PDF'}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;">${item.fileUrl?`<a href="${item.fileUrl}" target="_blank" style="color:var(--accent);text-decoration:none;">${item.name||'家具尺寸圖'}</a>`:item.name||'家具尺寸圖'}</div>
+        <div style="font-size:11px;color:var(--ink-light);">${item.date||''}</div>
+      </div>
+      <button class="btn-sm danger" onclick="removeFurniturePlan(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+
+function addFurniturePlan(){
+  const cid=getAdminDocClientId();
+  const name=document.getElementById('furniture-plan-name').value.trim()||'家具尺寸圖';
+  const fi=document.getElementById('furniture-plan-input');
+  const file=fi&&fi.files[0]?fi.files[0]:null;
+  if(!file){alert('請選擇圖片或 PDF');return;}
+  showLoader(true);
+  (async()=>{
+    try{
+      const fileUrl=await uploadToStorage(file,'furniture-plans');
+      const newItem={name,date:todayStr(),fileUrl,size:fmtFileSize(file.size)};
+      await dbSaveDoc(cid,'furniture_plan',newItem);
+      if(!docsData[cid].furniturePlans) docsData[cid].furniturePlans=[];
+      docsData[cid].furniturePlans.push(newItem);
+      document.getElementById('furniture-plan-name').value='';
+      fi.value='';
+      renderAdminFurniturePlanList(cid);
+    }catch(e){alert('上傳失敗：'+e.message);}
+    showLoader(false);
+  })();
+}
+
+function removeFurniturePlan(cid,idx){
+  if(!confirm('確定刪除？'))return;
+  const item=docsData[cid].furniturePlans[idx];
+  if(item&&item.dbId){(async()=>{try{await dbDeleteDoc(item.dbId);}catch(e){console.warn(e);}})();}
+  docsData[cid].furniturePlans.splice(idx,1);renderAdminFurniturePlanList(cid);
+}
+
+function renderCliFurniturePlan(pid){
+  // Load from docsData by projectId mapped from client
+  const c=clients.find(x=>x.id===currentClientId);
+  if(!c) return;
+  const cid=Number(c.id);
+  const items=(docsData[cid]?.furniturePlans)||[];
+  const sec=document.getElementById('cli-furniture-plan-section');
+  const list=document.getElementById('cli-furniture-plan-list');
+  if(!sec||!list) return;
+  if(!items.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  list.innerHTML='';
+  items.forEach(item=>{
+    const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(item.fileUrl||'');
+    const div=document.createElement('div');
+    div.style.cssText='margin-bottom:10px;';
+    if(isImg&&item.fileUrl){
+      div.innerHTML=`<div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:6px;">${item.name}</div>
+        <img src="${item.fileUrl}" alt="${item.name}" style="max-width:100%;border-radius:12px;box-shadow:0 2px 12px rgba(90,60,30,0.1);cursor:pointer;" onclick="window.open('${item.fileUrl}','_blank')">`;
+    } else {
+      div.innerHTML=`<a href="${item.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--cli-card-alt,#F5EFE7);border-radius:10px;text-decoration:none;color:var(--cli-ink,#2C2218);">
+        <span style="font-size:20px;">📄</span>
+        <span style="font-size:13px;font-weight:500;">${item.name}</span>
+      </a>`;
+    }
+    list.appendChild(div);
+  });
 }
 
 function switchAdminMeetingTab(tab,el){
@@ -3505,6 +3719,24 @@ async function renderClientDashboard(){
     if(metaEl) metaEl.innerHTML=(parts.join(' ｜ ')+(parts.length?' ｜ ':' '))+`<span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
   }
 
+  // --- 保固資訊 ---
+  const warrantyCard=document.getElementById('dash-warranty-card');
+  if(proj&&proj.status==='已完工'&&warrantyCard){
+    warrantyCard.style.display='block';
+    let warrantyEnd='—', expireDate='—';
+    if(proj.endDate){
+      try{
+        const d=new Date(proj.endDate.replace(/\//g,'-'));
+        warrantyEnd=proj.endDate;
+        d.setFullYear(d.getFullYear()+1);
+        expireDate=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+      }catch(e){}
+    }
+    const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    setT('warranty-end-date',warrantyEnd);
+    setT('warranty-expire-date',expireDate);
+  } else if(warrantyCard){ warrantyCard.style.display='none'; }
+
   // --- 1. 施工進度 ---
   await dbLoadProgress(pid);
   const progItems=progressData[pid]||[];
@@ -3724,6 +3956,7 @@ function toggleKnow(hd){hd.querySelector('.know-arr').classList.toggle('open');h
 function switchStab(id,el){
   document.querySelectorAll('#p-checklist .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   ['cl-app','cl-fur','cl-pow'].forEach(t=>{document.getElementById(t).style.display=t===id?'block':'none';});
+  if(id==='cl-fur') renderCliFurniturePlan();
 }
 function renderChecklists(){renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();}
 function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
