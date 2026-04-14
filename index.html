@@ -1443,6 +1443,19 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin</div>
       </div>
+
+      <!-- 內部帳號管理 -->
+      <div class="card">
+        <div class="card-title">內部帳號（總覽看板權限）</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此處帳號登入後可看到所有專案的總覽看板，適用老闆或公司內部管理人員。</div>
+        <div id="boss-accounts-list" style="margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+          <div><label class="form-label">帳號名稱</label><input class="form-input" id="boss-name" placeholder="例：老闆" style="margin-bottom:0;width:140px;"></div>
+          <div><label class="form-label">登入帳號</label><input class="form-input" id="boss-user" placeholder="例：boss" style="margin-bottom:0;width:130px;"></div>
+          <div><label class="form-label">登入密碼</label><input class="form-input" id="boss-pass" placeholder="設定密碼" style="margin-bottom:0;width:130px;"></div>
+          <button class="btn-ink" onclick="addBossAccount()">＋ 新增</button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -1471,12 +1484,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <div class="fg"><label>狀態</label><select id="cm-status"><option>進行中</option><option>待付款</option><option>已完工</option></select></div>
         <div class="fg"><label>備註（選填）</label><input id="cm-note"></div>
-        <div class="fg" style="grid-column:1/-1;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
-            <input type="checkbox" id="cm-is-boss" style="width:16px;height:16px;cursor:pointer;">
-            開放「總覽看板」權限（適用老闆或高層帳號）
-          </label>
-        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closeCM()">取消</button>
@@ -1987,6 +1994,7 @@ async function goAdminPage(id,el){
   document.getElementById(id).classList.add('active');
   if(id==='a-dashboard') renderDashboard();
   if(id==='a-docs'){populateDocsClientSel();await renderAdminDocs();}
+  if(id==='a-settings') renderBossAccounts();
   if(id==='a-logs'){populateLogClientSel();await renderAdminLogs();}
   if(id==='a-assign') renderAssignClist();
   if(id==='a-clients') renderAdminClients();
@@ -2045,6 +2053,60 @@ function applyPassword(){
   if(!pw1){alert('請輸入新密碼');return;}if(pw1!==pw2){alert('兩次密碼不一致');return;}
   adminPassword=pw1;document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
   alert('密碼已更新！下次登入請使用新密碼。');
+}
+
+// ========== BOSS ACCOUNTS (Settings) ==========
+function renderBossAccounts(){
+  const el=document.getElementById('boss-accounts-list'); if(!el) return;
+  const bossList=clients.filter(c=>c.isBoss);
+  if(!bossList.length){el.innerHTML='<div style="font-size:13px;color:var(--ink-light);padding:0.5rem 0;">尚無內部帳號</div>';return;}
+  el.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  bossList.forEach(c=>{
+    const r=document.createElement('div');
+    r.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px;';
+    r.innerHTML=`<div style="font-weight:500;min-width:80px;">${c.name}</div>
+      <div style="color:var(--ink-muted);min-width:80px;">帳號：${c.user}</div>
+      <div style="color:var(--ink-muted);">密碼：${c.pass}</div>
+      <button class="act-btn danger" style="margin-left:auto;" onclick="removeBossAccount(${c.id})">刪除</button>`;
+    wrap.appendChild(r);
+  });
+  el.appendChild(wrap);
+}
+
+async function addBossAccount(){
+  const name=document.getElementById('boss-name').value.trim();
+  const user=document.getElementById('boss-user').value.trim();
+  const pass=document.getElementById('boss-pass').value.trim();
+  if(!name||!user||!pass){alert('請填寫名稱、帳號和密碼');return;}
+  if(clients.find(c=>c.user===user)){alert('帳號已存在，請使用其他帳號名稱');return;}
+  showLoader(true);
+  try{
+    const row={username:user,password:pass,name,project_id:null,status:'進行中',note:'',assigned_articles:[],is_boss:true};
+    const {data,error}=await sbClient.from('clients').insert(row).select();
+    if(error) throw error;
+    const newC={id:data[0].id,user,pass,name,projectId:null,status:'進行中',note:'',assigned:[],isBoss:true};
+    clients.push(newC);
+    document.getElementById('boss-name').value='';
+    document.getElementById('boss-user').value='';
+    document.getElementById('boss-pass').value='';
+    renderBossAccounts();
+    alert('內部帳號已新增！');
+  }catch(e){alert('新增失敗：'+e.message);}
+  showLoader(false);
+}
+
+async function removeBossAccount(id){
+  if(!confirm('確定刪除此內部帳號？'))return;
+  showLoader(true);
+  try{
+    await sbClient.from('clients').delete().eq('id',id);
+    const idx=clients.findIndex(c=>c.id===id);
+    if(idx>-1) clients.splice(idx,1);
+    renderBossAccounts();
+  }catch(e){alert('刪除失敗：'+e.message);}
+  showLoader(false);
 }
 
 
@@ -3146,7 +3208,7 @@ function openCM(id){
   editCId=id||null;
   document.getElementById('cm-ttl').textContent=id?'編輯客戶':'新增客戶';
   populateProjSel('cm-proj-sel',null);
-  if(id){const c=clients.find(x=>x.id===id);document.getElementById('cm-user').value=c.user;document.getElementById('cm-pass').value=c.pass;document.getElementById('cm-name').value=c.name;document.getElementById('cm-status').value=c.status;document.getElementById('cm-note').value=c.note||'';document.getElementById('cm-proj-sel').value=c.projectId||'';document.getElementById('cm-is-boss').checked=c.isBoss||false;}
+  if(id){const c=clients.find(x=>x.id===id);document.getElementById('cm-user').value=c.user;document.getElementById('cm-pass').value=c.pass;document.getElementById('cm-name').value=c.name;document.getElementById('cm-status').value=c.status;document.getElementById('cm-note').value=c.note||'';document.getElementById('cm-proj-sel').value=c.projectId||'';}
   else{['cm-user','cm-pass','cm-name','cm-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('cm-status').value='進行中';}
   document.getElementById('cm-modal').style.display='block';
 }
@@ -3156,7 +3218,7 @@ async function saveClient(){
   const n=document.getElementById('cm-name').value.trim();
   const projId=parseInt(document.getElementById('cm-proj-sel').value)||null;
   const st=document.getElementById('cm-status').value, no=document.getElementById('cm-note').value.trim();
-  const isBoss=document.getElementById('cm-is-boss').checked;
+  const isBoss=false; // Boss accounts are managed in Settings, not here
   if(!u||!p||!n){alert('請填寫帳號、密碼和客戶名稱');return;}
   showLoader(true);
   try{
