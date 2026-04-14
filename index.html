@@ -260,16 +260,28 @@ tbody tr:hover td{background:#FDFAF6;}
 .render-group-date{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .render-group-date-label{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;}
 .render-group-date::after{content:'';flex:1;height:0.5px;background:var(--border);}
-.render-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-@media(max-width:480px){.render-grid{grid-template-columns:1fr;}}
-.render-img-wrap{position:relative;border-radius:12px;overflow:hidden;background:var(--sand);aspect-ratio:4/3;cursor:pointer;}
-.render-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s;}
-.render-img-wrap:hover img{transform:scale(1.03);}
-.render-img-label{position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(transparent,rgba(42,37,32,0.55));color:#fff;font-size:11px;letter-spacing:.04em;}
-.render-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;}
-.render-lightbox img{max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain;}
-.render-lightbox-close{position:absolute;top:16px;right:20px;color:#fff;font-size:28px;cursor:pointer;opacity:0.7;line-height:1;}
-.render-lightbox-close:hover{opacity:1;}
+.render-group{margin-bottom:1.8rem;}
+.render-group-date{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.render-group-date-label{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;}
+.render-group-date::after{content:'';flex:1;height:0.5px;background:var(--border);}
+.render-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+@media(max-width:480px){.render-grid{grid-template-columns:repeat(2,1fr);}}
+.render-img-wrap{position:relative;border-radius:8px;overflow:hidden;background:var(--sand);aspect-ratio:1;cursor:pointer;}
+.render-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.25s;}
+.render-img-wrap:hover img{transform:scale(1.05);}
+.render-img-label{position:absolute;bottom:0;left:0;right:0;padding:6px 8px;background:linear-gradient(transparent,rgba(42,37,32,0.6));color:#fff;font-size:10px;letter-spacing:.03em;opacity:0;transition:opacity .2s;}
+.render-img-wrap:hover .render-img-label{opacity:1;}
+/* Lightbox */
+.render-lightbox{position:fixed;inset:0;background:rgba(10,8,6,0.93);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
+.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 48px;}
+.render-lightbox-img-wrap img{max-width:100%;max-height:80vh;border-radius:6px;object-fit:contain;user-select:none;}
+.render-lb-close{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.7);font-size:26px;cursor:pointer;line-height:1;z-index:10;padding:4px;}
+.render-lb-close:hover{color:#fff;}
+.render-lb-prev,.render-lb-next{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.6);font-size:32px;cursor:pointer;padding:10px 16px;user-select:none;transition:color .15s;}
+.render-lb-prev{left:0;}.render-lb-next{right:0;}
+.render-lb-prev:hover,.render-lb-next:hover{color:#fff;}
+.render-lb-counter{font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:.08em;padding:10px 0 14px;}
+.render-lb-caption{font-size:12px;color:rgba(255,255,255,0.65);padding-bottom:6px;letter-spacing:.04em;max-width:480px;text-align:center;}
 
 /* old versions */
 .old-versions-toggle{font-size:12px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;gap:5px;padding:8px 0;user-select:none;}
@@ -1484,9 +1496,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 </div>
 
 <!-- RENDER LIGHTBOX -->
-<div id="render-lightbox" class="render-lightbox" style="display:none;" onclick="closeRenderLightbox()">
-  <span class="render-lightbox-close" onclick="closeRenderLightbox()">✕</span>
-  <img id="render-lightbox-img" src="" alt="">
+<div id="render-lightbox" class="render-lightbox" style="display:none;" onclick="handleLbBgClick(event)">
+  <span class="render-lb-close" onclick="closeRenderLightbox()">✕</span>
+  <div class="render-lightbox-img-wrap">
+    <span class="render-lb-prev" onclick="lbNav(-1);event.stopPropagation()">‹</span>
+    <img id="render-lightbox-img" src="" alt="" draggable="false">
+    <span class="render-lb-next" onclick="lbNav(1);event.stopPropagation()">›</span>
+  </div>
+  <div class="render-lb-caption" id="render-lb-caption"></div>
+  <div class="render-lb-counter" id="render-lb-counter"></div>
 </div>
 
 <!-- CLIENT MODAL -->
@@ -3336,54 +3354,81 @@ function renderClient3DGallery(d){
   const sec=document.getElementById('client-renders-section');
   const gallery=document.getElementById('client-renders-gallery');
   if(!sec||!gallery) return;
-  const renders=(d.drawings['效果圖']||[]).filter(v=>v.fileUrl);
-  if(!renders.length){sec.style.display='none';return;}
+  const renders=(d.drawings['效果圖']||[]).filter(v=>v.fileUrl&&/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl));
+  const pdfs=(d.drawings['效果圖']||[]).filter(v=>v.fileUrl&&!/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl));
+  if(!renders.length&&!pdfs.length){sec.style.display='none';return;}
   sec.style.display='block';
   gallery.innerHTML='';
-  // Group by date
+  // Build flat all-images list for lightbox nav
+  window._lbImages=[];
+  // Group images by date
   const grouped={};
-  renders.forEach(v=>{ grouped[v.date]=grouped[v.date]||[]; grouped[v.date].push(v); });
+  renders.forEach(v=>{grouped[v.date]=grouped[v.date]||[];grouped[v.date].push(v);});
   const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
   dates.forEach(date=>{
     const group=document.createElement('div');group.className='render-group';
     const dateLabel=document.createElement('div');dateLabel.className='render-group-date';
-    dateLabel.innerHTML=`<span class="render-group-date-label">${date}</span>`;
+    const count=grouped[date].length;
+    dateLabel.innerHTML=`<span class="render-group-date-label">${date}</span><span style="font-size:11px;color:var(--ink-light);">${count} 張</span>`;
     group.appendChild(dateLabel);
     const grid=document.createElement('div');grid.className='render-grid';
     grouped[date].forEach(v=>{
-      const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl);
-      const wrap=document.createElement('div');
-      if(isImg){
-        wrap.className='render-img-wrap';
-        wrap.innerHTML=`<img src="${v.fileUrl}" alt="${v.note}" loading="lazy">
-          ${v.note?`<div class="render-img-label">${v.note}</div>`:''}`;
-        wrap.onclick=()=>openRenderLightbox(v.fileUrl);
-      } else {
-        // PDF
-        wrap.style.cssText='border-radius:12px;border:0.5px solid var(--border);overflow:hidden;';
-        wrap.innerHTML=`<a href="${v.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:12px;padding:14px 16px;text-decoration:none;color:var(--ink);">
-          <div style="width:40px;height:40px;background:var(--accent-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📄</div>
-          <div><div style="font-size:13px;font-weight:500;">${v.note||'效果圖'}</div><div style="font-size:11px;color:var(--ink-light);margin-top:2px;">點擊開啟 PDF</div></div>
-        </a>`;
-      }
+      const lbIdx=window._lbImages.length;
+      window._lbImages.push({src:v.fileUrl,caption:v.note||'',date});
+      const wrap=document.createElement('div');wrap.className='render-img-wrap';
+      wrap.innerHTML=`<img src="${v.fileUrl}" alt="${v.note||''}" loading="lazy">${v.note?`<div class="render-img-label">${v.note}</div>`:''}`;
+      wrap.onclick=()=>openRenderLightbox(lbIdx);
       grid.appendChild(wrap);
     });
     group.appendChild(grid);
     gallery.appendChild(group);
   });
+  // PDFs at bottom
+  if(pdfs.length){
+    const pdfGroup=document.createElement('div');pdfGroup.className='render-group';
+    const pdfLabel=document.createElement('div');pdfLabel.className='render-group-date';
+    pdfLabel.innerHTML=`<span class="render-group-date-label">PDF 效果圖</span>`;
+    pdfGroup.appendChild(pdfLabel);
+    pdfs.forEach(v=>{
+      const a=document.createElement('a');a.href=v.fileUrl;a.target='_blank';
+      a.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:0.5px solid var(--border);border-radius:10px;text-decoration:none;color:var(--ink);margin-bottom:6px;';
+      a.innerHTML=`<span style="font-size:20px;">📄</span><span style="font-size:13px;font-weight:500;">${v.note||v.fileUrl.split('/').pop()}</span><span style="font-size:11px;color:var(--ink-light);margin-left:auto;">${v.date}</span>`;
+      pdfGroup.appendChild(a);
+    });
+    gallery.appendChild(pdfGroup);
+  }
 }
 
-function openRenderLightbox(src){
+let _lbCurrent=0;
+function openRenderLightbox(idx){
+  _lbCurrent=idx;
+  _updateLightbox();
   const lb=document.getElementById('render-lightbox');
-  const img=document.getElementById('render-lightbox-img');
-  if(!lb||!img) return;
-  img.src=src;
-  lb.style.display='flex';
-  document.body.style.overflow='hidden';
+  if(lb){lb.style.display='flex';document.body.style.overflow='hidden';}
+  // Swipe support
+  let tx=0;
+  lb.ontouchstart=e=>{tx=e.touches[0].clientX;};
+  lb.ontouchend=e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)lbNav(dx<0?1:-1);};
 }
+function _updateLightbox(){
+  const imgs=window._lbImages||[];if(!imgs.length)return;
+  const item=imgs[_lbCurrent];
+  const img=document.getElementById('render-lightbox-img');
+  const cap=document.getElementById('render-lb-caption');
+  const ctr=document.getElementById('render-lb-counter');
+  if(img) img.src=item.src;
+  if(cap) cap.textContent=item.caption||'';
+  if(ctr) ctr.textContent=`${_lbCurrent+1} / ${imgs.length}`;
+}
+function lbNav(dir){
+  const imgs=window._lbImages||[];
+  _lbCurrent=(_lbCurrent+dir+imgs.length)%imgs.length;
+  _updateLightbox();
+}
+function handleLbBgClick(e){if(e.target.id==='render-lightbox')closeRenderLightbox();}
 function closeRenderLightbox(){
   const lb=document.getElementById('render-lightbox');
-  if(lb) lb.style.display='none';
+  if(lb){lb.style.display='none';lb.ontouchstart=null;lb.ontouchend=null;}
   document.body.style.overflow='';
 }
 function renderClientLineScreenshots(d){
@@ -4290,6 +4335,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if(cm) cm.addEventListener('click',function(e){if(e.target===this.firstElementChild)closeCM();});
   if(am) am.addEventListener('click',function(e){if(e.target===this.firstElementChild)closeAM();});
   if(pm) pm.addEventListener('click',function(e){if(e.target===this.firstElementChild)closePM();});
+  // Keyboard nav for lightbox
+  document.addEventListener('keydown',function(e){
+    const lb=document.getElementById('render-lightbox');
+    if(!lb||lb.style.display==='none') return;
+    if(e.key==='ArrowRight') lbNav(1);
+    else if(e.key==='ArrowLeft') lbNav(-1);
+    else if(e.key==='Escape') closeRenderLightbox();
+  });
   loadAllData().then(()=>{
     // Auto-restore session after data loaded
     try{
