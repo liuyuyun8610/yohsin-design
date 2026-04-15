@@ -114,6 +114,7 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .pill-blue{background:var(--blue-pale);color:var(--blue);}
 .pill-red{background:var(--red-pale);color:var(--red);}
 .pill-final{background:#2A2520;color:#fff;}
+.pill-danger{background:var(--red-pale);color:var(--red);}
 
 /* FILE ITEMS */
 .fi-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;transition:color 0.15s;}
@@ -929,6 +930,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="stat-box"><div class="stat-lbl">進行中專案</div><div class="stat-val" id="dash-active-proj" style="font-size:20px;">0</div></div>
       </div>
 
+      <!-- 逾期提醒 -->
+      <div id="dash-overdue-alert" style="display:none;background:#FFF5F5;border:0.5px solid #EDB8B0;border-radius:14px;padding:14px 18px;margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:16px;">⚠️</span>
+          <span style="font-size:13px;font-weight:500;color:var(--red);">逾期未收款提醒</span>
+          <span id="dash-overdue-count" style="font-size:11px;background:var(--red);color:#fff;padding:2px 8px;border-radius:10px;margin-left:4px;">0 筆</span>
+        </div>
+        <div id="dash-overdue-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
       <!-- 利潤彙總 -->
       <div class="g2" style="margin-bottom:1.5rem;">
         <div class="card">
@@ -1479,7 +1490,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <!-- 右側：已有日誌列表 -->
         <div class="card">
-          <div class="card-title">已有施工日誌</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;">
+            <div class="card-title" style="margin-bottom:0;">已有施工日誌</div>
+            <span id="admin-log-count" style="font-size:11px;background:var(--sand-dark);color:var(--ink-muted);padding:2px 10px;border-radius:10px;">0 筆</span>
+          </div>
           <div id="admin-log-list"></div>
         </div>
       </div>
@@ -1529,7 +1543,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <input type="password" class="form-input" id="settings-new-pw2" style="max-width:200px;margin-bottom:0;" placeholder="再次確認">
           <button class="btn-ink" onclick="applyPassword()">更新密碼</button>
         </div>
-        <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin</div>
+        <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin　｜　目前密碼：<span id="settings-cur-pw" style="font-family:monospace;font-size:12px;background:var(--sand);border-radius:5px;padding:1px 6px;cursor:pointer;" onclick="toggleSettingsPw(this)" title="點擊顯示/隱藏">••••••••</span></div>
       </div>
 
       <!-- 內部帳號管理 -->
@@ -1748,9 +1762,6 @@ async function loadAllData() {
 
     dbReady = true;
     console.log('✅ DB loaded — projects:', projects.length, 'clients:', clients.length, 'articles:', articles.length);
-    console.log('Clients loaded:', clients.map(c=>({user:c.user, pass:c.pass, name:c.name})));
-    console.log('Raw clientData from Supabase:', JSON.stringify(clientData));
-    console.log('clients data:', clients.map(c=>({user:c.user,pass:c.pass,name:c.name})));
   } catch(e) {
     console.error('❌ loadAllData error:', e);
     // 即使 DB 連線失敗，仍讓頁面可操作（記憶體模式）
@@ -1774,14 +1785,10 @@ function showLoader(show) {
 async function dbSaveProject(proj) {
   const row = { name:proj.name, status:proj.status, address:proj.address||'', unit:proj.unit||'', date:proj.date||'', end_date:proj.endDate||'', contract_amount:proj.contractAmount||0, received_amount:proj.receivedAmount||0 };
   if (proj.id && projects.find(p=>p.id===proj.id)) {
-    console.log('📝 Updating project', proj.id, row);
     await sb.from('projects').update(row, 'id=eq.'+proj.id);
-    console.log('✅ Project updated');
   } else {
-    console.log('📝 Inserting project', row);
     const res = await sb.from('projects').insert(row);
     if (res && res[0]) proj.id = res[0].id;
-    console.log('✅ Project inserted, id=', proj.id);
   }
 }
 
@@ -2023,6 +2030,7 @@ function goPageMobile(id,el,type){
   document.querySelectorAll('#mobile-menu-client .mobile-tnav').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   closeMobileMenu('client');
+  window.scrollTo({top:0,behavior:'smooth'});
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
 }
@@ -2089,6 +2097,7 @@ function _enterClient(c){
   })();
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('l-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('l-pass').focus();});
 function doLogout(){
   localStorage.removeItem('ys_session');
   showScreen('s-login');
@@ -2123,6 +2132,7 @@ function goPage(id,el){
   if(el) el.classList.add('active');
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
 }
@@ -2166,6 +2176,9 @@ function initSettings(){
   if(prev&&imgs.length)prev.src=imgs[0].src;
   document.getElementById('settings-title-current').textContent=siteTitle;
   document.getElementById('settings-title').value='';
+  // Reset password display
+  const pwEl=document.getElementById('settings-cur-pw');
+  if(pwEl){pwEl.textContent='••••••••';pwEl.dataset.show='0';}
 }
 function previewNewLogo(e){
   const file=e.target.files[0];if(!file)return;
@@ -2181,17 +2194,43 @@ function applyNewLogo(){
   alert('Logo 已更新！');
 }
 function cancelNewLogo(){pendingLogoSrc='';document.getElementById('new-logo-preview').style.display='none';document.getElementById('logo-file-input').value='';}
-function applyTitle(){
-  const t=document.getElementById('settings-title').value.trim();if(!t){alert('請輸入標題');return;}
-  siteTitle=t;document.getElementById('settings-title-current').textContent=t;
-  const el=document.getElementById('login-site-title');if(el)el.textContent=t;
-  document.getElementById('settings-title').value='';alert('標題已更新！');
+function toggleSettingsPw(el){
+  if(el.dataset.show==='1'){el.textContent='••••••••';el.dataset.show='0';}
+  else{el.textContent=adminPassword;el.dataset.show='1';}
 }
-function applyPassword(){
+async function applyTitle(){
+  const t=document.getElementById('settings-title').value.trim();if(!t){alert('請輸入標題');return;}
+  showLoader(true);
+  try{
+    await sbClient.from('system_settings').upsert({key:'site_title',value:t},{onConflict:'key'});
+    siteTitle=t;document.getElementById('settings-title-current').textContent=t;
+    const el=document.getElementById('login-site-title');if(el)el.textContent=t;
+    document.getElementById('settings-title').value='';alert('標題已更新並儲存！');
+  }catch(e){
+    siteTitle=t;document.getElementById('settings-title-current').textContent=t;
+    const el=document.getElementById('login-site-title');if(el)el.textContent=t;
+    document.getElementById('settings-title').value='';alert('標題已更新（記憶體模式，重新整理後失效）');
+  }
+  showLoader(false);
+}
+async function applyPassword(){
   const pw1=document.getElementById('settings-new-pw').value;const pw2=document.getElementById('settings-new-pw2').value;
   if(!pw1){alert('請輸入新密碼');return;}if(pw1!==pw2){alert('兩次密碼不一致');return;}
-  adminPassword=pw1;document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
-  alert('密碼已更新！下次登入請使用新密碼。');
+  showLoader(true);
+  try{
+    await sbClient.from('system_settings').upsert({key:'admin_password',value:pw1},{onConflict:'key'});
+    adminPassword=pw1;
+    // Update stored session so admin stays logged in
+    try{const s=JSON.parse(localStorage.getItem('ys_session')||'{}');if(s.mode==='admin'){s.p=pw1;localStorage.setItem('ys_session',JSON.stringify(s));}}catch(e){}
+    document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
+    alert('密碼已更新並儲存！');
+  }catch(e){
+    // Fallback: update in memory only
+    adminPassword=pw1;
+    document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
+    alert('密碼已更新（記憶體模式，重新整理後失效）');
+  }
+  showLoader(false);
 }
 
 // ========== BOSS ACCOUNTS (Settings) ==========
@@ -2458,6 +2497,17 @@ async function renderDashboard(){
     }
   }
 
+  // Load schedule data for overdue detection
+  for(const p of projects){
+    if(!scheduleData[p.id]){
+      try{
+        const {data}=await sbClient.from('payment_settings').select('schedule_json').eq('project_id',p.id).single();
+        if(data&&data.schedule_json) scheduleData[p.id]=JSON.parse(data.schedule_json);
+        else scheduleData[p.id]=[];
+      }catch(e){ scheduleData[p.id]=[]; }
+    }
+  }
+
   // Year's projects (by start date)
   const yearProjects = projects.filter(p=>{
     if(!p.date) return true;
@@ -2535,6 +2585,39 @@ async function renderDashboard(){
       <td style="padding:10px 14px;"><span class="pill ${sc}">${p.status}</span></td>`;
     tb.appendChild(tr);
   });
+
+  // Overdue payment detection across all projects
+  const overdueAlert=document.getElementById('dash-overdue-alert');
+  const overdueList=document.getElementById('dash-overdue-list');
+  const overdueCountEl=document.getElementById('dash-overdue-count');
+  if(overdueList){
+    overdueList.innerHTML='';
+    const todayD=new Date();todayD.setHours(0,0,0,0);
+    const overdueItems=[];
+    projects.forEach(p=>{
+      const sched=scheduleData[p.id]||[];
+      sched.forEach(r=>{
+        if(r.status==='未收'&&r.due){
+          const dd=new Date(r.due.replace(/\//g,'-'));
+          if(!isNaN(dd)&&dd<todayD){
+            overdueItems.push({proj:p.name,name:r.name||'未命名',amount:r.amount||0,due:r.due,projId:p.id});
+          }
+        }
+      });
+    });
+    if(overdueItems.length){
+      overdueAlert.style.display='block';
+      overdueCountEl.textContent=overdueItems.length+' 筆';
+      overdueItems.forEach(item=>{
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:10px;font-size:12px;flex-wrap:wrap;';
+        row.innerHTML=`<span style="color:var(--ink-muted);min-width:80px;">${item.proj}</span><span style="flex:1;font-weight:500;">${item.name}</span><span style="color:var(--red);">到期：${item.due}</span><span style="font-weight:500;color:var(--red);min-width:80px;text-align:right;">$${fmtN(item.amount)}</span>`;
+        overdueList.appendChild(row);
+      });
+    } else {
+      overdueAlert.style.display='none';
+    }
+  }
 }
 
 // ========== PAYMENT SCHEDULE ==========
@@ -2627,14 +2710,19 @@ async function renderSchedule(){
   const inp=`padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;width:100%;`;
   const inpAuto=`padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--accent-light);border-radius:9px;background:#EBF5FF;color:#185FA5;outline:none;width:100%;text-align:right;font-weight:500;`;
 
+  const today=new Date();today.setHours(0,0,0,0);
   items.forEach((r,i)=>{
     const isLast=(i===items.length-1)&&r.isCoAuto;
     const pctStr=total>0?((r.amount||0)/total*100).toFixed(1)+'%':'—';
-    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
+    // Auto-detect overdue
+    let effectiveStatus=r.status;
+    if(r.status==='未收'&&r.due){const dd=new Date(r.due.replace(/\//g,'-'));if(!isNaN(dd)&&dd<today)effectiveStatus='逾期';}
+    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[effectiveStatus]||'';
     const toDateVal=s=>(s||'').replace(/\//g,'-');
     const tr=document.createElement('tr');
     tr.style.borderBottom='0.5px solid var(--border)';
     if(isLast) tr.style.background='#F5FAFF';
+    else if(effectiveStatus==='逾期') tr.style.background='#FFF5F5';
 
     const amtCell=isLast
       ? `<td style="padding:6px 8px;">
@@ -2654,9 +2742,9 @@ async function renderSchedule(){
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})"></td>
       <td style="padding:6px 8px;">
         <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;setSchSelColor(this);updateSchStats(${pid})">
-          <option ${r.status==='未收'?'selected':''}>未收</option>
+          <option ${(r.status==='未收'&&effectiveStatus==='未收')?'selected':''}>未收</option>
           <option ${r.status==='已收'?'selected':''}>已收</option>
-          <option ${r.status==='逾期'?'selected':''}>逾期</option>
+          <option ${(r.status==='逾期'||effectiveStatus==='逾期')?'selected':''}>逾期</option>
         </select>
       </td>
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.received)}" onchange="scheduleData[${pid}][${i}].received=this.value"></td>
@@ -2730,7 +2818,6 @@ async function saveSchedule(){
     const {error:e1}=await sbClient.from('projects').update({received_amount:receivedAmt,contract_amount:total||0}).eq('id',pid);
     if(e1) throw e1;
     const scheduleJson=JSON.stringify(items);
-    console.log('儲存收款進度:', scheduleJson);
     const {error:e2}=await sbClient.from('payment_settings').upsert(
       {project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', equip_pct:parseFloat(paymentData[pid]?.equipPct)||3, schedule_json:scheduleJson},
       {onConflict:'project_id'}
@@ -3338,14 +3425,34 @@ function renderAdminClients(){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td style="font-family:monospace;font-size:12px;">${c.user}</td>
       <td><div class="pass-cell"><span class="pass-txt">${isShow?c.pass:'••••••'}</span><button class="eye-btn" onclick="togglePw(${c.id})">${isShow?'隱藏':'顯示'}</button></div></td>
-      <td>${c.name}${c.note?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+c.note+'</div>':''}</td>
+      <td>${c.name}${c.isBoss?'<span class="pill pill-blue" style="font-size:9px;margin-left:5px;">內部</span>':''}${c.note?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+c.note+'</div>':''}</td>
       <td style="font-size:12px;color:var(--ink-muted);">${proj?proj.name:'<span style="color:var(--red)">未設定</span>'}</td>
       <td><span class="pill ${pc}">${c.status}</span></td>
-      <td><button class="act-btn" onclick="openCM(${c.id})">編輯</button><button class="act-btn danger" onclick="deleteClient(${c.id})">刪除</button><button class="act-btn" onclick="goToClientDocs(${c.id})">文件</button></td>`;
+      <td>
+        <button class="act-btn" onclick="openCM(${c.id})">編輯</button>
+        <button class="act-btn danger" onclick="deleteClient(${c.id})">刪除</button>
+        <button class="act-btn" onclick="goToClientDocs(${c.id})">文件</button>
+        <button class="act-btn" onclick="copyCredentials(${c.id})" title="複製帳號密碼" style="background:var(--accent-pale);color:var(--accent);border-color:var(--accent-light);">複製帳密</button>
+      </td>`;
     tb.appendChild(tr);
   });
 }
 function togglePw(id){showPass[id]=!showPass[id];renderAdminClients();}
+function copyCredentials(id){
+  const c=clients.find(x=>x.id===id);
+  if(!c) return;
+  const proj=projects.find(p=>p.id===c.projectId);
+  const text=`帳號：${c.user}\n密碼：${c.pass}\n姓名：${c.name}${proj?'\n專案：'+proj.name:''}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    // Brief toast notification
+    const btn=document.querySelector(`button[onclick="copyCredentials(${id})"]`);
+    if(btn){const orig=btn.textContent;btn.textContent='✓ 已複製';btn.style.background='var(--green-pale)';btn.style.color='var(--green)';setTimeout(()=>{btn.textContent=orig;btn.style.background='';btn.style.color='';},1500);}
+  }).catch(()=>{
+    // Fallback for older browsers
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    alert('已複製帳號密碼！');
+  });
+}
 function populateProjSel(selId,currentVal){
   const sel=document.getElementById(selId);if(!sel)return;
   sel.innerHTML='<option value="">— 選擇歸屬專案 —</option>';
@@ -3401,9 +3508,12 @@ async function deleteClient(id){const c=clients.find(x=>x.id===id);if(!confirm('
 function goToClientDocs(cid){
   const c=clients.find(x=>x.id===cid);
   const pid=c?c.projectId:null;
-  populateDocsClientSel();
-  if(pid) document.getElementById('docs-client-sel').value=pid;
-  // docs now inside project detail
+  if(!pid){alert('此客戶尚未設定歸屬專案');return;}
+  // Navigate to project detail and open docs tab
+  openProjectDetail(pid).then(()=>{
+    const docsTab=document.querySelector('#proj-detail-tabs .stab[onclick*="docs"]');
+    if(docsTab) switchProjTab('docs',docsTab);
+  });
 }
 
 // ========== CLIENT DOCS ==========
@@ -3799,7 +3909,10 @@ function previewDrawingImgs(e){
 function addDrawingVersion(){
   const cid=getAdminDocClientId();
   const fi=document.getElementById('drawing-file-input');
-  if(!fi||!fi.files.length){alert('請先選擇檔案');return;}
+  // Check both regular input and drop files
+  const hasDropFiles=window._pendingDropFiles&&window._pendingDropFiles.length>0;
+  const hasInputFiles=fi&&fi.files&&fi.files.length>0;
+  if(!hasDropFiles&&!hasInputFiles){alert('請先選擇檔案');return;}
 
   // 效果圖：多張上傳
   if(currentDrawingType==='效果圖'){
@@ -4155,8 +4268,15 @@ function populateLogClientSel(){
   const sel=document.getElementById('log-client-sel');if(!sel)return;
   const cur=sel.value;sel.innerHTML='';
   if(!projects.length){const o=document.createElement('option');o.value='';o.textContent='（尚無專案）';sel.appendChild(o);return;}
-  projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  projects.filter(p=>p.status!=='已完工').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  projects.filter(p=>p.status==='已完工').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' (已完工)';sel.appendChild(o);});
   if(cur)sel.value=cur;
+  // Auto-fill today's date
+  const dateInput=document.getElementById('log-date');
+  if(dateInput&&!dateInput.value){
+    const t=new Date();
+    dateInput.value=t.getFullYear()+'-'+(t.getMonth()+1).toString().padStart(2,'0')+'-'+t.getDate().toString().padStart(2,'0');
+  }
 }
 function getLogProjectId(){return parseInt(document.getElementById('log-client-sel').value)||projects[0]?.id||0;}
 function previewLogImgs(e){
@@ -4180,7 +4300,10 @@ async function addAdminLog(){
     // Upload photos to Storage first
     const photoUrls=await uploadFilesToStorage(pendingLogImgs,'construction-logs');
     calLogs[date]={work:notes,tag,photos:photoUrls};
-    document.getElementById('log-date').value='';document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
+    document.getElementById('log-tag').value='';document.getElementById('log-notes').value='';
+    // Reset date to today for quick successive entries
+    const t=new Date();
+    document.getElementById('log-date').value=t.getFullYear()+'-'+(t.getMonth()+1).toString().padStart(2,'0')+'-'+t.getDate().toString().padStart(2,'0');
     pendingLogImgs=[];document.getElementById('log-img-preview').innerHTML='';document.getElementById('log-img-input').value='';
     if(pid){await dbSaveLog(pid,date,calLogs[date]);}
     renderAdminLogs();renderCalendar();
@@ -4193,9 +4316,21 @@ async function renderAdminLogs(){
   if(pid){try{await dbLoadLogs(pid);}catch(e){console.warn('load logs failed',e);}}
   const el=document.getElementById('admin-log-list');el.innerHTML='';
   const entries=Object.entries(calLogs).sort((a,b)=>b[0].localeCompare(a[0]));
+  // Update count badge
+  const countBadge=document.getElementById('admin-log-count');
+  if(countBadge)countBadge.textContent=entries.length+' 筆';
   if(!entries.length){el.innerHTML='<div class="empty-state">尚無施工記錄</div>';return;}
+  let lastYear='';
   entries.forEach(([key,log])=>{
-    const[y,m,d]=key.split('-');const item=document.createElement('div');item.className='log-list-item';
+    const[y,m,d]=key.split('-');
+    // Year separator
+    if(y!==lastYear){
+      const sep=document.createElement('div');
+      sep.style.cssText='font-size:11px;letter-spacing:0.1em;color:var(--ink-light);padding:10px 0 6px;text-transform:uppercase;';
+      sep.textContent=y+'年';
+      el.appendChild(sep);lastYear=y;
+    }
+    const item=document.createElement('div');item.className='log-list-item';
     const badge=document.createElement('div');badge.className='ldate';badge.textContent=parseInt(m)+'/'+parseInt(d);item.appendChild(badge);
     const cont=document.createElement('div');cont.style.flex='1';
     if(log.tag){const t=document.createElement('span');t.className='pill pill-blue';t.style.cssText='font-size:10px;margin-bottom:6px;display:inline-block;';t.textContent=log.tag;cont.appendChild(t);}
@@ -4352,14 +4487,20 @@ async function renderClientDashboard(){
   const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setT('dash-pay-received','$'+fmtN(received));
   setT('dash-pay-pending','$'+fmtN(pending));
-  // 下次請款
+  // 下次請款（含逾期自動偵測）
+  const todayCheck=new Date();todayCheck.setHours(0,0,0,0);
   const nextItem=schedule.find(r=>r.status==='未收'||r.status==='逾期');
   const nextEl=document.getElementById('dash-next-pay');
   if(nextItem&&nextEl){
     nextEl.style.display='flex';
-    setT('dash-next-name',nextItem.name||'—');
-    setT('dash-next-date',nextItem.due?'預計 '+nextItem.due:'—');
+    let isOverdue=nextItem.status==='逾期';
+    if(!isOverdue&&nextItem.due){const dd=new Date(nextItem.due.replace(/\//g,'-'));if(!isNaN(dd)&&dd<todayCheck)isOverdue=true;}
+    setT('dash-next-name',(isOverdue?'⚠️ ':'')+(nextItem.name||'—'));
+    setT('dash-next-date',nextItem.due?(isOverdue?'已逾期 ':'預計 ')+nextItem.due:'—');
     setT('dash-next-amt','$'+fmtN(nextItem.amount||0));
+    if(nextEl.style) nextEl.style.background=isOverdue?'#FFF0EE':'';
+    const nameEl=document.getElementById('dash-next-name');
+    if(nameEl) nameEl.style.color=isOverdue?'var(--red)':'';
   } else if(nextEl){ nextEl.style.display='none'; }
 
   // --- 顯示追加減 nav ---
@@ -4464,14 +4605,23 @@ async function renderClientPayment(){
   if(empty)empty.style.display='none';
   if(!tb)return;
   tb.innerHTML='';
+  const today=new Date();today.setHours(0,0,0,0);
   const statusPill={'已收':'pill-green','未收':'pill-amber','逾期':'pill-danger'};
   items.forEach(r=>{
+    // Auto-upgrade status to 逾期 if due date is past and not yet received
+    let displayStatus=r.status;
+    if(r.status==='未收'&&r.due){
+      const dueDate=new Date(r.due.replace(/\//g,'-'));
+      if(!isNaN(dueDate)&&dueDate<today) displayStatus='逾期';
+    }
     const tr=document.createElement('tr');
+    // Highlight overdue rows
+    if(displayStatus==='逾期') tr.style.background='#FFF5F5';
     tr.innerHTML=`
       <td>${r.name||'—'}</td>
-      <td style="color:var(--ink-muted)">${r.due||'—'}</td>
+      <td style="color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
       <td>$${fmtN(r.amount||0)}</td>
-      <td><span class="pill ${statusPill[r.status]||'pill-gray'}">${r.status}</span></td>
+      <td><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
       <td style="color:var(--ink-muted)">${r.received||'—'}</td>`;
     tb.appendChild(tr);
   });
