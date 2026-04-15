@@ -294,7 +294,8 @@ tbody tr:hover td{background:#FDFAF6;}
 .render-lb-prev{left:0;}.render-lb-next{right:0;}
 .render-lb-prev:hover,.render-lb-next:hover{color:#fff;}
 .render-lb-bottom{display:flex;flex-direction:column;align-items:center;padding:8px 16px 14px;max-width:660px;width:100%;}
-.render-lb-caption{font-size:13px;color:rgba(255,255,255,0.82);letter-spacing:.03em;text-align:center;line-height:1.6;margin-bottom:4px;}
+.render-lb-caption{font-size:14px;color:rgba(255,255,255,0.88);letter-spacing:.03em;text-align:center;line-height:1.7;margin-bottom:6px;min-height:20px;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px 16px;}
+.render-lb-caption:empty{display:none;}
 .render-lb-counter{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:.1em;}
 
 
@@ -3505,7 +3506,6 @@ function openAlbum(date, imgs){
       <div style="aspect-ratio:1;overflow:hidden;position:relative;">
         <img src="${v.fileUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;">
         ${v.isCover?'<div class="render-img-cover-badge">封面</div>':''}
-        ${v.note?`<div class="render-img-note-badge">${v.note}</div>`:''}
       </div>`;
     wrap.onclick=()=>openRenderLightbox(i);
     grid.appendChild(wrap);
@@ -3669,13 +3669,22 @@ function renderAdminDrawingList(cid){
         const noteTa=document.createElement('textarea');
         noteTa.className='render-thumb-note-input';
         noteTa.rows=2;
-        noteTa.placeholder='設計備注（客戶可見）…';
+        noteTa.placeholder='設計備注（點開照片客戶可見）…';
         noteTa.value=v.note||'';
         noteTa.onclick=e=>e.stopPropagation();
         noteTa.onblur=async()=>{
-          if(noteTa.value===v.note) return;
-          v.note=noteTa.value;
-          if(v.dbId) try{await dbSaveDoc(cid,'drawing_效果圖',v);}catch(e){console.warn(e);}
+          const newNote=noteTa.value;
+          if(newNote===v.note) return;
+          v.note=newNote;
+          if(v.dbId){
+            try{
+              const {error}=await sbClient.from('project_docs').update({note:newNote}).eq('id',v.dbId);
+              if(error) throw error;
+            }catch(e){
+              console.error('備注儲存失敗:',e.message);
+              alert('備注儲存失敗：'+e.message);
+            }
+          }
         };
         cell.appendChild(noteTa);
       } else {
