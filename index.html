@@ -1480,6 +1480,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="dz-text">拖曳圖片到這裡，或點擊選取</div>
           <div class="dz-hint">支援 JPG、PNG，可一次選取多張</div>
         </div>
+        <!-- 效果圖：相簿名稱設定 -->
+        <div id="album-name-row" style="display:none;margin-top:10px;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
+            <label style="font-size:12px;color:var(--ink-muted);white-space:nowrap;flex-shrink:0;">相簿名稱：</label>
+            <input id="album-name-input" style="flex:1;padding:7px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;" placeholder="例：第一次提案效果圖">
+          </div>
+          <button class="btn-ink" onclick="addDrawingVersion()">＋ 建立相簿並上傳</button>
+        </div>
         <div id="drawing-multi-preview" style="display:none;margin-top:10px;"></div>
       </div>
 
@@ -4068,16 +4076,24 @@ function switchDrawingType(type,el){
   const finalRow=document.getElementById('drawing-is-final')?.closest('div');
   const lbl=document.getElementById('drawing-file-label');
   const preview=document.getElementById('drawing-multi-preview');
+  const albumNameRow=document.getElementById('album-name-row');
+  const albumNameInput=document.getElementById('album-name-input');
   if(type==='效果圖'){
     if(fi){ fi.multiple=true; fi.onchange=previewDrawingImgs; }
     if(lbl) lbl.textContent='選擇圖片（可多選）';
     if(finalRow) finalRow.style.display='none';
     if(preview) preview.style.display='block';
+    if(albumNameRow) albumNameRow.style.display='flex';
+    // Default album name = today
+    if(albumNameInput&&!albumNameInput.value) albumNameInput.value=todayStr();
+    document.getElementById('drawing-upload-area').querySelector('.btn-ink').style.display='none';
   } else {
     if(fi){ fi.multiple=false; fi.onchange=null; fi.value=''; }
     if(lbl) lbl.textContent='選擇檔案（PDF/圖片）';
     if(finalRow) finalRow.style.display='flex';
     if(preview){ preview.style.display='none'; preview.innerHTML=''; }
+    if(albumNameRow) albumNameRow.style.display='none';
+    document.getElementById('drawing-upload-area').querySelector('.btn-ink').style.display='';
   }
   renderAdminDrawingList(getAdminDocClientId());
 }
@@ -4088,61 +4104,81 @@ function renderAdminDrawingList(cid){
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
 
   if(currentDrawingType==='效果圖'){
-    // Grid thumbnail view for 效果圖
-    const grid=document.createElement('div');
-    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);';
+    // Group photos by date (= album name)
+    const albums={};
     vers.forEach((v,i)=>{
-      const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
-      const cell=document.createElement('div');
-      cell.style.cssText='position:relative;background:#fff;overflow:hidden;display:flex;flex-direction:column;';
-      if(isImg){
-        const imgArea=document.createElement('div');
-        imgArea.style.cssText='position:relative;aspect-ratio:1;overflow:hidden;flex-shrink:0;';
-        imgArea.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">
-          ${v.isCover?`<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.04em;">封面</div>`:''}
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.5));opacity:0;transition:opacity .15s;" class="cell-overlay">
-            <div style="display:flex;gap:4px;padding:6px;">
-              ${!v.isCover?`<button onclick="setCover(${cid},${i})" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">設為封面</button>`:''}
-              <button onclick="removeDrawing(${cid},'效果圖',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
-            </div>
-          </div>`;
-        imgArea.onmouseenter=()=>{const ov=imgArea.querySelector('.cell-overlay');if(ov)ov.style.opacity='1';};
-        imgArea.onmouseleave=()=>{const ov=imgArea.querySelector('.cell-overlay');if(ov)ov.style.opacity='0';};
-        cell.appendChild(imgArea);
-        // Note textarea
-        const noteTa=document.createElement('textarea');
-        noteTa.className='render-thumb-note-input';
-        noteTa.rows=2;
-        noteTa.placeholder='設計備注（點開照片客戶可見）…';
-        noteTa.value=v.note||'';
-        noteTa.onclick=e=>e.stopPropagation();
-        noteTa.onblur=async()=>{
-          const newNote=noteTa.value;
-          if(newNote===v.note) return;
-          v.note=newNote;
-          if(v.dbId){
-            try{
-              const {error}=await sbClient.from('project_docs').update({note:newNote}).eq('id',v.dbId);
-              if(error) throw error;
-            }catch(e){
-              console.error('備注儲存失敗:',e.message);
-              alert('備注儲存失敗：'+e.message);
-            }
-          }
-        };
-        cell.appendChild(noteTa);
-      } else {
-        cell.style.cssText+='aspect-ratio:1;';
-        cell.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;padding:8px;">
-          <span style="font-size:20px;">📄</span>
-          <span style="font-size:9px;color:var(--ink-muted);text-align:center;word-break:break-all;">${v.note||'PDF'}</span>
-          <button onclick="removeDrawing(${cid},'效果圖',${i})" style="background:var(--red-pale);color:var(--red);border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;margin-top:2px;">刪除</button>
-        </div>`;
-      }
-      grid.appendChild(cell);
+      const key=v.date||'未分類';
+      if(!albums[key]) albums[key]=[];
+      albums[key].push({...v, _idx:i});
     });
-    wrap.appendChild(grid);
-  } else {
+    const albumKeys=Object.keys(albums).sort((a,b)=>b.localeCompare(a));
+    if(!albumKeys.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無效果圖</div>';return;}
+
+    albumKeys.forEach(albumName=>{
+      const photos=albums[albumName];
+      const section=document.createElement('div');
+      section.style.cssText='margin-bottom:16px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+      const safeId=encodeURIComponent(albumName).replace(/%/g,'_');
+
+      // Album header
+      const hd=document.createElement('div');
+      hd.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sand);border-bottom:0.5px solid var(--border);flex-wrap:wrap;';
+      hd.innerHTML=`
+        <span id="album-hd-label-${safeId}" style="font-size:13px;font-weight:500;color:var(--ink);flex:1;">${albumName}</span>
+        <span style="font-size:11px;color:var(--ink-muted);">${photos.length} 張</span>
+        <button class="btn-sm" onclick="startAlbumRename(${cid},'${albumName.replace(/'/g,"\\'")}','${safeId}')">重新命名</button>
+        <button class="btn-sm danger" onclick="deleteAlbum(${cid},'${albumName.replace(/'/g,"\\'")}')">刪除相簿</button>`;
+      section.appendChild(hd);
+
+      // Photo grid
+      const grid=document.createElement('div');
+      grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);';
+      photos.forEach((v)=>{
+        const i=v._idx;
+        const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
+        const cell=document.createElement('div');
+        cell.style.cssText='position:relative;background:#fff;overflow:hidden;display:flex;flex-direction:column;';
+        if(isImg){
+          const imgArea=document.createElement('div');
+          imgArea.style.cssText='position:relative;aspect-ratio:1;overflow:hidden;flex-shrink:0;';
+          imgArea.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">
+            ${v.isCover?`<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">封面</div>`:''}
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.5));opacity:0;transition:opacity .15s;" class="cell-overlay">
+              <div style="display:flex;gap:4px;padding:6px;">
+                ${!v.isCover?`<button onclick="setCover(${cid},${i})" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">設封面</button>`:''}
+                <button onclick="removeDrawing(${cid},'效果圖',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
+              </div>
+            </div>`;
+          imgArea.onmouseenter=()=>{const ov=imgArea.querySelector('.cell-overlay');if(ov)ov.style.opacity='1';};
+          imgArea.onmouseleave=()=>{const ov=imgArea.querySelector('.cell-overlay');if(ov)ov.style.opacity='0';};
+          cell.appendChild(imgArea);
+          const noteTa=document.createElement('textarea');
+          noteTa.className='render-thumb-note-input';
+          noteTa.rows=2;
+          noteTa.placeholder='設計備注（客戶點開可見）…';
+          noteTa.value=v.note||'';
+          noteTa.onclick=e=>e.stopPropagation();
+          noteTa.onblur=async()=>{
+            const newNote=noteTa.value;
+            if(newNote===v.note) return;
+            v.note=newNote;
+            if(v.dbId){try{await sbClient.from('project_docs').update({note:newNote}).eq('id',v.dbId);}catch(e){console.error(e.message);}}
+          };
+          cell.appendChild(noteTa);
+        } else {
+          cell.style.cssText+='aspect-ratio:1;';
+          cell.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;padding:8px;">
+            <span style="font-size:20px;">📄</span>
+            <span style="font-size:9px;color:var(--ink-muted);text-align:center;word-break:break-all;">${v.note||'PDF'}</span>
+            <button onclick="removeDrawing(${cid},'效果圖',${i})" style="background:var(--red-pale);color:var(--red);border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;margin-top:2px;">刪除</button>
+          </div>`;
+        }
+        grid.appendChild(cell);
+      });
+      section.appendChild(grid);
+      wrap.appendChild(section);
+    });
+    el.appendChild(wrap);
     // List view for 平面/立面系統圖
     vers.forEach((v,i)=>{
       const r=document.createElement('div');r.className='ufile-row';
@@ -4170,7 +4206,84 @@ async function setCover(cid, idx){
   }
   renderAdminDrawingList(cid);
 }
-// ========== STORAGE UPLOAD ==========
+// ── 效果圖相簿：重新命名 ──
+function startAlbumRename(cid, albumName, safeId){
+  const labelEl=document.getElementById(`album-hd-label-${safeId}`);
+  if(!labelEl) return;
+  // Replace label with inline input
+  const input=document.createElement('input');
+  input.value=albumName;
+  input.style.cssText='flex:1;padding:4px 8px;font-family:\'Noto Sans TC\',sans-serif;font-size:13px;font-weight:500;border:1.5px solid var(--accent-light);border-radius:7px;outline:none;color:var(--ink);';
+  input.onclick=e=>e.stopPropagation();
+
+  const saveBtn=document.createElement('button');
+  saveBtn.className='btn-sm';
+  saveBtn.style.background='var(--accent)';
+  saveBtn.style.color='#fff';
+  saveBtn.style.borderColor='var(--accent)';
+  saveBtn.textContent='確認';
+  saveBtn.onclick=(e)=>{
+    e.stopPropagation();
+    saveAlbumRename(cid, albumName, input.value.trim());
+  };
+
+  const cancelBtn=document.createElement('button');
+  cancelBtn.className='btn-sm';
+  cancelBtn.textContent='取消';
+  cancelBtn.onclick=(e)=>{e.stopPropagation();renderAdminDrawingList(cid);};
+
+  input.onkeydown=(e)=>{
+    if(e.key==='Enter') saveBtn.click();
+    if(e.key==='Escape') cancelBtn.click();
+  };
+
+  // Replace the label and the two action buttons after it
+  const hd=labelEl.parentElement;
+  // Remove everything from label onwards (keep count span)
+  const countSpan=hd.children[1];
+  while(hd.children.length>2) hd.removeChild(hd.lastChild);
+  hd.replaceChild(input, labelEl);
+  hd.appendChild(saveBtn);
+  hd.appendChild(cancelBtn);
+  input.focus();input.select();
+}
+
+async function saveAlbumRename(cid, oldName, newName){
+  if(!newName||newName===oldName){renderAdminDrawingList(cid);return;}
+  const vers=docsData[cid]?.drawings?.['效果圖']||[];
+  const toUpdate=vers.filter(v=>v.date===oldName);
+  if(!toUpdate.length){renderAdminDrawingList(cid);return;}
+  showLoader(true);
+  try{
+    for(const v of toUpdate){
+      v.date=newName;
+      if(v.dbId){
+        const {error}=await sbClient.from('project_docs').update({doc_date:newName}).eq('id',v.dbId);
+        if(error) throw error;
+      }
+    }
+    renderAdminDrawingList(cid);
+    // 同步更新客戶端 gallery
+    renderClient3DGallery(docsData[cid]);
+  }catch(e){alert('重新命名失敗：'+e.message);}
+  showLoader(false);
+}
+
+async function deleteAlbum(cid, albumName){
+  if(!confirm(`確定刪除「${albumName}」整本相簿？此操作無法復原。`)) return;
+  const vers=docsData[cid]?.drawings?.['效果圖']||[];
+  const toDelete=vers.filter(v=>v.date===albumName);
+  showLoader(true);
+  try{
+    for(const v of toDelete){
+      if(v.dbId) await dbDeleteDoc(v.dbId);
+    }
+    docsData[cid].drawings['效果圖']=vers.filter(v=>v.date!==albumName);
+    renderAdminDrawingList(cid);
+    renderClient3DGallery(docsData[cid]);
+  }catch(e){alert('刪除失敗：'+e.message);}
+  showLoader(false);
+}
 async function uploadToStorage(file, folder){
   const ext=file.name.split('.').pop().toLowerCase()||'jpg';
   const fileName=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
@@ -4229,10 +4342,12 @@ function addDrawingVersion(){
   const hasInputFiles=fi&&fi.files&&fi.files.length>0;
   if(!hasDropFiles&&!hasInputFiles){alert('請先選擇檔案');return;}
 
-  // 效果圖：多張上傳
+  // 效果圖：多張上傳，以相簿名稱為分組 key
   if(currentDrawingType==='效果圖'){
     const files=window._pendingDropFiles||Array.from(fi.files);
     window._pendingDropFiles=null;
+    const albumNameEl=document.getElementById('album-name-input');
+    const albumName=(albumNameEl&&albumNameEl.value.trim())||todayStr();
     showLoader(true);
     (async()=>{
       try{
@@ -4243,7 +4358,7 @@ function addDrawingVersion(){
           try{
             const fileUrl=await uploadToStorage(file,'drawings');
             const note=file.name.replace(/\.[^.]+$/,'');
-            const newItem={note,date:todayStr(),isFinal:false,fileUrl,size:fmtFileSize(file.size)};
+            const newItem={note,date:albumName,isFinal:false,fileUrl,size:fmtFileSize(file.size)};
             await dbSaveDoc(cid,'drawing_效果圖',newItem);
             docsData[cid].drawings['效果圖'].unshift(newItem);
             successCount++;
@@ -4252,8 +4367,10 @@ function addDrawingVersion(){
         fi.value='';
         const preview=document.getElementById('drawing-multi-preview');
         if(preview) preview.innerHTML='';
+        // Reset album name to today for next upload
+        if(albumNameEl) albumNameEl.value=todayStr();
         renderAdminDrawingList(cid);
-        alert(`成功上傳 ${successCount} / ${files.length} 張效果圖`);
+        alert(`成功上傳 ${successCount} / ${files.length} 張效果圖到「${albumName}」相簿`);
       }catch(e){alert(e.message);}
       showLoader(false);
     })();
