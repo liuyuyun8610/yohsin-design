@@ -152,10 +152,29 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .know-arr{font-size:13px;color:var(--ink-light);transition:transform 0.2s;display:inline-block;}
 .know-arr.open{transform:rotate(90deg);}
 .know-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--accent-pale);color:var(--accent);}
-.know-bd{display:none;padding:2px 14px 14px;font-size:13px;color:var(--ink-muted);line-height:1.8;border-top:0.5px solid var(--border);}
+.know-bd{display:none;padding:10px 16px 16px;font-size:13px;color:var(--ink);line-height:1.85;border-top:0.5px solid var(--border);}
 .know-bd.open{display:block;}
 
-/* CALENDAR */
+/* ── 文章富文字格式 ── */
+.know-bd .art-section{color:#B87000;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;margin:18px 0 8px;letter-spacing:0.03em;}
+.know-bd .art-blue-hd{color:var(--blue);font-weight:500;font-size:13px;margin-bottom:12px;line-height:1.6;}
+.know-bd .art-meeting{display:block;font-weight:600;font-size:13px;color:var(--ink);margin:14px 0 4px;}
+.know-bd .art-note{border-left:3px solid #C8842A;background:#FBF6EE;padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0;font-size:12.5px;line-height:1.9;}
+.know-bd .art-sep{border:none;border-top:1px dashed #D0C8BC;margin:14px 0;}
+.know-bd .art-sep-text{text-align:center;color:var(--ink-light);font-size:12px;margin:12px 0;letter-spacing:0.05em;}
+.know-bd .art-blue{color:var(--blue);}
+.know-bd .art-orange{color:#B87000;}
+.know-bd .art-red{color:var(--red);}
+.know-bd p{margin:0 0 6px;}
+
+/* ── 文章編輯器工具列 ── */
+.art-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;background:var(--sand);border:0.5px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;}
+.art-tb-btn{padding:4px 9px;font-size:11px;font-family:'Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:all 0.12s;white-space:nowrap;}
+.art-tb-btn:hover{background:var(--accent-pale);border-color:var(--accent-light);color:var(--accent);}
+.art-tb-sep{width:0.5px;background:var(--border);margin:2px 2px;}
+.art-editor-wrap textarea{border-radius:0 0 10px 10px!important;border-top:0.5px solid var(--border)!important;}
+.art-preview-box{border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;background:#fff;margin-top:8px;font-size:13px;line-height:1.85;max-height:300px;overflow-y:auto;}
+.art-preview-toggle{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;padding:4px 0;display:block;margin-bottom:4px;}
 .cal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
 .cal-mnth{font-size:16px;font-weight:500;font-family:'Noto Serif TC',serif;}
 .cal-navs{display:flex;gap:5px;}
@@ -1738,14 +1757,42 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <!-- ARTICLE MODAL -->
 <div id="am-modal" style="display:none;">
   <div class="modal-bd">
-    <div class="modal">
+    <div class="modal" style="max-width:700px;width:95vw;">
       <div class="modal-ttl" id="am-ttl">新增文章</div>
-      <div class="fg"><label>文章標題</label><input id="am-t" placeholder="設計流程說明"></div>
-      <div class="fg"><label>分類標籤</label><select id="am-tag">
-        <option>施工注意</option><option>設計流程</option><option>材料知識</option>
-        <option>付款說明</option><option>售後保固</option><option>開工前準備</option><option>其他</option>
-      </select></div>
-      <div class="fg"><label>文章內容</label><textarea id="am-body" placeholder="輸入文章內容…"></textarea></div>
+      <div class="fg-2" style="margin-bottom:0.8rem;">
+        <div class="fg" style="margin-bottom:0;"><label>文章標題</label><input id="am-t" placeholder="設計流程說明"></div>
+        <div class="fg" style="margin-bottom:0;"><label>分類標籤</label><select id="am-tag">
+          <option>施工注意</option><option>設計流程</option><option>材料知識</option>
+          <option>付款說明</option><option>售後保固</option><option>開工前準備</option><option>其他</option>
+        </select></div>
+      </div>
+      <div class="fg art-editor-wrap" style="margin-bottom:0.6rem;">
+        <label>文章內容
+          <button class="art-preview-toggle" onclick="toggleArtPreview()" id="art-preview-btn">▸ 顯示預覽</button>
+        </label>
+        <!-- 工具列 -->
+        <div class="art-toolbar">
+          <button class="art-tb-btn" onclick="artFmt('bold')" title="粗體"><b>B</b></button>
+          <button class="art-tb-btn" onclick="artFmt('blue')" style="color:var(--blue);">藍色</button>
+          <button class="art-tb-btn" onclick="artFmt('orange')" style="color:#B87000;">橘色</button>
+          <button class="art-tb-btn" onclick="artFmt('red')" style="color:var(--red);">紅色</button>
+          <div class="art-tb-sep"></div>
+          <button class="art-tb-btn" onclick="artFmt('section')" title="橘色區塊標題（📎）">📎 區塊標題</button>
+          <button class="art-tb-btn" onclick="artFmt('bluehd')" title="藍色說明大標">🔷 藍色大標</button>
+          <button class="art-tb-btn" onclick="artFmt('meeting')" title="粗體會議小標">📋 會議標題</button>
+          <div class="art-tb-sep"></div>
+          <button class="art-tb-btn" onclick="artFmt('note')" title="備註框（左邊橘線）">📝 備註框</button>
+          <button class="art-tb-btn" onclick="artFmt('sep')" title="分隔線">─ 分隔線</button>
+          <div class="art-tb-sep"></div>
+          <button class="art-tb-btn" onclick="artInsertTemplate()" style="background:var(--accent-pale);color:var(--accent);border-color:var(--accent-light);">📄 插入設計流程範本</button>
+        </div>
+        <textarea id="am-body" placeholder="輸入文章內容，或使用上方工具列插入格式…" style="min-height:220px;border-radius:0 0 10px 10px;font-family:monospace;font-size:12px;resize:vertical;" oninput="artUpdatePreview()"></textarea>
+      </div>
+      <!-- 預覽 -->
+      <div id="art-preview-panel" style="display:none;margin-bottom:0.8rem;">
+        <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;letter-spacing:0.06em;">預覽效果：</div>
+        <div class="art-preview-box know-bd open" id="art-preview-content"></div>
+      </div>
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closeAM()">取消</button>
         <button class="btn-ink" onclick="saveArticle()">儲存</button>
@@ -3762,13 +3809,23 @@ function renderClientLineScreenshots(d){
   const el=document.getElementById('client-line-meetings');el.innerHTML='';
   const shots=d.lineScreenshots||[];
   if(!shots.length){el.innerHTML='<div class="empty-state">尚無 LINE 截圖記錄</div>';return;}
-  const grouped={};
-  shots.forEach(s=>{grouped[s.date]=grouped[s.date]||[];grouped[s.date].push(...(s.images||[]));});
-  Object.keys(grouped).sort().forEach(date=>{
-    const imgs=grouped[date];
-    const imgHtml=imgs.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;">${imgs.map(src=>`<img src="${src}" style="height:120px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'<div style="padding:12px 14px;font-size:12px;color:var(--ink-light);">（截圖未載入）</div>';
+  // Sort newest first
+  const sorted=[...shots].sort((a,b)=>b.date.localeCompare(a.date));
+  sorted.forEach(s=>{
+    const imgs=s.images||[];
+    const count=imgs.length;
+    // Title: note if available, else "X 張截圖"
+    const titleText=s.note&&s.note.trim()?s.note:`${count} 張截圖`;
+    const countBadge=s.note?`<span style="font-size:10px;background:var(--sand-dark);color:var(--ink-muted);padding:2px 7px;border-radius:6px;margin-left:6px;">${count} 張</span>`:'';
+    const imgHtml=imgs.length
+      ?`<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;">${imgs.map(src=>`<img src="${src}" style="height:110px;border-radius:9px;object-fit:cover;border:0.5px solid var(--border);cursor:pointer;" onclick="window.open('${src}','_blank')">`).join('')}</div>`
+      :'<div style="padding:12px 14px;font-size:12px;color:var(--ink-light);">（截圖未載入）</div>';
     const item=document.createElement('div');item.className='meeting-record';
-    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${date}</span><span class="meeting-record-title">${imgs.length} 張截圖</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd">${imgHtml}</div>`;
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
+      <span class="meeting-record-date">${s.date}</span>
+      <span class="meeting-record-title" style="flex:1;">${titleText}${countBadge}</span>
+      <span class="meeting-record-arr">›</span>
+    </div><div class="meeting-record-bd">${imgHtml}</div>`;
     el.appendChild(item);
   });
 }
@@ -4358,16 +4415,139 @@ function renderAdminLineList(cid){
   if(!shots.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無截圖記錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
   shots.forEach((s,i)=>{
-    const r=document.createElement('div');r.className='ufile-row';
-    r.innerHTML=`<div class="ufile-icon">📷</div>
-      <div style="flex:1;">
+    const row=document.createElement('div');
+    row.style.cssText='border-bottom:0.5px solid var(--border);';
+    row.id=`line-row-${cid}-${i}`;
+
+    // Main row
+    const main=document.createElement('div');main.className='ufile-row';
+    main.innerHTML=`<div class="ufile-icon">📷</div>
+      <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:500;">${s.date}</div>
-        <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${(s.images||[]).length} 張截圖${s.note?'　<span style="color:var(--accent);">📝 '+s.note+'</span>':''}</div>
+        <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${(s.images||[]).length} 張截圖${s.note?'　<span style="color:var(--accent);">'+s.note+'</span>':''}</div>
       </div>
-      <button class="btn-sm danger" onclick="removeLineShot(${cid},${i})">刪除</button>`;
-    wrap.appendChild(r);
+      <button class="btn-sm" onclick="toggleLineShotEdit(${cid},${i})" id="line-edit-btn-${cid}-${i}">編輯</button>
+      <button class="btn-sm danger" onclick="removeLineShot(${cid},${i})" style="margin-left:4px;">刪除</button>`;
+    row.appendChild(main);
+
+    // Inline edit panel (hidden by default)
+    const editPanel=document.createElement('div');
+    editPanel.id=`line-edit-${cid}-${i}`;
+    editPanel.style.cssText='display:none;padding:12px 14px;background:var(--sand);border-top:0.5px solid var(--border);';
+    editPanel.innerHTML=`
+      <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:0.06em;margin-bottom:10px;">編輯 LINE 截圖記錄</div>
+
+      <!-- 說明文字 -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">說明文字（客戶端標題顯示）</div>
+        <input id="line-edit-note-${cid}-${i}" value="${(s.note||'').replace(/"/g,'&quot;')}"
+          placeholder="例：確認平面圖討論、廚房動線調整…"
+          style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;box-sizing:border-box;">
+      </div>
+
+      <!-- 現有圖片 -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">現有截圖（點 × 刪除）</div>
+        <div id="line-edit-imgs-${cid}-${i}" style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${(s.images||[]).map((src,j)=>`
+            <div style="position:relative;flex-shrink:0;">
+              <img src="${src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);display:block;">
+              <button onclick="removeLineShotImage(${cid},${i},${j})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
+            </div>`).join('')}
+          ${!(s.images||[]).length?'<div style="font-size:12px;color:var(--ink-light);">無圖片</div>':''}
+        </div>
+      </div>
+
+      <!-- 新增圖片 -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">補充新截圖（選填）</div>
+        <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink-muted);cursor:pointer;">
+          📷 選擇圖片
+          <input type="file" accept="image/*" multiple style="display:none;"
+            onchange="previewLineShotEditImgs(event,${cid},${i})">
+        </label>
+        <div id="line-edit-new-preview-${cid}-${i}" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn-ghost" onclick="toggleLineShotEdit(${cid},${i})">取消</button>
+        <button class="btn-ink" onclick="saveLineShotEdit(${cid},${i})">儲存變更</button>
+      </div>`;
+    row.appendChild(editPanel);
+    wrap.appendChild(row);
   });
   el.appendChild(wrap);
+}
+
+let _lineShotEditPending={}; // {`${cid}-${i}`: [File, ...]}
+
+function toggleLineShotEdit(cid,i){
+  const panel=document.getElementById(`line-edit-${cid}-${i}`);
+  const btn=document.getElementById(`line-edit-btn-${cid}-${i}`);
+  if(!panel||!btn)return;
+  const show=panel.style.display==='none';
+  panel.style.display=show?'block':'none';
+  btn.textContent=show?'收起':'編輯';
+  btn.style.background=show?'var(--accent-pale)':'';
+  btn.style.color=show?'var(--accent)':'';
+  btn.style.borderColor=show?'var(--accent-light)':'';
+  // Clear pending on close
+  if(!show) _lineShotEditPending[`${cid}-${i}`]=[];
+}
+
+function previewLineShotEditImgs(e,cid,i){
+  const files=Array.from(e.target.files);
+  _lineShotEditPending[`${cid}-${i}`]=files;
+  const preview=document.getElementById(`line-edit-new-preview-${cid}-${i}`);
+  if(preview){
+    preview.innerHTML='';
+    files.forEach(f=>{
+      const img=document.createElement('img');
+      img.src=URL.createObjectURL(f);
+      img.style.cssText='height:60px;width:60px;object-fit:cover;border-radius:7px;border:0.5px solid var(--border);';
+      preview.appendChild(img);
+    });
+  }
+}
+
+function removeLineShotImage(cid,i,imgIdx){
+  if(!confirm('確定刪除這張截圖？'))return;
+  const s=docsData[cid].lineScreenshots[i];
+  if(!s)return;
+  s.images.splice(imgIdx,1);
+  // Re-render just the images section
+  const imgWrap=document.getElementById(`line-edit-imgs-${cid}-${i}`);
+  if(imgWrap){
+    imgWrap.innerHTML=(s.images||[]).map((src,j)=>`
+      <div style="position:relative;flex-shrink:0;">
+        <img src="${src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);display:block;">
+        <button onclick="removeLineShotImage(${cid},${i},${j})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
+      </div>`).join('')
+      ||(s.images.length?'':'<div style="font-size:12px;color:var(--ink-light);">無圖片</div>');
+  }
+}
+
+async function saveLineShotEdit(cid,i){
+  const s=docsData[cid].lineScreenshots[i];
+  if(!s)return;
+  const noteInput=document.getElementById(`line-edit-note-${cid}-${i}`);
+  const newNote=noteInput?noteInput.value.trim():'';
+  const pendingKey=`${cid}-${i}`;
+  const newFiles=_lineShotEditPending[pendingKey]||[];
+  showLoader(true);
+  try{
+    // Upload new images if any
+    if(newFiles.length){
+      const newUrls=await uploadFilesToStorage(newFiles,'line-screenshots');
+      s.images.push(...newUrls);
+    }
+    s.note=newNote;
+    await dbSaveMeeting(cid,'line',s);
+    _lineShotEditPending[pendingKey]=[];
+    alert('已儲存！');
+    renderAdminLineList(cid);
+  }catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
 }
 function addLineScreenshot(){
   const cid=getAdminDocClientId();
@@ -4379,18 +4559,10 @@ function addLineScreenshot(){
   showLoader(true);
   (async()=>{
     try{
-      // Upload File objects to Storage, get URLs
       const urls=await uploadFilesToStorage(pendingLineImgs,'line-screenshots');
-      const existing=docsData[cid].lineScreenshots.find(s=>s.date===dateStr);
-      if(existing){
-        existing.images.push(...urls);
-        if(note)existing.note=note;
-        await dbSaveMeeting(cid,'line',existing);
-      } else {
-        const newItem={date:dateStr,images:urls,note};
-        await dbSaveMeeting(cid,'line',newItem);
-        docsData[cid].lineScreenshots.push(newItem);
-      }
+      const newItem={date:dateStr,images:urls,note};
+      await dbSaveMeeting(cid,'line',newItem);
+      docsData[cid].lineScreenshots.push(newItem);
     }catch(e){alert('儲存失敗：'+e.message);}
     pendingLineImgs=[];
     document.getElementById('line-img-preview').innerHTML='';
@@ -4402,7 +4574,7 @@ function addLineScreenshot(){
   })();
 }
 function removeLineShot(cid,idx){
-  if(!confirm('確定刪除？'))return;
+  if(!confirm('確定刪除整筆記錄？'))return;
   const item=docsData[cid].lineScreenshots[idx];
   if(item&&item.dbId){(async()=>{try{await dbDeleteMeeting(item.dbId);}catch(e){console.warn(e);}})();}
   docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);
@@ -5030,8 +5202,130 @@ function renderArtGrid(){
   if(!articles.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">尚無文章</div>';return;}
   articles.forEach(a=>{const cnt=clients.filter(c=>c.assigned.includes(a.id)).length;const d=document.createElement('div');d.className='art-card';d.innerHTML=`<div class="art-top"><div class="art-title">${a.title}</div><div class="art-tag">${a.tag}</div></div><div class="art-prev">${a.body}</div><div class="art-foot"><div class="art-cnt">已指派 ${cnt} 位客戶</div><div style="display:flex;gap:5px;"><button class="act-btn" onclick="openAM(${a.id})">編輯</button><button class="act-btn danger" onclick="deleteArt(${a.id})">刪除</button></div></div>`;g.appendChild(d);});
 }
-function openAM(id){editAId=id||null;document.getElementById('am-ttl').textContent=id?'編輯文章':'新增文章';if(id){const a=articles.find(x=>x.id===id);document.getElementById('am-t').value=a.title;document.getElementById('am-tag').value=a.tag;document.getElementById('am-body').value=a.body;}else{document.getElementById('am-t').value='';document.getElementById('am-body').value='';document.getElementById('am-tag').value='施工注意';}document.getElementById('am-modal').style.display='block';}
+function openAM(id){
+  editAId=id||null;
+  document.getElementById('am-ttl').textContent=id?'編輯文章':'新增文章';
+  if(id){const a=articles.find(x=>x.id===id);document.getElementById('am-t').value=a.title;document.getElementById('am-tag').value=a.tag;document.getElementById('am-body').value=a.body;}
+  else{document.getElementById('am-t').value='';document.getElementById('am-body').value='';document.getElementById('am-tag').value='施工注意';}
+  // Reset preview
+  document.getElementById('art-preview-panel').style.display='none';
+  document.getElementById('art-preview-btn').textContent='▸ 顯示預覽';
+  document.getElementById('am-modal').style.display='block';
+}
 function closeAM(){document.getElementById('am-modal').style.display='none';}
+
+// ── 工具列格式插入 ──
+function artFmt(type){
+  const ta=document.getElementById('am-body');
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const sel=ta.value.substring(start,end);
+  const before=ta.value.substring(0,start), after=ta.value.substring(end);
+  let insert='';
+  const t=sel||'在此輸入文字';
+  switch(type){
+    case 'bold':    insert=`<strong>${t}</strong>`; break;
+    case 'blue':    insert=`<span class="art-blue">${t}</span>`; break;
+    case 'orange':  insert=`<span class="art-orange">${t}</span>`; break;
+    case 'red':     insert=`<span class="art-red">${t}</span>`; break;
+    case 'section': insert=`<div class="art-section">📎 ${t}</div>`; break;
+    case 'bluehd':  insert=`<div class="art-blue-hd">${t}</div>`; break;
+    case 'meeting': insert=`<strong class="art-meeting">${t}</strong>`; break;
+    case 'note':
+      insert=`<div class="art-note"><span class="art-orange"><strong>備註：</strong></span><br>\n<span class="art-blue">${sel||'在此輸入備註內容'}</span>\n</div>`; break;
+    case 'sep':     insert=`<hr class="art-sep">`; break;
+  }
+  ta.value=before+insert+after;
+  // Position cursor after inserted content
+  const newPos=before.length+insert.length;
+  ta.setSelectionRange(newPos,newPos);
+  ta.focus();
+  artUpdatePreview();
+}
+
+function toggleArtPreview(){
+  const panel=document.getElementById('art-preview-panel');
+  const btn=document.getElementById('art-preview-btn');
+  const show=panel.style.display==='none';
+  panel.style.display=show?'block':'none';
+  btn.textContent=show?'▾ 隱藏預覽':'▸ 顯示預覽';
+  if(show) artUpdatePreview();
+}
+
+function artUpdatePreview(){
+  const preview=document.getElementById('art-preview-content');
+  if(preview&&document.getElementById('art-preview-panel').style.display!=='none'){
+    preview.innerHTML=document.getElementById('am-body').value;
+  }
+}
+
+// 設計流程範本
+const ART_TEMPLATE_DESIGN_FLOW=`<div class="art-blue-hd">室內設計服務流程（新成屋60-70工作日、中古屋65-80日）</div>
+
+<div class="art-section">📎 平面系統</div>
+
+提案後確認合作 → 簽訂設計合約 → 開啟專案資料夾、NOTION頁面
+
+<strong class="art-meeting">第一次會議：Day0</strong>
+針對提案後的配置圖修正（修改時間通常3-5日）建議可線上，增加雙方溝通效率。
+
+<strong class="art-meeting">第二次會議：Day5</strong>
+針對提案後的配置圖修正（修改時間通常3-5日）建議可線上，增加雙方溝通效率。
+
+過程會提供插座圖、燈具圖、空調、排水等配置圖到資料夾內，方便客戶有看到就能夠優先討論（可線上）
+
+<strong class="art-meeting">第三次會議：Day17</strong>
+平面系統圖的來回修改，同時設計師也開始繪製3D圖。
+
+<strong class="art-meeting">第四次會議：Day25</strong>
+平面系統圖的來回修改，同時設計師也開始繪製3D圖，可能造成3D局部修改。
+
+<strong class="art-meeting">第五次會議：Day30</strong>
+平面系統圖的來回修改，同時設計師也開始繪製3D圖，可能造成3D局部修改。
+
+<div class="art-note"><span class="art-orange"><strong>備註：</strong></span><br>
+<span class="art-blue">1. 若中間客戶太久才回覆，造成修改時間延後，請體諒設計師無法在設計規劃時間內完成</span><br>
+<span class="art-blue">2. 平面系統圖繪製10-12日、修改費時5-7日。</span><br>
+<span class="art-blue">3. 以上日程皆不包含假日，並且<span class="art-red"><strong><u>請避免假日及晚上會議，讓設計師也可以休息，感謝您！</u></strong></span></span><br>
+<span class="art-blue">4. 以上日程如遇到修改次數超過預期，則會順延規劃時間。</span>
+</div>
+
+<div class="art-sep-text">════ 平面相關預計 30-35 個工作天完成討論 ════</div>
+
+實際開始設計時間需以簽約後計算
+
+<div class="art-section">📎 3D圖、立面圖系統</div>
+
+<strong class="art-meeting">第六次會議：Day42 <span class="art-red">（建議見面）</span></strong>
+3D圖溝通，並且出第二次報價單、挑選材料
+
+<strong class="art-meeting">第七次會議：Day49</strong>
+根據上一次會議後修正之材質合併到效果圖 → 渲染放置到資料夾方便客戶查看，並且可及時反饋需要修改的地方，繪製一段落後可線上會議。
+
+<strong class="art-meeting">第八次會議：Day55 <span class="art-red">（建議見面）</span></strong>
+更新最新版報價單、提供客戶立面施工圖確認、工程合約簽署。
+
+<strong class="art-meeting">第九次會議：Day60</strong>
+更新最新版報價單、提供客戶立面施工圖確認、工程合約簽署。
+
+<div class="art-sep-text">════ 立面相關預計 30-40 個工作天完成討論 ════</div>
+
+<div class="art-note"><span class="art-orange"><strong>備註：</strong></span><br>
+<span class="art-blue">1. 若中間客戶太久才回覆，造成修改時間延後，則設計師無法在設計規劃時間內完成。</span><br>
+<span class="art-blue">2. 3D圖繪製14-20個工作日、修改費時5-7日包含渲染。</span><br>
+<span class="art-blue">3. 以上日程皆不包含假日，並且<span class="art-red"><strong><u>請避免假日及晚上會議，讓設計師也可以休息，感謝您！</u></strong></span></span><br>
+<span class="art-blue">4. 以上日程如遇到修改次數超過預期，則會順延規劃時間。</span>
+</div>`;
+
+function artInsertTemplate(){
+  if(!confirm('確定插入設計流程範本？（會清空現有內容）')) return;
+  const ta=document.getElementById('am-body');
+  ta.value=ART_TEMPLATE_DESIGN_FLOW;
+  if(!document.getElementById('am-t').value) document.getElementById('am-t').value='設計流程說明（請務必閱讀）';
+  document.getElementById('am-tag').value='設計流程';
+  artUpdatePreview();
+  // Auto-show preview
+  if(document.getElementById('art-preview-panel').style.display==='none') toggleArtPreview();
+}
 async function saveArticle(){const t=document.getElementById('am-t').value.trim(),tg=document.getElementById('am-tag').value,b=document.getElementById('am-body').value.trim();if(!t||!b){alert('請填寫標題和內容');return;}showLoader(true);try{if(editAId){const a=articles.find(x=>x.id===editAId);Object.assign(a,{title:t,tag:tg,body:b});await dbSaveArticle(a);}else{const a={title:t,tag:tg,body:b};await dbSaveArticle(a);articles.push(a);}}catch(e){alert('儲存失敗：'+e.message);}showLoader(false);closeAM();renderArtGrid();}
 async function deleteArt(id){if(!confirm('確定刪除？'))return;showLoader(true);try{await dbDeleteArticle(id);}catch(e){alert('刪除失敗：'+e.message);showLoader(false);return;}articles=articles.filter(x=>x.id!==id);clients.forEach(c=>{c.assigned=c.assigned.filter(aid=>aid!==id);});showLoader(false);renderArtGrid();}
 
