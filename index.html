@@ -2024,7 +2024,9 @@ function _enterClient(c){
   showScreen('s-client');
   (async()=>{
     const pid=proj?proj.id:null;
+    const cid=c.id;
     if(pid){ try{ await dbLoadLogs(pid); }catch(e){ console.warn('load logs failed',e); } }
+    try{ await dbLoadDocs(cid); }catch(e){ console.warn('load docs failed',e); }
     renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
     renderClientPayment();renderClientDashboard();
   })();
