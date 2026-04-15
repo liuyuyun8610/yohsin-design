@@ -2488,7 +2488,8 @@ async function dbLoadDocs(pid){
 }
 
 async function dbSaveDoc(pid, docType, item){
-  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, is_cover:!!item.isCover, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr()};
+  // 注意：project_docs 無 is_cover 欄位，封面狀態只在記憶體中追蹤
+  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr()};
   if(item.dbId){
     const {error}=await sbClient.from('project_docs').update(row).eq('id',item.dbId);
     if(error) throw error;
