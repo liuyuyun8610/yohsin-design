@@ -152,16 +152,28 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .know-arr{font-size:13px;color:var(--ink-light);transition:transform 0.2s;display:inline-block;}
 .know-arr.open{transform:rotate(90deg);}
 .know-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--accent-pale);color:var(--accent);}
-.know-bd{display:none;padding:10px 16px 16px;font-size:13px;color:var(--ink);line-height:1.85;border-top:0.5px solid var(--border);}
+.know-bd{display:none;padding:20px 20px 22px;background:#fff;font-size:13.5px;color:var(--ink);line-height:1.9;border-top:0.5px solid var(--border);}
 .know-bd.open{display:block;}
 
-/* ── 文章富文字格式 ── */
-.know-bd .art-section{color:#B87000;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;margin:18px 0 8px;letter-spacing:0.03em;}
-.know-bd .art-blue-hd{color:var(--blue);font-weight:500;font-size:13px;margin-bottom:12px;line-height:1.6;}
-.know-bd .art-meeting{display:block;font-weight:600;font-size:13px;color:var(--ink);margin:14px 0 4px;}
-.know-bd .art-note{border-left:3px solid #C8842A;background:#FBF6EE;padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0;font-size:12.5px;line-height:1.9;}
+/* ── 文章富文字格式（奶茶暖色系） ── */
+.know-bd .art-subtitle{color:var(--accent);font-size:12.5px;font-weight:500;margin-bottom:18px;line-height:1.65;letter-spacing:0.02em;}
+.know-bd .art-section-hd{font-size:14px;font-weight:600;color:var(--accent);margin:22px 0 12px;padding-bottom:8px;border-bottom:1.5px solid var(--accent-light);letter-spacing:0.04em;}
+.know-bd .art-meeting-hd{font-weight:600;font-size:13.5px;color:var(--ink);margin:16px 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.know-bd .art-day{display:inline-block;background:var(--accent-pale);color:var(--accent);font-size:11px;font-weight:500;padding:2px 9px;border-radius:6px;letter-spacing:0.03em;flex-shrink:0;}
+.know-bd .art-recommend{display:inline-block;font-size:10px;font-weight:500;color:#7A5E1A;background:#FBF4E8;padding:2px 8px;border-radius:5px;border:0.5px solid #D4B870;}
+.know-bd .art-meeting-bd{color:var(--ink-muted);font-size:13px;line-height:1.8;padding-left:4px;margin-bottom:2px;}
+.know-bd .art-note{background:#FBF8F4;border:0.5px solid var(--accent-light);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:13px 16px;margin:16px 0;}
+.know-bd .art-note-title{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;letter-spacing:0.1em;text-transform:uppercase;}
+.know-bd .art-note-list{margin:0;padding-left:18px;color:var(--ink-muted);font-size:12.5px;line-height:1.95;}
+.know-bd .art-note-list li{margin-bottom:3px;}
+.know-bd .art-note-list li strong{color:var(--ink);font-weight:600;}
+.know-bd .art-summary{text-align:center;font-size:12px;color:var(--accent);font-weight:500;padding:10px 0;letter-spacing:0.06em;border-top:0.5px solid var(--accent-pale);border-bottom:0.5px solid var(--accent-pale);margin:16px 0 8px;}
+.know-bd .art-note-sm{text-align:center;font-size:12px;color:var(--ink-light);margin-bottom:16px;font-style:italic;}
 .know-bd .art-sep{border:none;border-top:1px dashed #D0C8BC;margin:14px 0;}
-.know-bd .art-sep-text{text-align:center;color:var(--ink-light);font-size:12px;margin:12px 0;letter-spacing:0.05em;}
+/* 保留舊格式類以防萬一 */
+.know-bd .art-section{color:#B87000;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;margin:18px 0 8px;}
+.know-bd .art-blue-hd{color:var(--blue);font-weight:500;font-size:13px;margin-bottom:12px;}
+.know-bd .art-meeting{display:block;font-weight:600;font-size:13px;color:var(--ink);margin:14px 0 4px;}
 .know-bd .art-blue{color:var(--blue);}
 .know-bd .art-orange{color:#B87000;}
 .know-bd .art-red{color:var(--red);}
@@ -1773,16 +1785,17 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <!-- 工具列 -->
         <div class="art-toolbar">
           <button class="art-tb-btn" onclick="artFmt('bold')" title="粗體"><b>B</b></button>
-          <button class="art-tb-btn" onclick="artFmt('blue')" style="color:var(--blue);">藍色</button>
-          <button class="art-tb-btn" onclick="artFmt('orange')" style="color:#B87000;">橘色</button>
-          <button class="art-tb-btn" onclick="artFmt('red')" style="color:var(--red);">紅色</button>
+          <button class="art-tb-btn" onclick="artFmt('muted')" style="color:var(--ink-muted);">淡灰</button>
+          <button class="art-tb-btn" onclick="artFmt('accent')" style="color:var(--accent);">奶茶色</button>
           <div class="art-tb-sep"></div>
-          <button class="art-tb-btn" onclick="artFmt('section')" title="橘色區塊標題（📎）">📎 區塊標題</button>
-          <button class="art-tb-btn" onclick="artFmt('bluehd')" title="藍色說明大標">🔷 藍色大標</button>
-          <button class="art-tb-btn" onclick="artFmt('meeting')" title="粗體會議小標">📋 會議標題</button>
+          <button class="art-tb-btn" onclick="artFmt('section')" title="區塊大標（帶底線）">▬ 區塊標題</button>
+          <button class="art-tb-btn" onclick="artFmt('subtitle')" title="奶茶色副標">· 副標題</button>
+          <button class="art-tb-btn" onclick="artFmt('meeting')" title="Day 標籤 + 會議標題">📋 會議標題</button>
+          <button class="art-tb-btn" onclick="artFmt('meetingbd')" title="會議說明文字">↳ 說明文字</button>
           <div class="art-tb-sep"></div>
-          <button class="art-tb-btn" onclick="artFmt('note')" title="備註框（左邊橘線）">📝 備註框</button>
-          <button class="art-tb-btn" onclick="artFmt('sep')" title="分隔線">─ 分隔線</button>
+          <button class="art-tb-btn" onclick="artFmt('note')" title="備註框">📝 備註框</button>
+          <button class="art-tb-btn" onclick="artFmt('summary')" title="階段摘要行">─ 摘要行</button>
+          <button class="art-tb-btn" onclick="artFmt('sep')" title="分隔線">⋯ 分隔</button>
           <div class="art-tb-sep"></div>
           <button class="art-tb-btn" onclick="artInsertTemplate()" style="background:var(--accent-pale);color:var(--accent);border-color:var(--accent-light);">📄 插入設計流程範本</button>
         </div>
@@ -5223,16 +5236,22 @@ function artFmt(type){
   let insert='';
   const t=sel||'在此輸入文字';
   switch(type){
-    case 'bold':    insert=`<strong>${t}</strong>`; break;
-    case 'blue':    insert=`<span class="art-blue">${t}</span>`; break;
-    case 'orange':  insert=`<span class="art-orange">${t}</span>`; break;
-    case 'red':     insert=`<span class="art-red">${t}</span>`; break;
-    case 'section': insert=`<div class="art-section">📎 ${t}</div>`; break;
-    case 'bluehd':  insert=`<div class="art-blue-hd">${t}</div>`; break;
-    case 'meeting': insert=`<strong class="art-meeting">${t}</strong>`; break;
+    case 'bold':      insert=`<strong>${t}</strong>`; break;
+    case 'muted':     insert=`<span style="color:var(--ink-muted);">${t}</span>`; break;
+    case 'accent':    insert=`<span style="color:var(--accent);">${t}</span>`; break;
+    case 'subtitle':  insert=`<div class="art-subtitle">${t}</div>`; break;
+    case 'section':   insert=`<div class="art-section-hd">${t}</div>`; break;
+    case 'meeting':   insert=`<div class="art-meeting-hd"><span class="art-day">Day N</span>${t}</div>`; break;
+    case 'meetingbd': insert=`<div class="art-meeting-bd">${t}</div>`; break;
     case 'note':
-      insert=`<div class="art-note"><span class="art-orange"><strong>備註：</strong></span><br>\n<span class="art-blue">${sel||'在此輸入備註內容'}</span>\n</div>`; break;
-    case 'sep':     insert=`<hr class="art-sep">`; break;
+      insert=`<div class="art-note">\n  <div class="art-note-title">備註說明</div>\n  <ol class="art-note-list">\n    <li>${sel||'備註內容'}</li>\n  </ol>\n</div>`; break;
+    case 'summary':   insert=`<div class="art-summary">${t}</div>`; break;
+    case 'sep':       insert=`<hr class="art-sep">`; break;
+    // Legacy support
+    case 'blue':      insert=`<span class="art-blue">${t}</span>`; break;
+    case 'orange':    insert=`<span class="art-orange">${t}</span>`; break;
+    case 'red':       insert=`<span class="art-red">${t}</span>`; break;
+    case 'bluehd':    insert=`<div class="art-blue-hd">${t}</div>`; break;
   }
   ta.value=before+insert+after;
   // Position cursor after inserted content
@@ -5258,63 +5277,66 @@ function artUpdatePreview(){
   }
 }
 
-// 設計流程範本
-const ART_TEMPLATE_DESIGN_FLOW=`<div class="art-blue-hd">室內設計服務流程（新成屋60-70工作日、中古屋65-80日）</div>
+// 設計流程範本（奶茶暖色系 · 白底深灰）
+const ART_TEMPLATE_DESIGN_FLOW=`<div class="art-subtitle">室內設計服務流程（新成屋 60–70 工作日 ｜ 中古屋 65–80 工作日）</div>
 
-<div class="art-section">📎 平面系統</div>
+<div class="art-section-hd">平面規劃階段</div>
 
-提案後確認合作 → 簽訂設計合約 → 開啟專案資料夾、NOTION頁面
+提案確認合作後 → 簽訂設計合約 → 建立專案資料夾與 Notion 頁面
 
-<strong class="art-meeting">第一次會議：Day0</strong>
-針對提案後的配置圖修正（修改時間通常3-5日）建議可線上，增加雙方溝通效率。
+<div class="art-meeting-hd"><span class="art-day">Day 0</span>第一次會議</div>
+<div class="art-meeting-bd">針對提案配置圖修正（約 3–5 工作日），建議線上進行，提升雙方溝通效率。</div>
 
-<strong class="art-meeting">第二次會議：Day5</strong>
-針對提案後的配置圖修正（修改時間通常3-5日）建議可線上，增加雙方溝通效率。
+<div class="art-meeting-hd"><span class="art-day">Day 5</span>第二次會議</div>
+<div class="art-meeting-bd">配置圖持續調整，並同步提供插座圖、燈具圖、空調及排水等配置圖，客戶可優先在線上討論。</div>
 
-過程會提供插座圖、燈具圖、空調、排水等配置圖到資料夾內，方便客戶有看到就能夠優先討論（可線上）
+<div class="art-meeting-hd"><span class="art-day">Day 17</span>第三次會議</div>
+<div class="art-meeting-bd">平面系統圖持續來回修改，設計師同步開始繪製 3D 圖。</div>
 
-<strong class="art-meeting">第三次會議：Day17</strong>
-平面系統圖的來回修改，同時設計師也開始繪製3D圖。
+<div class="art-meeting-hd"><span class="art-day">Day 25</span>第四次會議</div>
+<div class="art-meeting-bd">平面系統圖調整中，3D 圖可能因平面修改產生局部更動。</div>
 
-<strong class="art-meeting">第四次會議：Day25</strong>
-平面系統圖的來回修改，同時設計師也開始繪製3D圖，可能造成3D局部修改。
+<div class="art-meeting-hd"><span class="art-day">Day 30</span>第五次會議</div>
+<div class="art-meeting-bd">平面系統圖趨於定稿，3D 圖同步推進。</div>
 
-<strong class="art-meeting">第五次會議：Day30</strong>
-平面系統圖的來回修改，同時設計師也開始繪製3D圖，可能造成3D局部修改。
-
-<div class="art-note"><span class="art-orange"><strong>備註：</strong></span><br>
-<span class="art-blue">1. 若中間客戶太久才回覆，造成修改時間延後，請體諒設計師無法在設計規劃時間內完成</span><br>
-<span class="art-blue">2. 平面系統圖繪製10-12日、修改費時5-7日。</span><br>
-<span class="art-blue">3. 以上日程皆不包含假日，並且<span class="art-red"><strong><u>請避免假日及晚上會議，讓設計師也可以休息，感謝您！</u></strong></span></span><br>
-<span class="art-blue">4. 以上日程如遇到修改次數超過預期，則會順延規劃時間。</span>
+<div class="art-note">
+  <div class="art-note-title">備註說明</div>
+  <ol class="art-note-list">
+    <li>若客戶回覆時間延遲，設計師無法在原訂規劃時間內完成，敬請見諒。</li>
+    <li>平面系統圖繪製約 10–12 工作日，修改費時 5–7 工作日。</li>
+    <li>以上日程均不含假日，<strong>請避免於假日及晚間安排會議，讓設計師充分休息，感謝您！</strong></li>
+    <li>若修改次數超出預期，規劃時間將順延。</li>
+  </ol>
 </div>
 
-<div class="art-sep-text">════ 平面相關預計 30-35 個工作天完成討論 ════</div>
+<div class="art-summary">平面階段預計 30–35 個工作天完成</div>
+<div class="art-note-sm">實際開始日期以簽約後計算</div>
 
-實際開始設計時間需以簽約後計算
+<div class="art-section-hd">3D 效果圖 ＆ 立面圖階段</div>
 
-<div class="art-section">📎 3D圖、立面圖系統</div>
+<div class="art-meeting-hd"><span class="art-day">Day 42</span>第六次會議 <span class="art-recommend">建議見面</span></div>
+<div class="art-meeting-bd">3D 圖溝通確認，出具第二次報價單並進行材料挑選。</div>
 
-<strong class="art-meeting">第六次會議：Day42 <span class="art-red">（建議見面）</span></strong>
-3D圖溝通，並且出第二次報價單、挑選材料
+<div class="art-meeting-hd"><span class="art-day">Day 49</span>第七次會議</div>
+<div class="art-meeting-bd">依上次修正調整材質並完成效果圖渲染，放置資料夾供客戶即時反饋，繪製告一段落後可安排線上會議。</div>
 
-<strong class="art-meeting">第七次會議：Day49</strong>
-根據上一次會議後修正之材質合併到效果圖 → 渲染放置到資料夾方便客戶查看，並且可及時反饋需要修改的地方，繪製一段落後可線上會議。
+<div class="art-meeting-hd"><span class="art-day">Day 55</span>第八次會議 <span class="art-recommend">建議見面</span></div>
+<div class="art-meeting-bd">更新最新版報價單，提供立面施工圖供客戶確認，正式簽署工程合約。</div>
 
-<strong class="art-meeting">第八次會議：Day55 <span class="art-red">（建議見面）</span></strong>
-更新最新版報價單、提供客戶立面施工圖確認、工程合約簽署。
+<div class="art-meeting-hd"><span class="art-day">Day 60</span>第九次會議</div>
+<div class="art-meeting-bd">報價單更新，立面施工圖最終確認，工程合約完成簽署。</div>
 
-<strong class="art-meeting">第九次會議：Day60</strong>
-更新最新版報價單、提供客戶立面施工圖確認、工程合約簽署。
+<div class="art-note">
+  <div class="art-note-title">備註說明</div>
+  <ol class="art-note-list">
+    <li>若客戶回覆時間延遲，設計師無法在原訂規劃時間內完成，敬請見諒。</li>
+    <li>3D 圖繪製約 14–20 個工作日，含渲染修改費時 5–7 工作日。</li>
+    <li>以上日程均不含假日，<strong>請避免於假日及晚間安排會議，讓設計師充分休息，感謝您！</strong></li>
+    <li>若修改次數超出預期，規劃時間將順延。</li>
+  </ol>
+</div>
 
-<div class="art-sep-text">════ 立面相關預計 30-40 個工作天完成討論 ════</div>
-
-<div class="art-note"><span class="art-orange"><strong>備註：</strong></span><br>
-<span class="art-blue">1. 若中間客戶太久才回覆，造成修改時間延後，則設計師無法在設計規劃時間內完成。</span><br>
-<span class="art-blue">2. 3D圖繪製14-20個工作日、修改費時5-7日包含渲染。</span><br>
-<span class="art-blue">3. 以上日程皆不包含假日，並且<span class="art-red"><strong><u>請避免假日及晚上會議，讓設計師也可以休息，感謝您！</u></strong></span></span><br>
-<span class="art-blue">4. 以上日程如遇到修改次數超過預期，則會順延規劃時間。</span>
-</div>`;
+<div class="art-summary">立面階段預計 30–40 個工作天完成</div>`;
 
 function artInsertTemplate(){
   if(!confirm('確定插入設計流程範本？（會清空現有內容）')) return;
