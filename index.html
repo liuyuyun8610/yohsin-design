@@ -4071,79 +4071,96 @@ function switchDrawingType(type,el){
   currentDrawingType=type;
   document.querySelectorAll('#drawing-type-tabs .stab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  // Toggle multiple file mode for 效果圖
   const fi=document.getElementById('drawing-file-input');
   const finalRow=document.getElementById('drawing-is-final')?.closest('div');
   const lbl=document.getElementById('drawing-file-label');
   const preview=document.getElementById('drawing-multi-preview');
   const albumNameRow=document.getElementById('album-name-row');
   const albumNameInput=document.getElementById('album-name-input');
+  const dropZone=document.getElementById('drawing-drop-zone');
+  const uploadBtn=document.getElementById('drawing-upload-area')?.querySelector('.btn-ink');
+
   if(type==='效果圖'){
     if(fi){ fi.multiple=true; fi.onchange=previewDrawingImgs; }
     if(lbl) lbl.textContent='選擇圖片（可多選）';
     if(finalRow) finalRow.style.display='none';
-    if(preview) preview.style.display='block';
+    if(uploadBtn) uploadBtn.style.display='none';
+    if(dropZone) dropZone.style.display='block';
     if(albumNameRow) albumNameRow.style.display='flex';
-    // Default album name = today
     if(albumNameInput&&!albumNameInput.value) albumNameInput.value=todayStr();
-    document.getElementById('drawing-upload-area').querySelector('.btn-ink').style.display='none';
   } else {
     if(fi){ fi.multiple=false; fi.onchange=null; fi.value=''; }
     if(lbl) lbl.textContent='選擇檔案（PDF/圖片）';
     if(finalRow) finalRow.style.display='flex';
-    if(preview){ preview.style.display='none'; preview.innerHTML=''; }
+    if(uploadBtn) uploadBtn.style.display='';
+    if(dropZone){ dropZone.style.display='none'; dropZone.classList.remove('dz-hover'); }
     if(albumNameRow) albumNameRow.style.display='none';
-    document.getElementById('drawing-upload-area').querySelector('.btn-ink').style.display='';
+    if(preview){ preview.style.display='none'; preview.innerHTML=''; }
+    window._pendingDropFiles=null;
   }
   renderAdminDrawingList(getAdminDocClientId());
 }
 function renderAdminDrawingList(cid){
   const vers=docsData[cid]?.drawings?.[currentDrawingType]||[];
   const el=document.getElementById('admin-drawing-list');el.innerHTML='';
-  if(!vers.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無版本</div>';return;}
-  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
 
   if(currentDrawingType==='效果圖'){
-    // Group photos by date (= album name)
+    if(!vers.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無效果圖，請在下方建立相簿並上傳</div>';return;}
+
+    // Group by album name (= date field)
     const albums={};
     vers.forEach((v,i)=>{
       const key=v.date||'未分類';
       if(!albums[key]) albums[key]=[];
-      albums[key].push({...v, _idx:i});
+      albums[key].push({...v,_idx:i});
     });
     const albumKeys=Object.keys(albums).sort((a,b)=>b.localeCompare(a));
-    if(!albumKeys.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無效果圖</div>';return;}
 
-    albumKeys.forEach(albumName=>{
+    albumKeys.forEach((albumName,albumIdx)=>{
       const photos=albums[albumName];
-      const section=document.createElement('div');
-      section.style.cssText='margin-bottom:16px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
       const safeId=encodeURIComponent(albumName).replace(/%/g,'_');
+      const isFirstAlbum=(albumIdx===0);
+      const gridId=`album-grid-${safeId}`;
 
-      // Album header
+      const section=document.createElement('div');
+      section.style.cssText='margin-bottom:10px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;';
+
+      // ── Album header (clickable to toggle) ──
       const hd=document.createElement('div');
-      hd.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sand);border-bottom:0.5px solid var(--border);flex-wrap:wrap;';
+      hd.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sand);cursor:pointer;user-select:none;';
       hd.innerHTML=`
+        <span id="album-toggle-${safeId}" style="font-size:12px;color:var(--ink-light);flex-shrink:0;transition:transform .2s;display:inline-block;${isFirstAlbum?'transform:rotate(90deg)':''}">›</span>
         <span id="album-hd-label-${safeId}" style="font-size:13px;font-weight:500;color:var(--ink);flex:1;">${albumName}</span>
-        <span style="font-size:11px;color:var(--ink-muted);">${photos.length} 張</span>
-        <button class="btn-sm" onclick="startAlbumRename(${cid},'${albumName.replace(/'/g,"\\'")}','${safeId}')">重新命名</button>
-        <button class="btn-sm danger" onclick="deleteAlbum(${cid},'${albumName.replace(/'/g,"\\'")}')">刪除相簿</button>`;
+        <span style="font-size:11px;color:var(--ink-muted);margin-right:4px;">${photos.length} 張</span>
+        <button class="btn-sm" onclick="event.stopPropagation();startAlbumRename(${cid},'${albumName.replace(/'/g,"\\'")}','${safeId}')">重新命名</button>
+        <button class="btn-sm danger" onclick="event.stopPropagation();deleteAlbum(${cid},'${albumName.replace(/'/g,"\\'")}')">刪除相簿</button>`;
+      hd.onclick=()=>{
+        const grid=document.getElementById(gridId);
+        const arrow=document.getElementById(`album-toggle-${safeId}`);
+        if(!grid) return;
+        const open=grid.style.display!=='none';
+        grid.style.display=open?'none':'grid';
+        if(arrow) arrow.style.transform=open?'':'rotate(90deg)';
+      };
       section.appendChild(hd);
 
-      // Photo grid
+      // ── Photo grid (collapsed by default except first) ──
       const grid=document.createElement('div');
-      grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);';
+      grid.id=gridId;
+      grid.style.cssText=`display:${isFirstAlbum?'grid':'none'};grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);`;
+
       photos.forEach((v)=>{
         const i=v._idx;
         const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
         const cell=document.createElement('div');
         cell.style.cssText='position:relative;background:#fff;overflow:hidden;display:flex;flex-direction:column;';
+
         if(isImg){
           const imgArea=document.createElement('div');
           imgArea.style.cssText='position:relative;aspect-ratio:1;overflow:hidden;flex-shrink:0;';
-          imgArea.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">
-            ${v.isCover?`<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">封面</div>`:''}
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.5));opacity:0;transition:opacity .15s;" class="cell-overlay">
+          imgArea.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
+            ${v.isCover?'<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.04em;">封面</div>':''}
+            <div class="cell-overlay" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.55));opacity:0;transition:opacity .15s;">
               <div style="display:flex;gap:4px;padding:6px;">
                 ${!v.isCover?`<button onclick="setCover(${cid},${i})" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">設封面</button>`:''}
                 <button onclick="removeDrawing(${cid},'效果圖',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
@@ -4155,15 +4172,10 @@ function renderAdminDrawingList(cid){
           const noteTa=document.createElement('textarea');
           noteTa.className='render-thumb-note-input';
           noteTa.rows=2;
-          noteTa.placeholder='設計備注（客戶點開可見）…';
+          noteTa.placeholder='備注（客戶點開可見）';
           noteTa.value=v.note||'';
           noteTa.onclick=e=>e.stopPropagation();
-          noteTa.onblur=async()=>{
-            const newNote=noteTa.value;
-            if(newNote===v.note) return;
-            v.note=newNote;
-            if(v.dbId){try{await sbClient.from('project_docs').update({note:newNote}).eq('id',v.dbId);}catch(e){console.error(e.message);}}
-          };
+          noteTa.onblur=async()=>{const n=noteTa.value;if(n===v.note)return;v.note=n;if(v.dbId)try{await sbClient.from('project_docs').update({note:n}).eq('id',v.dbId);}catch(e){console.error(e);}};
           cell.appendChild(noteTa);
         } else {
           cell.style.cssText+='aspect-ratio:1;';
@@ -4176,10 +4188,13 @@ function renderAdminDrawingList(cid){
         grid.appendChild(cell);
       });
       section.appendChild(grid);
-      wrap.appendChild(section);
+      el.appendChild(section);
     });
-    el.appendChild(wrap);
-    // List view for 平面/立面系統圖
+
+  } else {
+    // ── 平面/立面系統圖：list view ──
+    if(!vers.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無版本</div>';return;}
+    const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
     vers.forEach((v,i)=>{
       const r=document.createElement('div');r.className='ufile-row';
       const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
@@ -4190,8 +4205,8 @@ function renderAdminDrawingList(cid){
         <button class="btn-sm danger" onclick="removeDrawing(${cid},'${currentDrawingType}',${i})">刪除</button>`;
       wrap.appendChild(r);
     });
+    el.appendChild(wrap);
   }
-  el.appendChild(wrap);
 }
 
 async function setCover(cid, idx){
