@@ -280,17 +280,22 @@ tbody tr:hover td{background:#FDFAF6;}
 .render-img-cover-btn{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;padding:3px 6px;border-radius:4px;opacity:0;transition:opacity .15s;cursor:pointer;letter-spacing:.04em;border:none;}
 .render-img-wrap:hover .render-img-cover-btn{opacity:1;}
 .render-img-cover-badge{position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:3px 6px;border-radius:4px;letter-spacing:.04em;}
+.render-img-note-badge{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(20,14,8,0.68));padding:14px 7px 5px;font-size:10px;color:rgba(255,255,255,0.88);line-height:1.3;letter-spacing:.02em;}
+/* Admin note input in thumbnail */
+.render-thumb-note-input{width:100%;border:none;border-top:0.5px solid var(--border);padding:5px 7px;font-size:10px;font-family:'Noto Sans TC',sans-serif;color:var(--ink);background:#fafafa;outline:none;resize:none;line-height:1.4;}
 /* Lightbox */
-.render-lightbox{position:fixed;inset:0;background:rgba(10,8,6,0.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
-.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 52px;}
-.render-lightbox-img-wrap img{max-width:100%;max-height:82vh;border-radius:6px;object-fit:contain;user-select:none;}
+.render-lightbox{position:fixed;inset:0;background:rgba(10,8,6,0.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
+.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 52px;min-height:0;}
+.render-lightbox-img-wrap img{max-width:100%;max-height:78vh;border-radius:6px;object-fit:contain;user-select:none;cursor:zoom-in;transition:transform .2s;}
+.render-lightbox-img-wrap img.zoomed{cursor:zoom-out;transform:scale(1.8);}
 .render-lb-close{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.65);font-size:28px;cursor:pointer;line-height:1;z-index:10;padding:6px;}
 .render-lb-close:hover{color:#fff;}
 .render-lb-prev,.render-lb-next{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.5);font-size:38px;cursor:pointer;padding:10px 16px;user-select:none;transition:color .15s;}
 .render-lb-prev{left:0;}.render-lb-next{right:0;}
 .render-lb-prev:hover,.render-lb-next:hover{color:#fff;}
-.render-lb-counter{font-size:11px;color:rgba(255,255,255,0.38);letter-spacing:.1em;padding:8px 0 12px;}
-.render-lb-caption{font-size:12px;color:rgba(255,255,255,0.55);padding-bottom:4px;letter-spacing:.04em;max-width:480px;text-align:center;}
+.render-lb-bottom{display:flex;flex-direction:column;align-items:center;padding:8px 16px 14px;max-width:660px;width:100%;}
+.render-lb-caption{font-size:13px;color:rgba(255,255,255,0.82);letter-spacing:.03em;text-align:center;line-height:1.6;margin-bottom:4px;}
+.render-lb-counter{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:.1em;}
 
 
 /* Drag-drop zone for 效果圖 */
@@ -1548,11 +1553,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <span class="render-lb-close" onclick="closeRenderLightbox()">✕</span>
   <div class="render-lightbox-img-wrap">
     <span class="render-lb-prev" onclick="lbNav(-1);event.stopPropagation()">‹</span>
-    <img id="render-lightbox-img" src="" alt="" draggable="false">
+    <img id="render-lightbox-img" src="" alt="" draggable="false" onclick="toggleLbZoom(event)">
     <span class="render-lb-next" onclick="lbNav(1);event.stopPropagation()">›</span>
   </div>
-  <div class="render-lb-caption" id="render-lb-caption"></div>
-  <div class="render-lb-counter" id="render-lb-counter"></div>
+  <div class="render-lb-bottom">
+    <div class="render-lb-caption" id="render-lb-caption"></div>
+    <div class="render-lb-counter" id="render-lb-counter"></div>
+  </div>
 </div>
 
 <!-- CLIENT MODAL -->
@@ -3491,8 +3498,15 @@ function openAlbum(date, imgs){
   grid.innerHTML='';
   window._lbImages=imgs.map(v=>({src:v.fileUrl,caption:v.note||''}));
   imgs.forEach((v,i)=>{
-    const wrap=document.createElement('div');wrap.className='render-img-wrap';
-    wrap.innerHTML=`<img src="${v.fileUrl}" alt="" loading="lazy">${v.isCover?'<div class="render-img-cover-badge">封面</div>':''}`;
+    const wrap=document.createElement('div');
+    wrap.className='render-img-wrap';
+    wrap.style.cssText='aspect-ratio:unset;';
+    wrap.innerHTML=`
+      <div style="aspect-ratio:1;overflow:hidden;position:relative;">
+        <img src="${v.fileUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;">
+        ${v.isCover?'<div class="render-img-cover-badge">封面</div>':''}
+        ${v.note?`<div class="render-img-note-badge">${v.note}</div>`:''}
+      </div>`;
     wrap.onclick=()=>openRenderLightbox(i);
     grid.appendChild(wrap);
   });
@@ -3526,7 +3540,17 @@ function _updateLightbox(){
   if(cap) cap.textContent=item.caption||'';
   if(ctr) ctr.textContent=`${_lbCurrent+1} / ${imgs.length}`;
 }
+function toggleLbZoom(e){
+  e.stopPropagation();
+  const img=document.getElementById('render-lightbox-img');
+  if(!img) return;
+  img.classList.toggle('zoomed');
+}
+
 function lbNav(dir){
+  // Reset zoom before navigating
+  const img=document.getElementById('render-lightbox-img');
+  if(img) img.classList.remove('zoomed');
   const imgs=window._lbImages||[];
   _lbCurrent=(_lbCurrent+dir+imgs.length)%imgs.length;
   _updateLightbox();
@@ -3626,9 +3650,11 @@ function renderAdminDrawingList(cid){
     vers.forEach((v,i)=>{
       const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
       const cell=document.createElement('div');
-      cell.style.cssText='position:relative;background:#fff;aspect-ratio:1;overflow:hidden;';
+      cell.style.cssText='position:relative;background:#fff;overflow:hidden;display:flex;flex-direction:column;';
       if(isImg){
-        cell.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">
+        const imgArea=document.createElement('div');
+        imgArea.style.cssText='position:relative;aspect-ratio:1;overflow:hidden;flex-shrink:0;';
+        imgArea.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">
           ${v.isCover?`<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.04em;">封面</div>`:''}
           <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.5));opacity:0;transition:opacity .15s;" class="cell-overlay">
             <div style="display:flex;gap:4px;padding:6px;">
@@ -3636,9 +3662,24 @@ function renderAdminDrawingList(cid){
               <button onclick="removeDrawing(${cid},'效果圖',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
             </div>
           </div>`;
-        cell.querySelector('.cell-overlay') && (cell.onmouseenter=()=>cell.querySelector('.cell-overlay').style.opacity='1');
-        cell.onmouseleave=()=>{const ov=cell.querySelector('.cell-overlay');if(ov)ov.style.opacity='0';};
+        imgArea.onmouseenter=()=>{const ov=imgArea.querySelector('.cell-overlay');if(ov)ov.style.opacity='1';};
+        imgArea.onmouseleave=()=>{const ov=imgArea.querySelector('.cell-overlay');if(ov)ov.style.opacity='0';};
+        cell.appendChild(imgArea);
+        // Note textarea
+        const noteTa=document.createElement('textarea');
+        noteTa.className='render-thumb-note-input';
+        noteTa.rows=2;
+        noteTa.placeholder='設計備注（客戶可見）…';
+        noteTa.value=v.note||'';
+        noteTa.onclick=e=>e.stopPropagation();
+        noteTa.onblur=async()=>{
+          if(noteTa.value===v.note) return;
+          v.note=noteTa.value;
+          if(v.dbId) try{await dbSaveDoc(cid,'drawing_效果圖',v);}catch(e){console.warn(e);}
+        };
+        cell.appendChild(noteTa);
       } else {
+        cell.style.cssText+='aspect-ratio:1;';
         cell.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;padding:8px;">
           <span style="font-size:20px;">📄</span>
           <span style="font-size:9px;color:var(--ink-muted);text-align:center;word-break:break-all;">${v.note||'PDF'}</span>
