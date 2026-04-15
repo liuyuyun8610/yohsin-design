@@ -78,6 +78,10 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 }
 
 .pb{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+/* ── 手機版通用響應式格線 ── */
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+
 @media(max-width:720px){
   .pb{padding:1.2rem 1rem 3rem;}
   .card{padding:1rem;}
@@ -89,12 +93,48 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
   .assign-wrap{grid-template-columns:1fr;}
   .tbl-wrap{border-radius:10px;}
   .sec-head{flex-wrap:wrap;gap:8px;}
-  .modal{padding:1.4rem;}
+  .modal{padding:1.2rem 1rem;width:calc(100vw - 2rem);max-width:calc(100vw - 2rem);}
   .fg-2{grid-template-columns:1fr;}
   .photo-grid{grid-template-columns:repeat(3,1fr);}
   .drawing-grid{grid-template-columns:1fr 1fr;}
   .page-title{font-size:18px;}
   .sec-ttl{font-size:16px;}
+  /* 通用響應格線 */
+  .grid-2col{grid-template-columns:1fr;}
+  .grid-3col{grid-template-columns:1fr 1fr;}
+  /* 表格水平捲動 */
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  /* 會議記錄在手機上的間距 */
+  .meeting-record-bd{padding:10px 12px 12px;}
+  /* 文章工具列換行更緊湊 */
+  .art-toolbar{gap:3px;padding:6px 8px;}
+  .art-tb-btn{padding:4px 7px;font-size:10.5px;}
+  /* 業主筆記表單 */
+  #meeting-client-note-panel .cn-form-row{grid-template-columns:1fr!important;}
+  /* 快捷圖紙入口 */
+  .client-shortcut-grid{grid-template-columns:1fr 1fr 1fr!important;}
+}
+
+@media(max-width:480px){
+  .grid-3col{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .client-shortcut-grid{grid-template-columns:1fr!important;}
+  .meeting-record-hd{flex-wrap:wrap;gap:4px;}
+  .meeting-record-date{font-size:11px;}
+  /* 讓 3 欄付款明細在最小螢幕也清楚 */
+  .pay-sum{grid-template-columns:1fr 1fr;}
+}
+
+/* iOS 防止自動縮放 input (font-size < 16px 會觸發) */
+@media(max-width:768px){
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select{
+    font-size:16px!important;
+  }
+  /* 讓 modal 在手機不超出螢幕 */
+  .modal-bd{padding:0.5rem;}
+  .modal{border-radius:16px;}
 }
 .page{display:none;}
 .page.active{display:block;}
@@ -353,9 +393,9 @@ tbody tr:hover td{background:#FDFAF6;}
 .meeting-record{background:#fff;border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
 .meeting-record-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background 0.12s;}
 .meeting-record-hd:hover{background:var(--sand);}
-.meeting-record-date{font-size:12px;font-weight:500;color:var(--ink);min-width:80px;}
-.meeting-record-title{font-size:13px;color:var(--ink-muted);flex:1;}
-.meeting-record-arr{font-size:12px;color:var(--ink-light);transition:transform 0.2s;}
+.meeting-record-date{font-size:12px;font-weight:500;color:var(--ink);min-width:72px;flex-shrink:0;}
+.meeting-record-title{font-size:13px;color:var(--ink-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.meeting-record-arr{font-size:12px;color:var(--ink-light);transition:transform 0.2s;flex-shrink:0;}
 .meeting-record-arr.open{transform:rotate(90deg);}
 .meeting-record-bd{display:none;padding:0 14px 14px;font-size:13px;color:var(--ink-muted);line-height:1.8;border-top:0.5px solid var(--border);}
 .meeting-record-bd.open{display:block;}
@@ -774,14 +814,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <!-- 新增筆記表單 -->
           <div style="background:var(--sand);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1.1rem;">
             <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;color:var(--accent);margin-bottom:0.9rem;">✏️ 新增業主筆記</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="cn-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
               <div>
                 <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">日期</div>
-                <input type="date" id="cn-date" style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;">
+                <input type="date" id="cn-date" style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;box-sizing:border-box;">
               </div>
               <div>
                 <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">標題</div>
-                <input type="text" id="cn-title" placeholder="例：家電展考察筆記" style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;">
+                <input type="text" id="cn-title" placeholder="例：家電展考察筆記" style="width:100%;padding:8px 10px;font-family:'Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;box-sizing:border-box;">
               </div>
             </div>
             <div style="margin-bottom:10px;">
@@ -3842,6 +3882,23 @@ function renderClientLineScreenshots(d){
     el.appendChild(item);
   });
 }
+// ========== 智慧分段：將純文字換行轉為段落 HTML ==========
+function smartFormat(text){
+  if(!text) return '';
+  const trimmed=text.trim();
+  // 雙換行 → 段落，單換行 → <br>
+  const paragraphs=trimmed.split(/\n[ \t]*\n/);
+  if(paragraphs.length>1){
+    return paragraphs
+      .map(p=>p.trim())
+      .filter(p=>p.length>0)
+      .map(p=>`<p style="margin:0 0 9px;line-height:1.85;">${p.replace(/\n/g,'<br>')}</p>`)
+      .join('');
+  }
+  // 單段：只轉換換行
+  return `<p style="margin:0;line-height:1.85;">${trimmed.replace(/\n/g,'<br>')}</p>`;
+}
+
 function renderClientFormalMeetings(d){
   const el=document.getElementById('client-formal-meetings');el.innerHTML='';
   const sorted=[...(d.formalMeetings||[])].sort((a,b)=>b.date.localeCompare(a.date));
@@ -3849,11 +3906,17 @@ function renderClientFormalMeetings(d){
   sorted.forEach(m=>{
     const imgHtml=(m.images&&m.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${m.images.map(src=>`<img src="${src}" style="height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
     const item=document.createElement('div');item.className='meeting-record';
-    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${m.content}${imgHtml}</div>`;
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${smartFormat(m.content)}${imgHtml}</div>`;
     el.appendChild(item);
   });
 }
-function toggleMeetingRecord(hd){hd.querySelector('.meeting-record-arr').classList.toggle('open');hd.nextElementSibling.classList.toggle('open');}
+function toggleMeetingRecord(hd){
+  hd.querySelector('.meeting-record-arr').classList.toggle('open');
+  hd.nextElementSibling.classList.toggle('open');
+  // Allow title to wrap when expanded
+  const title=hd.querySelector('.meeting-record-title');
+  if(title) title.style.whiteSpace=hd.nextElementSibling.classList.contains('open')?'normal':'nowrap';
+}
 function toggleOldVersions(id){const el=document.getElementById(id);el.classList.toggle('open');el.previousElementSibling.textContent=(el.classList.contains('open')?'▾':'▸')+' 舊版本資料';}
 function switchMeetingTab(tab,el){
   document.querySelectorAll('#p-docs .meeting-tab').forEach(t=>t.classList.remove('active'));
@@ -3905,7 +3968,7 @@ function renderClientNotes(){
         <span class="meeting-record-arr">›</span>
       </div>
       <div class="meeting-record-bd" style="padding-top:12px;">
-        <div style="font-size:13px;color:var(--ink);line-height:1.8;white-space:pre-wrap;">${n.content||''}</div>
+        <div style="font-size:13px;color:var(--ink);">${smartFormat(n.content||'')}</div>
         ${imgHtml}
         <div style="margin-top:12px;display:flex;justify-content:flex-end;">
           <button onclick="deleteClientNote(${n.dbId},event)" style="font-size:11px;color:var(--red);background:none;border:0.5px solid #EDB8B0;border-radius:7px;padding:4px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">刪除</button>
@@ -4389,7 +4452,7 @@ function renderAdminClientNotesList(cid){
         <span class="meeting-record-arr">›</span>
       </div>
       <div class="meeting-record-bd" style="padding-top:10px;">
-        <div style="font-size:13px;line-height:1.8;white-space:pre-wrap;">${n.content||''}</div>
+        <div style="font-size:13px;">${smartFormat(n.content||'')}</div>
         ${imgHtml}
         <div style="display:flex;justify-content:flex-end;margin-top:10px;">
           <button class="btn-sm danger" onclick="adminDeleteClientNote(${n.dbId},${cid})">刪除</button>
