@@ -855,18 +855,70 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <!-- 付款明細 -->
     <div class="page" id="p-payment">
       <div class="page-title">付款明細及收據</div>
-      <div class="card">
+
+      <!-- 總覽 -->
+      <div class="card" style="margin-bottom:1rem;">
         <div class="pay-sum">
-          <div class="pay-box"><div class="pay-lbl">合約金額</div><div class="pay-val" id="client-pay-total">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">合約總額</div><div class="pay-val" id="client-pay-total">$—</div></div>
           <div class="pay-box"><div class="pay-lbl">已收總額</div><div class="pay-val" id="client-pay-received">$—</div></div>
           <div class="pay-box"><div class="pay-lbl">待收金額</div><div class="pay-val danger" id="client-pay-pending">$—</div></div>
         </div>
-        <table class="ptbl">
-          <thead><tr><th>期別</th><th>預計日期</th><th>金額</th><th>狀態</th><th>實收日期</th></tr></thead>
-          <tbody id="client-pay-tbody"></tbody>
-        </table>
-        <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
+        <!-- 整體進度條 -->
+        <div style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-light);margin-bottom:5px;">
+            <span>收款進度</span><span id="client-pay-pct">0%</span>
+          </div>
+          <div style="height:6px;background:var(--sand-dark);border-radius:3px;overflow:hidden;">
+            <div id="client-pay-bar" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .4s;"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- 設計費 區塊 -->
+      <div id="pay-section-design" style="margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
+          <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--blue);">✏️ 設計費</div>
+          <div style="flex:1;height:0.5px;background:var(--blue-pale);"></div>
+          <div style="font-size:12px;color:var(--blue);" id="pay-design-summary"></div>
+        </div>
+        <div class="card" style="padding:0;">
+          <table class="ptbl" style="margin:0;">
+            <thead><tr>
+              <th style="padding:9px 14px;">期別</th>
+              <th style="padding:9px 14px;">預計日期</th>
+              <th style="padding:9px 14px;text-align:right;">金額</th>
+              <th style="padding:9px 14px;">狀態</th>
+              <th style="padding:9px 14px;">實收日期</th>
+            </tr></thead>
+            <tbody id="client-pay-design-tbody"></tbody>
+          </table>
+          <div id="client-pay-design-empty" style="text-align:center;padding:1.5rem;font-size:13px;color:var(--ink-light);display:none;">尚無設計費記錄</div>
+        </div>
+      </div>
+
+      <!-- 工程款 區塊 -->
+      <div id="pay-section-construction" style="margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
+          <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">🏗️ 工程款</div>
+          <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
+          <div style="font-size:12px;color:var(--accent);" id="pay-construction-summary"></div>
+        </div>
+        <div class="card" style="padding:0;">
+          <table class="ptbl" style="margin:0;">
+            <thead><tr>
+              <th style="padding:9px 14px;">期別</th>
+              <th style="padding:9px 14px;">預計日期</th>
+              <th style="padding:9px 14px;text-align:right;">金額</th>
+              <th style="padding:9px 14px;">狀態</th>
+              <th style="padding:9px 14px;">實收日期</th>
+            </tr></thead>
+            <tbody id="client-pay-construction-tbody"></tbody>
+          </table>
+          <div id="client-pay-construction-empty" style="text-align:center;padding:1.5rem;font-size:13px;color:var(--ink-light);display:none;">尚無工程款記錄</div>
+        </div>
+      </div>
+
+      <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
     </div>
 
 
@@ -1195,15 +1247,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
         <!-- 收款期程表格 -->
         <div class="card" style="margin-bottom:1rem;padding:0;">
-          <table style="width:100%;border-collapse:collapse;min-width:600px;">
+          <table style="width:100%;border-collapse:collapse;min-width:640px;">
             <thead>
               <tr>
-                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:22%;">期別名稱</th>
-                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:16%;">金額（元）</th>
-                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:9%;">佔比</th>
-                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">預計收款日</th>
-                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:12%;">狀態</th>
-                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">實收日期</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:20%;">期別名稱</th>
+                <th style="text-align:left;padding:9px 10px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:11%;">類別</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:15%;">金額（元）</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:8%;">佔比</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:14%;">預計收款日</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:11%;">狀態</th>
+                <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);width:14%;">實收日期</th>
                 <th style="border-bottom:0.5px solid var(--border);background:var(--sand);width:4%;"></th>
               </tr>
             </thead>
@@ -2735,8 +2788,18 @@ async function renderSchedule(){
       ? `<td style="padding:6px 10px;font-size:13px;font-weight:500;color:#185FA5;">追加減</td>`
       : `<td style="padding:6px 10px;"><input style="${inp}" value="${r.name}" placeholder="例：簽約款" oninput="scheduleData[${pid}][${i}].name=this.value"></td>`;
 
+    const catStyle=`padding:7px 8px;font-family:'Noto Sans TC',sans-serif;font-size:12px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;width:100%;cursor:pointer;`;
+    const cat=r.category||'工程款';
+    const catCell=isLast
+      ? `<td style="padding:6px 10px;font-size:12px;color:var(--ink-light);">—</td>`
+      : `<td style="padding:6px 8px;"><select style="${catStyle}" onchange="scheduleData[${pid}][${i}].category=this.value;updateSchStats(${pid})">
+           <option value="工程款" ${cat==='工程款'?'selected':''}>工程款</option>
+           <option value="設計費" ${cat==='設計費'?'selected':''}>設計費</option>
+         </select></td>`;
+
     tr.innerHTML=`
       ${nameCell}
+      ${catCell}
       ${amtCell}
       <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);" id="sch-pct-${pid}-${i}">${pctStr}</td>
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})"></td>
@@ -2782,7 +2845,7 @@ function updateSchStats(pid){
 function addScheduleRow(){
   const pid=currentDetailProjId; if(!pid) return;
   initScheduleData(pid);
-  scheduleData[pid].push({name:'',amount:0,due:'',status:'未收',received:''});
+  scheduleData[pid].push({name:'',amount:0,due:'',status:'未收',received:'',category:'工程款'});
   renderSchedule();
   const rows=document.getElementById('schedule-tbody').querySelectorAll('tr');
   if(rows.length){ const inp=rows[rows.length-1].querySelector('input'); if(inp) inp.focus(); }
@@ -2795,7 +2858,7 @@ async function saveSchedule(){
   const items=[];
   rows.forEach(tr=>{
     const inputs=tr.querySelectorAll('input');
-    const sel=tr.querySelector('select');
+    const sels=tr.querySelectorAll('select');
     if(inputs.length<3) return;
     // Check if this is the auto row (blue background, readonly amount input)
     const isAuto=tr.style.background==='rgb(245, 250, 255)';
@@ -2804,8 +2867,10 @@ async function saveSchedule(){
     const amount=parseFloat(inputs[amtIdx].value)||0;
     const due=inputs[isAuto?1:2].value;
     const received=inputs[isAuto?2:3].value;
-    const status=sel?sel.value:'未收';
-    items.push({name,amount,due,status,received});
+    // sels[0]=category, sels[1]=status (for non-auto rows); auto rows have no category sel
+    const category=isAuto?'工程款':(sels[0]?.value||'工程款');
+    const status=isAuto?(sels[0]?.value||'未收'):(sels[1]?.value||'未收');
+    items.push({name,amount,due,status,received,category});
   });
   // Update memory
   scheduleData[pid]=items;
@@ -4590,41 +4655,73 @@ async function renderClientPayment(){
       try{ scheduleData[pid]=JSON.parse(data.schedule_json); }catch(e){}
     }
   }catch(e){}
-  const items=scheduleData[pid]||[];
+  const allItems=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
-  const total=contractAmt>0?contractAmt:items.reduce((s,r)=>s+(r.amount||0),0);
-  const received=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const total=contractAmt>0?contractAmt:allItems.reduce((s,r)=>s+(r.amount||0),0);
+  const received=allItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const pending=total-received;
+  const pct=total>0?Math.round(received/total*100):0;
   const setEl=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
   setEl('client-pay-total','$'+fmtN(total));
   setEl('client-pay-received','$'+fmtN(received));
   setEl('client-pay-pending','$'+fmtN(pending));
-  const tb=document.getElementById('client-pay-tbody');
+  setEl('client-pay-pct',pct+'%');
+  const barEl=document.getElementById('client-pay-bar');
+  if(barEl) barEl.style.width=pct+'%';
+
   const empty=document.getElementById('client-pay-empty');
-  if(!items.length){if(tb)tb.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(!allItems.length){if(empty)empty.style.display='block';return;}
   if(empty)empty.style.display='none';
-  if(!tb)return;
-  tb.innerHTML='';
+
   const today=new Date();today.setHours(0,0,0,0);
   const statusPill={'已收':'pill-green','未收':'pill-amber','逾期':'pill-danger'};
-  items.forEach(r=>{
-    // Auto-upgrade status to 逾期 if due date is past and not yet received
-    let displayStatus=r.status;
-    if(r.status==='未收'&&r.due){
-      const dueDate=new Date(r.due.replace(/\//g,'-'));
-      if(!isNaN(dueDate)&&dueDate<today) displayStatus='逾期';
-    }
-    const tr=document.createElement('tr');
-    // Highlight overdue rows
-    if(displayStatus==='逾期') tr.style.background='#FFF5F5';
-    tr.innerHTML=`
-      <td>${r.name||'—'}</td>
-      <td style="color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
-      <td>$${fmtN(r.amount||0)}</td>
-      <td><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
-      <td style="color:var(--ink-muted)">${r.received||'—'}</td>`;
-    tb.appendChild(tr);
-  });
+
+  // Helper: render rows into a tbody
+  function renderPayRows(tbodyId, emptyId, items){
+    const tb=document.getElementById(tbodyId);
+    const emp=document.getElementById(emptyId);
+    if(!tb) return;
+    tb.innerHTML='';
+    if(!items.length){if(emp)emp.style.display='block';return;}
+    if(emp)emp.style.display='none';
+    items.forEach(r=>{
+      let displayStatus=r.status;
+      if(r.status==='未收'&&r.due){
+        const dueDate=new Date(r.due.replace(/\//g,'-'));
+        if(!isNaN(dueDate)&&dueDate<today) displayStatus='逾期';
+      }
+      const tr=document.createElement('tr');
+      if(displayStatus==='逾期') tr.style.background='#FFF5F5';
+      tr.innerHTML=`
+        <td style="padding:9px 14px;">${r.name||'—'}</td>
+        <td style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
+        <td style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
+        <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
+        <td style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  // Split by category (default 工程款 for legacy data)
+  const designItems=allItems.filter(r=>r.category==='設計費');
+  const constructionItems=allItems.filter(r=>!r.category||r.category==='工程款');
+
+  renderPayRows('client-pay-design-tbody','client-pay-design-empty',designItems);
+  renderPayRows('client-pay-construction-tbody','client-pay-construction-empty',constructionItems);
+
+  // Section summaries
+  const designReceived=designItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const designTotal=designItems.reduce((s,r)=>s+(r.amount||0),0);
+  const conReceived=constructionItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const conTotal=constructionItems.reduce((s,r)=>s+(r.amount||0),0);
+  setEl('pay-design-summary',designItems.length?`已收 $${fmtN(designReceived)} ／ 共 $${fmtN(designTotal)}`:'');
+  setEl('pay-construction-summary',constructionItems.length?`已收 $${fmtN(conReceived)} ／ 共 $${fmtN(conTotal)}`:'');
+
+  // Hide empty sections entirely
+  const secDesign=document.getElementById('pay-section-design');
+  const secCon=document.getElementById('pay-section-construction');
+  if(secDesign) secDesign.style.display=designItems.length?'block':'none';
+  if(secCon) secCon.style.display=constructionItems.length?'block':'none';
 }
 
 // ========== KNOWLEDGE ==========
