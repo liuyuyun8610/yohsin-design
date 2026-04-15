@@ -707,8 +707,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="dash-photo-strip" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;"></div>
       </div>
 
-      <!-- 3. 追加減摘要 -->
-      <div class="card" id="dash-co-card" style="margin-bottom:12px;display:none;">
+      <!-- 2.5 最近會議記錄 -->
+      <div class="card" id="dash-meetings-card" style="margin-bottom:12px;">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>最近會議記錄</span>
+          <button onclick="goToMeetings()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;letter-spacing:0;">全部記錄 ›</button>
+        </div>
+        <div id="dash-meetings-list"></div>
+      </div>
+
+      <!-- 3. 追加減摘要 -->      <div class="card" id="dash-co-card" style="margin-bottom:12px;display:none;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>追加減狀況</span>
           <button onclick="goPage('p-changes',document.querySelector('#s-client .tnav:last-child'))" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;">明細 ›</button>
@@ -4005,6 +4013,7 @@ async function addClientNote(){
     document.getElementById('cn-img-preview').innerHTML='';
     pendingClientNoteImgs=[];
     renderClientNotes();
+    renderDashMeetings(); // 同步更新總覽首頁
   }catch(e){alert('儲存失敗：'+e.message);}
   if(btn){btn.textContent='儲存筆記';btn.disabled=false;}
 }
@@ -4021,6 +4030,7 @@ async function deleteClientNote(dbId,e){
       docsData[cid].clientNotes=docsData[cid].clientNotes.filter(n=>n.dbId!==dbId);
     }
     renderClientNotes();
+    renderDashMeetings(); // 同步更新總覽首頁
   }catch(e){alert('刪除失敗：'+e.message);}
 }
 
@@ -4969,6 +4979,82 @@ async function renderClientDashboard(){
   const coMobile=document.getElementById('mobile-nav-changes');
   if(coNav) coNav.style.display='';
   if(coMobile) coMobile.style.display='';
+
+  // --- 最近會議記錄 ---
+  renderDashMeetings();
+}
+
+function renderDashMeetings(){
+  const c=clients.find(x=>x.id===currentClientId); if(!c) return;
+  const cid=Number(c.id);
+  const d=docsData[cid]||{};
+  const el=document.getElementById('dash-meetings-list'); if(!el) return;
+
+  // 彙整三種類型，統一格式 {date, type, label, tab}
+  const all=[];
+  (d.lineScreenshots||[]).forEach(s=>{
+    all.push({date:s.date, type:'LINE', label:s.note||`${(s.images||[]).length} 張截圖`, tab:'line'});
+  });
+  (d.formalMeetings||[]).forEach(m=>{
+    all.push({date:m.date, type:'會議', label:m.title||'（無標題）', tab:'formal'});
+  });
+  (d.clientNotes||[]).forEach(n=>{
+    all.push({date:n.date, type:'筆記', label:n.title||n.content?.substring(0,30)||'（無標題）', tab:'client_note'});
+  });
+
+  // 排序最新在前，取最多 3 筆
+  all.sort((a,b)=>b.date.localeCompare(a.date));
+  const top=all.slice(0,3);
+
+  if(!top.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--ink-light);padding:4px 0;">尚無會議記錄</div>';
+    return;
+  }
+
+  const typeStyle={
+    'LINE':  {bg:'#E8F4FD',color:'#1A6FA8'},
+    '會議':  {bg:'var(--accent-pale)',color:'var(--accent)'},
+    '筆記':  {bg:'#EAF0FB',color:'#3A5FAD'},
+  };
+
+  el.innerHTML='';
+  top.forEach(item=>{
+    const ts=typeStyle[item.type]||{bg:'var(--sand)',color:'var(--ink-muted)'};
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity .15s;';
+    row.innerHTML=`
+      <span style="font-size:11px;font-weight:500;background:${ts.bg};color:${ts.color};padding:2px 8px;border-radius:5px;flex-shrink:0;white-space:nowrap;">${item.type}</span>
+      <span style="font-size:12px;color:var(--ink-muted);flex-shrink:0;">${item.date}</span>
+      <span style="font-size:13px;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.label}</span>
+      <span style="font-size:14px;color:var(--ink-light);flex-shrink:0;">›</span>`;
+    row.onmouseover=()=>row.style.opacity='0.7';
+    row.onmouseout=()=>row.style.opacity='1';
+    row.onclick=()=>goToMeetingTab(item.tab);
+    el.appendChild(row);
+  });
+  // 移除最後一筆的 border
+  if(el.lastChild) el.lastChild.style.borderBottom='none';
+}
+
+function goToMeetings(){
+  // 導到資料文件 > LINE 記錄（預設第一個 tab）
+  const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
+  goPage('p-docs', docsNav);
+}
+
+function goToMeetingTab(tab){
+  const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
+  goPage('p-docs', docsNav);
+  // 稍微等 DOM 切換後再切 Tab
+  setTimeout(()=>{
+    const tabBtn=document.querySelector(`#p-docs .meeting-tab[onclick*="${tab}"]`);
+    if(tabBtn) switchMeetingTab(tab, tabBtn);
+    // 捲動到會議記錄區
+    const sec=document.querySelector('#p-docs .doc-section-title');
+    const meetingSecList=[...document.querySelectorAll('#p-docs .doc-section')];
+    const meetingSec=meetingSecList.find(s=>s.querySelector('.meeting-tabs'));
+    if(meetingSec) meetingSec.scrollIntoView({behavior:'smooth',block:'start'});
+  }, 120);
 }
 
 async function loadClientChangeOrders(pid){
