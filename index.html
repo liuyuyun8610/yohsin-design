@@ -2883,21 +2883,18 @@ async function renderSchedule(){
   items.forEach((r,i)=>{
     const isLast=(i===items.length-1)&&r.isCoAuto;
     const pctStr=total>0?((r.amount||0)/total*100).toFixed(1)+'%':'—';
-    // Auto-detect overdue — sync back to memory so save reflects displayed value
-    let effectiveStatus=r.status;
-    if(r.status==='未收'&&r.due){
-      const dd=new Date(r.due.replace(/\//g,'-'));
-      if(!isNaN(dd)&&dd<today){
-        effectiveStatus='逾期';
-        scheduleData[pid][i].status='逾期'; // keep memory in sync with display
-      }
-    }
-    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[effectiveStatus]||'';
+    // 視覺提醒：到期日已過 → 底色標紅、狀態 select 顯示逾期色
+    // 但「不修改記憶體 status」，讓管理員儲存的狀態（包含手動設為未收）被完整保留
+    const isPastDue=(r.status==='未收')&&r.due&&(()=>{
+      const dd=new Date(r.due.replace(/\//g,'-'));return !isNaN(dd)&&dd<today;
+    })();
+    // select 顏色對應真實儲存狀態；到期日已過的視覺提示只用行底色+日期欄小字
+    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
     const toDateVal=s=>(s||'').replace(/\//g,'-');
     const tr=document.createElement('tr');
     tr.style.borderBottom='0.5px solid var(--border)';
     if(isLast) tr.style.background='#F5FAFF';
-    else if(effectiveStatus==='逾期') tr.style.background='#FFF5F5';
+    else if(r.status==='逾期'||isPastDue) tr.style.background='#FFF5F5';
 
     const amtCell=isLast
       ? `<td style="padding:6px 8px;">
@@ -2924,12 +2921,15 @@ async function renderSchedule(){
       ${catCell}
       ${amtCell}
       <td style="padding:6px 10px;text-align:right;font-size:12px;color:var(--ink-light);" id="sch-pct-${pid}-${i}">${pctStr}</td>
-      <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})"></td>
+      <td style="padding:6px 8px;">
+        <input type="date" style="${inp}${isPastDue?'border-color:#EDB8B0;':''}" value="${toDateVal(r.due)}" onchange="scheduleData[${pid}][${i}].due=this.value;updateSchStats(${pid})">
+        ${isPastDue?'<div style="font-size:9px;color:#A32D2D;margin-top:2px;">⚠ 已超過收款日</div>':''}
+      </td>
       <td style="padding:6px 8px;">
         <select style="${inp}cursor:pointer;${statusColor}" onchange="scheduleData[${pid}][${i}].status=this.value;setSchSelColor(this);updateSchStats(${pid})">
-          <option ${(r.status==='未收'&&effectiveStatus==='未收')?'selected':''}>未收</option>
+          <option ${r.status==='未收'?'selected':''}>未收</option>
           <option ${r.status==='已收'?'selected':''}>已收</option>
-          <option ${(r.status==='逾期'||effectiveStatus==='逾期')?'selected':''}>逾期</option>
+          <option ${r.status==='逾期'?'selected':''}>逾期</option>
         </select>
       </td>
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.received)}" onchange="scheduleData[${pid}][${i}].received=this.value"></td>
