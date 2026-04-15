@@ -1959,18 +1959,37 @@ async function uploadFilesToStorage(files, folder){
 const LOC=['客廳','廚房','餐廳','主臥','次臥','書房','浴室','陽台','儲藏室','電器櫃','餐邊櫃','考慮中','不需要'];
 const STAT=['未採購','已採購','舊有'];
 let appData=[
-  {name:'電視',brand:'LG',loc:'客廳',model:'OLED65C5PTA',status:'已採購'},
-  {name:'Soundbar',brand:'Harman kardon',loc:'客廳',model:'enchant 1100',status:'已採購'},
-  {name:'電玩遊戲機',brand:'Nintendo',loc:'客廳',model:'Switch',status:'舊有'},
-  {name:'吸塵器',brand:'Electrolux',loc:'儲藏室',model:'EFP72314',status:'已採購'},
+  // 客廳影音
+  {name:'電視',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'電視盒子',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'Soundbar',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'重低音',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'後環繞／後置',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'電玩遊戲機',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'Wifi 分享器',brand:'',loc:'客廳',model:'',status:'未採購'},
+  // 生活電器
   {name:'空氣清淨機',brand:'',loc:'考慮中',model:'',status:'未採購'},
+  {name:'除濕機',brand:'',loc:'客廳',model:'',status:'未採購'},
+  {name:'吸塵器',brand:'',loc:'儲藏室',model:'',status:'未採購'},
+  {name:'暖風機',brand:'',loc:'浴室',model:'',status:'未採購'},
+  // 廚房
+  {name:'冰箱',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'電鍋',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'電子鍋',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'微波烤箱',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'抽油煙機',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'熱水壺',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'瞬熱／加熱器',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'氣泡水機',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'咖啡機',brand:'',loc:'廚房',model:'',status:'未採購'},
+  {name:'廚餘處理機',brand:'',loc:'廚房',model:'',status:'未採購'},
+  // 陽台／其他
+  {name:'洗脫烘衣機',brand:'',loc:'陽台',model:'',status:'未採購'},
+  {name:'電動曬衣架',brand:'',loc:'陽台',model:'',status:'未採購'},
+  {name:'熱水器',brand:'',loc:'陽台',model:'',status:'未採購'},
 ];
 let furData=[{name:'沙發',brand:'',loc:'客廳',model:'',status:'未採購'},{name:'餐桌',brand:'',loc:'餐廳',model:'',status:'未採購'}];
-let powData=[
-  {name:'大同電鍋',loc:'電器櫃',w:'800',v:'110',qty:'1',note:''},
-  {name:'象印電子鍋',loc:'電器櫃',w:'1115',v:'110',qty:'1',note:''},
-  {name:'洗脫烘衣機',loc:'陽台',w:'1350',v:'110',qty:'1',note:''},
-];
+let powData=[];
 
 const CAL_EVENTS={
   '2026-04-03':[{label:'國定假日',type:'hol'}],
