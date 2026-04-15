@@ -256,32 +256,41 @@ tbody tr:hover td{background:#FDFAF6;}
 .drawing-meta{font-size:11px;color:var(--ink-light);}
 
 /* 3D 效果圖 gallery */
-.render-group{margin-bottom:1.6rem;}
-.render-group-date{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.render-group-date-label{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;}
-.render-group-date::after{content:'';flex:1;height:0.5px;background:var(--border);}
-.render-group{margin-bottom:1.8rem;}
-.render-group-date{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.render-group-date-label{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;}
-.render-group-date::after{content:'';flex:1;height:0.5px;background:var(--border);}
-.render-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+/* 3D 效果圖相簿 */
+.album-list{display:flex;flex-direction:column;gap:10px;}
+.album-card{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--sand);aspect-ratio:16/9;box-shadow:0 2px 12px rgba(42,37,32,0.08);}
+.album-card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s;}
+.album-card:hover img{transform:scale(1.03);}
+.album-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(18,14,10,0.75) 0%,transparent 50%);display:flex;flex-direction:column;justify-content:flex-end;padding:16px 18px 14px;}
+.album-card-date{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:500;color:#fff;letter-spacing:.05em;}
+.album-card-count{font-size:11px;color:rgba(255,255,255,0.65);margin-top:4px;letter-spacing:.06em;}
+.album-card-enter{position:absolute;bottom:14px;right:16px;font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:.06em;opacity:0;transition:opacity .2s;}
+.album-card:hover .album-card-enter{opacity:1;}
+/* Album inside view */
+.render-album-back{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);cursor:pointer;padding:4px 0 14px;letter-spacing:.04em;}
+.render-album-back:hover{color:var(--ink);}
+.render-album-header{margin-bottom:12px;}
+.render-album-title{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:500;color:var(--ink);}
+.render-album-sub{font-size:11px;color:var(--ink-light);margin-top:3px;}
+.render-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
 @media(max-width:480px){.render-grid{grid-template-columns:repeat(2,1fr);}}
-.render-img-wrap{position:relative;border-radius:8px;overflow:hidden;background:var(--sand);aspect-ratio:1;cursor:pointer;}
-.render-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.25s;}
-.render-img-wrap:hover img{transform:scale(1.05);}
-.render-img-label{position:absolute;bottom:0;left:0;right:0;padding:6px 8px;background:linear-gradient(transparent,rgba(42,37,32,0.6));color:#fff;font-size:10px;letter-spacing:.03em;opacity:0;transition:opacity .2s;}
-.render-img-wrap:hover .render-img-label{opacity:1;}
+.render-img-wrap{position:relative;border-radius:6px;overflow:hidden;background:var(--sand);aspect-ratio:1;cursor:pointer;}
+.render-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;}
+.render-img-wrap:hover img{transform:scale(1.06);}
+.render-img-cover-btn{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;padding:3px 6px;border-radius:4px;opacity:0;transition:opacity .15s;cursor:pointer;letter-spacing:.04em;border:none;}
+.render-img-wrap:hover .render-img-cover-btn{opacity:1;}
+.render-img-cover-badge{position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:3px 6px;border-radius:4px;letter-spacing:.04em;}
 /* Lightbox */
-.render-lightbox{position:fixed;inset:0;background:rgba(10,8,6,0.93);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
-.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 48px;}
-.render-lightbox-img-wrap img{max-width:100%;max-height:80vh;border-radius:6px;object-fit:contain;user-select:none;}
-.render-lb-close{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.7);font-size:26px;cursor:pointer;line-height:1;z-index:10;padding:4px;}
+.render-lightbox{position:fixed;inset:0;background:rgba(10,8,6,0.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
+.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 52px;}
+.render-lightbox-img-wrap img{max-width:100%;max-height:82vh;border-radius:6px;object-fit:contain;user-select:none;}
+.render-lb-close{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.65);font-size:28px;cursor:pointer;line-height:1;z-index:10;padding:6px;}
 .render-lb-close:hover{color:#fff;}
-.render-lb-prev,.render-lb-next{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.6);font-size:32px;cursor:pointer;padding:10px 16px;user-select:none;transition:color .15s;}
+.render-lb-prev,.render-lb-next{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.5);font-size:38px;cursor:pointer;padding:10px 16px;user-select:none;transition:color .15s;}
 .render-lb-prev{left:0;}.render-lb-next{right:0;}
 .render-lb-prev:hover,.render-lb-next:hover{color:#fff;}
-.render-lb-counter{font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:.08em;padding:10px 0 14px;}
-.render-lb-caption{font-size:12px;color:rgba(255,255,255,0.65);padding-bottom:6px;letter-spacing:.04em;max-width:480px;text-align:center;}
+.render-lb-counter{font-size:11px;color:rgba(255,255,255,0.38);letter-spacing:.1em;padding:8px 0 12px;}
+.render-lb-caption{font-size:12px;color:rgba(255,255,255,0.55);padding-bottom:4px;letter-spacing:.04em;max-width:480px;text-align:center;}
 
 
 /* Drag-drop zone for 效果圖 */
@@ -2187,7 +2196,7 @@ async function dbLoadDocs(pid){
     docsData[pid].contracts=[];
     docsData[pid].quotes=[];
     (data||[]).forEach(r=>{
-      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,fileUrl:r.file_url||'',size:r.file_size||'—'};
+      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—'};
       if(r.doc_type.startsWith('drawing_')){
         const dtype=r.doc_type.replace('drawing_','');
         if(!docsData[pid].drawings[dtype])docsData[pid].drawings[dtype]=[];
@@ -2205,7 +2214,7 @@ async function dbLoadDocs(pid){
 }
 
 async function dbSaveDoc(pid, docType, item){
-  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr()};
+  const row={project_id:pid, doc_type:docType, name:item.name||'', note:item.note||'', is_final:!!item.isFinal, is_cover:!!item.isCover, file_url:item.fileUrl||'', file_size:item.size||'', doc_date:item.date||todayStr()};
   if(item.dbId){
     const {error}=await sbClient.from('project_docs').update(row).eq('id',item.dbId);
     if(error) throw error;
@@ -3384,49 +3393,79 @@ function renderClient3DGallery(d){
   const sec=document.getElementById('client-renders-section');
   const gallery=document.getElementById('client-renders-gallery');
   if(!sec||!gallery) return;
-  const renders=(d.drawings['效果圖']||[]).filter(v=>v.fileUrl&&/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl));
-  const pdfs=(d.drawings['效果圖']||[]).filter(v=>v.fileUrl&&!/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl));
+  const allRenders=(d.drawings['效果圖']||[]).filter(v=>v.fileUrl);
+  const renders=allRenders.filter(v=>/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl));
+  const pdfs=allRenders.filter(v=>!/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl));
   if(!renders.length&&!pdfs.length){sec.style.display='none';return;}
   sec.style.display='block';
-  gallery.innerHTML='';
-  // Build flat all-images list for lightbox nav
-  window._lbImages=[];
-  // Group images by date
+  // Group by date
   const grouped={};
   renders.forEach(v=>{grouped[v.date]=grouped[v.date]||[];grouped[v.date].push(v);});
   const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+  // Build album list view + inside view (hidden by default)
+  gallery.innerHTML=`
+    <div id="album-list-view" class="album-list"></div>
+    <div id="album-inside-view" style="display:none;">
+      <div class="render-album-back" onclick="closeAlbum()">‹ 返回相簿</div>
+      <div class="render-album-header">
+        <div class="render-album-title" id="album-inside-date"></div>
+        <div class="render-album-sub" id="album-inside-sub"></div>
+      </div>
+      <div id="album-inside-grid" class="render-grid"></div>
+    </div>`;
+  const albumList=document.getElementById('album-list-view');
   dates.forEach(date=>{
-    const group=document.createElement('div');group.className='render-group';
-    const dateLabel=document.createElement('div');dateLabel.className='render-group-date';
-    const count=grouped[date].length;
-    dateLabel.innerHTML=`<span class="render-group-date-label">${date}</span><span style="font-size:11px;color:var(--ink-light);">${count} 張</span>`;
-    group.appendChild(dateLabel);
-    const grid=document.createElement('div');grid.className='render-grid';
-    grouped[date].forEach(v=>{
-      const lbIdx=window._lbImages.length;
-      window._lbImages.push({src:v.fileUrl,caption:v.note||'',date});
-      const wrap=document.createElement('div');wrap.className='render-img-wrap';
-      wrap.innerHTML=`<img src="${v.fileUrl}" alt="${v.note||''}" loading="lazy">${v.note?`<div class="render-img-label">${v.note}</div>`:''}`;
-      wrap.onclick=()=>openRenderLightbox(lbIdx);
-      grid.appendChild(wrap);
-    });
-    group.appendChild(grid);
-    gallery.appendChild(group);
+    const imgs=grouped[date];
+    const cover=imgs.find(v=>v.isCover)||imgs[0];
+    const card=document.createElement('div');card.className='album-card';
+    card.innerHTML=`<img src="${cover.fileUrl}" alt="${date}" loading="lazy">
+      <div class="album-card-overlay">
+        <div class="album-card-date">${date}</div>
+        <div class="album-card-count">${imgs.length} 張效果圖</div>
+      </div>
+      <div class="album-card-enter">進入相簿 ›</div>`;
+    card.onclick=()=>openAlbum(date, imgs);
+    albumList.appendChild(card);
   });
-  // PDFs at bottom
+  // PDFs
   if(pdfs.length){
-    const pdfGroup=document.createElement('div');pdfGroup.className='render-group';
-    const pdfLabel=document.createElement('div');pdfLabel.className='render-group-date';
-    pdfLabel.innerHTML=`<span class="render-group-date-label">PDF 效果圖</span>`;
-    pdfGroup.appendChild(pdfLabel);
+    const pdfWrap=document.createElement('div');pdfWrap.style.cssText='margin-top:10px;';
     pdfs.forEach(v=>{
       const a=document.createElement('a');a.href=v.fileUrl;a.target='_blank';
       a.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:0.5px solid var(--border);border-radius:10px;text-decoration:none;color:var(--ink);margin-bottom:6px;';
-      a.innerHTML=`<span style="font-size:20px;">📄</span><span style="font-size:13px;font-weight:500;">${v.note||v.fileUrl.split('/').pop()}</span><span style="font-size:11px;color:var(--ink-light);margin-left:auto;">${v.date}</span>`;
-      pdfGroup.appendChild(a);
+      a.innerHTML=`<span style="font-size:20px;">📄</span><span style="font-size:13px;font-weight:500;">${v.note||'效果圖 PDF'}</span><span style="font-size:11px;color:var(--ink-light);margin-left:auto;">${v.date}</span>`;
+      pdfWrap.appendChild(a);
     });
-    gallery.appendChild(pdfGroup);
+    albumList.appendChild(pdfWrap);
   }
+}
+
+function openAlbum(date, imgs){
+  const listView=document.getElementById('album-list-view');
+  const insideView=document.getElementById('album-inside-view');
+  const dateEl=document.getElementById('album-inside-date');
+  const subEl=document.getElementById('album-inside-sub');
+  const grid=document.getElementById('album-inside-grid');
+  if(!insideView||!grid) return;
+  listView.style.display='none';
+  insideView.style.display='block';
+  if(dateEl) dateEl.textContent=date;
+  if(subEl) subEl.textContent=`${imgs.length} 張`;
+  grid.innerHTML='';
+  window._lbImages=imgs.map(v=>({src:v.fileUrl,caption:v.note||''}));
+  imgs.forEach((v,i)=>{
+    const wrap=document.createElement('div');wrap.className='render-img-wrap';
+    wrap.innerHTML=`<img src="${v.fileUrl}" alt="" loading="lazy">${v.isCover?'<div class="render-img-cover-badge">封面</div>':''}`;
+    wrap.onclick=()=>openRenderLightbox(i);
+    grid.appendChild(wrap);
+  });
+}
+
+function closeAlbum(){
+  const listView=document.getElementById('album-list-view');
+  const insideView=document.getElementById('album-inside-view');
+  if(listView) listView.style.display='flex';
+  if(insideView) insideView.style.display='none';
 }
 
 let _lbCurrent=0;
@@ -3538,12 +3577,67 @@ function switchDrawingType(type,el){
   renderAdminDrawingList(getAdminDocClientId());
 }
 function renderAdminDrawingList(cid){
-  const vers=docsData[cid].drawings[currentDrawingType]||[];
+  const vers=docsData[cid]?.drawings?.[currentDrawingType]||[];
   const el=document.getElementById('admin-drawing-list');el.innerHTML='';
   if(!vers.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無版本</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  vers.forEach((v,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${currentDrawingType} — ${v.note}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div><div class="ufile-meta">${v.date}</div><button class="btn-sm" onclick="toggleFinal(${cid},'${currentDrawingType}',${i})">${v.isFinal?'取消最終':'設為最終'}</button><button class="btn-sm danger" onclick="removeDrawing(${cid},'${currentDrawingType}',${i})">刪除</button>`;wrap.appendChild(r);});
+
+  if(currentDrawingType==='效果圖'){
+    // Grid thumbnail view for 效果圖
+    const grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);';
+    vers.forEach((v,i)=>{
+      const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
+      const cell=document.createElement('div');
+      cell.style.cssText='position:relative;background:#fff;aspect-ratio:1;overflow:hidden;';
+      if(isImg){
+        cell.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">
+          ${v.isCover?`<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.04em;">封面</div>`:''}
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.5));opacity:0;transition:opacity .15s;" class="cell-overlay">
+            <div style="display:flex;gap:4px;padding:6px;">
+              ${!v.isCover?`<button onclick="setCover(${cid},${i})" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">設為封面</button>`:''}
+              <button onclick="removeDrawing(${cid},'效果圖',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
+            </div>
+          </div>`;
+        cell.querySelector('.cell-overlay') && (cell.onmouseenter=()=>cell.querySelector('.cell-overlay').style.opacity='1');
+        cell.onmouseleave=()=>{const ov=cell.querySelector('.cell-overlay');if(ov)ov.style.opacity='0';};
+      } else {
+        cell.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;padding:8px;">
+          <span style="font-size:20px;">📄</span>
+          <span style="font-size:9px;color:var(--ink-muted);text-align:center;word-break:break-all;">${v.note||'PDF'}</span>
+          <button onclick="removeDrawing(${cid},'效果圖',${i})" style="background:var(--red-pale);color:var(--red);border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;margin-top:2px;">刪除</button>
+        </div>`;
+      }
+      grid.appendChild(cell);
+    });
+    wrap.appendChild(grid);
+  } else {
+    // List view for 平面/立面系統圖
+    vers.forEach((v,i)=>{
+      const r=document.createElement('div');r.className='ufile-row';
+      const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
+      r.innerHTML=`${isImg&&v.fileUrl?`<img src="${v.fileUrl}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;flex-shrink:0;">`:`<div class="ufile-icon">PDF</div>`}
+        <div class="ufile-name">${currentDrawingType} — ${v.note}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div>
+        <div class="ufile-meta">${v.date}</div>
+        <button class="btn-sm" onclick="toggleFinal(${cid},'${currentDrawingType}',${i})">${v.isFinal?'取消最終':'設為最終'}</button>
+        <button class="btn-sm danger" onclick="removeDrawing(${cid},'${currentDrawingType}',${i})">刪除</button>`;
+      wrap.appendChild(r);
+    });
+  }
   el.appendChild(wrap);
+}
+
+async function setCover(cid, idx){
+  const vers=docsData[cid]?.drawings?.['效果圖'];
+  if(!vers) return;
+  // Clear all covers, set new one
+  for(let i=0;i<vers.length;i++){
+    if(vers[i].isCover!=(i===idx)){
+      vers[i].isCover=(i===idx);
+      if(vers[i].dbId) try{await dbSaveDoc(cid,'drawing_效果圖',vers[i]);}catch(e){console.warn(e);}
+    }
+  }
+  renderAdminDrawingList(cid);
 }
 // ========== STORAGE UPLOAD ==========
 async function uploadToStorage(file, folder){
