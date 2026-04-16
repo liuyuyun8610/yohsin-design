@@ -800,6 +800,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:#AB9E93;color:#fff;font-weight:500;letter-spacing:0.04em;">
           設計圖紙
         </button>
+        <button id="docs-tab-contracts" onclick="switchDocsTab('contracts')"
+          style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">
+          合約文件
+        </button>
         <button id="docs-tab-meetings" onclick="switchDocsTab('meetings')"
           style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">
           會議記錄
@@ -808,7 +812,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- ─── 設計圖紙 Panel ─── -->
       <div id="docs-panel-drawings">
-        <!-- 專案圖紙 -->
         <div class="doc-section">
           <div class="doc-section-title">施工圖紙</div>
           <div class="drawing-grid" id="client-drawings"></div>
@@ -819,22 +822,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div id="client-drawings-old"></div>
           </div>
         </div>
-
-        <!-- 3D 效果圖 -->
         <div class="doc-section" id="client-renders-section" style="display:none;">
           <div class="doc-section-title">3D 空間效果圖</div>
           <div id="client-renders-gallery"></div>
         </div>
+      </div>
 
-        <!-- 合約資料 -->
+      <!-- ─── 合約文件 Panel ─── -->
+      <div id="docs-panel-contracts" style="display:none;">
         <div class="doc-section">
           <div class="doc-section-title">合約資料</div>
           <div class="card" style="padding:0.8rem 1rem;">
             <div id="client-contracts"></div>
           </div>
         </div>
-
-        <!-- 報價資料 -->
         <div class="doc-section">
           <div class="doc-section-title">報價資料</div>
           <div class="card" style="padding:0.8rem 1rem;">
@@ -5344,13 +5345,19 @@ function renderDashMeetings(){
 }
 
 function switchDocsTab(tab){
-  const isDrawings=(tab==='drawings');
-  document.getElementById('docs-panel-drawings').style.display=isDrawings?'block':'none';
-  document.getElementById('docs-panel-meetings').style.display=isDrawings?'none':'block';
-  const btnD=document.getElementById('docs-tab-drawings');
-  const btnM=document.getElementById('docs-tab-meetings');
-  if(btnD){ btnD.style.background=isDrawings?'#AB9E93':'none'; btnD.style.color=isDrawings?'#fff':'var(--ink-muted)'; btnD.style.fontWeight=isDrawings?'500':'400'; }
-  if(btnM){ btnM.style.background=isDrawings?'none':'#AB9E93'; btnM.style.color=isDrawings?'var(--ink-muted)':'#fff'; btnM.style.fontWeight=isDrawings?'400':'500'; }
+  const panels={drawings:'docs-panel-drawings',contracts:'docs-panel-contracts',meetings:'docs-panel-meetings'};
+  const btns={drawings:'docs-tab-drawings',contracts:'docs-tab-contracts',meetings:'docs-tab-meetings'};
+  Object.keys(panels).forEach(k=>{
+    const panel=document.getElementById(panels[k]);
+    const btn=document.getElementById(btns[k]);
+    const active=(k===tab);
+    if(panel) panel.style.display=active?'block':'none';
+    if(btn){
+      btn.style.background=active?'#AB9E93':'none';
+      btn.style.color=active?'#fff':'var(--ink-muted)';
+      btn.style.fontWeight=active?'500':'400';
+    }
+  });
 }
 
 function goToMeetings(){
