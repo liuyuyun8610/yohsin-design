@@ -734,8 +734,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
 
       <!-- 4+5. 收款狀況 + 下次提醒 -->
-      <div class="card" id="dash-pay-card" style="margin-bottom:12px;">
-        <div class="card-title">收款狀況</div>
+      <div class="card" id="dash-pay-card" style="margin-bottom:12px;cursor:pointer;" onclick="goPage('p-payment',document.querySelector('#s-client .tnav[onclick*=p-payment]'))" onmouseover="this.style.boxShadow='0 4px 18px rgba(90,60,30,0.13)'" onmouseout="this.style.boxShadow=''">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>收款狀況</span>
+          <span style="font-size:11px;color:var(--accent);font-weight:400;letter-spacing:0;">查看明細 ›</span>
+        </div>
         <!-- 進度條 -->
         <div style="height:6px;background:var(--sand-dark,#E0D9CE);border-radius:3px;margin-bottom:12px;overflow:hidden;">
           <div id="dash-pay-bar" style="height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .4s;"></div>
@@ -791,27 +794,57 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="p-docs">
       <div class="page-title">資料文件</div>
 
-      <!-- 專案圖紙 -->
-      <div class="doc-section">
-        <div class="doc-section-title">專案圖紙</div>
-        <div class="drawing-grid" id="client-drawings"></div>
-        <div class="old-versions-toggle" onclick="toggleOldVersions('drawings-old')">
-          ▸ 舊版本資料
+      <!-- 頂層 Tab -->
+      <div style="display:flex;gap:8px;margin-bottom:1.4rem;background:var(--sand);border-radius:12px;padding:4px;">
+        <button id="docs-tab-drawings" onclick="switchDocsTab('drawings')"
+          style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:#AB9E93;color:#fff;font-weight:500;letter-spacing:0.04em;">
+          設計圖紙
+        </button>
+        <button id="docs-tab-meetings" onclick="switchDocsTab('meetings')"
+          style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">
+          會議記錄
+        </button>
+      </div>
+
+      <!-- ─── 設計圖紙 Panel ─── -->
+      <div id="docs-panel-drawings">
+        <!-- 專案圖紙 -->
+        <div class="doc-section">
+          <div class="doc-section-title">施工圖紙</div>
+          <div class="drawing-grid" id="client-drawings"></div>
+          <div class="old-versions-toggle" onclick="toggleOldVersions('drawings-old')">
+            ▸ 舊版本資料
+          </div>
+          <div class="old-versions-body" id="drawings-old">
+            <div id="client-drawings-old"></div>
+          </div>
         </div>
-        <div class="old-versions-body" id="drawings-old">
-          <div id="client-drawings-old"></div>
+
+        <!-- 3D 效果圖 -->
+        <div class="doc-section" id="client-renders-section" style="display:none;">
+          <div class="doc-section-title">3D 空間效果圖</div>
+          <div id="client-renders-gallery"></div>
+        </div>
+
+        <!-- 合約資料 -->
+        <div class="doc-section">
+          <div class="doc-section-title">合約資料</div>
+          <div class="card" style="padding:0.8rem 1rem;">
+            <div id="client-contracts"></div>
+          </div>
+        </div>
+
+        <!-- 報價資料 -->
+        <div class="doc-section">
+          <div class="doc-section-title">報價資料</div>
+          <div class="card" style="padding:0.8rem 1rem;">
+            <div id="client-quotes"></div>
+          </div>
         </div>
       </div>
 
-      <!-- 3D 效果圖 -->
-      <div class="doc-section" id="client-renders-section" style="display:none;">
-        <div class="doc-section-title">3D 空間效果圖</div>
-        <div id="client-renders-gallery"></div>
-      </div>
-
-      <!-- 會議記錄 -->
-      <div class="doc-section">
-        <div class="doc-section-title">會議記錄</div>
+      <!-- ─── 會議記錄 Panel ─── -->
+      <div id="docs-panel-meetings" style="display:none;">
         <div class="meeting-tabs">
           <button class="meeting-tab active" onclick="switchMeetingTab('line',this)">LINE 記錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議記錄</button>
@@ -858,22 +891,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
           <!-- 筆記列表 -->
           <div id="client-notes-list"></div>
-        </div>
-      </div>
-
-      <!-- 合約資料 -->
-      <div class="doc-section">
-        <div class="doc-section-title">合約資料</div>
-        <div class="card" style="padding:0.8rem 1rem;">
-          <div id="client-contracts"></div>
-        </div>
-      </div>
-
-      <!-- 報價資料 -->
-      <div class="doc-section">
-        <div class="doc-section-title">報價資料</div>
-        <div class="card" style="padding:0.8rem 1rem;">
-          <div id="client-quotes"></div>
         </div>
       </div>
     </div>
@@ -2346,11 +2363,10 @@ function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classL
 
 // ========== NAV ==========
 function goToDrawingType(type){
-  // Navigate to 資料文件 page
   const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
   if(docsNav) goPage('p-docs', docsNav);
-  // Scroll to the right section
   setTimeout(()=>{
+    switchDocsTab('drawings');
     if(type==='效果圖'){
       const sec=document.getElementById('client-renders-section');
       if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
@@ -5327,24 +5343,29 @@ function renderDashMeetings(){
   if(el.lastChild) el.lastChild.style.borderBottom='none';
 }
 
+function switchDocsTab(tab){
+  const isDrawings=(tab==='drawings');
+  document.getElementById('docs-panel-drawings').style.display=isDrawings?'block':'none';
+  document.getElementById('docs-panel-meetings').style.display=isDrawings?'none':'block';
+  const btnD=document.getElementById('docs-tab-drawings');
+  const btnM=document.getElementById('docs-tab-meetings');
+  if(btnD){ btnD.style.background=isDrawings?'#AB9E93':'none'; btnD.style.color=isDrawings?'#fff':'var(--ink-muted)'; btnD.style.fontWeight=isDrawings?'500':'400'; }
+  if(btnM){ btnM.style.background=isDrawings?'none':'#AB9E93'; btnM.style.color=isDrawings?'var(--ink-muted)':'#fff'; btnM.style.fontWeight=isDrawings?'400':'500'; }
+}
+
 function goToMeetings(){
-  // 導到資料文件 > LINE 記錄（預設第一個 tab）
   const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
   goPage('p-docs', docsNav);
+  setTimeout(()=>switchDocsTab('meetings'), 80);
 }
 
 function goToMeetingTab(tab){
   const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
   goPage('p-docs', docsNav);
-  // 稍微等 DOM 切換後再切 Tab
   setTimeout(()=>{
+    switchDocsTab('meetings');
     const tabBtn=document.querySelector(`#p-docs .meeting-tab[onclick*="${tab}"]`);
     if(tabBtn) switchMeetingTab(tab, tabBtn);
-    // 捲動到會議記錄區
-    const sec=document.querySelector('#p-docs .doc-section-title');
-    const meetingSecList=[...document.querySelectorAll('#p-docs .doc-section')];
-    const meetingSec=meetingSecList.find(s=>s.querySelector('.meeting-tabs'));
-    if(meetingSec) meetingSec.scrollIntoView({behavior:'smooth',block:'start'});
   }, 120);
 }
 
