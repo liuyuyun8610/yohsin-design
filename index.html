@@ -110,7 +110,7 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
   .art-toolbar{gap:3px;padding:6px 8px;}
   .art-tb-btn{padding:4px 7px;font-size:10.5px;}
   /* 業主筆記表單 */
-  #meeting-client-note-panel .cn-form-row{grid-template-columns:1fr!important;}
+  #meeting-client-note-panel .cn-form-row{grid-template-columns:130px 1fr!important;}
   /* 快捷圖紙入口 */
   .client-shortcut-grid{grid-template-columns:1fr 1fr 1fr!important;}
 }
@@ -675,7 +675,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <!-- 快捷圖紙入口 -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
         <div onclick="goToDrawingType('效果圖')" style="background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.10)'" onmouseout="this.style.boxShadow='none'">
-          <div style="font-size:24px;margin-bottom:6px;">🖼️</div>
+          <div style="font-size:24px;margin-bottom:6px;" id="ov-gallery-icon-wrap">🖼️</div>
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">效果圖</div>
           <div style="font-size:10px;color:var(--cli-light,#A09080);margin-top:2px;">3D 空間效果</div>
         </div>
@@ -1713,7 +1713,23 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
       <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">登入頁面標題</div>
+        <div class="card-title">客戶總覽 — 效果圖 Icon</div>
+        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Icon</div>
+            <div id="gallery-icon-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);font-size:32px;">🖼️</div>
+          </div>
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳自訂 Icon（PNG/SVG 透明底，建議 128×128px）</div>
+            <div class="upload-zone" onclick="document.getElementById('gallery-icon-input').click()" style="padding:1.2rem;">
+              <div class="upload-zone-icon">🗂</div>
+              <div class="upload-zone-text">點擊選擇圖片</div>
+            </div>
+            <input type="file" id="gallery-icon-input" accept="image/*" style="display:none;" onchange="uploadGalleryIcon(event)">
+            <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">上傳後自動儲存，客戶端立即套用</div>
+          </div>
+        </div>
+      </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <input class="form-input" id="settings-title" style="max-width:300px;margin-bottom:0;" placeholder="有心制作專案區">
           <button class="btn-ink" onclick="applyTitle()">套用</button>
@@ -1973,6 +1989,7 @@ async function loadAllData() {
     if(settingsData) settingsData.forEach(s=>{
       if(s.key==='admin_password') adminPassword=s.value;
       if(s.key==='site_title'){siteTitle=s.value;const el=document.getElementById('login-site-title');if(el)el.textContent=s.value;}
+      if(s.key==='gallery_icon_url'&&s.value) applyGalleryIcon(s.value);
     });
 
     dbReady = true;
@@ -2354,6 +2371,30 @@ function previewNewLogo(e){
   r.onload=ev=>{pendingLogoSrc=ev.target.result;document.getElementById('new-logo-img').src=pendingLogoSrc;document.getElementById('new-logo-preview').style.display='block';};
   r.readAsDataURL(file);
 }
+// ── 效果圖 Icon（從 Supabase Storage 載入，不用 base64）──
+function applyGalleryIcon(url){
+  // 客戶總覽快捷入口
+  const wrap=document.getElementById('ov-gallery-icon-wrap');
+  if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
+  // 設定頁預覽
+  const preview=document.getElementById('gallery-icon-preview');
+  if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
+}
+
+async function uploadGalleryIcon(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  showLoader(true);
+  try{
+    const url=await uploadToStorage(file,'icons');
+    await sbClient.from('system_settings').upsert({key:'gallery_icon_url',value:url},{onConflict:'key'});
+    applyGalleryIcon(url);
+    alert('✓ 效果圖 Icon 已更新');
+  }catch(err){alert('上傳失敗：'+err.message);}
+  document.getElementById('gallery-icon-input').value='';
+  showLoader(false);
+}
+
 function applyNewLogo(){
   if(!pendingLogoSrc){alert('請先選擇圖片');return;}
   document.querySelectorAll('.site-logo-img').forEach(img=>img.src=pendingLogoSrc);
@@ -4315,7 +4356,7 @@ async function uploadToStorage(file, folder){
   const ext=file.name.split('.').pop().toLowerCase()||'jpg';
   const fileName=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   // Photos go to 'photos' bucket, documents go to 'documents' bucket
-  const photoFolders=['construction-logs','line-screenshots','meeting-photos','furniture-plans','drawings'];
+  const photoFolders=['construction-logs','line-screenshots','meeting-photos','furniture-plans','drawings','icons'];
   const bucket=photoFolders.includes(folder)?'photos':'documents';
   const {data,error}=await sbClient.storage.from(bucket).upload(fileName,file,{cacheControl:'3600',upsert:false});
   if(error) throw new Error('上傳失敗：'+error.message);
