@@ -680,12 +680,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div style="font-size:10px;color:var(--cli-light,#A09080);margin-top:2px;">3D 空間效果</div>
         </div>
         <div onclick="goToDrawingType('平面系統圖')" style="background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.10)'" onmouseout="this.style.boxShadow='none'">
-          <div style="font-size:24px;margin-bottom:6px;">📐</div>
+          <div style="font-size:24px;margin-bottom:6px;" id="ov-plan-icon-wrap">📐</div>
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">平面系統圖</div>
           <div style="font-size:10px;color:var(--cli-light,#A09080);margin-top:2px;">空間平面配置</div>
         </div>
         <div onclick="goToDrawingType('立面系統圖')" style="background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.10)'" onmouseout="this.style.boxShadow='none'">
-          <div style="font-size:24px;margin-bottom:6px;">📏</div>
+          <div style="font-size:24px;margin-bottom:6px;" id="ov-elev-icon-wrap">📏</div>
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">立面系統圖</div>
           <div style="font-size:10px;color:var(--cli-light,#A09080);margin-top:2px;">立面尺寸細節</div>
         </div>
@@ -1730,6 +1730,42 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
         </div>
       </div>
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">客戶總覽 — 平面系統圖 Icon</div>
+        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Icon</div>
+            <div id="plan-icon-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);font-size:32px;">📐</div>
+          </div>
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳自訂 Icon（PNG/SVG 透明底，建議 128×128px）</div>
+            <div class="upload-zone" onclick="document.getElementById('plan-icon-input').click()" style="padding:1.2rem;">
+              <div class="upload-zone-icon">📐</div>
+              <div class="upload-zone-text">點擊選擇圖片</div>
+            </div>
+            <input type="file" id="plan-icon-input" accept="image/*" style="display:none;" onchange="uploadPlanIcon(event)">
+            <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">上傳後自動儲存，客戶端立即套用</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">客戶總覽 — 立面系統圖 Icon</div>
+        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Icon</div>
+            <div id="elev-icon-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);font-size:32px;">📏</div>
+          </div>
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳自訂 Icon（PNG/SVG 透明底，建議 128×128px）</div>
+            <div class="upload-zone" onclick="document.getElementById('elev-icon-input').click()" style="padding:1.2rem;">
+              <div class="upload-zone-icon">📏</div>
+              <div class="upload-zone-text">點擊選擇圖片</div>
+            </div>
+            <input type="file" id="elev-icon-input" accept="image/*" style="display:none;" onchange="uploadElevIcon(event)">
+            <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">上傳後自動儲存，客戶端立即套用</div>
+          </div>
+        </div>
+      </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <input class="form-input" id="settings-title" style="max-width:300px;margin-bottom:0;" placeholder="有心制作專案區">
           <button class="btn-ink" onclick="applyTitle()">套用</button>
@@ -1990,6 +2026,8 @@ async function loadAllData() {
       if(s.key==='admin_password') adminPassword=s.value;
       if(s.key==='site_title'){siteTitle=s.value;const el=document.getElementById('login-site-title');if(el)el.textContent=s.value;}
       if(s.key==='gallery_icon_url'&&s.value) applyGalleryIcon(s.value);
+      if(s.key==='plan_icon_url'&&s.value) applyPlanIcon(s.value);
+      if(s.key==='elev_icon_url'&&s.value) applyElevIcon(s.value);
     });
 
     dbReady = true;
@@ -2373,17 +2411,13 @@ function previewNewLogo(e){
 }
 // ── 效果圖 Icon（從 Supabase Storage 載入，不用 base64）──
 function applyGalleryIcon(url){
-  // 客戶總覽快捷入口
   const wrap=document.getElementById('ov-gallery-icon-wrap');
   if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
-  // 設定頁預覽
   const preview=document.getElementById('gallery-icon-preview');
   if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
 }
-
 async function uploadGalleryIcon(e){
-  const file=e.target.files[0];
-  if(!file) return;
+  const file=e.target.files[0];if(!file)return;
   showLoader(true);
   try{
     const url=await uploadToStorage(file,'icons');
@@ -2392,6 +2426,44 @@ async function uploadGalleryIcon(e){
     alert('✓ 效果圖 Icon 已更新');
   }catch(err){alert('上傳失敗：'+err.message);}
   document.getElementById('gallery-icon-input').value='';
+  showLoader(false);
+}
+
+// ── 立面系統圖 Icon ──
+function applyElevIcon(url){
+  const wrap=document.getElementById('ov-elev-icon-wrap');
+  if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
+  const preview=document.getElementById('elev-icon-preview');
+  if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
+}
+async function uploadElevIcon(e){
+  const file=e.target.files[0];if(!file)return;
+  showLoader(true);
+  try{
+    const url=await uploadToStorage(file,'icons');
+    await sbClient.from('system_settings').upsert({key:'elev_icon_url',value:url},{onConflict:'key'});
+    applyElevIcon(url);
+    alert('✓ 立面系統圖 Icon 已更新');
+  }catch(err){alert('上傳失敗：'+err.message);}
+  document.getElementById('elev-icon-input').value='';
+  showLoader(false);
+}
+function applyPlanIcon(url){
+  const wrap=document.getElementById('ov-plan-icon-wrap');
+  if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
+  const preview=document.getElementById('plan-icon-preview');
+  if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
+}
+async function uploadPlanIcon(e){
+  const file=e.target.files[0];if(!file)return;
+  showLoader(true);
+  try{
+    const url=await uploadToStorage(file,'icons');
+    await sbClient.from('system_settings').upsert({key:'plan_icon_url',value:url},{onConflict:'key'});
+    applyPlanIcon(url);
+    alert('✓ 平面系統圖 Icon 已更新');
+  }catch(err){alert('上傳失敗：'+err.message);}
+  document.getElementById('plan-icon-input').value='';
   showLoader(false);
 }
 
