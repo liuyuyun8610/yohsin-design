@@ -626,6 +626,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <div id="s-client" class="screen">
   <div class="topbar">
     <div class="tb-brand">
+      <!-- 返回按鈕（非總覽頁才顯示） -->
+      <button id="cli-back-btn" onclick="goBackToOverview()" style="display:none;align-items:center;gap:3px;background:#AB9E93;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#fff;padding:6px 14px 6px 10px;border-radius:999px;flex-shrink:0;transition:opacity .15s;letter-spacing:0.04em;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+        <span style="font-size:16px;line-height:1;">‹</span>
+        <span>返回</span>
+      </button>
       <img src="" alt="有心制作" class="site-logo-img" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
       <div><div class="tb-name">有心制作</div><div class="tb-sub">· 空間設計 ·</div></div>
     </div>
@@ -2246,6 +2251,9 @@ function goPageMobile(id,el,type){
   el.classList.add('active');
   closeMobileMenu('client');
   window.scrollTo({top:0,behavior:'smooth'});
+  // 返回按鈕
+  const backBtn=document.getElementById('cli-back-btn');
+  if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
 }
@@ -2263,13 +2271,13 @@ function doLogin(){
   const err=document.getElementById('l-err');err.textContent='';
   if(loginMode==='admin'){
     if(u==='admin'&&p===adminPassword){
-      localStorage.setItem('ys_session', JSON.stringify({mode:'admin',u,p}));
+      sessionStorage.setItem('ys_session', JSON.stringify({mode:'admin',u,p}));
       _enterAdmin();
     } else err.textContent='帳號或密碼錯誤';
   } else {
     const c=clients.find(x=>x.user===u&&x.pass===p);
     if(c){
-      localStorage.setItem('ys_session', JSON.stringify({mode:'client',u,p}));
+      sessionStorage.setItem('ys_session', JSON.stringify({mode:'client',u,p}));
       _enterClient(c);
     } else err.textContent='帳號或密碼錯誤，請再試一次';
   }
@@ -2302,6 +2310,9 @@ function _enterClient(c){
     return;
   }
   showScreen('s-client');
+  // 確保進入客戶端時返回鍵隱藏（初始在總覽頁）
+  const backBtn=document.getElementById('cli-back-btn');
+  if(backBtn) backBtn.style.display='none';
   (async()=>{
     const pid=proj?proj.id:null;
     const cid=c.id;
@@ -2322,7 +2333,7 @@ function _enterClient(c){
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('l-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('l-pass').focus();});
 function doLogout(){
-  localStorage.removeItem('ys_session');
+  sessionStorage.removeItem('ys_session');
   showScreen('s-login');
   document.getElementById('l-user').value='';
   document.getElementById('l-pass').value='';
@@ -2350,12 +2361,27 @@ function goToDrawingType(type){
   }, 150);
 }
 
+function goBackToOverview(){
+  // 若在相簿內頁，先退回相簿列表
+  const albumInside=document.getElementById('album-inside-view');
+  if(albumInside&&albumInside.style.display!=='none'){
+    closeAlbum();return;
+  }
+  // 回到總覽
+  const overviewBtn=document.querySelector('#s-client .tnav[onclick*="p-overview"]');
+  goPage('p-overview',overviewBtn);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
 function goPage(id,el){
   document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+  // 顯示/隱藏返回按鈕
+  const backBtn=document.getElementById('cli-back-btn');
+  if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
 }
@@ -2504,7 +2530,7 @@ async function applyPassword(){
     await sbClient.from('system_settings').upsert({key:'admin_password',value:pw1},{onConflict:'key'});
     adminPassword=pw1;
     // Update stored session so admin stays logged in
-    try{const s=JSON.parse(localStorage.getItem('ys_session')||'{}');if(s.mode==='admin'){s.p=pw1;localStorage.setItem('ys_session',JSON.stringify(s));}}catch(e){}
+    try{const s=JSON.parse(sessionStorage.getItem('ys_session')||'{}');if(s.mode==='admin'){s.p=pw1;sessionStorage.setItem('ys_session',JSON.stringify(s));}}catch(e){}
     document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
     alert('密碼已更新並儲存！');
   }catch(e){
@@ -5800,7 +5826,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadAllData().then(()=>{
     // Auto-restore session after data loaded
     try{
-      const sess=localStorage.getItem('ys_session');
+      const sess=sessionStorage.getItem('ys_session');
       if(!sess) return;
       const {mode,u,p}=JSON.parse(sess);
       if(mode==='admin'&&u==='admin'&&p===adminPassword){
@@ -5808,9 +5834,9 @@ document.addEventListener('DOMContentLoaded', function() {
       } else if(mode==='client'){
         const c=clients.find(x=>x.user===u&&x.pass===p);
         if(c) _enterClient(c);
-        else localStorage.removeItem('ys_session'); // 密碼已更改，清除
+        else sessionStorage.removeItem('ys_session'); // 密碼已更改，清除
       }
-    }catch(e){ localStorage.removeItem('ys_session'); }
+    }catch(e){ sessionStorage.removeItem('ys_session'); }
   });
 });
 </script>
