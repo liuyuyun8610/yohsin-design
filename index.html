@@ -4356,6 +4356,40 @@ function renderAdminDrawingList(cid){
         grid.appendChild(cell);
       });
       section.appendChild(grid);
+
+      // ── 相簿底部：新增照片拖曳區（展開時才顯示）──
+      const addZoneId=`album-add-${safeId}`;
+      const addZone=document.createElement('div');
+      addZone.id=addZoneId;
+      addZone.style.cssText=`display:${isFirstAlbum?'block':'none'};border-top:0.5px solid var(--border);`;
+      addZone.innerHTML=`
+        <div id="album-dropzone-${safeId}"
+          style="margin:10px 12px;border:1.5px dashed var(--accent-light);border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .15s;background:var(--sand);"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-pale)'"
+          ondragleave="this.style.borderColor='var(--accent-light)';this.style.background='var(--sand)'"
+          ondrop="handleAlbumDrop(event,${cid},'${albumName.replace(/'/g,"\\'")}','${safeId}')"
+          onclick="document.getElementById('album-file-${safeId}').click()">
+          <div style="font-size:18px;margin-bottom:4px;">＋</div>
+          <div style="font-size:12px;color:var(--ink-muted);">拖曳照片到這裡，或點擊選取（可多張）</div>
+          <input type="file" id="album-file-${safeId}" accept="image/*" multiple style="display:none;"
+            onchange="handleAlbumFileSelect(event,${cid},'${albumName.replace(/'/g,"\\'")}','${safeId}')">
+        </div>
+        <div id="album-add-preview-${safeId}" style="display:none;padding:0 12px 10px;display:flex;gap:6px;flex-wrap:wrap;"></div>`;
+      section.appendChild(addZone);
+
+      // keep addZone in sync with grid collapse
+      const origHdClick=hd.onclick;
+      hd.onclick=()=>{
+        const grid=document.getElementById(gridId);
+        const arrow=document.getElementById(`album-toggle-${safeId}`);
+        const az=document.getElementById(addZoneId);
+        if(!grid) return;
+        const open=grid.style.display!=='none';
+        grid.style.display=open?'none':'grid';
+        if(az) az.style.display=open?'none':'block';
+        if(arrow) arrow.style.transform=open?'':'rotate(90deg)';
+      };
+
       el.appendChild(section);
     });
 
@@ -4465,6 +4499,50 @@ async function deleteAlbum(cid, albumName){
     renderAdminDrawingList(cid);
     renderClient3DGallery(docsData[cid]);
   }catch(e){alert('刪除失敗：'+e.message);}
+  showLoader(false);
+}
+
+// ── 相簿內補充上傳 ──
+function handleAlbumDrop(e,cid,albumName,safeId){
+  e.preventDefault();
+  const dz=document.getElementById(`album-dropzone-${safeId}`);
+  if(dz){dz.style.borderColor='var(--accent-light)';dz.style.background='var(--sand)';}
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length){alert('請拖入圖片檔案');return;}
+  uploadAlbumFiles(files,cid,albumName,safeId);
+}
+function handleAlbumFileSelect(e,cid,albumName,safeId){
+  const files=Array.from(e.target.files);
+  if(!files.length) return;
+  uploadAlbumFiles(files,cid,albumName,safeId);
+  e.target.value='';
+}
+async function uploadAlbumFiles(files,cid,albumName,safeId){
+  // Show previews in add zone
+  const previewEl=document.getElementById(`album-add-preview-${safeId}`);
+  if(previewEl){
+    previewEl.style.display='flex';
+    previewEl.innerHTML=files.map(f=>`<img src="${URL.createObjectURL(f)}" style="width:54px;height:54px;object-fit:cover;border-radius:7px;border:0.5px solid var(--border);">`).join('');
+  }
+  showLoader(true);
+  try{
+    if(!docsData[cid]?.drawings?.['效果圖']) return;
+    let successCount=0;
+    const errors=[];
+    for(const file of files){
+      try{
+        const fileUrl=await uploadToStorage(file,'drawings');
+        const note=file.name.replace(/\.[^.]+$/,'');
+        const newItem={note,date:albumName,isFinal:false,fileUrl,size:fmtFileSize(file.size)};
+        await dbSaveDoc(cid,'drawing_效果圖',newItem);
+        docsData[cid].drawings['效果圖'].push(newItem);
+        successCount++;
+      }catch(err){errors.push(`${file.name}: ${err.message}`);}
+    }
+    renderAdminDrawingList(cid);
+    renderClient3DGallery(docsData[cid]);
+    if(errors.length) alert(`上傳結果：${successCount}/${files.length} 成功\n失敗：\n${errors.slice(0,3).join('\n')}`);
+  }catch(e){alert('上傳失敗：'+e.message);}
   showLoader(false);
 }
 async function uploadToStorage(file, folder){
