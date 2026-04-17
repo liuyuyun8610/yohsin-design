@@ -339,8 +339,8 @@ tbody tr:hover td{background:#FDFAF6;}
 .album-card-enter{position:absolute;bottom:14px;right:16px;font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:.06em;opacity:0;transition:opacity .2s;}
 .album-card:hover .album-card-enter{opacity:1;}
 /* Album inside view */
-.render-album-back{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);cursor:pointer;padding:4px 0 14px;letter-spacing:.04em;}
-.render-album-back:hover{color:var(--ink);}
+.render-album-back{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#fff;cursor:pointer;padding:6px 14px 6px 10px;letter-spacing:.04em;background:#AB9E93;border-radius:999px;margin-bottom:14px;transition:opacity .15s;}
+.render-album-back:hover{opacity:0.85;}
 .render-album-header{margin-bottom:12px;}
 .render-album-title{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:500;color:var(--ink);}
 .render-album-sub{font-size:11px;color:var(--ink-light);margin-top:3px;}
@@ -913,11 +913,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div id="cl-app">
         <div class="notice-desc" style="margin-bottom:1rem;">請將您要採購的電器或是原有的設備填入下方表格，可作為外出採購的參考指南。</div>
-        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>品牌</th><th>位置</th><th>型號</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
+        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>品牌</th><th>位置</th><th>型號</th><th>尺寸（長×寬×高 cm）</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
       </div>
       <div id="cl-fur" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
-        <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th>位置</th><th>型號／尺寸</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
+        <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th>位置</th><th>型號</th><th>尺寸（長×寬×高 cm）</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
         <!-- 家具尺寸圖 -->
         <div id="cli-furniture-plan-section" style="display:none;margin-top:1.4rem;">
           <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cli-accent2,#B8936A);font-weight:500;margin-bottom:0.8rem;">家具尺寸圖</div>
@@ -2144,17 +2144,24 @@ async function dbLoadChecklist(projectId) {
     sb.from('checklist_items').selectWhere('*','project_id=eq.'+projectId+'&item_type=eq.furniture'),
     sb.from('power_items').selectWhere('*','project_id=eq.'+projectId),
   ]);
-  appData = (appData2||[]).map(r=>({dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:r.model,status:r.status}));
-  furData = (furData2||[]).map(r=>({dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:r.model,status:r.status}));
+  appData = (appData2||[]).map(r=>{
+    const [model,dims]=(r.model||'').split('||');
+    return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status};
+  });
+  furData = (furData2||[]).map(r=>{
+    const [model,dims]=(r.model||'').split('||');
+    return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status};
+  });
   powData = (powData2||[]).map(r=>({dbId:r.id,name:r.name,loc:r.location,w:String(r.watt||''),v:String(r.voltage||110),qty:String(r.quantity||1),note:r.note}));
 }
 
 async function dbSaveChecklistItem(projectId, type, item) {
+  const modelVal=[item.model||'',item.dims||''].filter((_,i)=>i===0||(item.dims||'')).join('||').replace(/\|\|$/,'');
   if (item.dbId) {
-    const row = { name:item.name||'', brand:item.brand||'', location:item.loc, model:item.model||'', status:item.status };
+    const row = { name:item.name||'', brand:item.brand||'', location:item.loc, model:modelVal, status:item.status };
     await sb.from('checklist_items').update(row, 'id=eq.'+item.dbId);
   } else {
-    const row = { project_id:projectId, item_type:type, name:item.name||'', brand:item.brand||'', location:item.loc, model:item.model||'', status:item.status };
+    const row = { project_id:projectId, item_type:type, name:item.name||'', brand:item.brand||'', location:item.loc, model:modelVal, status:item.status };
     const res = await sb.from('checklist_items').insert(row);
     if (res&&res[0]) item.dbId = res[0].id;
   }
@@ -5623,7 +5630,11 @@ function switchStab(id,el){
   ['cl-app','cl-fur','cl-pow'].forEach(t=>{document.getElementById(t).style.display=t===id?'block':'none';});
   if(id==='cl-fur') renderCliFurniturePlan();
 }
-function renderChecklists(){renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();}
+function renderChecklists(){
+  // 若 DB 無任何家電資料，預帶入預設清單（讓客戶直接修改，不用從零開始）
+  if(!appData.length) appData=APP_DEFAULTS.map(d=>({...d}));
+  renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();
+}
 function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
 function getClientProjId(){
   const c=clients.find(x=>x.id===currentClientId);
@@ -5645,13 +5656,21 @@ function renderAppTable(type,data){
     const tdL=document.createElement('td');
     const sel=mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
     tdL.appendChild(sel);tr.appendChild(tdL);
-    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model;mi.placeholder='型號';
+    // 型號
+    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model||'';mi.placeholder='型號';
     mi.oninput=e=>r.model=e.target.value;
     mi.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
     tdM.appendChild(mi);tr.appendChild(tdM);
+    // 尺寸
+    const tdDim=document.createElement('td');const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';
+    di.oninput=e=>r.dims=e.target.value;
+    di.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
+    tdDim.appendChild(di);tr.appendChild(tdDim);
+    // 狀態
     const tdS=document.createElement('td');
     const ssel=mkSel(STAT,r.status,e=>{r.status=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
     tdS.appendChild(ssel);tr.appendChild(tdS);
+    // 刪除
     const tdD=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';
     db.onclick=()=>{if(r.dbId&&pid)dbDeleteChecklistItem(r.dbId).catch(e=>console.warn(e));data.splice(i,1);renderAppTable(type,data);};
     tdD.appendChild(db);tr.appendChild(tdD);
@@ -5694,10 +5713,23 @@ function refreshPow(tr,r){
   tr.children[6].innerHTML=w?`<span class="psm cir-${circ}">${circ}</span>`:'';
 }
 function addRow(type){
-  if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('app',appData);}
-  else if(type==='fur'){furData.push({name:'',brand:'',loc:'客廳',model:'',status:'未採購'});renderAppTable('fur',furData);}
+  if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',dims:'',status:'未採購'});renderAppTable('app',appData);}
+  else if(type==='fur'){furData.push({name:'',brand:'',loc:'客廳',model:'',dims:'',status:'未採購'});renderAppTable('fur',furData);}
   else{powData.push({name:'',loc:'客廳',w:'',v:'110',qty:'1',note:''});renderPowTable();}
 }
+
+// 家電預設清單（DB 無資料時自動帶入）
+const APP_DEFAULTS=[
+  {name:'電視',loc:'客廳'},{name:'電視盒子',loc:'客廳'},{name:'Soundbar',loc:'客廳'},
+  {name:'重低音',loc:'客廳'},{name:'後環繞／後置',loc:'客廳'},{name:'電玩遊戲機',loc:'客廳'},
+  {name:'Wifi 分享器',loc:'客廳'},{name:'空氣清淨機',loc:'考慮中'},{name:'除濕機',loc:'客廳'},
+  {name:'吸塵器',loc:'儲藏室'},{name:'暖風機',loc:'浴室'},{name:'冰箱',loc:'廚房'},
+  {name:'電鍋',loc:'廚房'},{name:'微波烤箱',loc:'廚房'},{name:'抽油煙機',loc:'廚房'},
+  {name:'熱水壺',loc:'廚房'},{name:'瞬熱／加熱器',loc:'廚房'},{name:'氣泡水機',loc:'廚房'},
+  {name:'咖啡機',loc:'廚房'},{name:'廚餘處理機',loc:'廚房'},{name:'洗碗機',loc:'廚房'},
+  {name:'電子鍋',loc:'廚房'},{name:'洗脫烘衣機',loc:'陽台'},
+  {name:'電動曬衣架',loc:'陽台'},{name:'熱水器',loc:'陽台'},
+].map(d=>({name:d.name,brand:'',loc:d.loc,model:'',dims:'',status:'未採購'}));
 
 // ========== CALENDAR ==========
 function dkey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
