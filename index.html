@@ -1709,8 +1709,23 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <!-- 設定 -->
     <div class="page" id="a-settings">
       <div class="sec-head"><div class="sec-ttl">系統設定</div></div>
+
+      <!-- Anthropic API Key -->
       <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">登入頁面 Logo</div>
+        <div class="card-title">AI 功能 — Anthropic API Key</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">用於必填清單「AI 查尺寸」功能。Key 只儲存在本機瀏覽器，不會上傳到任何伺服器。</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input id="anthropic-key-input" type="password"
+            placeholder="sk-ant-api03-..."
+            style="flex:1;min-width:240px;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
+          <button class="btn-ink" onclick="saveAnthropicKey()">儲存</button>
+          <button class="btn-ghost" onclick="clearAnthropicKey()">清除</button>
+        </div>
+        <div id="anthropic-key-status" style="font-size:11px;margin-top:8px;color:var(--ink-light);"></div>
+        <div style="margin-top:10px;font-size:11px;color:var(--ink-light);line-height:1.8;">
+          取得 Key：前往 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent);">console.anthropic.com</a> → API Keys → Create Key
+        </div>
+      </div>
         <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
           <div>
             <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Logo</div>
@@ -2461,9 +2476,9 @@ function initSettings(){
   if(prev&&imgs.length)prev.src=imgs[0].src;
   document.getElementById('settings-title-current').textContent=siteTitle;
   document.getElementById('settings-title').value='';
-  // Reset password display
   const pwEl=document.getElementById('settings-cur-pw');
   if(pwEl){pwEl.textContent='••••••••';pwEl.dataset.show='0';}
+  updateAnthropicKeyStatus();
 }
 function previewNewLogo(e){
   const file=e.target.files[0];if(!file)return;
@@ -5715,12 +5730,44 @@ function renderAppTable(type,data){
     tb.appendChild(tr);
   });
 }
+// ── Anthropic API Key 管理 ──
+function saveAnthropicKey(){
+  const key=document.getElementById('anthropic-key-input').value.trim();
+  if(!key.startsWith('sk-ant-')){alert('格式不正確，應以 sk-ant- 開頭');return;}
+  localStorage.setItem('ys_anthropic_key',key);
+  document.getElementById('anthropic-key-input').value='';
+  updateAnthropicKeyStatus();
+  alert('✓ API Key 已儲存');
+}
+function clearAnthropicKey(){
+  localStorage.removeItem('ys_anthropic_key');
+  updateAnthropicKeyStatus();
+  alert('API Key 已清除');
+}
+function updateAnthropicKeyStatus(){
+  const el=document.getElementById('anthropic-key-status');
+  if(!el) return;
+  const key=localStorage.getItem('ys_anthropic_key');
+  el.textContent=key?`✅ 已設定（${key.slice(0,12)}…）`:'⚠️ 尚未設定，AI 查尺寸功能無法使用';
+  el.style.color=key?'var(--green)':'var(--red)';
+}
+
 // ── AI 查尺寸：呼叫 Claude API + web search 搜尋產品規格 ──
 async function aiSearchDims(productName, modelNo){
+  const apiKey=localStorage.getItem('ys_anthropic_key');
+  if(!apiKey){
+    alert('請先至「設定」頁面填入 Anthropic API Key，才能使用 AI 查尺寸功能。');
+    return null;
+  }
   try{
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-beta':'interleaved-thinking-2025-05-14',
+      },
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:200,
@@ -5733,13 +5780,20 @@ async function aiSearchDims(productName, modelNo){
         }]
       })
     });
+    if(!response.ok){
+      const err=await response.json().catch(()=>({}));
+      console.warn('API 錯誤:',err);
+      if(response.status===401) alert('API Key 無效，請至設定頁重新輸入正確的 Key。');
+      else alert(`查詢失敗（${response.status}）：${err?.error?.message||'未知錯誤'}`);
+      return null;
+    }
     const data=await response.json();
-    // 從回應中取出文字
     const text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('').trim();
-    if(!text||text.includes('查無資料')||text.length>40) return null;
+    if(!text||text.includes('查無資料')||text.length>50) return null;
     return text;
   }catch(e){
     console.warn('AI 查尺寸失敗:',e.message);
+    alert('網路錯誤，請確認連線後再試。');
     return null;
   }
 }
