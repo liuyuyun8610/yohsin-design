@@ -5735,11 +5735,12 @@ function renderAppTable(type,data){
 // ── Anthropic API Key 管理（存 Supabase，全體共用）──
 async function saveAnthropicKey(){
   const key=document.getElementById('anthropic-key-input').value.trim();
-  if(!key.startsWith('sk-ant-')){alert('格式不正確，應以 sk-ant- 開頭');return;}
+  if(!key.startsWith('sk-')){alert('格式不正確，應以 sk- 開頭');return;}
   showLoader(true);
   try{
     await sbClient.from('system_settings').upsert({key:'anthropic_api_key',value:key},{onConflict:'key'});
     anthropicApiKey=key;
+    localStorage.setItem('ys_anthropic_key',key); // 備援
     document.getElementById('anthropic-key-input').value='';
     updateAnthropicKeyStatus();
     alert('✓ API Key 已儲存，所有客戶端皆可使用 AI 查尺寸功能');
@@ -5767,7 +5768,17 @@ function updateAnthropicKeyStatus(){
 
 // ── AI 查尺寸：呼叫 Claude API + web search ──
 async function aiSearchDims(productName, modelNo){
-  if(!anthropicApiKey){
+  // 每次查詢時即時從 DB 撈最新 Key（確保管理員設定後客戶不需重整）
+  // 同時支援 localStorage 備援
+  let apiKey=anthropicApiKey;
+  if(!apiKey){
+    try{
+      const {data}=await sbClient.from('system_settings').select('value').eq('key','anthropic_api_key').single();
+      if(data?.value){apiKey=data.value;anthropicApiKey=data.value;}
+    }catch(e){}
+  }
+  if(!apiKey) apiKey=localStorage.getItem('ys_anthropic_key')||'';
+  if(!apiKey){
     alert('請管理員先至「設定」頁面填入 Anthropic API Key。');
     return null;
   }
@@ -5776,8 +5787,9 @@ async function aiSearchDims(productName, modelNo){
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'x-api-key':anthropicApiKey,
+        'x-api-key':apiKey,
         'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
       },
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
