@@ -5804,20 +5804,20 @@ function updateAnthropicKeyStatus(){
 
 // ── AI 查尺寸：呼叫 Claude API ──
 async function aiSearchDims(productName, modelNo){
-  // 即時從 DB 撈最新 Key
   let apiKey=anthropicApiKey;
+  console.log('[AI] 記憶體 key:', apiKey?apiKey.slice(0,14)+'…':'(空)');
   if(!apiKey){
     try{
       const {data}=await sbClient.from('system_settings').select('value').eq('key','anthropic_api_key').single();
       if(data?.value){apiKey=data.value;anthropicApiKey=data.value;}
-    }catch(e){}
+      console.log('[AI] DB key:', apiKey?apiKey.slice(0,14)+'…':'(空)');
+    }catch(e){console.warn('[AI] DB讀失敗:',e.message);}
   }
   if(!apiKey) apiKey=localStorage.getItem('ys_anthropic_key')||'';
-  if(!apiKey){
-    alert('請管理員先至「設定」頁面填入 Anthropic API Key。');
-    return null;
-  }
+  console.log('[AI] 最終 key:', apiKey?'有':'沒有');
+  if(!apiKey){ alert('請管理員設定 API Key'); return null; }
   try{
+    console.log('[AI] 送出請求 model=claude-haiku-4-5-20251001');
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{
@@ -5828,43 +5828,30 @@ async function aiSearchDims(productName, modelNo){
       },
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
-        max_tokens:150,
-        messages:[{
-          role:'user',
-          content:`請根據你的知識，告訴我「${productName} ${modelNo}」的外觀尺寸（長×寬×高，單位 cm）。只需回覆尺寸數字，格式為「長×寬×高」（例如：121.4×77.8×5.4），不需要任何說明文字。如果不確定，回覆「查無資料」。`
-        }]
+        max_tokens:200,
+        messages:[{role:'user',
+          content:'請告訴我「'+productName+' '+modelNo+'」的外觀尺寸（長×寬×高，單位 cm）。只需回覆尺寸數字，格式範例：121.4×77.8×5.4。若不確定請回覆：查無資料'}]
       })
     });
+    console.log('[AI] HTTP狀態:', response.status);
     if(!response.ok){
       const err=await response.json().catch(()=>({}));
       const msg=err?.error?.message||'';
-      if(response.status===401){
-        alert('API Key 無效，請至設定頁重新輸入正確的 Key。');
-      } else if(msg.includes('credit')){
-        const q=encodeURIComponent(`${productName} ${modelNo} 尺寸 規格 cm`);
-        window.open(`https://www.google.com/search?q=${q}`,'_blank');
-        alert('點數不足，已自動開啟 Google 搜尋，請手動複製尺寸填入。');
-      } else {
-        alert(`查詢失敗（${response.status}）：${msg||'未知錯誤'}`);
-      }
+      console.warn('[AI] 錯誤:', msg);
+      alert('查詢失敗('+response.status+')：'+msg);
       return null;
     }
     const data=await response.json();
     const raw=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('').trim();
+    console.log('[AI] 原始回應:', raw);
     if(!raw||raw.includes('查無資料')) return null;
-
-    // 從回應中提取尺寸數字（格式：數字×數字×數字，允許小數點和各種分隔符）
-    const match=raw.match(/[\d.]+\s*[×xX×]\s*[\d.]+\s*[×xX×]\s*[\d.]+/);
-    if(match){
-      // 統一格式為 ×
-      return match[0].replace(/[xX×]/g,'×').replace(/\s+/g,'');
-    }
-    // 沒有匹配到標準格式，但回傳長度合理就直接用
-    if(raw.length<=80&&!raw.includes('\n')) return raw;
+    const match=raw.match(/[\d.]+\s*[\u00d7xX]\s*[\d.]+\s*[\u00d7xX]\s*[\d.]+/);
+    if(match) return match[0].replace(/[xX\u00d7]/g,'×').replace(/\s+/g,'');
+    if(raw.length<=80) return raw;
     return null;
   }catch(e){
-    console.warn('AI 查尺寸失敗:',e.message);
-    window.open(`https://www.google.com/search?q=${encodeURIComponent(productName+' '+modelNo+' 尺寸 規格 cm')}`,'_blank');
+    console.error('[AI] catch:', e.message);
+    alert('網路錯誤：'+e.message);
     return null;
   }
 }
