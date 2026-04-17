@@ -5817,7 +5817,7 @@ async function aiSearchDims(productName, modelNo){
   console.log('[AI] 最終 key:', apiKey?'有':'沒有');
   if(!apiKey){ alert('請管理員設定 API Key'); return null; }
   try{
-    console.log('[AI] 送出請求 model=claude-haiku-4-5-20251001');
+    console.log('[AI] 送出請求 model=claude-sonnet-4-6');
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{
@@ -5827,10 +5827,10 @@ async function aiSearchDims(productName, modelNo){
         'anthropic-dangerous-direct-browser-access':'true',
       },
       body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
+        model:'claude-sonnet-4-6',
         max_tokens:200,
         messages:[{role:'user',
-          content:'請告訴我「'+productName+' '+modelNo+'」的外觀尺寸（長×寬×高，單位 cm）。只需回覆尺寸數字，格式範例：121.4×77.8×5.4。若不確定請回覆：查無資料'}]
+          content:'「'+productName+' '+modelNo+'」這款產品的外觀尺寸是多少（長×寬×高 cm）？請直接回覆數字，格式：長×寬×高（例：143.4×82.5×2.3）。這是家電產品，請盡力根據你的知識回答，不要說查無資料。'}]
       })
     });
     console.log('[AI] HTTP狀態:', response.status);
