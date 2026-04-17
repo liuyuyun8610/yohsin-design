@@ -5793,11 +5793,10 @@ async function aiSearchDims(productName, modelNo){
       },
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:200,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
+        max_tokens:150,
         messages:[{
           role:'user',
-          content:`請搜尋「${productName} ${modelNo}」的產品規格，找出它的外觀尺寸（長×寬×高，單位 cm）。只需回覆尺寸數字，格式為「長×寬×高」（例如：121.4×77.8×5.4），不需要任何說明文字。如果找不到確切尺寸，回覆「查無資料」。`
+          content:`請根據你的知識，告訴我「${productName} ${modelNo}」的外觀尺寸（長×寬×高，單位 cm）。只需回覆尺寸數字，格式為「長×寬×高」（例如：121.4×77.8×5.4），不需要任何說明文字。如果不確定，回覆「查無資料」。`
         }]
       })
     });
