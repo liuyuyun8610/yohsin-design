@@ -5631,9 +5631,22 @@ function switchStab(id,el){
   if(id==='cl-fur') renderCliFurniturePlan();
 }
 function renderChecklists(){
-  // 若 DB 無任何家電資料，預帶入預設清單（讓客戶直接修改，不用從零開始）
-  if(!appData.length) appData=APP_DEFAULTS.map(d=>({...d}));
-  renderAppTable('app',appData);renderAppTable('fur',furData);renderPowTable();
+  // 合併邏輯：預設清單作為底層，DB 有的覆蓋、DB 自訂的追加在後
+  // 這樣既有專案也能看到完整預設欄位，新增的自訂項目也不會消失
+  const defaultNames=APP_DEFAULTS.map(d=>d.name);
+
+  // 1. 以預設清單為基底，DB 有對應名稱的項目用 DB 版本（保留 dbId 等資料）
+  const mergedApp=APP_DEFAULTS.map(def=>{
+    const existing=appData.find(r=>r.name===def.name);
+    return existing?existing:{...def};
+  });
+  // 2. DB 中不在預設清單的項目（客戶自訂）追加在後
+  const customApp=appData.filter(r=>!defaultNames.includes(r.name));
+  appData=[...mergedApp,...customApp];
+
+  renderAppTable('app',appData);
+  renderAppTable('fur',furData);
+  renderPowTable();
 }
 function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
 function getClientProjId(){
