@@ -5825,13 +5825,18 @@ async function aiSearchDims(productName, modelNo){
       return null;
     }
     const data=await response.json();
-    const text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('').trim();
-    if(!text||text.includes('查無資料')||text.length>50){
-      // fallback Google
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(productName+' '+modelNo+' 尺寸 規格 cm')}`,'_blank');
-      return null;
+    const raw=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('').trim();
+    if(!raw||raw.includes('查無資料')) return null;
+
+    // 從回應中提取尺寸數字（格式：數字×數字×數字，允許小數點和各種分隔符）
+    const match=raw.match(/[\d.]+\s*[×xX×]\s*[\d.]+\s*[×xX×]\s*[\d.]+/);
+    if(match){
+      // 統一格式為 ×
+      return match[0].replace(/[xX×]/g,'×').replace(/\s+/g,'');
     }
-    return text;
+    // 沒有匹配到標準格式，但回傳長度合理就直接用
+    if(raw.length<=80&&!raw.includes('\n')) return raw;
+    return null;
   }catch(e){
     console.warn('AI 查尺寸失敗:',e.message);
     window.open(`https://www.google.com/search?q=${encodeURIComponent(productName+' '+modelNo+' 尺寸 規格 cm')}`,'_blank');
