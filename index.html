@@ -5678,6 +5678,44 @@ function renderAppTable(type,data){
   const tb=document.getElementById(type+'-tbody');tb.innerHTML='';
   const pid=getClientProjId();
   const dbType=type==='app'?'appliance':'furniture';
+
+  // 委派點擊：在 tbody 層監聽，避免 closure 問題
+  tb.onclick=async(e)=>{
+    const btn=e.target.closest('.ai-dim-btn');
+    if(!btn) return;
+    e.preventDefault();e.stopPropagation();
+    const idx=parseInt(btn.dataset.rowIndex);
+    const r=data[idx];
+    if(!r){console.warn('找不到資料列',idx);return;}
+    const tr=tb.rows[idx];
+    if(!tr) return;
+    // 找到型號和尺寸輸入框（第4欄=型號，第5欄=尺寸）
+    const modelInput=tr.querySelector('td:nth-child(4) input');
+    const dimInput=tr.querySelector('td:nth-child(5) input');
+    if(!modelInput||!dimInput) return;
+    const modelVal=modelInput.value.trim();
+    const nameVal=r.name||'';
+    console.log('[AI查尺寸] 點擊 row='+idx+' 型號='+modelVal+' 名稱='+nameVal);
+    if(!modelVal){
+      dimInput.placeholder='← 請先填型號';
+      setTimeout(()=>dimInput.placeholder='例：60×40×85',2000);
+      return;
+    }
+    btn.textContent='⟳';btn.style.opacity='0.6';btn.disabled=true;
+    dimInput.placeholder='查詢中…';
+    const result=await aiSearchDims(nameVal,modelVal);
+    console.log('[AI查尺寸] 結果:', result);
+    btn.textContent='✦';btn.style.opacity='';btn.disabled=false;
+    if(result){
+      dimInput.value=result;r.dims=result;
+      dimInput.style.background='#EDF7EC';
+      setTimeout(()=>dimInput.style.background='',2500);
+      if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));
+    } else {
+      dimInput.placeholder='查無資料，請手動填入';
+      setTimeout(()=>dimInput.placeholder='例：60×40×85',3000);
+    }
+  };
   data.forEach((r,i)=>{
     const tr=document.createElement('tr');
     ['name','brand'].forEach(k=>{
@@ -5703,49 +5741,14 @@ function renderAppTable(type,data){
     const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';di.style.flex='1';
     di.oninput=e=>r.dims=e.target.value;
     di.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
-    // AI 查尺寸按鈕
+    // AI 查尺寸按鈕 - 用 data 屬性避免 closure 問題
     const aiBtn=document.createElement('button');
+    aiBtn.className='ai-dim-btn';
+    aiBtn.dataset.rowIndex=String(i);
+    aiBtn.dataset.type=dbType;
     aiBtn.title='AI 自動查詢此型號尺寸';
-    aiBtn.style.cssText='flex-shrink:0;width:26px;height:26px;border-radius:50%;border:none;background:var(--accent-pale);color:var(--accent);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;';
-    aiBtn.innerHTML='✦';
-    aiBtn.title='AI 自動查詢此型號尺寸';
-    aiBtn.onclick=async(e)=>{
-      e.preventDefault();e.stopPropagation();
-      const modelVal=mi.value.trim();
-      const nameVal=r.name||'';
-      console.log('[AI查尺寸] 點擊，型號:', modelVal, '名稱:', nameVal);
-      if(!modelVal){
-        di.placeholder='← 請先填型號';
-        di.style.borderColor='var(--accent)';
-        setTimeout(()=>{di.placeholder='例：60×40×85';di.style.borderColor='';},2000);
-        return;
-      }
-      // 顯示 loading 狀態
-      aiBtn.innerHTML='⟳';
-      aiBtn.style.cssText=aiBtn.style.cssText+'animation:spin 0.8s linear infinite;opacity:0.7;';
-      aiBtn.disabled=true;
-      di.placeholder='查詢中…';
-      try{
-        const result=await aiSearchDims(nameVal,modelVal);
-        console.log('[AI查尺寸] 結果:', result);
-        if(result){
-          di.value=result;r.dims=result;
-          di.style.background='#EDF7EC';
-          di.style.borderColor='var(--green)';
-          setTimeout(()=>{di.style.background='';di.style.borderColor='';},2500);
-          if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));
-        } else {
-          di.placeholder='查無資料，請手動填入';
-          setTimeout(()=>di.placeholder='例：60×40×85',3000);
-        }
-      }catch(err){
-        console.error('[AI查尺寸] 錯誤:', err);
-        alert('查詢發生錯誤：'+err.message);
-      }
-      aiBtn.innerHTML='✦';
-      aiBtn.style.animation='';aiBtn.style.opacity='';
-      aiBtn.disabled=false;
-    };
+    aiBtn.style.cssText='flex-shrink:0;width:28px;height:28px;border-radius:50%;border:none;background:var(--accent-pale);color:var(--accent);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;';
+    aiBtn.textContent='✦';
     tdDimWrap.appendChild(di);tdDimWrap.appendChild(aiBtn);
     tdDim.appendChild(tdDimWrap);tr.appendChild(tdDim);
     // 狀態
