@@ -2144,7 +2144,7 @@ async function dbLoadChecklist(projectId) {
     sb.from('checklist_items').selectWhere('*','project_id=eq.'+projectId+'&item_type=eq.furniture'),
     sb.from('power_items').selectWhere('*','project_id=eq.'+projectId),
   ]);
-  appData = (appData2||[]).map(r=>{
+  const dbApp = (appData2||[]).map(r=>{
     const [model,dims]=(r.model||'').split('||');
     return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status};
   });
@@ -2153,6 +2153,18 @@ async function dbLoadChecklist(projectId) {
     return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status};
   });
   powData = (powData2||[]).map(r=>({dbId:r.id,name:r.name,loc:r.location,w:String(r.watt||''),v:String(r.voltage||110),qty:String(r.quantity||1),note:r.note}));
+
+  // ── 合併預設清單：不論是新舊專案，預設項目永遠顯示 ──
+  // DB 有對應名稱 → 用 DB 版本（保留客戶填的資料）
+  // DB 沒有 → 用預設空白列（等客戶填完才寫入 DB）
+  // DB 有但不在預設清單 → 自訂項目，追加在後面
+  const defaultNames=APP_DEFAULTS.map(d=>d.name);
+  const mergedApp=APP_DEFAULTS.map(def=>{
+    const existing=dbApp.find(r=>r.name===def.name);
+    return existing ? existing : {...def};
+  });
+  const customApp=dbApp.filter(r=>!defaultNames.includes(r.name));
+  appData=[...mergedApp,...customApp];
 }
 
 async function dbSaveChecklistItem(projectId, type, item) {
@@ -5631,19 +5643,6 @@ function switchStab(id,el){
   if(id==='cl-fur') renderCliFurniturePlan();
 }
 function renderChecklists(){
-  // 合併邏輯：預設清單作為底層，DB 有的覆蓋、DB 自訂的追加在後
-  // 這樣既有專案也能看到完整預設欄位，新增的自訂項目也不會消失
-  const defaultNames=APP_DEFAULTS.map(d=>d.name);
-
-  // 1. 以預設清單為基底，DB 有對應名稱的項目用 DB 版本（保留 dbId 等資料）
-  const mergedApp=APP_DEFAULTS.map(def=>{
-    const existing=appData.find(r=>r.name===def.name);
-    return existing?existing:{...def};
-  });
-  // 2. DB 中不在預設清單的項目（客戶自訂）追加在後
-  const customApp=appData.filter(r=>!defaultNames.includes(r.name));
-  appData=[...mergedApp,...customApp];
-
   renderAppTable('app',appData);
   renderAppTable('fur',furData);
   renderPowTable();
@@ -5670,15 +5669,41 @@ function renderAppTable(type,data){
     const sel=mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
     tdL.appendChild(sel);tr.appendChild(tdL);
     // 型號
-    const tdM=document.createElement('td');const mi=document.createElement('input');mi.className='ci';mi.value=r.model||'';mi.placeholder='型號';
+    const tdM=document.createElement('td');
+    const tdMWrap=document.createElement('div');tdMWrap.style.cssText='display:flex;align-items:center;gap:4px;';
+    const mi=document.createElement('input');mi.className='ci';mi.value=r.model||'';mi.placeholder='型號';mi.style.flex='1';
     mi.oninput=e=>r.model=e.target.value;
     mi.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
-    tdM.appendChild(mi);tr.appendChild(tdM);
-    // 尺寸
-    const tdDim=document.createElement('td');const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';
+    tdMWrap.appendChild(mi);tdM.appendChild(tdMWrap);tr.appendChild(tdM);
+    // 尺寸（含 AI 查詢按鈕）
+    const tdDim=document.createElement('td');
+    const tdDimWrap=document.createElement('div');tdDimWrap.style.cssText='display:flex;align-items:center;gap:4px;';
+    const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';di.style.flex='1';
     di.oninput=e=>r.dims=e.target.value;
     di.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
-    tdDim.appendChild(di);tr.appendChild(tdDim);
+    // AI 查尺寸按鈕
+    const aiBtn=document.createElement('button');
+    aiBtn.title='AI 自動查詢此型號尺寸';
+    aiBtn.style.cssText='flex-shrink:0;width:26px;height:26px;border-radius:50%;border:none;background:var(--accent-pale);color:var(--accent);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;';
+    aiBtn.innerHTML='✦';
+    aiBtn.title='AI 查尺寸';
+    aiBtn.onclick=async(e)=>{
+      e.stopPropagation();
+      const model=mi.value.trim();
+      const name=r.name||'';
+      if(!model){alert('請先填入型號再查詢');return;}
+      aiBtn.innerHTML='⟳';aiBtn.style.animation='spin 0.8s linear infinite';aiBtn.disabled=true;
+      const result=await aiSearchDims(name,model);
+      aiBtn.innerHTML='✦';aiBtn.style.animation='';aiBtn.disabled=false;
+      if(result){
+        di.value=result;r.dims=result;
+        di.style.background='#EDF7EC';
+        setTimeout(()=>di.style.background='',1800);
+        if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));
+      }
+    };
+    tdDimWrap.appendChild(di);tdDimWrap.appendChild(aiBtn);
+    tdDim.appendChild(tdDimWrap);tr.appendChild(tdDim);
     // 狀態
     const tdS=document.createElement('td');
     const ssel=mkSel(STAT,r.status,e=>{r.status=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
@@ -5690,6 +5715,35 @@ function renderAppTable(type,data){
     tb.appendChild(tr);
   });
 }
+// ── AI 查尺寸：呼叫 Claude API + web search 搜尋產品規格 ──
+async function aiSearchDims(productName, modelNo){
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:200,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{
+          role:'user',
+          content:`請搜尋「${productName} ${modelNo}」的產品規格，找出它的外觀尺寸（長×寬×高，單位 cm）。
+只需回覆尺寸數字，格式為「長×寬×高」（例如：121.4×77.8×5.4），不需要任何說明文字。
+如果找不到確切尺寸，回覆「查無資料」。`
+        }]
+      })
+    });
+    const data=await response.json();
+    // 從回應中取出文字
+    const text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('').trim();
+    if(!text||text.includes('查無資料')||text.length>40) return null;
+    return text;
+  }catch(e){
+    console.warn('AI 查尺寸失敗:',e.message);
+    return null;
+  }
+}
+
 function renderPowTable(){
   const tb=document.getElementById('pow-tbody');tb.innerHTML='';
   const pid=getClientProjId();
