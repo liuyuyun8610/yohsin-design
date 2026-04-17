@@ -5710,19 +5710,41 @@ function renderAppTable(type,data){
     aiBtn.innerHTML='✦';
     aiBtn.title='AI 自動查詢此型號尺寸';
     aiBtn.onclick=async(e)=>{
-      e.stopPropagation();
-      const model=mi.value.trim();
-      const name=r.name||'';
-      if(!model){alert('請先填入型號再查詢');return;}
-      aiBtn.innerHTML='⟳';aiBtn.style.animation='spin 0.8s linear infinite';aiBtn.disabled=true;
-      const result=await aiSearchDims(name,model);
-      aiBtn.innerHTML='✦';aiBtn.style.animation='';aiBtn.disabled=false;
-      if(result){
-        di.value=result;r.dims=result;
-        di.style.background='#EDF7EC';
-        setTimeout(()=>di.style.background='',1800);
-        if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));
+      e.preventDefault();e.stopPropagation();
+      const modelVal=mi.value.trim();
+      const nameVal=r.name||'';
+      console.log('[AI查尺寸] 點擊，型號:', modelVal, '名稱:', nameVal);
+      if(!modelVal){
+        di.placeholder='← 請先填型號';
+        di.style.borderColor='var(--accent)';
+        setTimeout(()=>{di.placeholder='例：60×40×85';di.style.borderColor='';},2000);
+        return;
       }
+      // 顯示 loading 狀態
+      aiBtn.innerHTML='⟳';
+      aiBtn.style.cssText=aiBtn.style.cssText+'animation:spin 0.8s linear infinite;opacity:0.7;';
+      aiBtn.disabled=true;
+      di.placeholder='查詢中…';
+      try{
+        const result=await aiSearchDims(nameVal,modelVal);
+        console.log('[AI查尺寸] 結果:', result);
+        if(result){
+          di.value=result;r.dims=result;
+          di.style.background='#EDF7EC';
+          di.style.borderColor='var(--green)';
+          setTimeout(()=>{di.style.background='';di.style.borderColor='';},2500);
+          if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));
+        } else {
+          di.placeholder='查無資料，請手動填入';
+          setTimeout(()=>di.placeholder='例：60×40×85',3000);
+        }
+      }catch(err){
+        console.error('[AI查尺寸] 錯誤:', err);
+        alert('查詢發生錯誤：'+err.message);
+      }
+      aiBtn.innerHTML='✦';
+      aiBtn.style.animation='';aiBtn.style.opacity='';
+      aiBtn.disabled=false;
     };
     tdDimWrap.appendChild(di);tdDimWrap.appendChild(aiBtn);
     tdDim.appendChild(tdDimWrap);tr.appendChild(tdDim);
