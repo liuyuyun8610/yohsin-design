@@ -1713,17 +1713,22 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <!-- Anthropic API Key -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-title">AI 功能 — Anthropic API Key</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">用於必填清單「AI 查尺寸」功能。Key 只儲存在本機瀏覽器，不會上傳到任何伺服器。</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">用於必填清單「✦ AI 查尺寸」功能。Key 儲存於 Supabase，所有使用者共用，管理員設定一次即可。</div>
+
+        <!-- 目前狀態 -->
+        <div id="anthropic-key-status" style="font-size:12px;margin-bottom:12px;padding:8px 12px;background:var(--sand);border-radius:9px;"></div>
+
+        <!-- 輸入新 Key（直接覆蓋） -->
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">輸入新的 API Key（貼上後點「儲存」即可覆蓋舊 Key）</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input id="anthropic-key-input" type="password"
+          <input id="anthropic-key-input" type="text"
             placeholder="sk-ant-api03-..."
-            style="flex:1;min-width:240px;padding:9px 12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
+            style="flex:1;min-width:260px;padding:9px 12px;font-family:monospace;font-size:12px;border:0.5px solid var(--border);border-radius:10px;background:#fff;color:var(--ink);outline:none;">
           <button class="btn-ink" onclick="saveAnthropicKey()">儲存</button>
-          <button class="btn-ghost" onclick="clearAnthropicKey()">清除</button>
+          <button class="btn-ghost" onclick="clearAnthropicKey()" style="color:var(--red);border-color:#EDB8B0;">清除</button>
         </div>
-        <div id="anthropic-key-status" style="font-size:11px;margin-top:8px;color:var(--ink-light);"></div>
-        <div style="margin-top:10px;font-size:11px;color:var(--ink-light);line-height:1.8;">
-          取得 Key：前往 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent);">console.anthropic.com</a> → API Keys → Create Key
+        <div style="margin-top:10px;font-size:11px;color:var(--ink-light);line-height:1.9;">
+          取得 Key：前往 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent);">console.anthropic.com</a> → API Keys → <strong>Create Key</strong>（建立全新 Key）
         </div>
       </div>
         <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
@@ -5703,7 +5708,7 @@ function renderAppTable(type,data){
     aiBtn.title='AI 自動查詢此型號尺寸';
     aiBtn.style.cssText='flex-shrink:0;width:26px;height:26px;border-radius:50%;border:none;background:var(--accent-pale);color:var(--accent);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;';
     aiBtn.innerHTML='✦';
-    aiBtn.title='AI 查尺寸';
+    aiBtn.title='AI 自動查詢此型號尺寸';
     aiBtn.onclick=async(e)=>{
       e.stopPropagation();
       const model=mi.value.trim();
@@ -5762,14 +5767,19 @@ function updateAnthropicKeyStatus(){
   const el=document.getElementById('anthropic-key-status');
   if(!el) return;
   const key=anthropicApiKey;
-  el.textContent=key?`✅ 已設定（${key.slice(0,14)}…）`:'⚠️ 尚未設定，AI 查尺寸功能無法使用';
-  el.style.color=key?'var(--green)':'var(--red)';
+  if(key){
+    const masked=key.slice(0,18)+'…'+key.slice(-4);
+    el.innerHTML=`✅ 目前 Key：<span style="font-family:monospace;font-size:12px;color:var(--ink);">${masked}</span>`;
+    el.style.color='var(--green)';
+  } else {
+    el.textContent='⚠️ 尚未設定，AI 查尺寸功能無法使用';
+    el.style.color='var(--red)';
+  }
 }
 
-// ── AI 查尺寸：呼叫 Claude API + web search ──
+// ── AI 查尺寸：呼叫 Claude API ──
 async function aiSearchDims(productName, modelNo){
-  // 每次查詢時即時從 DB 撈最新 Key（確保管理員設定後客戶不需重整）
-  // 同時支援 localStorage 備援
+  // 即時從 DB 撈最新 Key
   let apiKey=anthropicApiKey;
   if(!apiKey){
     try{
@@ -5792,7 +5802,7 @@ async function aiSearchDims(productName, modelNo){
         'anthropic-dangerous-direct-browser-access':'true',
       },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:150,
         messages:[{
           role:'user',
@@ -5802,17 +5812,29 @@ async function aiSearchDims(productName, modelNo){
     });
     if(!response.ok){
       const err=await response.json().catch(()=>({}));
-      if(response.status===401) alert('API Key 無效，請至設定頁重新輸入正確的 Key。');
-      else alert(`查詢失敗（${response.status}）：${err?.error?.message||'未知錯誤'}`);
+      const msg=err?.error?.message||'';
+      if(response.status===401){
+        alert('API Key 無效，請至設定頁重新輸入正確的 Key。');
+      } else if(msg.includes('credit')){
+        const q=encodeURIComponent(`${productName} ${modelNo} 尺寸 規格 cm`);
+        window.open(`https://www.google.com/search?q=${q}`,'_blank');
+        alert('點數不足，已自動開啟 Google 搜尋，請手動複製尺寸填入。');
+      } else {
+        alert(`查詢失敗（${response.status}）：${msg||'未知錯誤'}`);
+      }
       return null;
     }
     const data=await response.json();
     const text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('').trim();
-    if(!text||text.includes('查無資料')||text.length>50) return null;
+    if(!text||text.includes('查無資料')||text.length>50){
+      // fallback Google
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(productName+' '+modelNo+' 尺寸 規格 cm')}`,'_blank');
+      return null;
+    }
     return text;
   }catch(e){
     console.warn('AI 查尺寸失敗:',e.message);
-    alert('網路錯誤，請確認連線後再試。');
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(productName+' '+modelNo+' 尺寸 規格 cm')}`,'_blank');
     return null;
   }
 }
