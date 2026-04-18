@@ -219,7 +219,24 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .know-bd .art-red{color:var(--red);}
 .know-bd p{margin:0 0 6px;}
 
-/* ── 文章編輯器工具列 ── */
+/* ── 富文字編輯器 (RTE) ── */
+.rte-toolbar{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;background:var(--sand);border:0.5px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;}
+.rte-btn{padding:4px 10px;font-size:12px;font-family:'Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:all .12s;white-space:nowrap;}
+.rte-btn:hover{background:var(--accent-pale);border-color:var(--accent-light);color:var(--accent);}
+.rte-btn-danger{color:var(--red);border-color:#EDB8B0;}
+.rte-btn-danger:hover{background:#FCEBEB;border-color:var(--red);}
+.rte-sep{width:0.5px;background:var(--border);margin:2px 2px;align-self:stretch;}
+.rte-body{min-height:160px;max-height:400px;overflow-y:auto;padding:12px 14px;border:0.5px solid var(--border);border-radius:0 0 10px 10px;background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink);line-height:1.85;outline:none;}
+.rte-body:empty:before{content:attr(data-placeholder);color:var(--ink-light);pointer-events:none;}
+.rte-body h3{font-size:14px;font-weight:600;color:var(--ink);margin:10px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.rte-body ul{padding-left:20px;margin:6px 0;}
+.rte-body ol{padding-left:20px;margin:6px 0;}
+.rte-body li{margin-bottom:3px;}
+.rte-body hr{border:none;border-top:1px dashed var(--border);margin:10px 0;}
+.rte-body p{margin:0 0 6px;}
+.rte-body strong{font-weight:600;}
+.rte-body u{text-decoration:underline;}
+.rte-body i{font-style:italic;}
 .art-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;background:var(--sand);border:0.5px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;}
 .art-tb-btn{padding:4px 9px;font-size:11px;font-family:'Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:all 0.12s;white-space:nowrap;}
 .art-tb-btn:hover{background:var(--accent-pale);border-color:var(--accent-light);color:var(--accent);}
@@ -1560,7 +1577,29 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;"></div>
             <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;"></div>
           </div>
-          <div class="form-group"><label class="form-label">會議內容</label><textarea class="form-ta" id="formal-content" placeholder="填寫會議重點、決議事項…" style="margin-bottom:0;"></textarea></div>
+          <div class="form-group">
+            <label class="form-label">會議內容</label>
+            <!-- 富文字工具列 -->
+            <div class="rte-toolbar" id="formal-rte-toolbar">
+              <button type="button" class="rte-btn" onclick="rteCmd('bold')" title="粗體 (Ctrl+B)"><b>B</b></button>
+              <button type="button" class="rte-btn" onclick="rteCmd('italic')" title="斜體 (Ctrl+I)"><i>I</i></button>
+              <button type="button" class="rte-btn" onclick="rteCmd('underline')" title="底線 (Ctrl+U)"><u>U</u></button>
+              <div class="rte-sep"></div>
+              <button type="button" class="rte-btn" onclick="rteHeading('h3')" title="標題">H</button>
+              <button type="button" class="rte-btn" onclick="rteHeading('p')" title="內文">¶</button>
+              <div class="rte-sep"></div>
+              <button type="button" class="rte-btn" onclick="rteCmd('insertUnorderedList')" title="項目清單">• 清單</button>
+              <button type="button" class="rte-btn" onclick="rteCmd('insertOrderedList')" title="編號清單">1. 清單</button>
+              <div class="rte-sep"></div>
+              <button type="button" class="rte-btn" onclick="rteInsertHr()" title="分隔線">─</button>
+              <button type="button" class="rte-btn rte-btn-danger" onclick="rteClear()" title="清除格式">清除</button>
+            </div>
+            <!-- 可編輯區域 -->
+            <div id="formal-content-rte" class="rte-body" contenteditable="true"
+              data-placeholder="填寫會議重點、決議事項…"></div>
+            <!-- 隱藏 textarea 供儲存用 -->
+            <textarea id="formal-content" style="display:none;"></textarea>
+          </div>
           <div class="form-group" style="margin-top:0.8rem;">
             <label class="form-label">附件圖片（選填）</label>
             <div class="upload-zone" onclick="document.getElementById('formal-img-input').click()">
@@ -4142,7 +4181,10 @@ function renderClientFormalMeetings(d){
   sorted.forEach(m=>{
     const imgHtml=(m.images&&m.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${m.images.map(src=>`<img src="${src}" style="height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
     const item=document.createElement('div');item.className='meeting-record';
-    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${smartFormat(m.content)}${imgHtml}</div>`;
+    // 判斷是 HTML 富文字還是純文字
+    const isHtml=/<[a-z][\s\S]*>/i.test(m.content||'');
+    const contentHtml=isHtml?m.content:smartFormat(m.content);
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${contentHtml}${imgHtml}</div>`;
     el.appendChild(item);
   });
 }
@@ -5132,9 +5174,37 @@ function renderAdminFormalList(cid){
   meetings.forEach((m,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">📝</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${m.content.substring(0,50)}${m.content.length>50?'…':''}</div></div><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
   el.appendChild(wrap);
 }
+// ── 富文字編輯器 (RTE) ──
+function rteCmd(cmd){
+  document.getElementById('formal-content-rte')?.focus();
+  document.execCommand(cmd,false,null);
+}
+function rteHeading(tag){
+  document.getElementById('formal-content-rte')?.focus();
+  document.execCommand('formatBlock',false,tag);
+}
+function rteInsertHr(){
+  document.getElementById('formal-content-rte')?.focus();
+  document.execCommand('insertHorizontalRule',false,null);
+}
+function rteClear(){
+  const rte=document.getElementById('formal-content-rte');
+  if(rte&&confirm('確定清除所有內容？')) rte.innerHTML='';
+}
+function getRteContent(){
+  const rte=document.getElementById('formal-content-rte');
+  return rte?rte.innerHTML.trim():'';
+}
+function setRteContent(html){
+  const rte=document.getElementById('formal-content-rte');
+  if(rte) rte.innerHTML=html||'';
+}
+
 function addFormalMeeting(){
   const cid=getAdminDocClientId();
-  const date=document.getElementById('formal-date').value,title=document.getElementById('formal-title').value.trim(),content=document.getElementById('formal-content').value.trim();
+  const date=document.getElementById('formal-date').value;
+  const title=document.getElementById('formal-title').value.trim();
+  const content=getRteContent();
   if(!date||!title||!content){alert('請填寫日期、標題和內容');return;}
   showLoader(true);
   (async()=>{
@@ -5143,7 +5213,8 @@ function addFormalMeeting(){
       const newItem={date:date.replace(/-/g,'/'),title,content,images:urls};
       await dbSaveMeeting(cid,'formal',newItem);
       docsData[cid].formalMeetings.push(newItem);
-      document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
+      document.getElementById('formal-title').value='';
+      setRteContent('');
       pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
       renderAdminFormalList(cid);
     }catch(e){alert('儲存失敗：'+e.message);}
