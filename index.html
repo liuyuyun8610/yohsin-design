@@ -219,6 +219,7 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .know-bd .art-red{color:var(--red);}
 .know-bd p{margin:0 0 6px;}
 
+.meeting-attendees{font-size:12px;color:var(--ink-muted);background:var(--sand);border-radius:7px;padding:5px 10px;margin-bottom:10px;display:inline-block;}
 /* ── 富文字編輯器 (RTE) ── */
 .rte-toolbar{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;background:var(--sand);border:0.5px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;}
 .rte-btn{padding:4px 10px;font-size:12px;font-family:'Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:all .12s;white-space:nowrap;}
@@ -1574,11 +1575,18 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div id="admin-formal-list" style="margin-bottom:1rem;"></div>
           <div class="divider"></div>
           <div class="form-grid2" style="margin-bottom:0.8rem;">
-            <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;"></div>
-            <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;"></div>
+            <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;" oninput="formalAutosave()"></div>
+            <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;" oninput="formalAutosave()"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label class="form-label">與會人員</label>
+            <input class="form-input" id="formal-attendees" placeholder="例：設計師 Vera、業主 Amanda、工程監工 Jason" style="margin-bottom:0;" oninput="formalAutosave()">
           </div>
           <div class="form-group">
-            <label class="form-label">會議內容</label>
+            <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>會議內容</span>
+              <span id="formal-autosave-status" style="font-size:10px;color:var(--ink-light);font-weight:400;letter-spacing:0;"></span>
+            </label>
             <!-- 富文字工具列 -->
             <div class="rte-toolbar" id="formal-rte-toolbar">
               <button type="button" class="rte-btn" onclick="rteCmd('bold')" title="粗體 (Ctrl+B)"><b>B</b></button>
@@ -1596,8 +1604,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             </div>
             <!-- 可編輯區域 -->
             <div id="formal-content-rte" class="rte-body" contenteditable="true"
-              data-placeholder="填寫會議重點、決議事項…"></div>
+              data-placeholder="填寫會議重點、決議事項…"
+              oninput="formalAutosave()"></div>
             <!-- 隱藏 textarea 供儲存用 -->
+
             <textarea id="formal-content" style="display:none;"></textarea>
           </div>
           <div class="form-group" style="margin-top:0.8rem;">
@@ -4932,6 +4942,17 @@ function switchAdminMeetingTab(tab,el){
   document.getElementById('admin-formal-panel').style.display=tab==='formal'?'block':'none';
   document.getElementById('admin-client-note-panel').style.display=tab==='client_note'?'block':'none';
   if(tab==='client_note') renderAdminClientNotesList(getAdminDocClientId());
+  if(tab==='formal'){
+    // 自動載入上次未完成的草稿
+    const cid=getAdminDocClientId();
+    formalLoadDraft(cid);
+    // 填入今日日期（如果日期欄還是空的）
+    const dateEl=document.getElementById('formal-date');
+    if(dateEl&&!dateEl.value){
+      const t=new Date();
+      dateEl.value=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    }
+  }
 }
 
 function renderAdminClientNotesList(cid){
@@ -5200,12 +5221,62 @@ function setRteContent(html){
   if(rte) rte.innerHTML=html||'';
 }
 
+// ── 會議記錄自動暫存（localStorage，即時無網路延遲）──
+let _formalAutosaveTimer=null;
+function formalAutosave(){
+  clearTimeout(_formalAutosaveTimer);
+  _formalAutosaveTimer=setTimeout(()=>{
+    const cid=getAdminDocClientId();
+    const draft={
+      date:document.getElementById('formal-date')?.value||'',
+      title:document.getElementById('formal-title')?.value||'',
+      attendees:document.getElementById('formal-attendees')?.value||'',
+      content:getRteContent(),
+      savedAt:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    };
+    localStorage.setItem(`ys_meeting_draft_${cid}`,JSON.stringify(draft));
+    const el=document.getElementById('formal-autosave-status');
+    if(el){
+      el.textContent=`✓ 已自動暫存 ${draft.savedAt}`;
+      el.style.color='var(--green)';
+      setTimeout(()=>{el.textContent='';},3000);
+    }
+  }, 800); // 停止打字 0.8 秒後存檔
+}
+function formalLoadDraft(cid){
+  try{
+    const raw=localStorage.getItem(`ys_meeting_draft_${cid}`);
+    if(!raw) return;
+    const draft=JSON.parse(raw);
+    // 只在欄位為空時才帶入草稿，避免覆蓋使用者已手動填入的內容
+    const dateEl=document.getElementById('formal-date');
+    const titleEl=document.getElementById('formal-title');
+    if(dateEl&&!dateEl.value&&draft.date) dateEl.value=draft.date;
+    if(titleEl&&!titleEl.value&&draft.title) titleEl.value=draft.title;
+    const attendeesEl=document.getElementById('formal-attendees');
+    if(attendeesEl&&!attendeesEl.value&&draft.attendees) attendeesEl.value=draft.attendees;
+    const rte=document.getElementById('formal-content-rte');
+    if(rte&&!rte.innerHTML.trim()&&draft.content) setRteContent(draft.content);
+    if(draft.savedAt){
+      const el=document.getElementById('formal-autosave-status');
+      if(el) el.textContent=`↺ 已還原暫存（${draft.savedAt}）`;
+    }
+  }catch(e){}
+}
+function formalClearDraft(cid){
+  localStorage.removeItem(`ys_meeting_draft_${cid}`);
+}
+
 function addFormalMeeting(){
   const cid=getAdminDocClientId();
   const date=document.getElementById('formal-date').value;
   const title=document.getElementById('formal-title').value.trim();
-  const content=getRteContent();
-  if(!date||!title||!content){alert('請填寫日期、標題和內容');return;}
+  const attendees=document.getElementById('formal-attendees')?.value.trim()||'';
+  const bodyContent=getRteContent();
+  if(!date||!title||!bodyContent){alert('請填寫日期、標題和內容');return;}
+  // 與會人員以特殊 div 存入 content 開頭（方便解析顯示）
+  const attendeesHtml=attendees?`<div class="meeting-attendees" data-attendees="1">👥 ${attendees}</div>`:'';
+  const content=attendeesHtml+bodyContent;
   showLoader(true);
   (async()=>{
     try{
@@ -5213,8 +5284,12 @@ function addFormalMeeting(){
       const newItem={date:date.replace(/-/g,'/'),title,content,images:urls};
       await dbSaveMeeting(cid,'formal',newItem);
       docsData[cid].formalMeetings.push(newItem);
+      formalClearDraft(cid);
       document.getElementById('formal-title').value='';
+      if(document.getElementById('formal-attendees')) document.getElementById('formal-attendees').value='';
       setRteContent('');
+      const statusEl=document.getElementById('formal-autosave-status');
+      if(statusEl) statusEl.textContent='';
       pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
       renderAdminFormalList(cid);
     }catch(e){alert('儲存失敗：'+e.message);}
