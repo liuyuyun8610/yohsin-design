@@ -1710,133 +1710,141 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="a-settings">
       <div class="sec-head"><div class="sec-ttl">系統設定</div></div>
 
-      <!-- Anthropic API Key -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">AI 功能 — Anthropic API Key</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">用於必填清單「✦ AI 查尺寸」功能。Key 儲存於 Supabase，所有使用者共用，管理員設定一次即可。</div>
-
-        <!-- 目前狀態 -->
-        <div id="anthropic-key-status" style="font-size:12px;margin-bottom:12px;padding:8px 12px;background:var(--sand);border-radius:9px;"></div>
-
-        <!-- 輸入新 Key（直接覆蓋） -->
-        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">輸入新的 API Key（貼上後點「儲存」即可覆蓋舊 Key）</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input id="anthropic-key-input" type="text"
-            placeholder="sk-ant-api03-..."
-            style="flex:1;min-width:260px;padding:9px 12px;font-family:monospace;font-size:12px;border:0.5px solid var(--border);border-radius:10px;background:#fff;color:var(--ink);outline:none;">
-          <button class="btn-ink" onclick="saveAnthropicKey()">儲存</button>
-          <button class="btn-ghost" onclick="clearAnthropicKey()" style="color:var(--red);border-color:#EDB8B0;">清除</button>
-        </div>
-        <div style="margin-top:10px;font-size:11px;color:var(--ink-light);line-height:1.9;">
-          取得 Key：前往 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent);">console.anthropic.com</a> → API Keys → <strong>Create Key</strong>（建立全新 Key）
-        </div>
+      <!-- 設定分類 Tab -->
+      <div style="display:flex;gap:6px;margin-bottom:1.4rem;background:var(--sand);border-radius:12px;padding:4px;">
+        <button id="stab-auth"    onclick="switchSettingsTab('auth')"    style="flex:1;padding:8px 4px;font-family:'Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:#AB9E93;color:#fff;font-weight:500;letter-spacing:.03em;">🔑 權限設定</button>
+        <button id="stab-brand"   onclick="switchSettingsTab('brand')"   style="flex:1;padding:8px 4px;font-family:'Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">🎨 品牌外觀</button>
+        <button id="stab-ai"      onclick="switchSettingsTab('ai')"      style="flex:1;padding:8px 4px;font-family:'Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">✦ AI 功能</button>
       </div>
-        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Logo</div>
-            <img id="current-logo-preview" src="" alt="Logo" style="width:120px;height:120px;object-fit:contain;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);padding:8px;">
+
+      <!-- ─── 權限設定 ─── -->
+      <div id="settings-panel-auth">
+
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">後台登入密碼</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input type="password" class="form-input" id="settings-new-pw" style="max-width:200px;margin-bottom:0;" placeholder="輸入新密碼">
+            <input type="password" class="form-input" id="settings-new-pw2" style="max-width:200px;margin-bottom:0;" placeholder="再次確認">
+            <button class="btn-ink" onclick="applyPassword()">更新密碼</button>
           </div>
-          <div style="flex:1;min-width:200px;">
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳新 Logo（建議白底或透明底 PNG/JPG）</div>
-            <div class="upload-zone" onclick="document.getElementById('logo-file-input').click()" style="padding:1.5rem;">
-              <div class="upload-zone-icon">🖼</div>
-              <div class="upload-zone-text">點擊選擇圖片</div>
-              <div class="upload-zone-hint">PNG / JPG，建議 400×400px 以上</div>
+          <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin　｜　目前密碼：<span id="settings-cur-pw" style="font-family:monospace;font-size:12px;background:var(--sand);border-radius:5px;padding:1px 6px;cursor:pointer;" onclick="toggleSettingsPw(this)" title="點擊顯示/隱藏">••••••••</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">內部帳號（總覽看板權限）</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此處帳號登入後可看到所有專案的總覽看板，適用老闆或公司內部管理人員。</div>
+          <div id="boss-accounts-list" style="margin-bottom:1rem;"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div><label class="form-label">帳號名稱</label><input class="form-input" id="boss-name" placeholder="例：老闆" style="margin-bottom:0;width:140px;"></div>
+            <div><label class="form-label">登入帳號</label><input class="form-input" id="boss-user" placeholder="例：boss" style="margin-bottom:0;width:130px;"></div>
+            <div><label class="form-label">登入密碼</label><input class="form-input" id="boss-pass" placeholder="設定密碼" style="margin-bottom:0;width:130px;"></div>
+            <button class="btn-ink" onclick="addBossAccount()">＋ 新增</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─── 品牌外觀 ─── -->
+      <div id="settings-panel-brand" style="display:none;">
+
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">登入頁面標題</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input class="form-input" id="settings-title" style="max-width:300px;margin-bottom:0;" placeholder="有心制作專案區">
+            <button class="btn-ink" onclick="applyTitle()">套用</button>
+          </div>
+          <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前標題：<span id="settings-title-current" style="font-weight:500;color:var(--ink);">有心制作專案區</span></div>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">登入頁面 Logo</div>
+          <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Logo</div>
+              <img id="current-logo-preview" src="" alt="Logo" style="width:100px;height:100px;object-fit:contain;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);padding:8px;">
             </div>
-            <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="previewNewLogo(event)">
-            <div id="new-logo-preview" style="display:none;margin-top:1rem;">
-              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.5rem;">新 Logo 預覽</div>
-              <img id="new-logo-img" src="" style="width:120px;height:120px;object-fit:contain;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);padding:8px;">
-              <div style="display:flex;gap:8px;margin-top:0.8rem;">
-                <button class="btn-ink" onclick="applyNewLogo()">套用 Logo</button>
-                <button class="btn-ghost" onclick="cancelNewLogo()">取消</button>
+            <div style="flex:1;min-width:200px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳新 Logo（建議白底或透明底 PNG/JPG）</div>
+              <div class="upload-zone" onclick="document.getElementById('logo-file-input').click()" style="padding:1.2rem;">
+                <div class="upload-zone-icon">🖼</div>
+                <div class="upload-zone-text">點擊選擇圖片</div>
+                <div class="upload-zone-hint">PNG / JPG，建議 400×400px 以上</div>
+              </div>
+              <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="previewNewLogo(event)">
+              <div id="new-logo-preview" style="display:none;margin-top:1rem;">
+                <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.5rem;">新 Logo 預覽</div>
+                <img id="new-logo-img" src="" style="width:100px;height:100px;object-fit:contain;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);padding:8px;">
+                <div style="display:flex;gap:8px;margin-top:0.8rem;">
+                  <button class="btn-ink" onclick="applyNewLogo()">套用 Logo</button>
+                  <button class="btn-ghost" onclick="cancelNewLogo()">取消</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">客戶總覽 — 效果圖 Icon</div>
-        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Icon</div>
-            <div id="gallery-icon-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);font-size:32px;">🖼️</div>
-          </div>
-          <div style="flex:1;min-width:200px;">
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳自訂 Icon（PNG/SVG 透明底，建議 128×128px）</div>
-            <div class="upload-zone" onclick="document.getElementById('gallery-icon-input').click()" style="padding:1.2rem;">
-              <div class="upload-zone-icon">🗂</div>
-              <div class="upload-zone-text">點擊選擇圖片</div>
+
+        <!-- 3 個 Icon 合併成一張卡 -->
+        <div class="card">
+          <div class="card-title">客戶總覽快捷圖示</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">自訂客戶端首頁三個快捷入口的圖示（PNG/SVG 透明底，建議 128×128px）</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+
+            <!-- 效果圖 -->
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:.06em;margin-bottom:8px;">效果圖</div>
+              <div id="gallery-icon-preview" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);font-size:28px;margin:0 auto 8px;">🖼️</div>
+              <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--ink-muted);cursor:pointer;">
+                更換
+                <input type="file" id="gallery-icon-input" accept="image/*" style="display:none;" onchange="uploadGalleryIcon(event)">
+              </label>
             </div>
-            <input type="file" id="gallery-icon-input" accept="image/*" style="display:none;" onchange="uploadGalleryIcon(event)">
-            <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">上傳後自動儲存，客戶端立即套用</div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">客戶總覽 — 平面系統圖 Icon</div>
-        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Icon</div>
-            <div id="plan-icon-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);font-size:32px;">📐</div>
-          </div>
-          <div style="flex:1;min-width:200px;">
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳自訂 Icon（PNG/SVG 透明底，建議 128×128px）</div>
-            <div class="upload-zone" onclick="document.getElementById('plan-icon-input').click()" style="padding:1.2rem;">
-              <div class="upload-zone-icon">📐</div>
-              <div class="upload-zone-text">點擊選擇圖片</div>
+
+            <!-- 平面系統圖 -->
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:.06em;margin-bottom:8px;">平面系統圖</div>
+              <div id="plan-icon-preview" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);font-size:28px;margin:0 auto 8px;">📐</div>
+              <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--ink-muted);cursor:pointer;">
+                更換
+                <input type="file" id="plan-icon-input" accept="image/*" style="display:none;" onchange="uploadPlanIcon(event)">
+              </label>
             </div>
-            <input type="file" id="plan-icon-input" accept="image/*" style="display:none;" onchange="uploadPlanIcon(event)">
-            <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">上傳後自動儲存，客戶端立即套用</div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">客戶總覽 — 立面系統圖 Icon</div>
-        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">目前 Icon</div>
-            <div id="elev-icon-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);font-size:32px;">📏</div>
-          </div>
-          <div style="flex:1;min-width:200px;">
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.8rem;">上傳自訂 Icon（PNG/SVG 透明底，建議 128×128px）</div>
-            <div class="upload-zone" onclick="document.getElementById('elev-icon-input').click()" style="padding:1.2rem;">
-              <div class="upload-zone-icon">📏</div>
-              <div class="upload-zone-text">點擊選擇圖片</div>
+
+            <!-- 立面系統圖 -->
+            <div style="text-align:center;">
+              <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:.06em;margin-bottom:8px;">立面系統圖</div>
+              <div id="elev-icon-preview" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);font-size:28px;margin:0 auto 8px;">📏</div>
+              <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--ink-muted);cursor:pointer;">
+                更換
+                <input type="file" id="elev-icon-input" accept="image/*" style="display:none;" onchange="uploadElevIcon(event)">
+              </label>
             </div>
-            <input type="file" id="elev-icon-input" accept="image/*" style="display:none;" onchange="uploadElevIcon(event)">
-            <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">上傳後自動儲存，客戶端立即套用</div>
+
           </div>
         </div>
-      </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <input class="form-input" id="settings-title" style="max-width:300px;margin-bottom:0;" placeholder="有心制作專案區">
-          <button class="btn-ink" onclick="applyTitle()">套用</button>
-        </div>
-        <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前標題：<span id="settings-title-current" style="font-weight:500;color:var(--ink);">有心制作專案區</span></div>
-      </div>
-      <div class="card">
-        <div class="card-title">後台登入密碼</div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <input type="password" class="form-input" id="settings-new-pw" style="max-width:200px;margin-bottom:0;" placeholder="輸入新密碼">
-          <input type="password" class="form-input" id="settings-new-pw2" style="max-width:200px;margin-bottom:0;" placeholder="再次確認">
-          <button class="btn-ink" onclick="applyPassword()">更新密碼</button>
-        </div>
-        <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin　｜　目前密碼：<span id="settings-cur-pw" style="font-family:monospace;font-size:12px;background:var(--sand);border-radius:5px;padding:1px 6px;cursor:pointer;" onclick="toggleSettingsPw(this)" title="點擊顯示/隱藏">••••••••</span></div>
+
       </div>
 
-      <!-- 內部帳號管理 -->
-      <div class="card">
-        <div class="card-title">內部帳號（總覽看板權限）</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此處帳號登入後可看到所有專案的總覽看板，適用老闆或公司內部管理人員。</div>
-        <div id="boss-accounts-list" style="margin-bottom:1rem;"></div>
-        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
-          <div><label class="form-label">帳號名稱</label><input class="form-input" id="boss-name" placeholder="例：老闆" style="margin-bottom:0;width:140px;"></div>
-          <div><label class="form-label">登入帳號</label><input class="form-input" id="boss-user" placeholder="例：boss" style="margin-bottom:0;width:130px;"></div>
-          <div><label class="form-label">登入密碼</label><input class="form-input" id="boss-pass" placeholder="設定密碼" style="margin-bottom:0;width:130px;"></div>
-          <button class="btn-ink" onclick="addBossAccount()">＋ 新增</button>
+      <!-- ─── AI 功能 ─── -->
+      <div id="settings-panel-ai" style="display:none;">
+
+        <div class="card">
+          <div class="card-title">Anthropic API Key</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">用於必填清單「✦ AI 查尺寸」功能。Key 儲存於 Supabase，所有使用者共用，設定一次即可。</div>
+          <div id="anthropic-key-status" style="font-size:12px;margin-bottom:12px;padding:8px 12px;background:var(--sand);border-radius:9px;"></div>
+          <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">貼入新的 API Key（直接覆蓋舊 Key）</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input id="anthropic-key-input" type="text" placeholder="sk-ant-api03-..."
+              style="flex:1;min-width:260px;padding:9px 12px;font-family:monospace;font-size:12px;border:0.5px solid var(--border);border-radius:10px;background:#fff;color:var(--ink);outline:none;">
+            <button class="btn-ink" onclick="saveAnthropicKey()">儲存</button>
+            <button class="btn-ghost" onclick="clearAnthropicKey()" style="color:var(--red);border-color:#EDB8B0;">清除</button>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--ink-light);line-height:1.9;">
+            取得 Key：前往 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent);">console.anthropic.com</a> → API Keys → <strong>Create Key</strong>
+          </div>
         </div>
+
       </div>
+
     </div>
 
   </div>
@@ -2477,7 +2485,20 @@ let adminPassword='admin123';
 let siteTitle='有心制作專案區';
 let anthropicApiKey='';
 
+function switchSettingsTab(tab){
+  const panels={auth:'settings-panel-auth',brand:'settings-panel-brand',ai:'settings-panel-ai'};
+  const btns={auth:'stab-auth',brand:'stab-brand',ai:'stab-ai'};
+  Object.keys(panels).forEach(k=>{
+    const active=(k===tab);
+    document.getElementById(panels[k]).style.display=active?'block':'none';
+    const btn=document.getElementById(btns[k]);
+    if(btn){btn.style.background=active?'#AB9E93':'none';btn.style.color=active?'#fff':'var(--ink-muted)';btn.style.fontWeight=active?'500':'400';}
+  });
+  if(tab==='auth') renderBossAccounts();
+  if(tab==='ai') updateAnthropicKeyStatus();
+}
 function initSettings(){
+  switchSettingsTab('auth');
   const imgs=document.querySelectorAll('.site-logo-img');
   const prev=document.getElementById('current-logo-preview');
   if(prev&&imgs.length)prev.src=imgs[0].src;
@@ -2485,7 +2506,6 @@ function initSettings(){
   document.getElementById('settings-title').value='';
   const pwEl=document.getElementById('settings-cur-pw');
   if(pwEl){pwEl.textContent='••••••••';pwEl.dataset.show='0';}
-  updateAnthropicKeyStatus();
 }
 function previewNewLogo(e){
   const file=e.target.files[0];if(!file)return;
