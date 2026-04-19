@@ -639,6 +639,92 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <body>
 
 <!-- ====== LOGIN ====== -->
+<!-- 公開需求表單（不需登入，URL含?survey=TOKEN時顯示）-->
+<div id="s-survey-public" class="screen" style="background:#F7F3EE;min-height:100vh;">
+  <div style="background:rgba(251,248,244,0.95);border-bottom:0.5px solid rgba(139,107,72,0.13);padding:14px 2rem;display:flex;align-items:center;gap:12px;">
+    <img src="" alt="有心制作" class="site-logo-img" style="width:32px;height:32px;object-fit:contain;">
+    <div style="font-family:'Noto Serif TC',serif;font-size:14px;letter-spacing:0.08em;color:#2C2218;">有心制作 · 空間設計</div>
+  </div>
+  <div style="max-width:680px;margin:0 auto;padding:2rem 1.2rem 4rem;">
+    <div id="sp-intro" style="margin-bottom:1.8rem;">
+      <div style="font-family:'Noto Serif TC',serif;font-size:22px;color:#2C2218;margin-bottom:0.6rem;">裝修需求調查表</div>
+      <div style="font-size:13px;color:#6E5E4E;line-height:1.8;background:#FBF8F4;padding:12px 16px;border-radius:12px;border-left:3px solid #B8936A;">
+        📋 請填寫以下需求調查表，協助設計師了解您的生活習慣與空間期望。<br>填寫途中可隨時關閉，下次以同一連結開啟即可繼續。
+      </div>
+    </div>
+
+    <!-- 填寫人姓名（選填）-->
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">您的姓名（選填）</div>
+      <input id="sp-name" class="survey-input" placeholder="方便設計師稱呼您" oninput="spAutosave()">
+    </div>
+
+    <!-- Step 1 -->
+    <div style="font-size:15px;font-weight:600;color:#2C2218;margin:1.4rem 0 0.8rem;padding-bottom:8px;border-bottom:2px solid #B8936A;">Step 1 ｜ 住家的理想樣貌</div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">🌅 憧憬 <span style="font-weight:400;color:#A09080;">請敘述您未來想像的生活樣貌</span></div>
+      <textarea class="survey-ta" id="sp-vision" placeholder="例：希望一進家門可以有開闊的感覺，能在週末有舒適的耍廢時光…" rows="4" oninput="spAutosave()"></textarea>
+    </div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">🏠 最重要的居家活動</div>
+      <textarea class="survey-ta" id="sp-activities" placeholder="例：和伴侶在餐桌使用筆電工作、週末家庭聚餐…" rows="3" oninput="spAutosave()"></textarea>
+    </div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">😤 對目前住所最不滿意的三件事</div>
+      <textarea class="survey-ta" id="sp-dislikes" placeholder="例：插座嚴重不足、廚房收納空間太少…" rows="3" oninput="spAutosave()"></textarea>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="font-size:15px;font-weight:600;color:#2C2218;margin:1.4rem 0 0.8rem;padding-bottom:8px;border-bottom:2px solid #B8936A;">Step 2 ｜ 成員與基礎生活習慣</div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">🏡 居住成員 <span style="font-weight:400;color:#A09080;">未來居住成員結構</span></div>
+      <textarea class="survey-ta" id="sp-members" placeholder="例：先生39歲175cm天秤座、太太36歲162cm巨蟹座、女兒9歲、嬰兒0.5歲、柴犬4歲17kg…" rows="4" oninput="spAutosave()"></textarea>
+    </div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">🧿 風水需求 <span style="font-weight:400;color:#A09080;">非必填</span></div>
+      <textarea class="survey-ta" id="sp-fengshui" placeholder="例：有隻金雞母需放在指定財位、希望稍微避樑…" rows="2" oninput="spAutosave()"></textarea>
+    </div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">🚐 舊元素的保留</div>
+      <textarea class="survey-ta" id="sp-old-elements" placeholder="例：有一個詩肯柚木五斗櫃希望沿用（W120×H95×D45cm）…" rows="2" oninput="spAutosave()"></textarea>
+    </div>
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">🌿 植物需求</div>
+      <div style="font-size:12px;color:#7A5C3A;margin-bottom:6px;font-weight:500;">您原有或預計要養的植物：</div>
+      <div id="sp-plants-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;"></div>
+      <div style="font-size:12px;color:#7A5C3A;margin-bottom:6px;font-weight:500;">預計放置的區域：</div>
+      <div id="sp-plant-areas-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;"></div>
+      <input class="survey-input" id="sp-plants-other" placeholder="其他植物補充…" oninput="spAutosave()">
+    </div>
+
+    <!-- Step 3 -->
+    <div style="font-size:15px;font-weight:600;color:#2C2218;margin:1.4rem 0 0.8rem;padding-bottom:8px;border-bottom:2px solid #B8936A;">Step 3 ｜ 各別區塊的調查</div>
+
+    <div id="sp-sections-container"></div>
+
+    <!-- 其他備注 -->
+    <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">📝 其他補充 ／ 備注</div>
+      <textarea class="survey-ta" id="sp-notes" placeholder="任何想補充告知設計師的事項…" rows="4" oninput="spAutosave()"></textarea>
+    </div>
+
+    <!-- 提交按鈕 -->
+    <button onclick="submitSurvey()" style="width:100%;padding:14px;background:#AB9E93;color:#fff;border:none;border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:15px;letter-spacing:0.06em;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#8B6F4E'" onmouseout="this.style.background='#AB9E93'">
+      ✓ 送出需求表單
+    </button>
+    <div id="sp-save-status" style="text-align:center;font-size:11px;color:#A09080;margin-top:10px;padding-bottom:2rem;"></div>
+  </div>
+</div>
+
+<!-- 表單送出成功畫面 -->
+<div id="s-survey-done" class="screen" style="background:#F7F3EE;min-height:100vh;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;padding:2rem;">
+    <div style="font-size:48px;margin-bottom:1rem;">✅</div>
+    <div style="font-family:'Noto Serif TC',serif;font-size:22px;color:#2C2218;margin-bottom:0.8rem;">感謝您的填寫！</div>
+    <div style="font-size:14px;color:#6E5E4E;line-height:1.8;">設計師收到您的需求表單後，<br>會盡快與您聯繫安排後續討論。</div>
+  </div>
+</div>
+
 <div id="s-login" class="screen active">
   <div class="login-wrap">
     <div class="logo-area">
@@ -681,7 +767,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
       <button class="tnav" onclick="goPage('p-payment',this)">付款明細</button>
       <button class="tnav" id="nav-changes" onclick="goPage('p-changes',this)" style="display:none;">追加減</button>
-      <button class="tnav" id="nav-survey" onclick="goPage('p-survey',this)" style="display:none;">需求表單</button>
 
     </div>
     <div class="tb-spacer"></div>
@@ -701,7 +786,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">付款明細</button>
       <button class="mobile-tnav" id="mobile-nav-changes" onclick="goPageMobile('p-changes',this,'client')" style="display:none;">追加減</button>
-      <button class="mobile-tnav" id="mobile-nav-survey" onclick="goPageMobile('p-survey',this,'client')" style="display:none;">需求表單</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
         <span id="mobile-client-name"></span>
         <button onclick="doLogout()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
@@ -1061,175 +1145,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     </div>
 
-    <!-- 需求表單 -->
-    <div class="page" id="p-survey">
-      <div class="page-title">需求表單</div>
-      <div style="font-size:13px;color:var(--cli-muted,#6E5E4E);margin-bottom:1.4rem;line-height:1.7;background:var(--cli-card,#FBF8F4);padding:12px 16px;border-radius:12px;border-left:3px solid var(--cli-accent2,#B8936A);">
-        📋 請填寫以下需求調查表，協助設計師了解您的生活習慣與空間期望，填寫中自動儲存，可隨時回來繼續填寫。
-      </div>
-
-      <!-- Step 1 -->
-      <div style="font-size:16px;font-weight:600;color:var(--cli-ink,#2C2218);margin-bottom:1rem;padding-bottom:8px;border-bottom:2px solid var(--cli-accent2,#B8936A);">Step 1 ｜ 住家的理想樣貌</div>
-
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🌅 憧憬 <span style="font-weight:400;color:var(--cli-light,#A09080);font-size:11px;">請敘述您未來想像的生活樣貌</span></div>
-        <textarea class="survey-ta" id="sv-vision" placeholder="例：希望一進家門可以有開闊的感覺，能在週末有舒適的耍廢時光…" rows="4" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🏠 最重要的居家活動</div>
-        <textarea class="survey-ta" id="sv-activities" placeholder="例：和伴侶在餐桌使用筆電工作、週末家庭聚餐…" rows="4" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <div class="card" style="margin-bottom:1.4rem;">
-        <div class="card-title">😤 對目前住所最不滿意的三件事</div>
-        <textarea class="survey-ta" id="sv-dislikes" placeholder="例：插座嚴重不足、廚房收納空間太少…" rows="3" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <!-- Step 2 -->
-      <div style="font-size:16px;font-weight:600;color:var(--cli-ink,#2C2218);margin-bottom:1rem;padding-bottom:8px;border-bottom:2px solid var(--cli-accent2,#B8936A);">Step 2 ｜ 成員與基礎生活習慣</div>
-
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🏡 居住成員 <span style="font-weight:400;color:var(--cli-light,#A09080);font-size:11px;">未來居住成員結構</span></div>
-        <textarea class="survey-ta" id="sv-members" placeholder="例：先生39歲175cm天秤座、太太36歲162cm巨蟹座、女兒9歲、嬰兒0.5歲、柴犬4歲17kg…" rows="4" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🧿 風水需求 <span style="font-weight:400;color:var(--cli-light,#A09080);font-size:11px;">非必填</span></div>
-        <textarea class="survey-ta" id="sv-fengshui" placeholder="例：有隻金雞母需放在指定財位、希望稍微避樑…" rows="3" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🚐 舊元素的保留 <span style="font-weight:400;color:var(--cli-light,#A09080);font-size:11px;">是否有需要融入新家的家具或收藏品</span></div>
-        <textarea class="survey-ta" id="sv-old-elements" placeholder="例：有一個詩肯柚木五斗櫃希望沿用（W120×H95×D45cm）…" rows="3" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <div class="card" style="margin-bottom:1.4rem;">
-        <div class="card-title">🌿 植物需求</div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">您原有或預計要養的植物：</div>
-        <div id="sv-plants-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">預計放置的區域：</div>
-        <div id="sv-plant-areas-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-plants-other" placeholder="其他植物需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- Step 3 -->
-      <div style="font-size:16px;font-weight:600;color:var(--cli-ink,#2C2218);margin-bottom:1rem;padding-bottom:8px;border-bottom:2px solid var(--cli-accent2,#B8936A);">Step 3 ｜ 各別區塊的調查</div>
-
-      <!-- 客廳 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🛋 客廳 <span style="font-weight:400;color:var(--cli-light,#A09080);font-size:11px;">本區直接勾選，如有補充可自行填寫</span></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">您期望的主要功能：</div>
-        <div id="sv-living-fn-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">影音需求：</div>
-        <div id="sv-living-av-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">沙發偏好：</div>
-        <div id="sv-living-sofa-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-living-other" placeholder="其他客廳需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 玄關 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🚪 玄關</div>
-        <div id="sv-entrance-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-entrance-other" placeholder="其他玄關需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 用餐區 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🍽 用餐區</div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">常駐用餐人數：</div>
-        <div id="sv-dining-seats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">接待客人頻率：</div>
-        <div id="sv-dining-freq-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">吧台需求：</div>
-        <div id="sv-dining-bar-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-dining-other" placeholder="其他用餐區需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 廚房 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🍳 廚房</div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">下廚頻率：</div>
-        <div id="sv-kitchen-freq-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">常用電器：</div>
-        <div id="sv-kitchen-app-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-kitchen-other" placeholder="其他廚房需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 衛浴 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🛁 客衛浴 ／ 主衛浴</div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">客衛浴產品偏好：</div>
-        <div id="sv-bath-guest-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">主衛浴產品偏好：</div>
-        <div id="sv-bath-master-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-bath-other" placeholder="其他衛浴需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 臥室 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🛏 主臥室</div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">您期望的主要功能：</div>
-        <div id="sv-master-fn-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">希望的床尺寸：</div>
-        <div id="sv-master-bed-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-master-other" placeholder="其他主臥室需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 書房 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">📚 書房</div>
-        <div id="sv-study-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-study-other" placeholder="其他書房需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 兒童房 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🏠 兒童房</div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">嬰兒期：</div>
-        <div id="sv-kids-baby-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">幼兒園：</div>
-        <div id="sv-kids-toddler-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-accent,#7A5C3A);margin-bottom:8px;font-weight:500;">國小/國中/高中生：</div>
-        <div id="sv-kids-school-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-kids-other" placeholder="其他兒童房需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 孝親房/客房、儲藏室 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">🚌 孝親房／客房</div>
-        <div id="sv-guest-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-guest-other" placeholder="其他孝親房需求…" oninput="surveyAutosave()">
-      </div>
-
-      <div class="card" style="margin-bottom:1.4rem;">
-        <div class="card-title">🏬 儲藏室 <span style="font-weight:400;color:var(--cli-light,#A09080);font-size:11px;">您需要的收納物</span></div>
-        <div id="sv-storage-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
-        <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:4px;font-weight:500;">其他補充：</div>
-        <input class="survey-input" id="sv-storage-other" placeholder="其他儲藏室需求…" oninput="surveyAutosave()">
-      </div>
-
-      <!-- 備注 -->
-      <div class="card" style="margin-bottom:1.4rem;">
-        <div class="card-title">📝 其他補充 ／ 備注</div>
-        <textarea class="survey-ta" id="sv-notes" placeholder="任何想補充告知設計師的事項…" rows="4" oninput="surveyAutosave()"></textarea>
-      </div>
-
-      <!-- 儲存狀態 -->
-      <div id="sv-save-status" style="text-align:center;font-size:12px;color:var(--cli-light,#A09080);padding-bottom:2rem;"></div>
-    </div>
-
     <!-- 付款明細 -->
     <div class="page" id="p-payment">
       <div class="page-title">付款明細及收據</div>
@@ -1318,6 +1233,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
       <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
+      <button class="tnav" onclick="goAdminPage('a-survey',this)">需求表單</button>
       <button class="tnav" onclick="goAdminPage('a-settings',this)">設定</button>
     </div>
     <div class="tb-spacer"></div>
@@ -1336,6 +1252,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-survey',this)">需求表單</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-settings',this)">設定</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;display:flex;justify-content:space-between;align-items:center;">
         <button onclick="syncAllData();closeMobileMenu('admin')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">↺ 同步資料</button>
@@ -1467,7 +1384,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="stab" onclick="switchProjTab('schedule',this)">收款進度</button>
         <button class="stab" onclick="switchProjTab('changes',this)">追加減</button>
         <button class="stab" onclick="switchProjTab('docs',this)">文件管理</button>
-        <button class="stab" onclick="switchProjTab('survey',this)">需求表單</button>
       </div>
 
       <!-- 專案進度 -->
@@ -1890,10 +1806,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div><!-- end a-project-detail -->
 
-      <!-- 需求表單 (admin view) -->
-      <div id="proj-tab-survey" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
-          <div style="font-size:12px;color:var(--ink-muted);">客戶填寫的需求表單內容，客戶端即時儲存。</div>
           <button class="btn-ghost" onclick="exportSurveyPdf(currentDetailProjId)" style="font-size:12px;">⬇ 匯出 PDF</button>
         </div>
         <div id="admin-survey-view"></div>
@@ -1987,7 +1899,32 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     </div>
 
     <!-- 設定 -->
-    <div class="page" id="a-settings">
+    <!-- 需求表單管理 -->
+    <div class="page" id="a-survey">
+      <div class="sec-head">
+        <div class="sec-ttl">需求表單管理</div>
+        <button class="btn-ink" onclick="openCreateSurveyLink()">＋ 建立新表單連結</button>
+      </div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.4rem;padding:10px 14px;background:var(--sand);border-radius:10px;border-left:3px solid var(--accent-light);">
+        💡 建立一個獨立連結後傳給陌生客戶，對方不需要登入即可填寫需求調查表。填寫完成後您可以在此查看所有回覆。
+      </div>
+      <!-- 建立表單 -->
+      <div class="card" id="survey-create-form" style="margin-bottom:1.2rem;display:none;">
+        <div class="card-title">建立新表單連結</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <label class="form-label">備注名稱（僅自己看到，方便辨識）</label>
+            <input class="form-input" id="survey-link-label" placeholder="例：豐邑氧森預售屋業主" style="margin-bottom:0;">
+          </div>
+          <button class="btn-ink" onclick="createSurveyLink()">產生連結</button>
+          <button class="btn-ghost" onclick="document.getElementById('survey-create-form').style.display='none'">取消</button>
+        </div>
+      </div>
+      <!-- 連結列表 -->
+      <div id="survey-links-list"></div>
+    </div>
+
+    <!-- 公開需求表單（獨立頁面，URL含token時顯示） -->
       <div class="sec-head"><div class="sec-ttl">系統設定</div></div>
 
       <!-- 設定分類 Tab -->
@@ -2593,7 +2530,7 @@ function closeMobileMenu(type){
 }
 function goPageMobile(id,el,type){
   const desktopBtns=document.querySelectorAll('#s-client .tnav');
-  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-construction','p-payment','p-changes','p-survey'];
+  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-construction','p-payment','p-changes'];
   const idx=pages.indexOf(id);
   desktopBtns.forEach((t,i)=>{if(i===idx)t.classList.add('active');else t.classList.remove('active');});
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
@@ -2606,7 +2543,7 @@ function goPageMobile(id,el,type){
   if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
-  if(id==='p-survey') initSurveyPage();
+
 }
 function goAdminPageMobile(id,el){
   goAdminPage(id,document.querySelector('#s-admin .tb-nav .tnav[onclick*="'+id+'"]')||document.querySelector('#s-admin .tnav'));
@@ -2664,11 +2601,7 @@ function _enterClient(c){
   // 確保進入客戶端時返回鍵隱藏（初始在總覽頁）
   const backBtn=document.getElementById('cli-back-btn');
   if(backBtn) backBtn.style.display='none';
-  // 顯示需求表單按鈕
-  const surveyBtn=document.getElementById('nav-survey');
-  const mobileSurveyBtn=document.getElementById('mobile-nav-survey');
-  if(surveyBtn) surveyBtn.style.display='';
-  if(mobileSurveyBtn) mobileSurveyBtn.style.display='';
+
   (async()=>{
     const pid=proj?proj.id:null;
     const cid=c.id;
@@ -2738,7 +2671,7 @@ function goPage(id,el){
   if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
-  if(id==='p-survey') initSurveyPage();
+
 }
 async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
@@ -2749,6 +2682,7 @@ async function goAdminPage(id,el){
   if(id==='a-docs'){populateDocsClientSel();await renderAdminDocs();}
   if(id==='a-settings') renderBossAccounts();
   if(id==='a-logs'){populateLogClientSel();await renderAdminLogs();}
+  if(id==='a-survey') renderSurveyLinksAdmin();
   if(id==='a-assign') renderAssignClist();
   if(id==='a-clients') renderAdminClients();
   if(id==='a-projects') renderProjects();
@@ -3848,7 +3782,7 @@ async function openProjectDetail(pid){
 function switchProjTab(tab,el){
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['progress','profit','payment','schedule','changes','docs','survey'].forEach(t=>{
+  ['progress','profit','payment','schedule','changes','docs'].forEach(t=>{
     const el=document.getElementById('proj-tab-'+t);
     if(el) el.style.display=t===tab?'block':'none';
   });
@@ -3872,13 +3806,6 @@ function switchProjTab(tab,el){
     renderAdminDocs();
     const firstDrawingTab=document.querySelector('#drawing-type-tabs .stab');
     if(firstDrawingTab) switchDrawingType('平面系統圖',firstDrawingTab);
-  }
-  if(tab==='survey'){
-    const pid=currentDetailProjId;
-    (async()=>{
-      if(!surveyData[pid]) await loadSurveyData(pid);
-      renderAdminSurveyView(pid);
-    })();
   }
 }
 
@@ -6309,7 +6236,7 @@ function initColResizers(tableId){
   });
 }
 
-// ========== 需求表單 ==========
+// ========== 需求表單管理 (Admin) ==========
 const SURVEY_OPTIONS={
   plants:['虎尾蘭系列','小豆樹','蔓綠絨系列','火鶴系列（濕度要很高）','葛類系列','海葡萄','蕨類','日本柏系列','油橄欖'],
   plantAreas:['前後陽台','客廳','主臥室','客房','書房'],
@@ -6333,175 +6260,217 @@ const SURVEY_OPTIONS={
   guest:['規劃一張雙人床位置即可','希望有書桌','可能會是工作用的書房','需要放置寵物床'],
   storage:['吸塵器','折疊式燙衣板','高爾夫球球具','潛水用品','滑雪用品','健身器材','備用衛生紙','備用生活用品','行李箱','穿不到的鞋子/鞋盒','換季寢具','攝影用品'],
 };
-let surveyData={};
-let _surveyTimer=null;
 
-const SURVEY_TEXT_FIELDS=[
-  ['sv-vision','vision'],['sv-activities','activities'],['sv-dislikes','dislikes'],
-  ['sv-members','members'],['sv-fengshui','fengshui'],['sv-old-elements','oldElements'],
-  ['sv-plants-other','plantsOther'],['sv-living-other','livingOther'],
-  ['sv-entrance-other','entranceOther'],['sv-dining-other','diningOther'],
-  ['sv-kitchen-other','kitchenOther'],['sv-bath-other','bathOther'],
-  ['sv-master-other','masterOther'],['sv-study-other','studyOther'],
-  ['sv-kids-other','kidsOther'],['sv-guest-other','guestOther'],
-  ['sv-storage-other','storageOther'],['sv-notes','notes'],
-];
-const SURVEY_CB_GRIDS=[
-  ['sv-plants-grid','plants','plants'],
-  ['sv-plant-areas-grid','plantAreas','plantAreas'],
-  ['sv-living-fn-grid','livingFn','livingFn'],
-  ['sv-living-av-grid','livingAv','livingAv'],
-  ['sv-living-sofa-grid','livingSofa','livingSofa'],
-  ['sv-entrance-grid','entrance','entrance'],
-  ['sv-dining-seats-grid','diningSeats','diningSeats'],
-  ['sv-dining-freq-grid','diningFreq','diningFreq'],
-  ['sv-dining-bar-grid','diningBar','diningBar'],
-  ['sv-kitchen-freq-grid','kitchenFreq','kitchenFreq'],
-  ['sv-kitchen-app-grid','kitchenApp','kitchenApp'],
-  ['sv-bath-guest-grid','bathGuest','bathGuest'],
-  ['sv-bath-master-grid','bathMaster','bathMaster'],
-  ['sv-master-fn-grid','masterFn','masterFn'],
-  ['sv-master-bed-grid','masterBed','masterBed'],
-  ['sv-study-grid','study','study'],
-  ['sv-kids-baby-grid','kidsBaby','kidsBaby'],
-  ['sv-kids-toddler-grid','kidsToddler','kidsToddler'],
-  ['sv-kids-school-grid','kidsSchool','kidsSchool'],
-  ['sv-guest-grid','guest','guest'],
-  ['sv-storage-grid','storage','storage'],
-];
-
-function surveyGetPid(){
-  const c=clients.find(x=>x.id===currentClientId);
-  if(!c) return null;
-  const proj=projects.find(p=>Number(p.id)===Number(c.projectId));
-  return proj?Number(proj.id):null;
+async function loadSurveyLinks(){
+  try{
+    const {data}=await sbClient.from('system_settings').select('value').eq('key','survey_links').single();
+    return data?.value?JSON.parse(data.value):[];
+  }catch(e){return [];}
+}
+async function saveSurveyLinks(links){
+  await sbClient.from('system_settings').upsert({key:'survey_links',value:JSON.stringify(links)},{onConflict:'key'});
+}
+function openCreateSurveyLink(){
+  document.getElementById('survey-create-form').style.display='block';
+  document.getElementById('survey-link-label').value='';
+  document.getElementById('survey-link-label').focus();
+}
+async function createSurveyLink(){
+  const label=document.getElementById('survey-link-label').value.trim();
+  if(!label){alert('請輸入備注名稱');return;}
+  const token=Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+  const links=await loadSurveyLinks();
+  links.unshift({token,label,createdAt:new Date().toLocaleDateString('zh-TW'),status:'未填寫'});
+  await saveSurveyLinks(links);
+  document.getElementById('survey-create-form').style.display='none';
+  renderSurveyLinksAdmin();
+}
+async function renderSurveyLinksAdmin(){
+  const links=await loadSurveyLinks();
+  const el=document.getElementById('survey-links-list');
+  if(!el)return;
+  if(!links.length){el.innerHTML='<div class="empty-state">尚無表單連結，點上方「＋ 建立新表單連結」開始</div>';return;}
+  el.innerHTML='';
+  const baseUrl=window.location.origin+window.location.pathname;
+  for(const link of links){
+    const url=`${baseUrl}?survey=${link.token}`;
+    // Check if response exists
+    let hasResp=false;
+    try{const {data}=await sbClient.from('system_settings').select('value').eq('key','survey_resp_'+link.token).single();hasResp=!!(data?.value);}catch(e){}
+    const card=document.createElement('div');
+    card.className='card';card.style.marginBottom='10px';
+    card.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;">${link.label}</div>
+          <div style="font-size:11px;color:var(--ink-light);">建立日期：${link.createdAt}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span class="pill ${hasResp?'pill-green':'pill-gray'}" style="font-size:11px;">${hasResp?'✓ 已填寫':'⏳ 未填寫'}</span>
+          <button class="btn-sm" onclick="copySurveyLink('${url}')">複製連結</button>
+          ${hasResp?`<button class="btn-sm" onclick="viewSurveyResp('${link.token}','${link.label}')">查看回覆</button>`:''}
+          <button class="btn-sm danger" onclick="deleteSurveyLink('${link.token}')">刪除</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:6px 10px;background:var(--sand);border-radius:8px;font-size:11px;font-family:monospace;color:var(--ink-muted);word-break:break-all;">${url}</div>`;
+    el.appendChild(card);
+  }
+}
+function copySurveyLink(url){
+  navigator.clipboard.writeText(url).then(()=>alert('✓ 連結已複製！\n\n'+url)).catch(()=>{prompt('請手動複製此連結：',url);});
+}
+async function deleteSurveyLink(token){
+  if(!confirm('確定刪除此表單連結？')) return;
+  const links=await loadSurveyLinks();
+  const updated=links.filter(l=>l.token!==token);
+  await saveSurveyLinks(updated);
+  renderSurveyLinksAdmin();
+}
+async function viewSurveyResp(token,label){
+  try{
+    const {data}=await sbClient.from('system_settings').select('value').eq('key','survey_resp_'+token).single();
+    if(!data?.value){alert('尚無回覆資料');return;}
+    const d=JSON.parse(data.value);
+    const rs=(title,pairs)=>{
+      const items=pairs.map(([lbl,key])=>{
+        const val=d[key];if(!val||(Array.isArray(val)&&!val.length))return '';
+        return `<p><strong>${lbl}：</strong>${Array.isArray(val)?val.join('、'):val}</p>`;
+      }).filter(Boolean).join('');
+      return items?`<h3 style="color:#7A5C3A;border-bottom:1px solid #e0d5c8;padding-bottom:3px;margin-top:1.2rem;">${title}</h3>${items}`:'';
+    };
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>需求回覆 - ${label}</title>
+      <style>body{font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#333;max-width:780px;margin:0 auto;padding:2rem;}
+      h1{font-size:19px;color:#2C2218;}p{margin:3px 0 8px;line-height:1.7;}</style>
+    </head><body>
+      <h1>需求表單回覆 ─ ${label}</h1>
+      <p style="color:#999;font-size:11px;">填寫人：${d.name||'（未填姓名）'} ｜ 最後更新：${d._updated||'—'}</p>
+      ${rs('住家的理想樣貌',[['憧憬','vision'],['最重要的居家活動','activities'],['對目前住所最不滿意的三件事','dislikes']])}
+      ${rs('成員與生活習慣',[['居住成員','members'],['風水需求','fengshui'],['舊元素保留','oldElements'],['植物需求','plants'],['植物放置區域','plantAreas'],['植物補充','plantsOther']])}
+      ${rs('客廳',[['主要功能','livingFn'],['影音需求','livingAv'],['沙發偏好','livingSofa'],['其他','livingOther']])}
+      ${rs('玄關',[['期望功能','entrance'],['其他','entranceOther']])}
+      ${rs('用餐區',[['常駐用餐人數','diningSeats'],['接待頻率','diningFreq'],['吧台需求','diningBar'],['其他','diningOther']])}
+      ${rs('廚房',[['下廚頻率','kitchenFreq'],['常用電器','kitchenApp'],['其他','kitchenOther']])}
+      ${rs('衛浴',[['客衛浴','bathGuest'],['主衛浴','bathMaster'],['其他','bathOther']])}
+      ${rs('主臥室',[['期望功能','masterFn'],['床尺寸','masterBed'],['其他','masterOther']])}
+      ${rs('書房',[['期望功能','study'],['其他','studyOther']])}
+      ${rs('兒童房',[['嬰兒期','kidsBaby'],['幼兒園','kidsToddler'],['國小/國中/高中','kidsSchool'],['其他','kidsOther']])}
+      ${rs('孝親房/客房',[['期望功能','guest'],['其他','guestOther']])}
+      ${rs('儲藏室',[['需要的收納物','storage'],['其他','storageOther']])}
+      ${rs('其他備注',[['備注','notes']])}
+      <script>window.onload=function(){window.print();}<\/script>
+    </body></html>`;
+    const w=window.open('','_blank');w.document.write(html);w.document.close();
+  }catch(e){alert('讀取失敗：'+e.message);}
 }
 
-function makeSvCheckboxGrid(containerId,optionKey,dataKey,pid){
-  const container=document.getElementById(containerId);if(!container)return;
-  container.innerHTML='';
+// ========== 公開需求表單 (無需登入) ==========
+let _spToken='';let _spData={};let _spTimer=null;
+
+const SP_TEXT_FIELDS=[
+  ['sp-name','name'],['sp-vision','vision'],['sp-activities','activities'],['sp-dislikes','dislikes'],
+  ['sp-members','members'],['sp-fengshui','fengshui'],['sp-old-elements','oldElements'],
+  ['sp-plants-other','plantsOther'],['sp-notes','notes'],
+];
+const SP_SECTIONS=[
+  {title:'🛋 客廳',grids:[['sp-living-fn','livingFn','主要功能'],['sp-living-av','livingAv','影音需求'],['sp-living-sofa','livingSofa','沙發偏好']],other:'sp-living-other',otherKey:'livingOther'},
+  {title:'🚪 玄關',grids:[['sp-entrance','entrance','期望功能']],other:'sp-entrance-other',otherKey:'entranceOther'},
+  {title:'🍽 用餐區',grids:[['sp-dining-seats','diningSeats','常駐用餐人數'],['sp-dining-freq','diningFreq','接待客人頻率'],['sp-dining-bar','diningBar','吧台需求']],other:'sp-dining-other',otherKey:'diningOther'},
+  {title:'🍳 廚房',grids:[['sp-kitchen-freq','kitchenFreq','下廚頻率'],['sp-kitchen-app','kitchenApp','常用電器']],other:'sp-kitchen-other',otherKey:'kitchenOther'},
+  {title:'🛁 客衛浴 ／ 主衛浴',grids:[['sp-bath-guest','bathGuest','客衛浴'],['sp-bath-master','bathMaster','主衛浴']],other:'sp-bath-other',otherKey:'bathOther'},
+  {title:'🛏 主臥室',grids:[['sp-master-fn','masterFn','期望功能'],['sp-master-bed','masterBed','床尺寸']],other:'sp-master-other',otherKey:'masterOther'},
+  {title:'📚 書房',grids:[['sp-study','study','期望功能']],other:'sp-study-other',otherKey:'studyOther'},
+  {title:'🏠 兒童房',grids:[['sp-kids-baby','kidsBaby','嬰兒期'],['sp-kids-toddler','kidsToddler','幼兒園'],['sp-kids-school','kidsSchool','國小/國中/高中']],other:'sp-kids-other',otherKey:'kidsOther'},
+  {title:'🚌 孝親房／客房',grids:[['sp-guest','guest','期望功能']],other:'sp-guest-other',otherKey:'guestOther'},
+  {title:'🏬 儲藏室',grids:[['sp-storage','storage','您需要的收納物']],other:'sp-storage-other',otherKey:'storageOther'},
+];
+
+function makeCb(containerId,optionKey,dataKey,data){
+  const c=document.getElementById(containerId);if(!c)return;
+  c.innerHTML='';
   const opts=SURVEY_OPTIONS[optionKey]||[];
-  const checked=surveyData[pid]?.[dataKey]||[];
+  const checked=data[dataKey]||[];
   opts.forEach(opt=>{
     const label=document.createElement('label');
-    const isChecked=checked.includes(opt);
-    label.className='sv-checkbox'+(isChecked?' checked':'');
-    const cb=document.createElement('input');cb.type='checkbox';cb.checked=isChecked;
+    const isCk=checked.includes(opt);
+    label.className='sv-checkbox'+(isCk?' checked':'');
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=isCk;
     cb.onchange=()=>{
-      if(!surveyData[pid]) surveyData[pid]={};
-      let arr=surveyData[pid][dataKey]||[];
+      let arr=_spData[dataKey]||[];
       if(cb.checked){if(!arr.includes(opt))arr=[...arr,opt];}
       else arr=arr.filter(v=>v!==opt);
-      surveyData[pid][dataKey]=arr;
+      _spData[dataKey]=arr;
       label.className='sv-checkbox'+(cb.checked?' checked':'');
-      surveyAutosave();
+      spAutosave();
     };
     label.appendChild(cb);label.appendChild(document.createTextNode(opt));
-    container.appendChild(label);
+    c.appendChild(label);
   });
 }
 
-function renderSurveyForm(pid){
-  const d=surveyData[pid]||{};
-  SURVEY_TEXT_FIELDS.forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=d[key]||'';});
-  SURVEY_CB_GRIDS.forEach(([cid,optKey,dataKey])=>makeSvCheckboxGrid(cid,optKey,dataKey,pid));
+function renderPublicSurvey(){
+  // Restore text fields
+  SP_TEXT_FIELDS.forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=_spData[key]||'';});
+  // Plants grids
+  makeCb('sp-plants-grid','plants','plants',_spData);
+  makeCb('sp-plant-areas-grid','plantAreas','plantAreas',_spData);
+  // Build section containers
+  const container=document.getElementById('sp-sections-container');
+  if(!container)return;
+  container.innerHTML='';
+  SP_SECTIONS.forEach(sec=>{
+    const div=document.createElement('div');
+    div.style.cssText='background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;';
+    let html=`<div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:10px;">${sec.title}</div>`;
+    sec.grids.forEach(([cid,optKey,lbl])=>{
+      html+=`<div style="font-size:12px;color:#7A5C3A;margin-bottom:6px;font-weight:500;">${lbl}：</div><div id="${cid}" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>`;
+    });
+    html+=`<div style="font-size:12px;color:#6E5E4E;margin-bottom:4px;font-weight:500;">其他補充：</div>
+           <input class="survey-input" id="${sec.other}" placeholder="如有補充可自行填寫…" oninput="spAutosave()">`;
+    div.innerHTML=html;
+    container.appendChild(div);
+    // Render checkboxes
+    sec.grids.forEach(([cid,optKey])=>makeCb(cid,optKey,optKey,_spData));
+    // Restore other input
+    const otherEl=document.getElementById(sec.other);
+    if(otherEl)otherEl.value=_spData[sec.otherKey]||'';
+  });
 }
 
-function surveyAutosave(){
-  clearTimeout(_surveyTimer);
-  _surveyTimer=setTimeout(async()=>{
-    const pid=surveyGetPid();if(!pid)return;
-    if(!surveyData[pid])surveyData[pid]={};
-    SURVEY_TEXT_FIELDS.forEach(([id,key])=>{const el=document.getElementById(id);if(el)surveyData[pid][key]=el.value;});
-    surveyData[pid]._updated=new Date().toLocaleString('zh-TW');
-    const statusEl=document.getElementById('sv-save-status');
+function spAutosave(){
+  clearTimeout(_spTimer);
+  _spTimer=setTimeout(async()=>{
+    SP_TEXT_FIELDS.forEach(([id,key])=>{const el=document.getElementById(id);if(el)_spData[key]=el.value;});
+    SP_SECTIONS.forEach(sec=>{const el=document.getElementById(sec.other);if(el)_spData[sec.otherKey]=el.value;});
+    _spData._updated=new Date().toLocaleString('zh-TW');
+    const statusEl=document.getElementById('sp-save-status');
     try{
-      await sbClient.from('system_settings').upsert({key:'survey_'+pid,value:JSON.stringify(surveyData[pid])},{onConflict:'key'});
+      await sbClient.from('system_settings').upsert({key:'survey_resp_'+_spToken,value:JSON.stringify(_spData)},{onConflict:'key'});
       if(statusEl)statusEl.textContent='✓ 已自動儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-    }catch(e){if(statusEl)statusEl.textContent='⚠️ 儲存失敗';console.warn(e);}
-  },1000);
+    }catch(e){if(statusEl)statusEl.textContent='⚠️ 儲存失敗，請檢查網路';console.warn(e);}
+  },1200);
 }
 
-async function loadSurveyData(pid){
+async function submitSurvey(){
+  SP_TEXT_FIELDS.forEach(([id,key])=>{const el=document.getElementById(id);if(el)_spData[key]=el.value;});
+  SP_SECTIONS.forEach(sec=>{const el=document.getElementById(sec.other);if(el)_spData[sec.otherKey]=el.value;});
+  _spData._submitted=true;_spData._updated=new Date().toLocaleString('zh-TW');
   try{
-    const {data}=await sbClient.from('system_settings').select('value').eq('key','survey_'+pid).single();
-    surveyData[pid]=data?.value?JSON.parse(data.value):{};
-  }catch(e){surveyData[pid]={};}
+    await sbClient.from('system_settings').upsert({key:'survey_resp_'+_spToken,value:JSON.stringify(_spData)},{onConflict:'key'});
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('s-survey-done').classList.add('active');
+  }catch(e){alert('送出失敗，請稍後再試：'+e.message);}
 }
 
-async function initSurveyPage(){
-  const pid=surveyGetPid();if(!pid)return;
-  if(!surveyData[pid])await loadSurveyData(pid);
-  renderSurveyForm(pid);
-}
-
-function renderAdminSurveyView(pid){
-  const container=document.getElementById('admin-survey-view');if(!container)return;
-  const d=surveyData[pid]||{};
-  const hasData=Object.keys(d).some(k=>k!=='_updated'&&d[k]&&(Array.isArray(d[k])?d[k].length:d[k]));
-  if(!hasData){container.innerHTML='<div class="empty-state">客戶尚未填寫需求表單</div>';return;}
-
-  const updated=d._updated?`<div style="font-size:11px;color:var(--ink-light);margin-bottom:1rem;">最後更新：${d._updated}</div>`:'';
-  const sec=(title,fields)=>{
-    const items=fields.map(([label,key,isArr])=>{
-      const val=d[key];if(!val||(Array.isArray(val)&&!val.length))return '';
-      const valHtml=isArr?`<div class="sv-view-tags">${val.map(v=>`<span class="pill pill-blue" style="font-size:11px;">${v}</span>`).join('')}</div>`:`<div class="sv-view-val">${val}</div>`;
-      return `<div class="sv-view-section"><div class="sv-view-label">${label}</div>${valHtml}</div>`;
-    }).filter(Boolean).join('');
-    return items?`<div class="card" style="margin-bottom:1rem;"><div class="card-title">${title}</div>${items}</div>`:'';
-  };
-  container.innerHTML=updated
-    +sec('Step 1 ｜ 住家的理想樣貌',[['憧憬','vision',0],['最重要的居家活動','activities',0],['對目前住所最不滿意的三件事','dislikes',0]])
-    +sec('Step 2 ｜ 成員與生活習慣',[['居住成員','members',0],['風水需求','fengshui',0],['舊元素的保留','oldElements',0],['植物需求','plants',1],['植物放置區域','plantAreas',1],['植物補充','plantsOther',0]])
-    +sec('客廳',[['主要功能','livingFn',1],['影音需求','livingAv',1],['沙發偏好','livingSofa',1],['其他','livingOther',0]])
-    +sec('玄關',[['期望功能','entrance',1],['其他','entranceOther',0]])
-    +sec('用餐區',[['常駐用餐人數','diningSeats',1],['接待頻率','diningFreq',1],['吧台需求','diningBar',1],['其他','diningOther',0]])
-    +sec('廚房',[['下廚頻率','kitchenFreq',1],['常用電器','kitchenApp',1],['其他','kitchenOther',0]])
-    +sec('衛浴',[['客衛浴','bathGuest',1],['主衛浴','bathMaster',1],['其他','bathOther',0]])
-    +sec('主臥室',[['期望功能','masterFn',1],['床尺寸','masterBed',1],['其他','masterOther',0]])
-    +sec('書房',[['期望功能','study',1],['其他','studyOther',0]])
-    +sec('兒童房',[['嬰兒期','kidsBaby',1],['幼兒園','kidsToddler',1],['國小/國中/高中','kidsSchool',1],['其他','kidsOther',0]])
-    +sec('孝親房/客房',[['期望功能','guest',1],['其他','guestOther',0]])
-    +sec('儲藏室',[['需要的收納物','storage',1],['其他','storageOther',0]])
-    +sec('其他備注',[['備注','notes',0]]);
-}
-
-function exportSurveyPdf(pid){
-  if(!pid) pid=currentDetailProjId;
-  const d=surveyData[pid]||{};
-  const hasData=Object.keys(d).some(k=>k!=='_updated'&&d[k]&&(Array.isArray(d[k])?d[k].length:d[k]));
-  if(!hasData){alert('客戶尚未填寫需求表單');return;}
-  const proj=projects.find(p=>Number(p.id)===Number(pid));
-  const rs=(title,fields)=>{
-    const items=fields.map(([label,key,isArr])=>{
-      const val=d[key];if(!val||(Array.isArray(val)&&!val.length))return '';
-      return `<p><strong>${label}：</strong>${isArr?val.join('、'):val}</p>`;
-    }).filter(Boolean).join('');
-    return items?`<h3>${title}</h3>${items}`:'';
-  };
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>需求表單 - ${proj?.name||''}</title>
-    <style>body{font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#333;max-width:800px;margin:0 auto;padding:2rem;}
-    h1{font-size:20px;color:#2C2218;}h3{font-size:14px;color:#7A5C3A;margin:1.2rem 0 4px;border-bottom:1px solid #e0d5c8;padding-bottom:3px;}
-    p{margin:3px 0 8px;line-height:1.7;}strong{color:#2C2218;}</style>
-  </head><body>
-    <h1>裝修需求表單 ─ ${proj?.name||''}</h1>
-    <p style="color:#999;font-size:11px;margin-bottom:1.5rem;">最後更新：${d._updated||'—'}</p>
-    ${rs('住家的理想樣貌',[['憧憬','vision',0],['最重要的居家活動','activities',0],['對目前住所最不滿意的三件事','dislikes',0]])}
-    ${rs('成員與生活習慣',[['居住成員','members',0],['風水需求','fengshui',0],['舊元素保留','oldElements',0],['植物需求','plants',1],['植物放置區域','plantAreas',1],['植物補充','plantsOther',0]])}
-    ${rs('客廳',[['主要功能','livingFn',1],['影音需求','livingAv',1],['沙發偏好','livingSofa',1],['其他','livingOther',0]])}
-    ${rs('玄關',[['期望功能','entrance',1],['其他','entranceOther',0]])}
-    ${rs('用餐區',[['常駐用餐人數','diningSeats',1],['接待頻率','diningFreq',1],['吧台需求','diningBar',1],['其他','diningOther',0]])}
-    ${rs('廚房',[['下廚頻率','kitchenFreq',1],['常用電器','kitchenApp',1],['其他','kitchenOther',0]])}
-    ${rs('衛浴',[['客衛浴','bathGuest',1],['主衛浴','bathMaster',1],['其他','bathOther',0]])}
-    ${rs('主臥室',[['期望功能','masterFn',1],['床尺寸','masterBed',1],['其他','masterOther',0]])}
-    ${rs('書房',[['期望功能','study',1],['其他','studyOther',0]])}
-    ${rs('兒童房',[['嬰兒期','kidsBaby',1],['幼兒園','kidsToddler',1],['國小/國中/高中','kidsSchool',1],['其他','kidsOther',0]])}
-    ${rs('孝親房/客房',[['期望功能','guest',1],['其他','guestOther',0]])}
-    ${rs('儲藏室',[['需要的收納物','storage',1],['其他','storageOther',0]])}
-    ${rs('其他備注',[['備注','notes',0]])}
-    <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`;
-  const w=window.open('','_blank');w.document.write(html);w.document.close();
+async function initPublicSurvey(token){
+  _spToken=token;
+  // Load existing response if any
+  try{
+    const {data}=await sbClient.from('system_settings').select('value').eq('key','survey_resp_'+token).single();
+    _spData=data?.value?JSON.parse(data.value):{};
+  }catch(e){_spData={};}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-survey-public').classList.add('active');
+  renderPublicSurvey();
 }
 
 function renderChecklists(){
@@ -6976,6 +6945,13 @@ document.addEventListener('DOMContentLoaded', function() {
     else if(e.key==='Escape') closeRenderLightbox();
   });
   loadAllData().then(()=>{
+    // Check for public survey link first
+    const urlParams=new URLSearchParams(window.location.search);
+    const surveyToken=urlParams.get('survey');
+    if(surveyToken){
+      initPublicSurvey(surveyToken);
+      return;
+    }
     // Auto-restore session after data loaded
     try{
       const sess=sessionStorage.getItem('ys_session');
