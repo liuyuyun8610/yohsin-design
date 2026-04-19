@@ -582,7 +582,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client .know-tag{background:rgba(201,169,110,0.18);color:var(--cli-accent);}
 #s-client .know-bd{border-color:var(--cli-border);color:var(--cli-muted);}
 #s-client .ci{background:var(--cli-card-alt);border:0.5px solid var(--cli-border);color:#4A4A4A;font-size:12px;}
-#s-client .cs{color:#4A4A4A;font-size:12px;}
+#s-client .cs{color:#4A4A4A;font-size:11px;background:var(--cli-card-alt);border:0.5px solid var(--cli-border);border-radius:0;}
 #s-client input.ci::placeholder{color:rgba(160,144,128,0.45);}
 #s-client .add-row-btn{color:var(--cli-muted);border-color:var(--cli-border);}
 #s-client .cal-wrap{background:var(--cli-card-alt);border-radius:16px;}
@@ -933,14 +933,25 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div id="cl-app">
         <div class="notice-desc" style="margin-bottom:1rem;">請將您要採購的電器或是原有的設備填入下方表格，可作為外出採購的參考指南。</div>
-        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>品牌</th><th style="width:80px;">位置</th><th style="width:160px;">型號</th><th style="width:130px;">尺寸（長×寬×高 cm）</th><th style="width:80px;">狀態</th><th style="width:28px;"></th></tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
+        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>品牌</th><th style="width:80px;">位置</th><th style="width:190px;">型號</th><th style="width:100px;">尺寸（長×寬×高 cm）</th><th style="width:80px;">狀態</th><th style="width:28px;"></th></tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
       </div>
       <div id="cl-fur" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
-        <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th>位置</th><th>型號</th><th>尺寸（長×寬×高 cm）</th><th>狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
-        <!-- 家具尺寸圖 -->
-        <div id="cli-furniture-plan-section" style="display:none;margin-top:1.4rem;">
-          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cli-accent2,#B8936A);font-weight:500;margin-bottom:0.8rem;">家具尺寸圖</div>
+        <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th style="width:80px;">位置</th><th style="width:190px;">型號</th><th style="width:100px;">尺寸（長×寬×高 cm）</th><th style="width:80px;">狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
+
+        <!-- 家具參考照片上傳（客戶端） -->
+        <div style="margin-top:1.4rem;">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cli-accent2,#B8936A);font-weight:500;margin-bottom:0.8rem;">家具參考照片 ／ 尺寸圖</div>
+          <div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:0.8rem;">可上傳喜歡的家具照片、賣場截圖或尺寸圖，讓設計師掌握您的偏好。</div>
+          <!-- 上傳區 -->
+          <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--cli-card,#FBF8F4);border:1px dashed var(--cli-border,rgba(139,107,72,0.25));border-radius:12px;cursor:pointer;font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:10px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(139,107,72,0.25)'">
+            <span style="font-size:20px;">📷</span>
+            <span>點擊選擇照片（可多張）</span>
+            <input type="file" id="cli-fur-photo-input" accept="image/*" multiple style="display:none;" onchange="uploadCliFurPhotos(event)">
+          </label>
+          <!-- 上傳中提示 -->
+          <div id="cli-fur-upload-status" style="font-size:12px;color:var(--accent);margin-bottom:8px;display:none;">⟳ 上傳中…</div>
+          <!-- 已上傳圖片 -->
           <div id="cli-furniture-plan-list"></div>
         </div>
       </div>
@@ -4913,32 +4924,71 @@ async function renderCliFurniturePlan(){
   const c=clients.find(x=>x.id===currentClientId);
   if(!c) return;
   const cid=Number(c.id);
-  // Ensure docs are loaded
   if(!docsData[cid]||!docsData[cid].furniturePlans){
     try{ await dbLoadDocs(cid); }catch(e){ console.warn(e); }
   }
   const items=(docsData[cid]?.furniturePlans)||[];
-  const sec=document.getElementById('cli-furniture-plan-section');
   const list=document.getElementById('cli-furniture-plan-list');
-  if(!sec||!list) return;
-  if(!items.length){sec.style.display='none';return;}
-  sec.style.display='block';
+  if(!list) return;
   list.innerHTML='';
-  items.forEach(item=>{
+  if(!items.length) return;
+
+  // 圖片 grid
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:10px;';
+  items.forEach((item,idx)=>{
     const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(item.fileUrl||'');
-    const div=document.createElement('div');
-    div.style.cssText='margin-bottom:10px;';
+    const card=document.createElement('div');
+    card.style.cssText='position:relative;border-radius:12px;overflow:hidden;background:var(--cli-card-alt,#F5EFE7);';
     if(isImg&&item.fileUrl){
-      div.innerHTML=`<div style="font-size:12px;color:var(--cli-muted,#6E5E4E);margin-bottom:6px;">${item.name}</div>
-        <img src="${item.fileUrl}" alt="${item.name}" style="max-width:100%;border-radius:12px;box-shadow:0 2px 12px rgba(90,60,30,0.1);cursor:pointer;" onclick="window.open('${item.fileUrl}','_blank')">`;
+      card.innerHTML=`
+        <img src="${item.fileUrl}" alt="${item.name}" loading="lazy"
+          style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer;"
+          onclick="window.open('${item.fileUrl}','_blank')">
+        ${item.name?`<div style="font-size:11px;color:var(--cli-muted,#6E5E4E);padding:5px 8px;">${item.name}</div>`:''}
+        <button onclick="deleteCliFurPhoto(${cid},${idx})" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.45);color:#fff;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>`;
     } else {
-      div.innerHTML=`<a href="${item.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--cli-card-alt,#F5EFE7);border-radius:10px;text-decoration:none;color:var(--cli-ink,#2C2218);">
-        <span style="font-size:20px;">📄</span>
-        <span style="font-size:13px;font-weight:500;">${item.name}</span>
-      </a>`;
+      card.innerHTML=`<a href="${item.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 14px;text-decoration:none;color:var(--cli-ink,#2C2218);">
+        <span style="font-size:22px;">📄</span>
+        <span style="font-size:12px;font-weight:500;">${item.name}</span>
+      </a>
+      <button onclick="deleteCliFurPhoto(${cid},${idx})" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(160,100,60,0.3);color:var(--cli-ink);border:none;cursor:pointer;font-size:13px;">×</button>`;
     }
-    list.appendChild(div);
+    grid.appendChild(card);
   });
+  list.appendChild(grid);
+}
+
+async function uploadCliFurPhotos(e){
+  const files=Array.from(e.target.files); if(!files.length) return;
+  const c=clients.find(x=>x.id===currentClientId); if(!c) return;
+  const cid=Number(c.id);
+  const statusEl=document.getElementById('cli-fur-upload-status');
+  if(statusEl) statusEl.style.display='block';
+  try{
+    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:[],quotes:[],furniturePlans:[]};
+    if(!docsData[cid].furniturePlans) docsData[cid].furniturePlans=[];
+    for(const file of files){
+      const fileUrl=await uploadToStorage(file,'furniture-plans');
+      const newItem={name:file.name.replace(/\.[^.]+$/,''),date:todayStr(),size:fmtFileSize(file.size),fileUrl};
+      await dbSaveDoc(cid,'furniture_plan',newItem);
+      docsData[cid].furniturePlans.push(newItem);
+    }
+    renderCliFurniturePlan();
+  }catch(err){alert('上傳失敗：'+err.message);}
+  if(statusEl) statusEl.style.display='none';
+  document.getElementById('cli-fur-photo-input').value='';
+}
+
+async function deleteCliFurPhoto(cid,idx){
+  if(!confirm('確定刪除這張照片？')) return;
+  const item=docsData[cid]?.furniturePlans?.[idx];
+  if(!item) return;
+  try{
+    if(item.dbId) await dbDeleteDoc(item.dbId);
+    docsData[cid].furniturePlans.splice(idx,1);
+    renderCliFurniturePlan();
+  }catch(e){alert('刪除失敗：'+e.message);}
 }
 
 function switchAdminMeetingTab(tab,el){
