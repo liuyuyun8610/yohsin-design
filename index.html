@@ -299,10 +299,16 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .stab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 .tbl-wrap{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow-x:auto;}
 table{width:100%;border-collapse:collapse;min-width:480px;}
-thead th{font-size:11px;letter-spacing:0.06em;color:var(--ink-light);text-align:left;padding:9px 11px;border-bottom:0.5px solid var(--border);font-weight:400;background:var(--sand);text-transform:uppercase;white-space:nowrap;}
-tbody td{padding:0;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+thead th{font-size:11px;letter-spacing:0.06em;color:var(--ink-light);text-align:left;padding:9px 11px;border-bottom:0.5px solid var(--border);font-weight:400;background:var(--sand);text-transform:uppercase;white-space:nowrap;position:relative;user-select:none;}
+thead th .col-resizer{position:absolute;right:0;top:0;bottom:0;width:6px;cursor:col-resize;background:transparent;z-index:1;}
+thead th .col-resizer:hover,thead th .col-resizer.dragging{background:rgba(122,92,58,0.25);}
+tbody td{padding:0;border-bottom:0.5px solid var(--border);vertical-align:middle;overflow:hidden;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:#FDFAF6;}
+/* 可調整欄寬的 table */
+table.resizable-table{table-layout:fixed;}
+table.resizable-table .ci{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ci{width:100%;padding:9px 10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;background:transparent;color:var(--ink);outline:none;}
 .ci:focus{background:var(--accent-pale);}
 .cs{width:100%;padding:9px 8px;font-family:'Noto Sans TC',sans-serif;font-size:12px;border:none;background:transparent;color:var(--ink);outline:none;cursor:pointer;}
@@ -933,11 +939,27 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div id="cl-app">
         <div class="notice-desc" style="margin-bottom:1rem;">請將您要採購的電器或是原有的設備填入下方表格，可作為外出採購的參考指南。</div>
-        <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>品牌</th><th style="width:80px;">位置</th><th style="width:190px;">型號</th><th style="width:100px;">尺寸（長×寬×高 cm）</th><th style="width:80px;">狀態</th><th style="width:28px;"></th></tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
+        <div class="tbl-wrap"><table id="app-table" class="resizable-table"><thead><tr>
+          <th>電器名稱<span class="col-resizer"></span></th>
+          <th>品牌<span class="col-resizer"></span></th>
+          <th style="width:80px;">位置<span class="col-resizer"></span></th>
+          <th style="width:190px;">型號<span class="col-resizer"></span></th>
+          <th style="width:100px;">尺寸（長×寬×高 cm）<span class="col-resizer"></span></th>
+          <th style="width:80px;">狀態<span class="col-resizer"></span></th>
+          <th style="width:28px;"></th>
+        </tr></thead><tbody id="app-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('app')">＋ 新增一行</button></div>
       </div>
       <div id="cl-fur" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
-        <div class="tbl-wrap"><table><thead><tr><th>家具名稱</th><th>品牌</th><th style="width:80px;">位置</th><th style="width:190px;">型號</th><th style="width:100px;">尺寸（長×寬×高 cm）</th><th style="width:80px;">狀態</th><th style="width:28px;"></th></tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
+        <div class="tbl-wrap"><table id="fur-table" class="resizable-table"><thead><tr>
+          <th>家具名稱<span class="col-resizer"></span></th>
+          <th>品牌<span class="col-resizer"></span></th>
+          <th style="width:80px;">位置<span class="col-resizer"></span></th>
+          <th style="width:190px;">型號<span class="col-resizer"></span></th>
+          <th style="width:100px;">尺寸（長×寬×高 cm）<span class="col-resizer"></span></th>
+          <th style="width:80px;">狀態<span class="col-resizer"></span></th>
+          <th style="width:28px;"></th>
+        </tr></thead><tbody id="fur-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('fur')">＋ 新增一行</button></div>
 
         <!-- 家具參考照片上傳（客戶端） -->
         <div style="margin-top:1.4rem;">
@@ -5886,10 +5908,49 @@ function switchStab(id,el){
   ['cl-app','cl-fur','cl-pow'].forEach(t=>{document.getElementById(t).style.display=t===id?'block':'none';});
   if(id==='cl-fur') renderCliFurniturePlan();
 }
+// ── 欄寬拖曳調整 ──
+function initColResizers(tableId){
+  const table=document.getElementById(tableId);
+  if(!table) return;
+  const ths=table.querySelectorAll('thead th');
+  ths.forEach(th=>{
+    const resizer=th.querySelector('.col-resizer');
+    if(!resizer) return;
+    let startX,startW;
+    resizer.addEventListener('mousedown',e=>{
+      startX=e.clientX;
+      startW=th.offsetWidth;
+      resizer.classList.add('dragging');
+      document.body.style.cursor='col-resize';
+      document.body.style.userSelect='none';
+      const onMove=e2=>{
+        const diff=e2.clientX-startX;
+        const newW=Math.max(50,startW+diff);
+        th.style.width=newW+'px';
+      };
+      const onUp=()=>{
+        resizer.classList.remove('dragging');
+        document.body.style.cursor='';
+        document.body.style.userSelect='';
+        document.removeEventListener('mousemove',onMove);
+        document.removeEventListener('mouseup',onUp);
+      };
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+      e.preventDefault();
+    });
+  });
+}
+
 function renderChecklists(){
   renderAppTable('app',appData);
   renderAppTable('fur',furData);
   renderPowTable();
+  // 初始化欄寬拖曳（渲染後才有 DOM）
+  setTimeout(()=>{
+    initColResizers('app-table');
+    initColResizers('fur-table');
+  },50);
 }
 function mkSel(opts,val,onChange){const s=document.createElement('select');s.className='cs';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.onchange=onChange;return s;}
 function getClientProjId(){
