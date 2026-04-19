@@ -6332,32 +6332,45 @@ async function viewSurveyResp(token,label){
     const rs=(title,pairs)=>{
       const items=pairs.map(([lbl,key])=>{
         const val=d[key];if(!val||(Array.isArray(val)&&!val.length))return '';
-        return `<p><strong>${lbl}：</strong>${Array.isArray(val)?val.join('、'):val}</p>`;
+        const valHtml=Array.isArray(val)
+          ?val.map(v=>`<span style="display:inline-block;background:#E8F0FB;color:#2E5A8B;border-radius:5px;padding:2px 8px;font-size:11px;margin:2px 3px 2px 0;">${v}</span>`).join('')
+          :`<div style="white-space:pre-wrap;line-height:1.7;">${val}</div>`;
+        return `<div style="margin-bottom:10px;"><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:3px;">${lbl}</div><div style="font-size:13px;color:var(--ink);background:var(--sand);border-radius:8px;padding:8px 12px;">${valHtml}</div></div>`;
       }).filter(Boolean).join('');
-      return items?`<h3 style="color:#7A5C3A;border-bottom:1px solid #e0d5c8;padding-bottom:3px;margin-top:1.2rem;">${title}</h3>${items}`:'';
+      return items?`<div style="font-size:13px;font-weight:600;color:var(--ink);margin:1rem 0 0.5rem;padding-bottom:6px;border-bottom:1.5px solid var(--accent-light);">${title}</div>${items}`:'';
     };
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>需求回覆 - ${label}</title>
-      <style>body{font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#333;max-width:780px;margin:0 auto;padding:2rem;}
-      h1{font-size:19px;color:#2C2218;}p{margin:3px 0 8px;line-height:1.7;}</style>
-    </head><body>
-      <h1>需求表單回覆 ─ ${label}</h1>
-      <p style="color:#999;font-size:11px;">填寫人：${d.name||'（未填姓名）'} ｜ 最後更新：${d._updated||'—'}</p>
-      ${rs('住家的理想樣貌',[['憧憬','vision'],['最重要的居家活動','activities'],['對目前住所最不滿意的三件事','dislikes']])}
-      ${rs('成員與生活習慣',[['居住成員','members'],['風水需求','fengshui'],['舊元素保留','oldElements'],['植物需求','plants'],['植物放置區域','plantAreas'],['植物補充','plantsOther']])}
-      ${rs('客廳',[['主要功能','livingFn'],['影音需求','livingAv'],['沙發偏好','livingSofa'],['其他','livingOther']])}
-      ${rs('玄關',[['期望功能','entrance'],['其他','entranceOther']])}
-      ${rs('用餐區',[['常駐用餐人數','diningSeats'],['接待頻率','diningFreq'],['吧台需求','diningBar'],['其他','diningOther']])}
-      ${rs('廚房',[['下廚頻率','kitchenFreq'],['常用電器','kitchenApp'],['其他','kitchenOther']])}
-      ${rs('衛浴',[['客衛浴','bathGuest'],['主衛浴','bathMaster'],['其他','bathOther']])}
-      ${rs('主臥室',[['期望功能','masterFn'],['床尺寸','masterBed'],['其他','masterOther']])}
-      ${rs('書房',[['期望功能','study'],['其他','studyOther']])}
-      ${rs('兒童房',[['嬰兒期','kidsBaby'],['幼兒園','kidsToddler'],['國小/國中/高中','kidsSchool'],['其他','kidsOther']])}
-      ${rs('孝親房/客房',[['期望功能','guest'],['其他','guestOther']])}
-      ${rs('儲藏室',[['需要的收納物','storage'],['其他','storageOther']])}
-      ${rs('其他備注',[['備注','notes']])}
-      <script>window.onload=function(){window.print();}<\/script>
-    </body></html>`;
-    const w=window.open('','_blank');w.document.write(html);w.document.close();
+    const bodyHtml=
+      rs('住家的理想樣貌',[['憧憬','vision'],['最重要的居家活動','activities'],['對目前住所最不滿意的三件事','dislikes']])
+      +rs('成員與生活習慣',[['居住成員','members'],['風水需求','fengshui'],['舊元素保留','oldElements'],['植物需求','plants'],['植物放置區域','plantAreas'],['植物補充','plantsOther']])
+      +rs('客廳',[['主要功能','livingFn'],['影音需求','livingAv'],['沙發偏好','livingSofa'],['其他','livingOther']])
+      +rs('玄關',[['期望功能','entrance'],['其他','entranceOther']])
+      +rs('用餐區',[['常駐用餐人數','diningSeats'],['接待頻率','diningFreq'],['吧台需求','diningBar'],['其他','diningOther']])
+      +rs('廚房',[['下廚頻率','kitchenFreq'],['常用電器','kitchenApp'],['其他','kitchenOther']])
+      +rs('衛浴',[['客衛浴','bathGuest'],['主衛浴','bathMaster'],['其他','bathOther']])
+      +rs('主臥室',[['期望功能','masterFn'],['床尺寸','masterBed'],['其他','masterOther']])
+      +rs('書房',[['期望功能','study'],['其他','studyOther']])
+      +rs('兒童房',[['嬰兒期','kidsBaby'],['幼兒園','kidsToddler'],['國小/國中/高中','kidsSchool'],['其他','kidsOther']])
+      +rs('孝親房/客房',[['期望功能','guest'],['其他','guestOther']])
+      +rs('儲藏室',[['需要的收納物','storage'],['其他','storageOther']])
+      +rs('其他備注',[['備注','notes']]);
+    // Show in modal (no window.open = no popup blocker issue)
+    let modal=document.getElementById('survey-resp-modal');
+    if(modal) modal.remove();
+    modal=document.createElement('div');
+    modal.id='survey-resp-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;';
+    modal.onclick=e=>{if(e.target===modal)modal.remove();};
+    modal.innerHTML=`<div style="background:#fff;border-radius:16px;max-width:700px;width:100%;padding:2rem;position:relative;margin:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:17px;font-weight:600;color:var(--ink);">需求表單 ─ ${label}</div>
+          <div style="font-size:11px;color:var(--ink-light);margin-top:3px;">填寫人：${d.name||'（未填姓名）'} ｜ 最後更新：${d._updated||'—'}</div>
+        </div>
+        <button onclick="document.getElementById('survey-resp-modal').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--sand);cursor:pointer;font-size:18px;color:var(--ink-muted);flex-shrink:0;">×</button>
+      </div>
+      <div>${bodyHtml||'<div style="color:var(--ink-light);text-align:center;padding:2rem;">尚無填寫內容</div>'}</div>
+    </div>`;
+    document.body.appendChild(modal);
   }catch(e){alert('讀取失敗：'+e.message);}
 }
 
