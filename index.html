@@ -522,8 +522,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client ::-webkit-scrollbar{width:5px;height:5px;}
 #s-client ::-webkit-scrollbar-track{background:transparent;}
 #s-client ::-webkit-scrollbar-thumb{background:rgba(139,107,72,0.2);border-radius:3px;}
+/* Quill editor overrides */
+.ql-toolbar.ql-snow{border:none!important;border-bottom:0.5px solid var(--border)!important;padding:6px 8px!important;background:var(--sand);}
+.ql-container.ql-snow{border:none!important;}
+.ql-editor{font-family:'Noto Sans TC',sans-serif!important;font-size:13px!important;line-height:1.8!important;color:var(--ink)!important;min-height:140px!important;padding:12px 14px!important;}
+.ql-editor.ql-blank::before{color:var(--ink-light)!important;font-style:normal!important;font-size:13px!important;}
+.ql-toolbar .ql-stroke{stroke:var(--ink-muted)!important;}
+.ql-toolbar .ql-fill{fill:var(--ink-muted)!important;}
+.ql-toolbar button:hover .ql-stroke,.ql-toolbar button.ql-active .ql-stroke{stroke:var(--accent)!important;}
+.ql-toolbar button:hover .ql-fill,.ql-toolbar button.ql-active .ql-fill{fill:var(--accent)!important;}
+.ql-toolbar .ql-picker-label{color:var(--ink-muted)!important;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 </head>
 <body>
 
@@ -1343,7 +1355,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;"></div>
             <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;"></div>
           </div>
-          <div class="form-group"><label class="form-label">會議內容</label><textarea class="form-ta" id="formal-content" placeholder="填寫會議重點、決議事項…" style="margin-bottom:0;"></textarea></div>
+          <div class="form-group"><label class="form-label">會議內容</label>
+            <div id="formal-editor-wrap" style="background:#fff;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;">
+              <div id="formal-editor" style="min-height:160px;font-size:13px;font-family:'Noto Sans TC',sans-serif;"></div>
+            </div>
+            <!-- Hidden textarea for compatibility -->
+            <textarea id="formal-content" style="display:none;"></textarea>
+          </div>
           <div class="form-group" style="margin-top:0.8rem;">
             <label class="form-label">附件圖片（選填）</label>
             <div class="upload-zone" onclick="document.getElementById('formal-img-input').click()">
@@ -3609,9 +3627,14 @@ function renderClientFormalMeetings(d){
   const sorted=[...(d.formalMeetings||[])].sort((a,b)=>b.date.localeCompare(a.date));
   if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議記錄</div>';return;}
   sorted.forEach(m=>{
+    const contentHtml=m.content||'';
+    const isHtml=/<[a-z][\s\S]*>/i.test(contentHtml);
+    const contentDisplay=isHtml
+      ? `<div style="font-size:13px;color:var(--ink-muted);line-height:1.8;">${contentHtml}</div>`
+      : `<div style="font-size:13px;color:var(--ink-muted);line-height:1.8;white-space:pre-wrap;">${contentHtml}</div>`;
     const imgHtml=(m.images&&m.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${m.images.map(src=>`<img src="${src}" style="height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
     const item=document.createElement('div');item.className='meeting-record';
-    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${m.content}${imgHtml}</div>`;
+    item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)"><span class="meeting-record-date">${m.date}</span><span class="meeting-record-title">${m.title}</span><span class="meeting-record-arr">›</span></div><div class="meeting-record-bd" style="padding-top:12px;">${contentDisplay}${imgHtml}</div>`;
     el.appendChild(item);
   });
 }
@@ -4113,8 +4136,12 @@ function renderAdminFormalList(cid){
 }
 function addFormalMeeting(){
   const cid=getAdminDocClientId();
-  const date=document.getElementById('formal-date').value,title=document.getElementById('formal-title').value.trim(),content=document.getElementById('formal-content').value.trim();
-  if(!date||!title||!content){alert('請填寫日期、標題和內容');return;}
+  const date=document.getElementById('formal-date').value;
+  const title=document.getElementById('formal-title').value.trim();
+  // Read from Quill if available, else fallback to textarea
+  const content=window.formalQuill ? window.formalQuill.root.innerHTML.trim() : document.getElementById('formal-content').value.trim();
+  const isEmpty=content===''||content==='<p><br></p>';
+  if(!date||!title||isEmpty){alert('請填寫日期、標題和內容');return;}
   showLoader(true);
   (async()=>{
     try{
@@ -4122,7 +4149,9 @@ function addFormalMeeting(){
       const newItem={date:date.replace(/-/g,'/'),title,content,images:urls};
       await dbSaveMeeting(cid,'formal',newItem);
       docsData[cid].formalMeetings.push(newItem);
-      document.getElementById('formal-title').value='';document.getElementById('formal-content').value='';
+      document.getElementById('formal-title').value='';
+      if(window.formalQuill) window.formalQuill.setContents([]);
+      else document.getElementById('formal-content').value='';
       pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
       renderAdminFormalList(cid);
     }catch(e){alert('儲存失敗：'+e.message);}
@@ -4680,6 +4709,20 @@ document.addEventListener('DOMContentLoaded', function() {
     else if(e.key==='ArrowLeft') lbNav(-1);
     else if(e.key==='Escape') closeRenderLightbox();
   });
+  // Init Quill rich-text editor for meeting records
+  if(typeof Quill !== 'undefined' && document.getElementById('formal-editor')){
+    window.formalQuill = new Quill('#formal-editor', {
+      theme: 'snow',
+      placeholder: '填寫會議重點、決議事項…',
+      modules: {
+        toolbar: [
+          ['bold','italic','underline'],
+          [{list:'ordered'},{list:'bullet'}],
+          ['clean']
+        ]
+      }
+    });
+  }
   loadAllData().then(()=>{
     // Auto-restore session after data loaded
     try{
