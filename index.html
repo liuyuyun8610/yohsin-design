@@ -4967,14 +4967,26 @@ async function renderCliFurniturePlan(){
         <img src="${item.fileUrl}" alt="${item.name}" loading="lazy"
           style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer;"
           onclick="window.open('${item.fileUrl}','_blank')">
-        ${item.name?`<div style="font-size:11px;color:var(--cli-muted,#6E5E4E);padding:5px 8px;">${item.name}</div>`:''}
+        <div style="padding:4px 8px 6px;">
+          <input value="${item.name||''}" placeholder="點擊輸入名稱"
+            style="width:100%;font-size:11px;color:var(--cli-muted,#6E5E4E);background:transparent;border:none;border-bottom:0.5px solid transparent;outline:none;font-family:'Noto Sans TC',sans-serif;padding:2px 0;box-sizing:border-box;"
+            onfocus="this.style.borderBottomColor='var(--accent)'"
+            onblur="this.style.borderBottomColor='transparent';updateCliFurPhotoName(${cid},${idx},this.value)"
+            oninput="this.style.borderBottomColor='var(--accent)'">
+        </div>
         <button onclick="deleteCliFurPhoto(${cid},${idx})" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.45);color:#fff;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>`;
     } else {
-      card.innerHTML=`<a href="${item.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 14px;text-decoration:none;color:var(--cli-ink,#2C2218);">
-        <span style="font-size:22px;">📄</span>
-        <span style="font-size:12px;font-weight:500;">${item.name}</span>
-      </a>
-      <button onclick="deleteCliFurPhoto(${cid},${idx})" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(160,100,60,0.3);color:var(--cli-ink);border:none;cursor:pointer;font-size:13px;">×</button>`;
+      card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;">
+        <a href="${item.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--cli-ink,#2C2218);flex:1;min-width:0;">
+          <span style="font-size:22px;flex-shrink:0;">📄</span>
+          <input value="${item.name||''}" placeholder="點擊輸入名稱"
+            style="flex:1;min-width:0;font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);background:transparent;border:none;border-bottom:0.5px solid transparent;outline:none;font-family:'Noto Sans TC',sans-serif;padding:2px 0;"
+            onfocus="this.style.borderBottomColor='var(--accent)';event.stopPropagation()"
+            onblur="this.style.borderBottomColor='transparent';updateCliFurPhotoName(${cid},${idx},this.value)"
+            onclick="event.stopPropagation()">
+        </a>
+        <button onclick="deleteCliFurPhoto(${cid},${idx})" style="width:22px;height:22px;border-radius:50%;background:rgba(160,100,60,0.2);color:var(--cli-muted);border:none;cursor:pointer;font-size:13px;flex-shrink:0;">×</button>
+      </div>`;
     }
     grid.appendChild(card);
   });
@@ -5011,6 +5023,15 @@ async function deleteCliFurPhoto(cid,idx){
     docsData[cid].furniturePlans.splice(idx,1);
     renderCliFurniturePlan();
   }catch(e){alert('刪除失敗：'+e.message);}
+}
+
+async function updateCliFurPhotoName(cid,idx,newName){
+  const item=docsData[cid]?.furniturePlans?.[idx];
+  if(!item||item.name===newName) return;
+  item.name=newName;
+  try{
+    if(item.dbId) await sbClient.from('project_docs').update({note:newName}).eq('id',item.dbId);
+  }catch(e){console.warn('更新名稱失敗:',e.message);}
 }
 
 function switchAdminMeetingTab(tab,el){
