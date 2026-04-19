@@ -717,8 +717,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 </div>
 
 <!-- 表單送出成功畫面 -->
-<div id="s-survey-done" class="screen" style="background:#F7F3EE;min-height:100vh;display:flex;align-items:center;justify-content:center;">
-  <div style="text-align:center;padding:2rem;">
+<div id="s-survey-done" class="screen" style="background:#F7F3EE;min-height:100vh;">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem;">
     <div style="font-size:48px;margin-bottom:1rem;">✅</div>
     <div style="font-family:'Noto Serif TC',serif;font-size:22px;color:#2C2218;margin-bottom:0.8rem;">感謝您的填寫！</div>
     <div style="font-size:14px;color:#6E5E4E;line-height:1.8;">設計師收到您的需求表單後，<br>會盡快與您聯繫安排後續討論。</div>
@@ -1806,10 +1806,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div><!-- end a-project-detail -->
 
-          <button class="btn-ghost" onclick="exportSurveyPdf(currentDetailProjId)" style="font-size:12px;">⬇ 匯出 PDF</button>
-        </div>
-        <div id="admin-survey-view"></div>
-      </div>
 
     <div class="page" id="a-clients">
       <div class="stats-row">
