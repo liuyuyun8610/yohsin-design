@@ -5907,22 +5907,12 @@ function renderAppTable(type,data){
     mi.oninput=e=>r.model=e.target.value;
     mi.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
     tdMWrap.appendChild(mi);tdM.appendChild(tdMWrap);tr.appendChild(tdM);
-    // 尺寸（含 AI 查詢按鈕）
+    // 尺寸
     const tdDim=document.createElement('td');
-    const tdDimWrap=document.createElement('div');tdDimWrap.style.cssText='display:flex;align-items:center;gap:4px;';
-    const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';di.style.flex='1';
+    const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';di.style.width='100%';
     di.oninput=e=>r.dims=e.target.value;
     di.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
-    // AI 查尺寸按鈕 - 用 data 屬性避免 closure 問題
-    const aiBtn=document.createElement('button');
-    aiBtn.className='ai-dim-btn';
-    aiBtn.dataset.rowIndex=String(i);
-    aiBtn.dataset.type=dbType;
-    aiBtn.title='AI 自動查詢此型號尺寸';
-    aiBtn.style.cssText='flex-shrink:0;width:28px;height:28px;border-radius:50%;border:none;background:var(--accent-pale);color:var(--accent);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;';
-    aiBtn.textContent='✦';
-    tdDimWrap.appendChild(di);tdDimWrap.appendChild(aiBtn);
-    tdDim.appendChild(tdDimWrap);tr.appendChild(tdDim);
+    tdDim.appendChild(di);tr.appendChild(tdDim);
     // 狀態
     const tdS=document.createElement('td');
     const ssel=mkSel(STAT,r.status,e=>{r.status=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
