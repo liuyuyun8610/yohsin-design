@@ -5607,10 +5607,14 @@ async function renderAdminLogs(){
       <div>
         <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">補充照片</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;" id="edit-photos-${key}"></div>
-        <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink-muted);cursor:pointer;">
-          📷 新增照片
+        <div style="border:1.5px dashed var(--accent-light);border-radius:9px;padding:10px 14px;text-align:center;cursor:pointer;background:#fff;transition:all .15s;"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-pale)'"
+          ondragleave="this.style.borderColor='var(--accent-light)';this.style.background='#fff'"
+          ondrop="event.preventDefault();this.style.borderColor='var(--accent-light)';this.style.background='#fff';editLogAddPhotos({target:{files:event.dataTransfer.files},value:''},'${key}')"
+          onclick="this.querySelector('input').click()">
+          <span style="font-size:13px;color:var(--ink-muted);">📷 拖曳或點擊新增照片</span>
           <input type="file" accept="image/*" multiple style="display:none;" onchange="editLogAddPhotos(event,'${key}')">
-        </label>
+        </div>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;">
         <button class="btn-ghost" onclick="toggleLogEdit('${key}',false)">取消</button>
