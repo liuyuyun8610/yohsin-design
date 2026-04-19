@@ -4150,14 +4150,16 @@ function renderClientDocs(){
   const icons={'平面系統圖':'📐','立面系統圖':'📏'};
   planTypes.forEach(t=>{
     const vers=d.drawings[t]||[];
-    const finalVer=vers.find(v=>v.isFinal)||vers[0];
-    const oldVers=vers.filter(v=>!v.isFinal);
-    if(finalVer){
+    const finalVer=vers.find(v=>v.isFinal);   // 只取真正被標記的
+    const showVer=finalVer||vers[0];           // 顯示用（不一定是最終版）
+    const oldVers=vers.filter(v=>v!==showVer);
+    if(showVer){
       const c=document.createElement('div');c.className='drawing-card';
-      const hasImg=finalVer.fileUrl&&/\.(jpg|jpeg|png|webp|gif)$/i.test(finalVer.fileUrl);
-      const thumb=hasImg?`<img src="${finalVer.fileUrl}" style="width:100%;height:100%;object-fit:cover;">`:`${icons[t]||'📄'}`;
-      c.innerHTML=`<div class="drawing-thumb" style="${hasImg?'padding:0;':''}">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} <span class="pill pill-final" style="font-size:9px;">最終版</span></div><div class="drawing-meta">${finalVer.note} ｜ ${finalVer.date}</div></div>`;
-      if(finalVer.fileUrl) c.onclick=()=>window.open(finalVer.fileUrl,'_blank');
+      const hasImg=showVer.fileUrl&&/\.(jpg|jpeg|png|webp|gif)$/i.test(showVer.fileUrl);
+      const thumb=hasImg?`<img src="${showVer.fileUrl}" style="width:100%;height:100%;object-fit:cover;">`:`${icons[t]||'📄'}`;
+      const finalBadge=finalVer?`<span class="pill pill-final" style="font-size:9px;">最終版</span>`:'';
+      c.innerHTML=`<div class="drawing-thumb" style="${hasImg?'padding:0;':''}">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} ${finalBadge}</div><div class="drawing-meta">${showVer.note} ｜ ${showVer.date}</div></div>`;
+      if(showVer.fileUrl) c.onclick=()=>window.open(showVer.fileUrl,'_blank');
       dg.appendChild(c);
     }
     oldVers.forEach(v=>{const r=document.createElement('div');r.className='old-ver-item';r.innerHTML=`<span style="font-size:16px;">${icons[t]||'📄'}</span><span style="flex:1;">${t} — ${v.note}</span><span class="fdate">${v.date}</span>`;dgo.appendChild(r);});
