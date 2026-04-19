@@ -1564,6 +1564,27 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 <!-- RENDER LIGHTBOX -->
 <div id="render-lightbox" class="render-lightbox" style="display:none;" onclick="handleLbBgClick(event)">
+
+<!-- MEETING EDIT MODAL -->
+<div id="meeting-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(42,37,32,0.35);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:18px;padding:1.6rem 1.8rem;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(42,37,32,0.15);">
+    <div style="font-size:16px;font-weight:500;margin-bottom:1.2rem;">編輯會議記錄</div>
+    <div class="fg-2" style="margin-bottom:0.8rem;">
+      <div class="fg"><label class="form-label">會議日期</label><input type="date" class="form-input" id="edit-formal-date" style="margin-bottom:0;"></div>
+      <div class="fg"><label class="form-label">會議標題</label><input class="form-input" id="edit-formal-title" style="margin-bottom:0;"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label class="form-label">會議內容</label>
+      <div style="background:#fff;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div id="edit-formal-editor" style="min-height:160px;font-size:13px;font-family:'Noto Sans TC',sans-serif;"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button class="btn-ghost" onclick="closeMeetingEdit()">取消</button>
+      <button class="btn-ink" onclick="saveMeetingEdit()">儲存</button>
+    </div>
+  </div>
+</div>
   <span class="render-lb-close" onclick="closeRenderLightbox()">✕</span>
   <div class="render-lightbox-img-wrap">
     <span class="render-lb-prev" onclick="lbNav(-1);event.stopPropagation()">‹</span>
@@ -4131,8 +4152,79 @@ function renderAdminFormalList(cid){
   const el=document.getElementById('admin-formal-list');el.innerHTML='';
   if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議記錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  meetings.forEach((m,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">📝</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${m.content.substring(0,50)}${m.content.length>50?'…':''}</div></div><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  meetings.forEach((m,i)=>{
+    const preview=(m.content||'').replace(/<[^>]*>/g,'').substring(0,50);
+    const r=document.createElement('div');r.className='ufile-row';
+    r.innerHTML=`<div class="ufile-icon">📝</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${preview}${preview.length>=50?'…':''}</div>
+      </div>
+      <button class="btn-sm" onclick="openMeetingEdit(${cid},${i})">編輯</button>
+      <button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
   el.appendChild(wrap);
+}
+
+let _editMeetingCid=null, _editMeetingIdx=null, _editQuill=null;
+
+function openMeetingEdit(cid, idx){
+  const m=docsData[cid].formalMeetings[idx];
+  if(!m) return;
+  _editMeetingCid=cid; _editMeetingIdx=idx;
+  // Fill fields
+  const dateVal=(m.date||'').replace(/\//g,'-');
+  document.getElementById('edit-formal-date').value=dateVal;
+  document.getElementById('edit-formal-title').value=m.title||'';
+  // Init or reuse Quill
+  const modal=document.getElementById('meeting-edit-modal');
+  modal.style.display='flex';
+  setTimeout(()=>{
+    if(!_editQuill){
+      _editQuill=new Quill('#edit-formal-editor',{
+        theme:'snow',
+        modules:{toolbar:[['bold','italic','underline'],[{list:'ordered'},{list:'bullet'}],['clean']]}
+      });
+    }
+    // Set content
+    const content=m.content||'';
+    if(/<[a-z][\s\S]*>/i.test(content)){
+      _editQuill.root.innerHTML=content;
+    } else {
+      _editQuill.setText(content);
+    }
+  }, 50);
+}
+
+function closeMeetingEdit(){
+  document.getElementById('meeting-edit-modal').style.display='none';
+}
+
+async function saveMeetingEdit(){
+  if(_editMeetingCid===null||_editMeetingIdx===null) return;
+  const m=docsData[_editMeetingCid].formalMeetings[_editMeetingIdx];
+  const date=document.getElementById('edit-formal-date').value;
+  const title=document.getElementById('edit-formal-title').value.trim();
+  const content=_editQuill?_editQuill.root.innerHTML.trim():'';
+  const isEmpty=content===''||content==='<p><br></p>';
+  if(!date||!title||isEmpty){alert('請填寫日期、標題和內容');return;}
+  m.date=date.replace(/-/g,'/');
+  m.title=title;
+  m.content=content;
+  showLoader(true);
+  try{
+    if(m.dbId){
+      const {error}=await sbClient.from('meetings').update({
+        meet_date:m.date, title:m.title, content:m.content
+      }).eq('id',m.dbId);
+      if(error) throw error;
+    }
+    closeMeetingEdit();
+    renderAdminFormalList(_editMeetingCid);
+    alert('已更新！');
+  }catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
 }
 function addFormalMeeting(){
   const cid=getAdminDocClientId();
