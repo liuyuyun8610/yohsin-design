@@ -2128,7 +2128,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div class="fg"><label>狀態</label>
         <select id="pm-status">
-          <option>待開案</option><option>進行中</option><option>待付款</option><option>已完工</option>
+          <option>待開案</option><option>進行中</option><option>待付款</option><option>已完工</option><option>已過保</option>
         </select>
       </div>
       <div class="fg-2">
@@ -3712,7 +3712,7 @@ function renderProjects(){
   tb.innerHTML=''; if(wb) wb.innerHTML='';
   if(!projects.length){tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">尚無專案，請點擊右上角新增</td></tr>';return;}
 
-  const active=projects.filter(p=>p.status!=='已完工');
+  const active=projects.filter(p=>p.status!=='已完工'&&p.status!=='已過保');
   const done=projects.filter(p=>p.status==='已完工');
 
   if(!active.length) tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">目前無進行中專案</td></tr>';
@@ -5606,8 +5606,9 @@ function populateLogClientSel(){
   const sel=document.getElementById('log-client-sel');if(!sel)return;
   const cur=sel.value;sel.innerHTML='';
   if(!projects.length){const o=document.createElement('option');o.value='';o.textContent='（尚無專案）';sel.appendChild(o);return;}
-  projects.filter(p=>p.status!=='已完工').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
-  projects.filter(p=>p.status==='已完工').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' (已完工)';sel.appendChild(o);});
+  projects.filter(p=>p.status!=='已完工'&&p.status!=='已過保').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  projects.filter(p=>p.status==='已完工').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' (保固中)';sel.appendChild(o);});
+  projects.filter(p=>p.status==='已過保').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' (已過保)';sel.appendChild(o);});
   if(cur)sel.value=cur;
   // Auto-fill today's date
   const dateInput=document.getElementById('log-date');
