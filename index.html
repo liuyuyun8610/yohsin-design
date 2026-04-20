@@ -1300,6 +1300,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <span style="font-size:14px;font-family:'Noto Serif TC',serif;" id="dash-client-total">$0</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
+            <span style="font-size:13px;color:var(--ink-muted);">外部採購扣項</span>
+            <span style="font-size:14px;font-family:'Noto Serif TC',serif;color:var(--red);" id="dash-procurement-total">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
             <span style="font-size:13px;color:var(--ink-muted);">利潤總計</span>
             <span style="font-size:16px;font-weight:500;font-family:'Noto Serif TC',serif;color:var(--green);" id="dash-profit-total">$0</span>
           </div>
@@ -1325,6 +1329,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
                 <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">專案</th>
                 <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">廠商報價</th>
                 <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">客戶報價</th>
+                <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">採購扣項</th>
                 <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">利潤</th>
                 <th style="text-align:right;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">利潤率</th>
                 <th style="text-align:left;padding:9px 14px;font-size:11px;color:var(--ink-light);font-weight:400;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--border);background:var(--sand);">狀態</th>
@@ -3125,6 +3130,13 @@ async function renderDashboard(){
     }
   }
 
+  // Load procurement costs synced from work-system
+  procurementCostData = {};
+  try{
+    const {data}=await sbClient.from('procurement_costs').select('project_id, amount');
+    if(data) data.forEach(r=>{ procurementCostData[r.project_id]=(procurementCostData[r.project_id]||0)+Number(r.amount||0); });
+  }catch(e){}
+
   // Year's projects (by start date)
   const yearProjects = projects.filter(p=>{
     if(!p.date) return true;
@@ -3151,11 +3163,14 @@ async function renderDashboard(){
       grandClient += item.client||0;
     });
   });
-  const grandProfit = grandClient - grandVendor;
+  let grandProc = 0;
+  projects.forEach(p=>{ grandProc += procurementCostData[p.id]||0; });
+  const grandProfit = grandClient - grandVendor - grandProc;
   const grandPct = grandClient>0 ? (grandProfit/grandClient*100) : 0;
 
   document.getElementById('dash-vendor-total').textContent = '$'+fmtN(grandVendor);
   document.getElementById('dash-client-total').textContent = '$'+fmtN(grandClient);
+  document.getElementById('dash-procurement-total').textContent = '$'+fmtN(grandProc);
   document.getElementById('dash-profit-total').textContent = '$'+fmtN(grandProfit);
   document.getElementById('dash-profit-pct').textContent   = grandPct.toFixed(1)+'%';
 
@@ -3190,13 +3205,15 @@ async function renderDashboard(){
   projects.forEach(p=>{
     let v=0,c=0;
     if(profitData[p.id]) Object.values(profitData[p.id]).forEach(item=>{v+=item.vendor||0;c+=item.client||0;});
-    const profit=c-v; const pct=c>0?(profit/c*100):null;
+    const proc=procurementCostData[p.id]||0;
+    const profit=c-v-proc; const pct=c>0?(profit/c*100):null;
     const sc=p.status==='進行中'?'pill-green':p.status==='待付款'?'pill-amber':'pill-gray';
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td style="padding:10px 14px;font-weight:500;">${p.name}</td>
       <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;">$${fmtN(v)}</td>
       <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;">$${fmtN(c)}</td>
+      <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;color:${proc>0?'var(--red)':'var(--ink-light)'};">${proc>0?'$'+fmtN(proc):'—'}</td>
       <td style="padding:10px 14px;text-align:right;font-family:'Noto Serif TC',serif;color:${profit>=0?'var(--green)':'var(--red)'};">$${fmtN(profit)}</td>
       <td style="padding:10px 14px;text-align:right;color:${pct!==null&&pct>=0?'var(--green)':'var(--red)'};">${pct!==null?pct.toFixed(1)+'%':'—'}</td>
       <td style="padding:10px 14px;"><span class="pill ${sc}">${p.status}</span></td>`;
@@ -3676,6 +3693,7 @@ const PROFIT_ITEMS = [
 ];
 
 let profitData = {};
+let procurementCostData = {}; // {projectId: totalAmount} synced from work-system
 let customProfitRows = {}; // {pid: [{label,vendor,client,dbId}]}
 let paymentData = {};
 
@@ -3805,13 +3823,20 @@ function switchProjTab(tab,el){
   }
 }
 
-function renderProfitTable(){
+async function renderProfitTable(){
   const pid=currentDetailProjId;
   const data=profitData[pid];
   const tbody=document.getElementById('profit-tbody');
   const tfoot=document.getElementById('profit-tfoot');
   tbody.innerHTML='';tfoot.innerHTML='';
   if(!customProfitRows[pid]) customProfitRows[pid]=[];
+  // Load procurement costs for this project (work-system 同步的外部採購)
+  let totProc=0;
+  try{
+    const {data:procRows}=await sbClient.from('procurement_costs').select('amount').eq('project_id',pid);
+    totProc=(procRows||[]).reduce((s,r)=>s+Number(r.amount||0),0);
+    procurementCostData[pid]=totProc;
+  }catch(e){}
   let totV=0,totC=0,totP=0;
   PROFIT_ITEMS.forEach(it=>{
     const d=data[it.key];
@@ -3849,6 +3874,20 @@ function renderProfitTable(){
   const addTr=document.createElement('tr');
   addTr.innerHTML=`<td colspan="6" style="padding:0;"><button onclick="addCustomProfitRow('${pid}')" style="width:100%;padding:10px 14px;font-size:12px;color:var(--ink-muted);border:none;background:none;font-family:'Noto Sans TC',sans-serif;text-align:left;cursor:pointer;border-top:0.5px dashed var(--border);" onmouseover="this.style.background='var(--sand)';this.style.color='var(--ink)'" onmouseout="this.style.background='none';this.style.color='var(--ink-muted)'">＋ 新增自定義工種</button></td>`;
   tbody.appendChild(addTr);
+  // 外部採購扣項（來自 work-system 同步）
+  if(totProc>0){
+    const procTr=document.createElement('tr');
+    procTr.style.background='#FFF5E6';
+    procTr.innerHTML=`
+      <td style="padding:8px 12px;font-size:13px;color:var(--ink-muted);">外部採購扣項<span style="font-size:10px;color:#B35E1E;background:#FCEBD9;padding:1px 6px;border-radius:4px;margin-left:6px;font-family:'Noto Sans TC',sans-serif;">work-system</span></td>
+      <td style="padding:8px 12px;text-align:right;font-family:'Noto Serif TC',serif;color:var(--red);">${fmtN(totProc)}</td>
+      <td style="padding:8px 12px;text-align:right;color:var(--ink-light);">—</td>
+      <td><div class="profit-auto negative">-${fmtN(totProc)}</div></td>
+      <td><div class="profit-auto">—</div></td>
+      <td style="padding:8px 12px;font-size:11px;color:var(--ink-light);">採購扣項</td>`;
+    tbody.appendChild(procTr);
+    totP-=totProc;
+  }
   const totPct=totC>0?(totP/totC*100):null;
   tfoot.innerHTML=`<tr style="background:var(--sand);">
     <td style="padding:10px 12px;font-weight:500;border-top:1.5px solid var(--border);">合計</td>
@@ -3874,6 +3913,8 @@ function updateProfit(pid,key,field,val){
   }
   let totV=0,totC=0,totP=0;
   PROFIT_ITEMS.forEach(it=>{const d2=profitData[pid][it.key];totV+=d2.vendor;totC+=d2.client;totP+=(d2.client-d2.vendor);});
+  (customProfitRows[pid]||[]).forEach(r=>{totV+=r.vendor||0;totC+=r.client||0;totP+=((r.client||0)-(r.vendor||0));});
+  totP-=(procurementCostData[pid]||0);
   const totPct=totC>0?(totP/totC*100):null;
   const tfoot=document.getElementById('profit-tfoot');
   if(tfoot&&tfoot.rows[0]){
@@ -3910,6 +3951,7 @@ function updateCustomProfit(pid){
   let totV=0,totC=0,totP=0;
   PROFIT_ITEMS.forEach(it=>{const d=profitData[pid][it.key];totV+=d.vendor;totC+=d.client;totP+=(d.client-d.vendor);});
   (customProfitRows[pid]||[]).forEach(r=>{totV+=r.vendor||0;totC+=r.client||0;totP+=((r.client||0)-(r.vendor||0));});
+  totP-=(procurementCostData[pid]||0);
   const totPct=totC>0?(totP/totC*100):null;
   const tfoot=document.getElementById('profit-tfoot');
   if(tfoot&&tfoot.rows[0]){
