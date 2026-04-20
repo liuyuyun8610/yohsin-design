@@ -1366,6 +1366,21 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </table></div>
         </div>
       </div>
+
+      <!-- 已過保專案 -->
+      <div style="margin-top:2rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.8rem;cursor:pointer;" onclick="toggleExpiredSection()">
+          <div style="font-size:13px;font-weight:500;color:var(--ink-muted);letter-spacing:0.05em;">已過保專案</div>
+          <span id="expired-count" style="font-size:11px;background:var(--sand-dark);color:var(--ink-muted);padding:2px 8px;border-radius:10px;">0</span>
+          <span id="expired-toggle-icon" style="font-size:12px;color:var(--ink-light);margin-left:auto;">▼</span>
+        </div>
+        <div id="expired-section" style="display:none;">
+          <div class="tbl-admin"><table>
+            <thead><tr><th style="width:26%">專案名稱</th><th style="width:12%">狀態</th><th style="width:22%">地址</th><th style="width:13%">完工日期</th><th style="width:13%">保固到期</th><th style="width:14%">操作</th></tr></thead>
+            <tbody id="expired-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
     </div>
 
     <!-- 專案詳細頁 -->
@@ -3638,6 +3653,15 @@ function toggleWarrantySection(){
   if(icon) icon.textContent=open?'▼':'▲';
 }
 
+function toggleExpiredSection(){
+  const sec=document.getElementById('expired-section');
+  const icon=document.getElementById('expired-toggle-icon');
+  if(!sec) return;
+  const open=sec.style.display==='block';
+  sec.style.display=open?'none':'block';
+  if(icon) icon.textContent=open?'▼':'▲';
+}
+
 async function markProjectComplete(){
   const pid=currentDetailProjId; if(!pid) return;
   if(!confirm('確定將此專案標記為已完工並進入保固期？\n（將從進行中列表移至保固中）')) return;
@@ -3709,11 +3733,14 @@ function renderProjects(){
   const tb=document.getElementById('projects-tbody');
   const wb=document.getElementById('warranty-tbody');
   const wc=document.getElementById('warranty-count');
-  tb.innerHTML=''; if(wb) wb.innerHTML='';
+  const eb=document.getElementById('expired-tbody');
+  const ec=document.getElementById('expired-count');
+  tb.innerHTML=''; if(wb) wb.innerHTML=''; if(eb) eb.innerHTML='';
   if(!projects.length){tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">尚無專案，請點擊右上角新增</td></tr>';return;}
 
   const active=projects.filter(p=>p.status!=='已完工'&&p.status!=='已過保');
   const done=projects.filter(p=>p.status==='已完工');
+  const expired=projects.filter(p=>p.status==='已過保');
 
   if(!active.length) tb.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--ink-light);font-size:13px;">目前無進行中專案</td></tr>';
   active.forEach(p=>{
@@ -3758,6 +3785,34 @@ function renderProjects(){
         <td style="font-size:12px;color:var(--green);">${warrantyEnd}</td>
         <td onclick="event.stopPropagation()"><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
       wb.appendChild(tr);
+    });
+  }
+
+  // Expired section
+  if(ec) ec.textContent=expired.length;
+  if(eb){
+    if(!expired.length){eb.innerHTML='<tr><td colspan="6" style="padding:1rem;text-align:center;color:var(--ink-light);font-size:12px;">尚無已過保專案</td></tr>';}
+    expired.forEach(p=>{
+      const client=clients.find(c=>Number(c.projectId)===Number(p.id));
+      let warrantyEnd='—';
+      if(p.endDate){
+        try{
+          const d=new Date(p.endDate.replace(/\//g,'-'));
+          d.setFullYear(d.getFullYear()+1);
+          warrantyEnd=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+        }catch(e){}
+      }
+      const tr=document.createElement('tr');
+      tr.className='proj-clickable';
+      tr.onclick=()=>openProjectDetail(p.id);
+      tr.innerHTML=`
+        <td><div style="font-weight:500;color:var(--ink-light);text-decoration:underline;text-underline-offset:3px;">${p.name}</div>${client?'<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">業主：'+client.name+'</div>':''}</td>
+        <td><span class="pill pill-gray">已過保</span></td>
+        <td style="font-size:12px;color:var(--ink-muted);">${[p.address,p.unit].filter(Boolean).join(' ')||'—'}</td>
+        <td style="font-size:12px;color:var(--ink-muted);">${p.endDate||'—'}</td>
+        <td style="font-size:12px;color:var(--ink-light);">${warrantyEnd}</td>
+        <td onclick="event.stopPropagation()"><button class="act-btn" onclick="openPM(${p.id})">編輯</button><button class="act-btn danger" onclick="deleteProject(${p.id})">刪除</button></td>`;
+      eb.appendChild(tr);
     });
   }
 }
