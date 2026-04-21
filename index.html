@@ -474,7 +474,8 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .eye-btn:hover{background:var(--sand);}
 
 /* upload zone */
-.upload-zone{border:1.5px dashed var(--accent-light);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:background 0.15s;background:transparent;}
+.upload-zone{border:1.5px dashed var(--accent-light);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all .15s;background:transparent;}
+.upload-zone.dz-hover{border-color:var(--accent);background:var(--accent-pale);}
 .upload-zone:hover{background:var(--accent-pale);}
 .upload-zone-icon{font-size:32px;color:var(--accent-light);margin-bottom:0.5rem;}
 .upload-zone-text{font-size:13px;color:var(--ink-muted);}
@@ -1770,10 +1771,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
           <div class="form-group" style="margin-top:0.8rem;">
             <label class="form-label">附件圖片（選填）</label>
-            <div class="upload-zone" onclick="document.getElementById('formal-img-input').click()">
+            <div class="upload-zone"
+              onclick="document.getElementById('formal-img-input').click()"
+              ondragover="event.preventDefault();this.classList.add('dz-hover')"
+              ondragleave="this.classList.remove('dz-hover')"
+              ondrop="handleFormalDrop(event)"
+            >
               <div class="upload-zone-icon">🖼</div>
-              <div class="upload-zone-text">點擊上傳會議記錄圖片</div>
-              <div class="upload-zone-hint">手寫記錄、白板照片均可</div>
+              <div class="upload-zone-text">點擊或拖曳圖片到這裡</div>
+              <div class="upload-zone-hint">支援多張同時上傳；可重複拖曳累加；新增、編輯都可用</div>
             </div>
             <input type="file" id="formal-img-input" accept="image/*" multiple style="display:none;" onchange="previewFormalImgs(event)">
             <div id="formal-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
@@ -5737,6 +5743,15 @@ function previewFormalImgs(e){
   });
   // 清掉 input 才能再次選同一個檔案（如果使用者要重選）
   e.target.value='';
+  renderFormalImagePreview();
+}
+
+function handleFormalDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('dz-hover');
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length){ alert('請拖入圖片檔案'); return; }
+  files.forEach(f=>pendingFormalImgs.push({file:f, caption:''}));
   renderFormalImagePreview();
 }
 function renderAdminFormalList(cid){
