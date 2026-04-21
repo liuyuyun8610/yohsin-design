@@ -1788,6 +1788,76 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
+      <!-- 材料挑選 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">材料挑選</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">彙整此專案最終選用的材料，依使用區域分組呈現。每筆可附圖片、廠商、型號、使用區域。</div>
+
+        <!-- 已建立的材料（按區域分組） -->
+        <div id="admin-materials-list" style="margin-bottom:1rem;"></div>
+
+        <div class="divider"></div>
+
+        <!-- 新增材料表單 -->
+        <div id="material-form-section">
+          <div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:0.6rem;" id="material-form-title">新增材料</div>
+          <div class="form-grid2" style="margin-bottom:0.6rem;">
+            <div class="form-group">
+              <label class="form-label">使用區域 <span style="color:var(--red);">*</span></label>
+              <input class="form-input" id="material-area" placeholder="例：客廳、廚房、主臥、玄關" style="margin-bottom:0;" list="material-area-suggest">
+              <datalist id="material-area-suggest">
+                <option value="玄關"><option value="客廳"><option value="餐廳"><option value="廚房">
+                <option value="主臥"><option value="次臥"><option value="書房"><option value="更衣室">
+                <option value="主浴"><option value="客浴"><option value="陽台"><option value="儲藏室">
+                <option value="全室"><option value="公領域"><option value="私領域">
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">類別</label>
+              <input class="form-input" id="material-category" placeholder="例：地板、磁磚、壁紙、燈具、五金" style="margin-bottom:0;" list="material-cat-suggest">
+              <datalist id="material-cat-suggest">
+                <option value="地板"><option value="磁磚"><option value="壁紙"><option value="塗料">
+                <option value="燈具"><option value="開關插座"><option value="五金"><option value="衛浴">
+                <option value="廚具"><option value="家電"><option value="系統櫃"><option value="窗簾">
+                <option value="家具"><option value="門"><option value="把手"><option value="玻璃">
+              </datalist>
+            </div>
+          </div>
+          <div class="form-grid2" style="margin-bottom:0.6rem;">
+            <div class="form-group">
+              <label class="form-label">名稱</label>
+              <input class="form-input" id="material-name" placeholder="例：超耐磨海島型木地板" style="margin-bottom:0;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">廠商</label>
+              <input class="form-input" id="material-vendor" placeholder="例：富銘地板" style="margin-bottom:0;">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0.6rem;">
+            <label class="form-label">型號 / 編號</label>
+            <input class="form-input" id="material-model" placeholder="例：FB-2301" style="margin-bottom:0;">
+          </div>
+          <div class="form-group" style="margin-bottom:0.6rem;">
+            <label class="form-label">圖片</label>
+            <div class="upload-zone" onclick="document.getElementById('material-img-input').click()">
+              <div class="upload-zone-icon">🖼</div>
+              <div class="upload-zone-text">點擊上傳材料照片</div>
+              <div class="upload-zone-hint">可上傳一張示意圖（產品照、紋理、實拍）</div>
+            </div>
+            <input type="file" id="material-img-input" accept="image/*" style="display:none;" onchange="previewMaterialImg(event)">
+            <div id="material-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label class="form-label">備註</label>
+            <input class="form-input" id="material-note" placeholder="例：灰橡、5.0mm、進口" style="margin-bottom:0;">
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="btn-ghost" onclick="cancelMaterialEdit()" id="material-cancel-btn" style="display:none;">取消</button>
+            <button class="btn-ink" onclick="saveMaterial()" id="material-save-btn">＋ 儲存材料</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 合約管理 -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-title">合約資料</div>
@@ -2985,6 +3055,150 @@ async function dbLoadMeetings(pid){
   }catch(e){console.warn('dbLoadMeetings failed:',e.message);}
 }
 
+async function dbLoadMaterials(pid){
+  if(!pid||isNaN(pid)){console.warn('dbLoadMaterials: invalid pid',pid);return;}
+  try{
+    const {data,error}=await sbClient.from('materials').select('*').eq('project_id',pid).order('area',{ascending:true}).order('sort_order',{ascending:true}).order('id',{ascending:true});
+    if(error) throw error;
+    materialsData[pid]=data||[];
+  }catch(e){console.warn('dbLoadMaterials failed:',e.message); materialsData[pid]=[];}
+}
+
+function renderMaterials(pid){
+  const el=document.getElementById('admin-materials-list');
+  if(!el) return;
+  const list=materialsData[pid]||[];
+  if(!list.length){el.innerHTML='<div class="empty-state">尚未新增任何材料</div>';return;}
+  // group by area
+  const groups=new Map();
+  list.forEach(m=>{
+    const a=m.area||'未分類';
+    if(!groups.has(a)) groups.set(a,[]);
+    groups.get(a).push(m);
+  });
+  const parts=[];
+  for(const [area,items] of groups){
+    parts.push(`<div style="margin-bottom:0.8rem;"><div style="font-size:11px;font-weight:500;color:var(--ink-muted);letter-spacing:0.08em;margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid var(--border);">${area} <span style="color:var(--ink-light);font-weight:400;">・${items.length} 項</span></div>`);
+    parts.push('<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">');
+    items.forEach(m=>{
+      const imgHtml=m.image_url
+        ? `<img src="${m.image_url}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;cursor:zoom-in;" onclick="window.open('${m.image_url.replace(/'/g,"&#39;")}','_blank')">`
+        : `<div style="width:100%;height:120px;background:var(--sand);border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-light);font-size:24px;">📷</div>`;
+      parts.push(`
+        <div style="background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:10px;">
+          ${imgHtml}
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px;">${m.name||m.category||'—'}</div>
+          ${m.category?`<div style="font-size:10px;color:var(--ink-light);display:inline-block;background:var(--sand);padding:1px 6px;border-radius:4px;margin-bottom:6px;">${m.category}</div>`:''}
+          <div style="font-size:11px;color:var(--ink-muted);line-height:1.5;">
+            ${m.vendor?`<div>廠商：${m.vendor}</div>`:''}
+            ${m.model?`<div>型號：${m.model}</div>`:''}
+            ${m.note?`<div style="color:var(--ink-light);font-style:italic;margin-top:2px;">${m.note}</div>`:''}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
+            <button class="act-btn" onclick="editMaterial(${m.id})">編輯</button>
+            <button class="act-btn danger" onclick="deleteMaterial(${m.id})">刪除</button>
+          </div>
+        </div>
+      `);
+    });
+    parts.push('</div></div>');
+  }
+  el.innerHTML=parts.join('');
+}
+
+function previewMaterialImg(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  pendingMaterialImage=file;
+  const pv=document.getElementById('material-img-preview');
+  pv.innerHTML='';
+  const img=document.createElement('img');
+  img.style.cssText='width:120px;height:120px;object-fit:cover;border-radius:6px;';
+  const r=new FileReader(); r.onload=e=>{img.src=e.target.result;}; r.readAsDataURL(file);
+  pv.appendChild(img);
+}
+
+async function saveMaterial(){
+  const pid=currentDetailProjId;
+  if(!pid){alert('請先選擇專案');return;}
+  const area=document.getElementById('material-area').value.trim();
+  if(!area){alert('請填寫使用區域');return;}
+  const category=document.getElementById('material-category').value.trim();
+  const name=document.getElementById('material-name').value.trim();
+  const vendor=document.getElementById('material-vendor').value.trim();
+  const model=document.getElementById('material-model').value.trim();
+  const note=document.getElementById('material-note').value.trim();
+
+  showLoader(true);
+  try{
+    let imageUrl=null;
+    if(pendingMaterialImage){
+      imageUrl=await uploadToStorage(pendingMaterialImage,'materials');
+    } else if(editingMaterialId){
+      // keep existing image when editing without new upload
+      const existing=(materialsData[pid]||[]).find(m=>m.id===editingMaterialId);
+      imageUrl=existing?.image_url||null;
+    }
+    const row={project_id:pid, area, category, name, vendor, model, image_url:imageUrl, note};
+    if(editingMaterialId){
+      const {error}=await sbClient.from('materials').update(row).eq('id',editingMaterialId);
+      if(error) throw error;
+    } else {
+      const {error}=await sbClient.from('materials').insert(row);
+      if(error) throw error;
+    }
+    await dbLoadMaterials(pid);
+    renderMaterials(pid);
+    cancelMaterialEdit();
+  }catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
+}
+
+function editMaterial(id){
+  const pid=currentDetailProjId;
+  const m=(materialsData[pid]||[]).find(x=>x.id===id);
+  if(!m) return;
+  editingMaterialId=id;
+  document.getElementById('material-form-title').textContent='編輯材料';
+  document.getElementById('material-save-btn').textContent='儲存變更';
+  document.getElementById('material-cancel-btn').style.display='inline-block';
+  document.getElementById('material-area').value=m.area||'';
+  document.getElementById('material-category').value=m.category||'';
+  document.getElementById('material-name').value=m.name||'';
+  document.getElementById('material-vendor').value=m.vendor||'';
+  document.getElementById('material-model').value=m.model||'';
+  document.getElementById('material-note').value=m.note||'';
+  pendingMaterialImage=null;
+  const pv=document.getElementById('material-img-preview');
+  pv.innerHTML=m.image_url?`<img src="${m.image_url}" style="width:120px;height:120px;object-fit:cover;border-radius:6px;"><div style="font-size:10px;color:var(--ink-light);margin-left:6px;align-self:center;">（上傳新圖可取代）</div>`:'';
+  // scroll to form
+  document.getElementById('material-form-section')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function cancelMaterialEdit(){
+  editingMaterialId=null;
+  pendingMaterialImage=null;
+  document.getElementById('material-form-title').textContent='新增材料';
+  document.getElementById('material-save-btn').textContent='＋ 儲存材料';
+  document.getElementById('material-cancel-btn').style.display='none';
+  ['material-area','material-category','material-name','material-vendor','material-model','material-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const inp=document.getElementById('material-img-input'); if(inp) inp.value='';
+  const pv=document.getElementById('material-img-preview'); if(pv) pv.innerHTML='';
+}
+
+async function deleteMaterial(id){
+  if(!confirm('確定刪除這筆材料？')) return;
+  showLoader(true);
+  try{
+    const {error}=await sbClient.from('materials').delete().eq('id',id);
+    if(error) throw error;
+    const pid=currentDetailProjId;
+    await dbLoadMaterials(pid);
+    renderMaterials(pid);
+  }catch(e){alert('刪除失敗：'+e.message);}
+  showLoader(false);
+}
+
 async function dbSaveMeeting(pid, meetType, item){
   // meetings table columns: project_id, meet_type, meet_date, title, content, images
   // LINE 備注沒有獨立欄位，改存在 title 裡
@@ -3720,6 +3934,9 @@ let profitData = {};
 let procurementCostData = {}; // {projectId: totalAmount} synced from work-system
 let customProfitRows = {}; // {pid: [{label,vendor,client,dbId}]}
 let paymentData = {};
+let materialsData = {}; // {pid: [{id, area, category, name, vendor, model, image_url, note, sort_order}]}
+let pendingMaterialImage = null; // File pending upload for material form
+let editingMaterialId = null;    // if set, saveMaterial updates instead of inserts
 
 function initProjData(pid){
   if(!profitData[pid]){profitData[pid]={};PROFIT_ITEMS.forEach(it=>{profitData[pid][it.key]={vendor:0,client:0};});}
@@ -4614,8 +4831,10 @@ async function renderAdminDocs(){
   showLoader(true);
   await dbLoadDocs(cid);
   await dbLoadMeetings(cid);
+  await dbLoadMaterials(cid);
   showLoader(false);
   renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);renderAdminFurniturePlanList(cid);renderAdminClientNotesList(cid);
+  renderMaterials(cid);
 }
 function switchDrawingType(type,el){
   currentDrawingType=type;
@@ -4931,7 +5150,7 @@ async function uploadToStorage(file, folder){
   const ext=file.name.split('.').pop().toLowerCase()||'jpg';
   const fileName=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   // Photos go to 'photos' bucket, documents go to 'documents' bucket
-  const photoFolders=['construction-logs','line-screenshots','meeting-photos','furniture-plans','drawings','icons'];
+  const photoFolders=['construction-logs','line-screenshots','meeting-photos','furniture-plans','drawings','icons','materials'];
   const bucket=photoFolders.includes(folder)?'photos':'documents';
   const {data,error}=await sbClient.storage.from(bucket).upload(fileName,file,{cacheControl:'3600',upsert:false});
   if(error) throw new Error('上傳失敗：'+error.message);
