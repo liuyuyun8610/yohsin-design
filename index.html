@@ -1788,6 +1788,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <div class="rte-sep"></div>
               <button type="button" class="rte-btn" onclick="rteInsertHr()" title="分隔線">─</button>
               <button type="button" class="rte-btn" onclick="rteInsertCollapsible()" title="可收合段落（將選取內容包成可摺疊區塊；未選取則插入空白範本）">▾ 可收合段落</button>
+              <button type="button" class="rte-btn" onclick="rteDuplicateCollapsible()" title="複製目前游標所在的可收合段落，貼在它下方">📋 複製此段</button>
               <div class="rte-sep"></div>
               <button type="button" class="rte-btn" onclick="rteInsertImageFromPicker()" title="插入圖片到游標位置">🖼 插入圖</button>
               <button type="button" class="rte-btn rte-btn-danger" onclick="rteClear()" title="清除格式">清除</button>
@@ -5965,6 +5966,25 @@ function rteSetColor(color){
   if(!sel||sel.rangeCount===0||sel.isCollapsed){ alert('請先選取要改顏色的文字'); return; }
   document.execCommand('styleWithCSS',false,true);
   document.execCommand('foreColor',false,color);
+  formalAutosave();
+}
+
+function rteDuplicateCollapsible(){
+  const rte=document.getElementById('formal-content-rte');
+  if(!rte) return;
+  const sel=window.getSelection();
+  if(!sel||sel.rangeCount===0){ alert('請先把游標放在要複製的可收合段落內'); return; }
+  let node=sel.anchorNode;
+  while(node&&node!==rte){
+    if(node.nodeType===1&&node.tagName==='DETAILS') break;
+    node=node.parentNode;
+  }
+  if(!node||node.tagName!=='DETAILS'){ alert('請先把游標點進「可收合段落」內再按複製'); return; }
+  const clone=node.cloneNode(true);
+  node.parentNode.insertBefore(clone,node.nextSibling);
+  // 把新的設成 open 並滾到視野
+  clone.open=true;
+  clone.scrollIntoView({behavior:'smooth',block:'center'});
   formalAutosave();
 }
 
