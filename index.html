@@ -5729,37 +5729,133 @@ function removeLineShot(cid,idx){
   docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);
 }
 
-// 正式會議：支援多張圖片 + 每張可選填標題
+// 正式會議：支援多張圖片 + 每張可選填標題（編輯時也保留既有圖）
 function previewFormalImgs(e){
-  // 不重置（允許多次選擇累加）— 但若使用者重新選同 input 也會清空 input
-  // 為了避免混淆，這裡一律重置：每次點上傳就重新選一批
-  pendingFormalImgs=[];
-  const pv=document.getElementById('formal-img-preview');
-  pv.innerHTML='';
-  pv.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:8px;';
-  Array.from(e.target.files).forEach((f, idx)=>{
+  // 把選的檔案加進 pendingFormalImgs（不重置，與既有/已選的並列）
+  Array.from(e.target.files).forEach(f=>{
     pendingFormalImgs.push({file:f, caption:''});
-    const wrap=document.createElement('div');
-    wrap.style.cssText='display:flex;flex-direction:column;gap:4px;';
-    const img=document.createElement('img');
-    img.src=URL.createObjectURL(f);
-    img.style.cssText='width:100%;height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
-    const cap=document.createElement('input');
-    cap.type='text';
-    cap.placeholder='標題（選填，例：木地板型號）';
-    cap.style.cssText='font-size:11px;padding:4px 6px;border:0.5px solid var(--border);border-radius:5px;font-family:inherit;color:var(--ink);background:#fff;';
-    cap.oninput=(ev)=>{ if(pendingFormalImgs[idx]) pendingFormalImgs[idx].caption=ev.target.value; };
-    wrap.appendChild(img); wrap.appendChild(cap);
-    pv.appendChild(wrap);
   });
+  // 清掉 input 才能再次選同一個檔案（如果使用者要重選）
+  e.target.value='';
+  renderFormalImagePreview();
 }
 function renderAdminFormalList(cid){
   const meetings=docsData[cid].formalMeetings||[];
   const el=document.getElementById('admin-formal-list');el.innerHTML='';
   if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議記錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  meetings.forEach((m,i)=>{const r=document.createElement('div');r.className='ufile-row';r.innerHTML=`<div class="ufile-icon">📝</div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">${m.content.substring(0,50)}${m.content.length>50?'…':''}</div></div><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;wrap.appendChild(r);});
+  meetings.forEach((m,i)=>{
+    const r=document.createElement('div');r.className='ufile-row';
+    // 取純文字 snippet（去 HTML tags）
+    const plain=(m.content||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    const imgCount=(m.images||[]).length;
+    r.innerHTML=`<div class="ufile-icon">📝</div><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${plain.substring(0,60)}${plain.length>60?'…':''}${imgCount?` ・🖼 ${imgCount}`:''}</div></div><button class="btn-sm" onclick="editFormalMeeting(${cid},${i})" style="margin-right:6px;">編輯</button><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;
+    wrap.appendChild(r);
+  });
   el.appendChild(wrap);
+}
+
+let editingFormalDbId = null;
+let existingFormalImages = []; // 編輯時保留的舊圖（{url, caption} 或 string）
+
+function renderFormalImagePreview(){
+  const pv=document.getElementById('formal-img-preview');
+  if(!pv) return;
+  pv.innerHTML='';
+  pv.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:8px;';
+  // 1. 既有圖片（編輯模式）
+  existingFormalImages.forEach((img, idx)=>{
+    const url=typeof img==='string'?img:(img&&img.url)||'';
+    const cap=typeof img==='object'&&img?(img.caption||''):'';
+    if(!url) return;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:4px;position:relative;';
+    const x=document.createElement('button');
+    x.textContent='×'; x.title='移除這張';
+    x.style.cssText='position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,0.6);color:#fff;cursor:pointer;font-size:14px;line-height:1;z-index:2;';
+    x.onclick=()=>{ existingFormalImages.splice(idx,1); renderFormalImagePreview(); };
+    const im=document.createElement('img');
+    im.src=url;
+    im.style.cssText='width:100%;height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
+    const c=document.createElement('input');
+    c.type='text'; c.value=cap; c.placeholder='標題（選填）';
+    c.style.cssText='font-size:11px;padding:4px 6px;border:0.5px solid var(--border);border-radius:5px;font-family:inherit;color:var(--ink);background:#fff;';
+    c.oninput=ev=>{
+      if(typeof existingFormalImages[idx]==='string') existingFormalImages[idx]={url, caption:ev.target.value};
+      else existingFormalImages[idx]={...existingFormalImages[idx], caption:ev.target.value};
+    };
+    wrap.appendChild(x); wrap.appendChild(im); wrap.appendChild(c);
+    pv.appendChild(wrap);
+  });
+  // 2. 新上傳圖片
+  pendingFormalImgs.forEach((p, idx)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:4px;position:relative;';
+    const x=document.createElement('button');
+    x.textContent='×'; x.title='移除這張';
+    x.style.cssText='position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,0.6);color:#fff;cursor:pointer;font-size:14px;line-height:1;z-index:2;';
+    x.onclick=()=>{ pendingFormalImgs.splice(idx,1); renderFormalImagePreview(); };
+    const im=document.createElement('img');
+    im.src=URL.createObjectURL(p.file);
+    im.style.cssText='width:100%;height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
+    const c=document.createElement('input');
+    c.type='text'; c.value=p.caption||''; c.placeholder='標題（選填，例：木地板型號）';
+    c.style.cssText='font-size:11px;padding:4px 6px;border:0.5px solid var(--border);border-radius:5px;font-family:inherit;color:var(--ink);background:#fff;';
+    c.oninput=ev=>{ if(pendingFormalImgs[idx]) pendingFormalImgs[idx].caption=ev.target.value; };
+    wrap.appendChild(x); wrap.appendChild(im); wrap.appendChild(c);
+    pv.appendChild(wrap);
+  });
+}
+
+function editFormalMeeting(cid, idx){
+  const m=docsData[cid].formalMeetings[idx];
+  if(!m) return;
+  editingFormalDbId=m.dbId;
+  // 解析與會人員
+  const attMatch=(m.content||'').match(/^<div class="meeting-attendees"[^>]*>👥\s*([^<]*)<\/div>/);
+  const attendees=attMatch?attMatch[1].trim():'';
+  const body=attMatch?(m.content||'').replace(attMatch[0],''):(m.content||'');
+  document.getElementById('formal-date').value=(m.date||'').replace(/\//g,'-');
+  document.getElementById('formal-title').value=m.title||'';
+  const attEl=document.getElementById('formal-attendees'); if(attEl) attEl.value=attendees;
+  setRteContent(body);
+  pendingFormalImgs=[];
+  existingFormalImages=[...(m.images||[])];
+  document.getElementById('formal-img-input').value='';
+  renderFormalImagePreview();
+  // 切換按鈕文字
+  const saveBtn=document.querySelector('button[onclick="addFormalMeeting()"]');
+  if(saveBtn) saveBtn.textContent='更新會議記錄';
+  // 加入取消按鈕
+  ensureCancelFormalBtn();
+  // 滾到表單
+  document.getElementById('admin-formal-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function ensureCancelFormalBtn(){
+  if(document.getElementById('formal-cancel-edit-btn')) return;
+  const saveBtn=document.querySelector('button[onclick="addFormalMeeting()"]');
+  if(!saveBtn) return;
+  const btn=document.createElement('button');
+  btn.id='formal-cancel-edit-btn'; btn.className='btn-ghost'; btn.textContent='取消編輯';
+  btn.style.marginRight='8px';
+  btn.onclick=cancelFormalEdit;
+  saveBtn.parentElement.insertBefore(btn, saveBtn);
+}
+
+function cancelFormalEdit(){
+  editingFormalDbId=null;
+  existingFormalImages=[];
+  pendingFormalImgs=[];
+  document.getElementById('formal-date').value='';
+  document.getElementById('formal-title').value='';
+  const attEl=document.getElementById('formal-attendees'); if(attEl) attEl.value='';
+  setRteContent('');
+  document.getElementById('formal-img-input').value='';
+  document.getElementById('formal-img-preview').innerHTML='';
+  const saveBtn=document.querySelector('button[onclick="addFormalMeeting()"]');
+  if(saveBtn) saveBtn.textContent='儲存會議記錄';
+  const cb=document.getElementById('formal-cancel-edit-btn'); if(cb) cb.remove();
 }
 // ── 富文字編輯器 (RTE) ──
 function rteCmd(cmd){
@@ -5848,18 +5944,29 @@ function addFormalMeeting(){
     try{
       const files=pendingFormalImgs.map(p=>p.file);
       const captions=pendingFormalImgs.map(p=>p.caption||'');
-      const urls=await uploadFilesToStorage(files,'meeting-photos');
-      const images=urls.map((u,i)=>({url:u, caption:captions[i]||''}));
-      const newItem={date:date.replace(/-/g,'/'),title,content,images};
-      await dbSaveMeeting(cid,'formal',newItem);
-      docsData[cid].formalMeetings.push(newItem);
+      const newUrls=files.length?await uploadFilesToStorage(files,'meeting-photos'):[];
+      const newImages=newUrls.map((u,i)=>({url:u, caption:captions[i]||''}));
+      // 既有圖片（編輯時保留的）+ 新上傳的
+      const allImages=[
+        ...existingFormalImages.map(img=>typeof img==='string'?{url:img,caption:''}:img),
+        ...newImages,
+      ]
+      const item={date:date.replace(/-/g,'/'),title,content,images:allImages};
+      if(editingFormalDbId){
+        item.dbId=editingFormalDbId;
+        await dbSaveMeeting(cid,'formal',item);
+        // 更新本地 state
+        const arr=docsData[cid].formalMeetings;
+        const i=arr.findIndex(x=>x.dbId===editingFormalDbId);
+        if(i>=0) arr[i]={...arr[i],...item};
+      } else {
+        await dbSaveMeeting(cid,'formal',item);
+        docsData[cid].formalMeetings.push(item);
+      }
       formalClearDraft(cid);
-      document.getElementById('formal-title').value='';
-      if(document.getElementById('formal-attendees')) document.getElementById('formal-attendees').value='';
-      setRteContent('');
+      cancelFormalEdit();
       const statusEl=document.getElementById('formal-autosave-status');
       if(statusEl) statusEl.textContent='';
-      pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';document.getElementById('formal-img-input').value='';
       renderAdminFormalList(cid);
     }catch(e){alert('儲存失敗：'+e.message);}
     showLoader(false);
