@@ -240,7 +240,9 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .rte-btn-danger{color:var(--red);border-color:#EDB8B0;}
 .rte-btn-danger:hover{background:#FCEBEB;border-color:var(--red);}
 .rte-sep{width:0.5px;background:var(--border);margin:2px 2px;align-self:stretch;}
-.rte-body{min-height:160px;max-height:400px;overflow-y:auto;padding:12px 14px;border:0.5px solid var(--border);border-radius:0 0 10px 10px;background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink);line-height:1.85;outline:none;}
+.rte-body{min-height:160px;max-height:400px;overflow-y:auto;padding:12px 14px;border:0.5px solid var(--border);border-radius:0 0 10px 10px;background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink);line-height:1.85;outline:none;transition:background .15s,border-color .15s;}
+.rte-body.rte-drop-hover{background:var(--accent-pale);border-color:var(--accent);}
+.rte-body img{max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block;}
 .rte-body:empty:before{content:attr(data-placeholder);color:var(--ink-light);pointer-events:none;}
 .rte-body h3{font-size:14px;font-weight:600;color:var(--ink);margin:10px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--border);}
 .rte-body ul{padding-left:20px;margin:6px 0;}
@@ -763,6 +765,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="tb-nav">
       <button class="tnav active" onclick="goPage('p-overview',this)">專案總覽</button>
       <button class="tnav" onclick="goPage('p-docs',this)">資料文件</button>
+      <button class="tnav" onclick="goPage('p-meetings',this)">會議記錄</button>
       <button class="tnav" onclick="goPage('p-knowledge',this)">注意事項</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
@@ -782,6 +785,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="mobile-menu-inner" onclick="event.stopPropagation()">
       <button class="mobile-tnav active" onclick="goPageMobile('p-overview',this,'client')">專案總覽</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-docs',this,'client')">資料文件</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議記錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">注意事項</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
@@ -930,10 +934,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">
           合約文件
         </button>
-        <button id="docs-tab-meetings" onclick="switchDocsTab('meetings')"
-          style="flex:1;padding:8px 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">
-          會議記錄
-        </button>
       </div>
 
       <!-- ─── 設計圖紙 Panel ─── -->
@@ -970,8 +970,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
-      <!-- ─── 會議記錄 Panel ─── -->
-      <div id="docs-panel-meetings" style="display:none;">
+    </div>
+
+    <!-- 會議記錄 (獨立頁面) -->
+    <div class="page" id="p-meetings">
+      <div class="page-title">會議記錄</div>
+      <div id="docs-panel-meetings">
         <div class="meeting-tabs">
           <button class="meeting-tab active" onclick="switchMeetingTab('line',this)">LINE 記錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議記錄</button>
@@ -1759,12 +1763,17 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <button type="button" class="rte-btn" onclick="rteCmd('insertOrderedList')" title="編號清單">1. 清單</button>
               <div class="rte-sep"></div>
               <button type="button" class="rte-btn" onclick="rteInsertHr()" title="分隔線">─</button>
+              <div class="rte-sep"></div>
+              <button type="button" class="rte-btn" onclick="rteInsertImageFromPicker()" title="插入圖片到游標位置">🖼 插入圖</button>
               <button type="button" class="rte-btn rte-btn-danger" onclick="rteClear()" title="清除格式">清除</button>
             </div>
             <!-- 可編輯區域 -->
             <div id="formal-content-rte" class="rte-body" contenteditable="true"
-              data-placeholder="填寫會議重點、決議事項…"
-              oninput="formalAutosave()"></div>
+              data-placeholder="填寫會議重點、決議事項…可拖曳圖片進來插入"
+              oninput="formalAutosave()"
+              ondragover="event.preventDefault();this.classList.add('rte-drop-hover')"
+              ondragleave="this.classList.remove('rte-drop-hover')"
+              ondrop="rteHandleDrop(event)"></div>
             <!-- 隱藏 textarea 供儲存用 -->
 
             <textarea id="formal-content" style="display:none;"></textarea>
@@ -5901,6 +5910,58 @@ function rteInsertHr(){
   document.getElementById('formal-content-rte')?.focus();
   document.execCommand('insertHorizontalRule',false,null);
 }
+
+// 插入圖片到 RTE 游標位置（會議內文）
+async function rteInsertImageFiles(files){
+  const rte=document.getElementById('formal-content-rte');
+  if(!rte||!files||!files.length) return;
+  rte.focus();
+  showLoader(true);
+  try{
+    for(const f of files){
+      if(!f.type.startsWith('image/')) continue;
+      const url=await uploadToStorage(f,'meeting-photos');
+      const html=`<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block;">`;
+      // 確保游標在 RTE 內，再插入
+      rte.focus();
+      const sel=window.getSelection();
+      if(!sel.rangeCount||!rte.contains(sel.anchorNode)){
+        // 沒有有效 selection，append 到尾端
+        rte.insertAdjacentHTML('beforeend',html);
+      } else {
+        document.execCommand('insertHTML',false,html);
+      }
+    }
+    formalAutosave();
+  }catch(e){alert('插入圖片失敗：'+e.message);}
+  showLoader(false);
+}
+
+function rteInsertImageFromPicker(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='image/*'; input.multiple=true;
+  input.onchange=(e)=>rteInsertImageFiles(Array.from(e.target.files));
+  input.click();
+}
+
+function rteHandleDrop(e){
+  e.preventDefault();
+  const rte=e.currentTarget;
+  rte.classList.remove('rte-drop-hover');
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  // 嘗試把游標放到 drop 位置（瀏覽器支援度不一，fallback 到尾端）
+  try{
+    const r=document.caretRangeFromPoint?document.caretRangeFromPoint(e.clientX,e.clientY):null;
+    if(r){
+      const sel=window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+    }
+  }catch(_){}
+  rteInsertImageFiles(files);
+}
+
 function rteClear(){
   const rte=document.getElementById('formal-content-rte');
   if(rte&&confirm('確定清除所有內容？')) rte.innerHTML='';
@@ -6476,8 +6537,8 @@ function renderDashMeetings(){
 }
 
 function switchDocsTab(tab){
-  const panels={drawings:'docs-panel-drawings',contracts:'docs-panel-contracts',meetings:'docs-panel-meetings'};
-  const btns={drawings:'docs-tab-drawings',contracts:'docs-tab-contracts',meetings:'docs-tab-meetings'};
+  const panels={drawings:'docs-panel-drawings',contracts:'docs-panel-contracts'};
+  const btns={drawings:'docs-tab-drawings',contracts:'docs-tab-contracts'};
   Object.keys(panels).forEach(k=>{
     const panel=document.getElementById(panels[k]);
     const btn=document.getElementById(btns[k]);
