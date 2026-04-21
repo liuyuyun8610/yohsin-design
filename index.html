@@ -16,7 +16,11 @@
   --green:#4A6741;--green-pale:#E8EFE6;--red:#8B3A2E;--red-pale:#F5ECEA;
   --blue:#2E5A8B;--blue-pale:#E8EEF5;--border:rgba(42,37,32,0.12);
 }
+*,*::before,*::after{box-sizing:border-box;}
+html,body{max-width:100%;overflow-x:hidden;}
 body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;background:var(--sand);min-height:100vh;}
+img,video,iframe{max-width:100%;height:auto;}
+table{max-width:100%;}
 
 .screen{display:none;}
 .screen.active{display:block;}
@@ -77,13 +81,18 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
   .tb-brand{border-right:none;padding-right:0;margin-right:0;}
 }
 
-.pb{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.pb{max-width:1200px;width:100%;margin:0 auto;padding:2rem clamp(1rem, 3vw, 2rem) 4rem;}
+/* 表格內容過寬時改成可橫向捲動，避免爆版 */
+.pb table{display:block;overflow-x:auto;white-space:nowrap;}
+@media(min-width:900px){
+  .pb table{display:table;white-space:normal;}
+}
 /* ── 手機版通用響應式格線 ── */
 .grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .grid-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 
 @media(max-width:720px){
-  .pb{padding:1.2rem 1rem 3rem;}
+  .pb{padding:1.2rem 1rem 3rem;max-width:100%;}
   .card{padding:1rem;}
   .g2{grid-template-columns:1fr;}
   .prog-grid{grid-template-columns:1fr 1fr;}
