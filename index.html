@@ -3039,6 +3039,20 @@ async function dbDeleteDoc(dbId){
 }
 
 // ========== DB: MEETINGS ==========
+// 解析 meetings.images（TEXT[] 欄位）：每個元素可能是 URL 字串或 JSON 字串（{url, caption}）
+function normalizeMeetingImages(arr){
+  if(!Array.isArray(arr)) return [];
+  return arr.map(item=>{
+    if(typeof item==='object'&&item!==null) return item;
+    if(typeof item!=='string') return null;
+    const t=item.trim();
+    if(t.startsWith('{')||t.startsWith('[')){
+      try{ return JSON.parse(t); }catch(e){}
+    }
+    return item; // 視為純 URL 字串（舊資料相容）
+  }).filter(x=>x);
+}
+
 async function dbLoadMeetings(pid){
   if(!pid||isNaN(pid)){console.warn('dbLoadMeetings: invalid pid',pid);return;}
   try{
@@ -3051,11 +3065,11 @@ async function dbLoadMeetings(pid){
     (data||[]).forEach(r=>{
       if(r.meet_type==='line'){
         // LINE 備注存在 title 欄位
-        docsData[pid].lineScreenshots.push({dbId:r.id, date:r.meet_date, note:r.title||'', images:Array.isArray(r.images)?r.images:[]});
+        docsData[pid].lineScreenshots.push({dbId:r.id, date:r.meet_date, note:r.title||'', images:normalizeMeetingImages(r.images)});
       } else if(r.meet_type==='client_note'){
-        docsData[pid].clientNotes.push({dbId:r.id, date:r.meet_date, title:r.title||'', content:r.content||'', images:Array.isArray(r.images)?r.images:[]});
+        docsData[pid].clientNotes.push({dbId:r.id, date:r.meet_date, title:r.title||'', content:r.content||'', images:normalizeMeetingImages(r.images)});
       } else {
-        docsData[pid].formalMeetings.push({dbId:r.id, date:r.meet_date, title:r.title, content:r.content, images:Array.isArray(r.images)?r.images:[]});
+        docsData[pid].formalMeetings.push({dbId:r.id, date:r.meet_date, title:r.title, content:r.content, images:normalizeMeetingImages(r.images)});
       }
     });
   }catch(e){console.warn('dbLoadMeetings failed:',e.message);}
@@ -3209,7 +3223,9 @@ async function dbSaveMeeting(pid, meetType, item){
   // meetings table columns: project_id, meet_type, meet_date, title, content, images
   // LINE 備注沒有獨立欄位，改存在 title 裡
   const title = meetType==='line' ? (item.note||item.title||'') : (item.title||'');
-  const row={project_id:pid, meet_type:meetType, meet_date:item.date||'', title, content:item.content||'', images:item.images||[]};
+  // images 欄位是 TEXT[]：物件需先 JSON.stringify
+  const imagesToSave=(item.images||[]).map(img=>typeof img==='string'?img:JSON.stringify(img));
+  const row={project_id:pid, meet_type:meetType, meet_date:item.date||'', title, content:item.content||'', images:imagesToSave};
   if(item.dbId){
     const {error}=await sbClient.from('meetings').update(row).eq('id',item.dbId);
     if(error) throw error;
