@@ -242,7 +242,10 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .rte-sep{width:0.5px;background:var(--border);margin:2px 2px;align-self:stretch;}
 .rte-body{min-height:160px;max-height:400px;overflow-y:auto;padding:12px 14px;border:0.5px solid var(--border);border-radius:0 0 10px 10px;background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink);line-height:1.85;outline:none;transition:background .15s,border-color .15s;}
 .rte-body.rte-drop-hover{background:var(--accent-pale);border-color:var(--accent);}
-.rte-body img{max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block;}
+.rte-body img, .meeting-record-bd img{max-width:min(100%,420px)!important;width:100%;height:auto!important;border-radius:8px;margin:8px auto;display:block;object-fit:contain;}
+@media (min-width:768px){
+  .rte-body img, .meeting-record-bd img{max-width:min(100%,520px)!important;}
+}
 .rte-select{font-family:'Noto Sans TC',sans-serif;font-size:11px;padding:3px 6px;border:0.5px solid var(--border);border-radius:5px;background:#fff;color:var(--ink);cursor:pointer;outline:none;}
 .rte-color-label{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border:0.5px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;}
 /* 可收合段落樣式（編輯器 + 客戶端共用） */
