@@ -4675,7 +4675,12 @@ function renderClientFormalMeetings(d){
   const sorted=[...(d.formalMeetings||[])].sort((a,b)=>b.date.localeCompare(a.date));
   if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議記錄</div>';return;}
   sorted.forEach(m=>{
-    const imgHtml=(m.images&&m.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${m.images.map(src=>`<img src="${src}" style="height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
+    const imgHtml=(m.images&&m.images.length)?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px;">${m.images.map(src=>{
+      const url = typeof src==='string' ? src : (src && src.url) || '';
+      const cap = typeof src==='object' && src && src.caption ? src.caption : '';
+      if(!url) return '';
+      return `<div style="display:flex;flex-direction:column;gap:4px;"><img src="${url}" style="width:100%;height:120px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);cursor:zoom-in;" onclick="window.open('${url.replace(/'/g,"&#39;")}','_blank')">${cap?`<div style="font-size:11px;color:var(--ink-muted);text-align:center;line-height:1.3;">${cap}</div>`:''}</div>`;
+    }).join('')}</div>`:'';
     const item=document.createElement('div');item.className='meeting-record';
     // 判斷是 HTML 富文字還是純文字
     const isHtml=/<[a-z][\s\S]*>/i.test(m.content||'');
@@ -5724,15 +5729,28 @@ function removeLineShot(cid,idx){
   docsData[cid].lineScreenshots.splice(idx,1);renderAdminLineList(cid);
 }
 
-// 正式會議
+// 正式會議：支援多張圖片 + 每張可選填標題
 function previewFormalImgs(e){
-  pendingFormalImgs=[];document.getElementById('formal-img-preview').innerHTML='';
-  Array.from(e.target.files).forEach(f=>{
-    pendingFormalImgs.push(f); // store File object
+  // 不重置（允許多次選擇累加）— 但若使用者重新選同 input 也會清空 input
+  // 為了避免混淆，這裡一律重置：每次點上傳就重新選一批
+  pendingFormalImgs=[];
+  const pv=document.getElementById('formal-img-preview');
+  pv.innerHTML='';
+  pv.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:8px;';
+  Array.from(e.target.files).forEach((f, idx)=>{
+    pendingFormalImgs.push({file:f, caption:''});
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:4px;';
     const img=document.createElement('img');
     img.src=URL.createObjectURL(f);
-    img.style.cssText='height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
-    document.getElementById('formal-img-preview').appendChild(img);
+    img.style.cssText='width:100%;height:100px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);';
+    const cap=document.createElement('input');
+    cap.type='text';
+    cap.placeholder='標題（選填，例：木地板型號）';
+    cap.style.cssText='font-size:11px;padding:4px 6px;border:0.5px solid var(--border);border-radius:5px;font-family:inherit;color:var(--ink);background:#fff;';
+    cap.oninput=(ev)=>{ if(pendingFormalImgs[idx]) pendingFormalImgs[idx].caption=ev.target.value; };
+    wrap.appendChild(img); wrap.appendChild(cap);
+    pv.appendChild(wrap);
   });
 }
 function renderAdminFormalList(cid){
@@ -5828,8 +5846,11 @@ function addFormalMeeting(){
   showLoader(true);
   (async()=>{
     try{
-      const urls=await uploadFilesToStorage(pendingFormalImgs,'meeting-photos');
-      const newItem={date:date.replace(/-/g,'/'),title,content,images:urls};
+      const files=pendingFormalImgs.map(p=>p.file);
+      const captions=pendingFormalImgs.map(p=>p.caption||'');
+      const urls=await uploadFilesToStorage(files,'meeting-photos');
+      const images=urls.map((u,i)=>({url:u, caption:captions[i]||''}));
+      const newItem={date:date.replace(/-/g,'/'),title,content,images};
       await dbSaveMeeting(cid,'formal',newItem);
       docsData[cid].formalMeetings.push(newItem);
       formalClearDraft(cid);
