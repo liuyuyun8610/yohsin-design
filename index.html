@@ -243,6 +243,14 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;backg
 .rte-body{min-height:160px;max-height:400px;overflow-y:auto;padding:12px 14px;border:0.5px solid var(--border);border-radius:0 0 10px 10px;background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink);line-height:1.85;outline:none;transition:background .15s,border-color .15s;}
 .rte-body.rte-drop-hover{background:var(--accent-pale);border-color:var(--accent);}
 .rte-body img{max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block;}
+.rte-select{font-family:'Noto Sans TC',sans-serif;font-size:11px;padding:3px 6px;border:0.5px solid var(--border);border-radius:5px;background:#fff;color:var(--ink);cursor:pointer;outline:none;}
+.rte-color-label{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border:0.5px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;}
+/* 可收合段落樣式（編輯器 + 客戶端共用） */
+.rte-body details, .meeting-record-bd details{border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;margin:8px 0;background:var(--sand);}
+.rte-body details[open], .meeting-record-bd details[open]{background:#fff;}
+.rte-body summary, .meeting-record-bd summary{font-weight:500;cursor:pointer;outline:none;padding:2px 0;color:var(--ink);user-select:none;}
+.rte-body summary:hover, .meeting-record-bd summary:hover{color:var(--accent);}
+.rte-body details > *:not(summary), .meeting-record-bd details > *:not(summary){margin-top:6px;}
 .rte-body:empty:before{content:attr(data-placeholder);color:var(--ink-light);pointer-events:none;}
 .rte-body h3{font-size:14px;font-weight:600;color:var(--ink);margin:10px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--border);}
 .rte-body ul{padding-left:20px;margin:6px 0;}
@@ -1759,10 +1767,24 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <button type="button" class="rte-btn" onclick="rteHeading('h3')" title="標題">H</button>
               <button type="button" class="rte-btn" onclick="rteHeading('p')" title="內文">¶</button>
               <div class="rte-sep"></div>
+              <select class="rte-select" onchange="rteSetFontSize(this.value);this.value=''" title="字級">
+                <option value="">字級</option>
+                <option value="11px">小 (11)</option>
+                <option value="13px">中 (13)</option>
+                <option value="15px">大 (15)</option>
+                <option value="18px">特大 (18)</option>
+                <option value="24px">超大 (24)</option>
+              </select>
+              <label class="rte-color-label" title="文字顏色">
+                <span style="font-size:13px;font-weight:bold;">A</span>
+                <input type="color" id="rte-color-picker" onchange="rteSetColor(this.value)" value="#2A1A0E" style="width:18px;height:18px;border:none;background:none;padding:0;cursor:pointer;">
+              </label>
+              <div class="rte-sep"></div>
               <button type="button" class="rte-btn" onclick="rteCmd('insertUnorderedList')" title="項目清單">• 清單</button>
               <button type="button" class="rte-btn" onclick="rteCmd('insertOrderedList')" title="編號清單">1. 清單</button>
               <div class="rte-sep"></div>
               <button type="button" class="rte-btn" onclick="rteInsertHr()" title="分隔線">─</button>
+              <button type="button" class="rte-btn" onclick="rteInsertCollapsible()" title="可收合段落（將選取內容包成可摺疊區塊；未選取則插入空白範本）">▾ 可收合段落</button>
               <div class="rte-sep"></div>
               <button type="button" class="rte-btn" onclick="rteInsertImageFromPicker()" title="插入圖片到游標位置">🖼 插入圖</button>
               <button type="button" class="rte-btn rte-btn-danger" onclick="rteClear()" title="清除格式">清除</button>
@@ -5909,6 +5931,62 @@ function rteHeading(tag){
 function rteInsertHr(){
   document.getElementById('formal-content-rte')?.focus();
   document.execCommand('insertHorizontalRule',false,null);
+}
+
+function rteSetFontSize(size){
+  if(!size) return;
+  const rte=document.getElementById('formal-content-rte');
+  if(!rte) return;
+  rte.focus();
+  const sel=window.getSelection();
+  if(!sel||sel.rangeCount===0||sel.isCollapsed){ alert('請先選取要改字級的文字'); return; }
+  // 用 styleWithCSS + insertHTML 包成 span
+  document.execCommand('styleWithCSS',false,true);
+  const range=sel.getRangeAt(0);
+  const span=document.createElement('span');
+  span.style.fontSize=size;
+  try{ range.surroundContents(span); }
+  catch(e){
+    // 跨多個元素時 surroundContents 會失敗，改用 insertHTML
+    const html=`<span style="font-size:${size}">${range.toString()}</span>`;
+    document.execCommand('insertHTML',false,html);
+  }
+  formalAutosave();
+}
+
+function rteSetColor(color){
+  const rte=document.getElementById('formal-content-rte');
+  if(!rte) return;
+  rte.focus();
+  const sel=window.getSelection();
+  if(!sel||sel.rangeCount===0||sel.isCollapsed){ alert('請先選取要改顏色的文字'); return; }
+  document.execCommand('styleWithCSS',false,true);
+  document.execCommand('foreColor',false,color);
+  formalAutosave();
+}
+
+function rteInsertCollapsible(){
+  const rte=document.getElementById('formal-content-rte');
+  if(!rte) return;
+  rte.focus();
+  const sel=window.getSelection();
+  let inner='';
+  let title='點此標題收合或展開';
+  if(sel&&sel.rangeCount>0&&!sel.isCollapsed&&rte.contains(sel.anchorNode)){
+    // 用選取內容建段落
+    const range=sel.getRangeAt(0);
+    const tmp=document.createElement('div');
+    tmp.appendChild(range.cloneContents());
+    inner=tmp.innerHTML;
+    // 用第一行當標題
+    const firstLine=tmp.innerText.split('\n').map(s=>s.trim()).filter(Boolean)[0];
+    if(firstLine) title=firstLine;
+    range.deleteContents();
+  }
+  if(!inner) inner='<p>內容…</p>';
+  const html=`<details open><summary>${title}</summary>${inner}</details><p><br></p>`;
+  document.execCommand('insertHTML',false,html);
+  formalAutosave();
 }
 
 // 插入圖片到 RTE 游標位置（會議內文）
