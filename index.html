@@ -978,9 +978,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <!-- ─── 合約文件 Panel ─── -->
       <div id="docs-panel-contracts" style="display:none;">
         <div class="doc-section">
-          <div class="doc-section-title">合約資料</div>
+          <div class="doc-section-title">設計合約</div>
           <div class="card" style="padding:0.8rem 1rem;">
-            <div id="client-contracts"></div>
+            <div id="client-contracts-design"></div>
+          </div>
+        </div>
+        <div class="doc-section">
+          <div class="doc-section-title">工程合約</div>
+          <div class="card" style="padding:0.8rem 1rem;">
+            <div id="client-contracts-construction"></div>
           </div>
         </div>
         <div class="doc-section">
@@ -1912,12 +1918,22 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <!-- 合約管理 -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-title">合約資料</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">此區僅保留最終版合約。上傳新版後，舊版自動移除。</div>
-        <div id="admin-contract-list" style="margin-bottom:1rem;"></div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">每類合約僅保留最終版。上傳新版後，同類舊版自動移除。</div>
+
+        <div style="font-size:13px;font-weight:500;color:var(--accent);margin:0.2rem 0 0.5rem;">設計合約</div>
+        <div id="admin-contract-design-list" style="margin-bottom:0.8rem;"></div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem;">
+          <div style="flex:1;min-width:180px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-design-name" placeholder="例：2026.3.8 室內設計合約" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇 PDF</label><input type="file" id="contract-design-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addContract('design')">＋ 上傳設計合約</button>
+        </div>
+
+        <div style="font-size:13px;font-weight:500;color:var(--accent);margin:0.2rem 0 0.5rem;">工程合約</div>
+        <div id="admin-contract-construction-list" style="margin-bottom:0.8rem;"></div>
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div style="flex:1;min-width:180px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-name" placeholder="例：2026.3.8 室內工程合約" style="margin-bottom:0;"></div>
-          <div><label class="form-label">選擇 PDF</label><input type="file" id="contract-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
-          <button class="btn-ink" onclick="addContract()">＋ 上傳合約</button>
+          <div style="flex:1;min-width:180px;"><label class="form-label">合約名稱</label><input class="form-input" id="contract-construction-name" placeholder="例：2026.3.8 室內工程合約" style="margin-bottom:0;"></div>
+          <div><label class="form-label">選擇 PDF</label><input type="file" id="contract-construction-file-input" accept=".pdf,image/*" style="font-size:12px;color:var(--ink-muted);"></div>
+          <button class="btn-ink" onclick="addContract('construction')">＋ 上傳工程合約</button>
         </div>
       </div>
 
@@ -3042,10 +3058,10 @@ async function dbLoadDocs(pid){
   try{
     const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     // Reset
     docsData[pid].drawings={'平面系統圖':[],'立面系統圖':[],'效果圖':[]};
-    docsData[pid].contracts=[];
+    docsData[pid].contracts={design:[],construction:[]};
     docsData[pid].quotes=[];
     (data||[]).forEach(r=>{
       const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—'};
@@ -3053,8 +3069,11 @@ async function dbLoadDocs(pid){
         const dtype=r.doc_type.replace('drawing_','');
         if(!docsData[pid].drawings[dtype])docsData[pid].drawings[dtype]=[];
         docsData[pid].drawings[dtype].push(item);
-      } else if(r.doc_type==='contract'){
-        docsData[pid].contracts.push(item);
+      } else if(r.doc_type==='contract_design'){
+        docsData[pid].contracts.design.push(item);
+      } else if(r.doc_type==='contract_construction'||r.doc_type==='contract'){
+        // 舊 doc_type='contract' 一律歸到工程合約
+        docsData[pid].contracts.construction.push(item);
       } else if(r.doc_type==='quote'){
         docsData[pid].quotes.push(item);
       } else if(r.doc_type==='furniture_plan'){
@@ -3103,7 +3122,7 @@ async function dbLoadMeetings(pid){
   try{
     const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:[],quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     docsData[pid].lineScreenshots=[];
     docsData[pid].formalMeetings=[];
     docsData[pid].clientNotes=[];
@@ -4400,7 +4419,7 @@ async function saveProject(){
       const proj={name,status,address,unit,date,endDate,contractAmount,receivedAmount};
       await dbSaveProject(proj);
       projects.push(proj);
-      docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+      docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     }
   } catch(e){alert('儲存失敗：'+e.message);}
   showLoader(false);
@@ -4498,7 +4517,7 @@ async function saveClient(){
       const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[],isBoss};
       clients.push(newClient);
       nextCId=Math.max(nextCId,dbId+1);
-      docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+      docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     }
   }catch(e){
     console.error('saveClient error:', e);
@@ -4551,13 +4570,19 @@ function renderClientDocs(){
   renderClient3DGallery(d);
 
   renderClientLineScreenshots(d);renderClientFormalMeetings(d);
-  const cl=document.getElementById('client-contracts');cl.innerHTML='';
-  if(!d.contracts.length){cl.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無合約資料</div>';}
-  else d.contracts.forEach(c=>{
-    const r=document.createElement('div');r.className='fi-item';
-    r.innerHTML=`<div class="ficon">PDF</div><span>${c.name}</span><span class="fsize">${c.size}</span><span class="fdate" style="margin-left:8px;">${c.date}</span>`;
-    if(c.fileUrl) r.onclick=()=>window.open(c.fileUrl,'_blank');
-    cl.appendChild(r);
+  // 兩種合約分別渲染
+  const contractBuckets=(d.contracts&&!Array.isArray(d.contracts))?d.contracts:{design:[],construction:Array.isArray(d.contracts)?d.contracts:[]};
+  [['design','client-contracts-design'],['construction','client-contracts-construction']].forEach(([kind,elId])=>{
+    const box=document.getElementById(elId);if(!box)return;
+    box.innerHTML='';
+    const arr=contractBuckets[kind]||[];
+    if(!arr.length){box.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無合約資料</div>';return;}
+    arr.forEach(c=>{
+      const r=document.createElement('div');r.className='fi-item';
+      r.innerHTML=`<div class="ficon">PDF</div><span>${c.name}</span><span class="fsize">${c.size}</span><span class="fdate" style="margin-left:8px;">${c.date}</span>`;
+      if(c.fileUrl) r.onclick=()=>window.open(c.fileUrl,'_blank');
+      box.appendChild(r);
+    });
   });
   const ql=document.getElementById('client-quotes');ql.innerHTML='';
   if(!d.quotes.length){ql.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無報價資料</div>';}
@@ -4840,7 +4865,7 @@ async function addClientNote(){
     const imageUrls=await uploadFilesToStorage(pendingClientNoteImgs,'meeting-photos');
     const newNote={date:date.replace(/-/g,'/'),title,content,images:imageUrls};
     await dbSaveMeeting(cid,'client_note',newNote);
-    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:[],quotes:[],furniturePlans:[]};
+    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     if(!docsData[cid].clientNotes) docsData[cid].clientNotes=[];
     docsData[cid].clientNotes.push(newNote);
     // Reset form
@@ -4899,7 +4924,7 @@ function getAdminDocClientId(){
 }
 async function renderAdminDocs(){
   const cid=getAdminDocClientId();
-  if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+  if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
   showLoader(true);
   await dbLoadDocs(cid);
   await dbLoadMeetings(cid);
@@ -5286,7 +5311,7 @@ function addDrawingVersion(){
     showLoader(true);
     (async()=>{
       try{
-        if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+        if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
         if(!docsData[cid].drawings['效果圖']) docsData[cid].drawings['效果圖']=[];
         let successCount=0;
         const errors=[];
@@ -5328,7 +5353,7 @@ function addDrawingVersion(){
     try{
       const fileUrl=await uploadToStorage(file,'drawings');
       const size=fmtFileSize(file.size);
-      if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:[],quotes:[],furniturePlans:[]};
+      if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
       if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
       if(isFinal){
         for(const v of docsData[cid].drawings[currentDrawingType]){
@@ -5355,34 +5380,41 @@ function removeDrawing(cid,type,idx){
   renderAdminDrawingList(cid);
 }
 
-function addContract(){
+function addContract(kind){
   const cid=getAdminDocClientId();
-  const name=document.getElementById('contract-name').value.trim();
+  if(kind!=='design'&&kind!=='construction') kind='construction';
+  const nameEl=document.getElementById('contract-'+kind+'-name');
+  const name=nameEl?nameEl.value.trim():'';
   if(!name){alert('請填寫合約名稱');return;}
-  const fi=document.getElementById('contract-file-input');
+  const fi=document.getElementById('contract-'+kind+'-file-input');
   const file=fi&&fi.files[0]?fi.files[0]:null;
+  const docType=kind==='design'?'contract_design':'contract_construction';
   showLoader(true);
   (async()=>{
     try{
       let fileUrl='',size='—';
       if(file){fileUrl=await uploadToStorage(file,'contracts');size=fmtFileSize(file.size);}
-      // Delete old contracts from DB first
-      for(const c of docsData[cid].contracts){if(c.dbId){try{await dbDeleteDoc(c.dbId);}catch(e){}}}
+      // 只刪同類舊合約
+      const bucket=(docsData[cid].contracts&&docsData[cid].contracts[kind])||[];
+      for(const c of bucket){if(c.dbId){try{await dbDeleteDoc(c.dbId);}catch(e){}}}
       const newItem={name,date:todayStr(),size,fileUrl};
-      await dbSaveDoc(cid,'contract',newItem);
-      docsData[cid].contracts=[newItem];
-      document.getElementById('contract-name').value='';
+      await dbSaveDoc(cid,docType,newItem);
+      if(!docsData[cid].contracts||Array.isArray(docsData[cid].contracts)) docsData[cid].contracts={design:[],construction:[]};
+      docsData[cid].contracts[kind]=[newItem];
+      if(nameEl)nameEl.value='';
       if(fi)fi.value='';
       renderAdminContractList(cid);
     }catch(e){alert(e.message);}
     showLoader(false);
   })();
 }
-function removeContract(cid,idx){
+function removeContract(cid,kind,idx){
   if(!confirm('確定刪除？'))return;
-  const item=docsData[cid].contracts[idx];
+  if(kind!=='design'&&kind!=='construction') kind='construction';
+  const bucket=(docsData[cid].contracts&&docsData[cid].contracts[kind])||[];
+  const item=bucket[idx];
   if(item&&item.dbId){(async()=>{try{await dbDeleteDoc(item.dbId);}catch(e){console.warn(e);}})();}
-  docsData[cid].contracts.splice(idx,1);renderAdminContractList(cid);
+  bucket.splice(idx,1);renderAdminContractList(cid);
 }
 
 function addQuote(){
@@ -5521,7 +5553,7 @@ async function uploadCliFurPhotos(e){
   const statusEl=document.getElementById('cli-fur-upload-status');
   if(statusEl) statusEl.style.display='block';
   try{
-    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:[],quotes:[],furniturePlans:[]};
+    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     if(!docsData[cid].furniturePlans) docsData[cid].furniturePlans=[];
     for(const file of files){
       const fileUrl=await uploadToStorage(file,'furniture-plans');
@@ -6183,15 +6215,21 @@ function removeFormal(cid,idx){
 }
 
 function renderAdminContractList(cid){
-  const el=document.getElementById('admin-contract-list');el.innerHTML='';const contracts=docsData[cid].contracts||[];
-  if(!contracts.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無合約</div>';return;}
-  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
-  contracts.forEach((c,i)=>{
-    const r=document.createElement('div');r.className='ufile-row';
-    r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${c.fileUrl?`<a href="${c.fileUrl}" target="_blank" style="color:var(--accent);text-decoration:none;">${c.name}</a>`:c.name}</div><div class="ufile-meta">${c.size||'—'}</div><div class="ufile-meta" style="margin-left:8px;">${c.date}</div><button class="btn-sm danger" onclick="removeContract(${cid},${i})">刪除</button>`;
-    wrap.appendChild(r);
+  const c=docsData[cid]&&docsData[cid].contracts;
+  const buckets={design:(c&&c.design)||[], construction:(c&&c.construction)||[]};
+  [['design','admin-contract-design-list'],['construction','admin-contract-construction-list']].forEach(([kind,elId])=>{
+    const el=document.getElementById(elId);if(!el)return;
+    el.innerHTML='';
+    const list=buckets[kind];
+    if(!list.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無合約</div>';return;}
+    const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+    list.forEach((c,i)=>{
+      const r=document.createElement('div');r.className='ufile-row';
+      r.innerHTML=`<div class="ufile-icon">PDF</div><div class="ufile-name">${c.fileUrl?`<a href="${c.fileUrl}" target="_blank" style="color:var(--accent);text-decoration:none;">${c.name}</a>`:c.name}</div><div class="ufile-meta">${c.size||'—'}</div><div class="ufile-meta" style="margin-left:8px;">${c.date}</div><button class="btn-sm danger" onclick="removeContract(${cid},'${kind}',${i})">刪除</button>`;
+      wrap.appendChild(r);
+    });
+    el.appendChild(wrap);
   });
-  el.appendChild(wrap);
 }
 
 function renderAdminQuoteList(cid){
