@@ -1134,7 +1134,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 追加減明細 -->
     <div class="page" id="p-changes">
-      <div class="page-title">追加減明細</div>
+      <div class="page-title" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span>追加減明細</span>
+        <button onclick="exportChangeOrdersPdf()" id="btn-export-co-pdf" style="font-family:'Noto Sans TC',sans-serif;font-size:12px;padding:7px 14px;background:#8B6B48;color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">⬇ 匯出 PDF</button>
+      </div>
       <div class="card" style="margin-bottom:12px;">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
           <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
@@ -6799,6 +6802,103 @@ async function loadClientChangeOrders(pid){
       setT('cli-sum-grand',fmtS(grand));
     }
   }catch(e){console.warn('loadClientChangeOrders:',e.message);}
+}
+
+// 匯出追加減明細為可列印／存成 PDF 的新視窗
+async function exportChangeOrdersPdf(){
+  const c=clients.find(x=>x.id===currentClientId);
+  if(!c||!c.projectId){alert('找不到專案資訊');return;}
+  const pid=Number(c.projectId);
+  const proj=projects.find(p=>Number(p.id)===pid);
+  const projName=(proj&&proj.name)||'—';
+  const projAddr=(proj&&(proj.address||''))+((proj&&proj.unit)?(' '+proj.unit):'');
+
+  let items=[];
+  try{
+    const {data,error}=await sbClient.from('change_orders').select('*').eq('project_id',pid).order('seq_no',{ascending:true});
+    if(error) throw error;
+    items=data||[];
+  }catch(e){alert('讀取追加減資料失敗：'+e.message);return;}
+
+  if(!items.length){alert('目前尚無追加減記錄可匯出');return;}
+
+  const pct=Number(items[0].supervision_pct)||0;
+  let addTotal=0,subTotal=0;
+  items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addTotal+=amt;else subTotal+=amt;});
+  const net=addTotal-subTotal;
+  const fee=Math.round(net*pct/100);
+  const grand=net+fee;
+  const fmtS=n=>n>=0?'+$'+fmtN(n):'-$'+fmtN(Math.abs(n));
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  const today=new Date();
+  const dateStr=today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
+
+  const rowsHtml=items.map(r=>{
+    const amt=Number(r.unit_price)*Number(r.quantity);
+    const isAdd=r.type==='追加';
+    const color=isAdd?'#A32D2D':'#3B6D11';
+    return `<tr>
+      <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${esc(r.seq_no)}</td>
+      <td style="padding:9px 12px;">${esc(r.content||'—')}</td>
+      <td style="text-align:center;padding:9px 8px;color:${color};font-weight:500;">${esc(r.type||'')}</td>
+      <td style="text-align:right;padding:9px 12px;">$${fmtN(Number(r.unit_price))}</td>
+      <td style="text-align:right;padding:9px 8px;color:#6E5E4E;">${esc(r.quantity)}</td>
+      <td style="text-align:right;padding:9px 12px;font-weight:500;color:${color};">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>
+    </tr>`;
+  }).join('');
+
+  const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(projName)+' 追加減明細</title>'
+    +'<style>'
+    +'@page{size:A4;margin:18mm 16mm;}'
+    +'*{box-sizing:border-box;}'
+    +'body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#2C2218;font-size:12px;line-height:1.55;margin:0;background:#fff;}'
+    +'h1{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:500;margin:0 0 4px;letter-spacing:0.04em;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #8B6B48;padding-bottom:10px;margin-bottom:16px;gap:20px;}'
+    +'.brand{font-family:"Noto Serif TC",serif;font-size:14px;letter-spacing:0.18em;color:#8B6B48;margin-bottom:4px;}'
+    +'.meta{font-size:11px;color:#6E5E4E;margin-top:2px;}'
+    +'.right{text-align:right;font-size:11px;color:#6E5E4E;line-height:1.8;}'
+    +'table{width:100%;border-collapse:collapse;margin-top:6px;}'
+    +'thead th{font-size:11px;color:#6E5E4E;font-weight:500;padding:8px 10px;border-bottom:1px solid #8B6B48;text-align:left;background:#F5EFE7;letter-spacing:0.04em;}'
+    +'thead th.r{text-align:right;} thead th.c{text-align:center;}'
+    +'tbody tr{border-bottom:0.5px solid #D9CFC1;page-break-inside:avoid;}'
+    +'tbody td{font-size:12px;}'
+    +'.totals{margin:22px 0 0 auto;max-width:360px;}'
+    +'.totals .row{display:flex;justify-content:space-between;padding:6px 2px;font-size:12px;color:#6E5E4E;border-bottom:0.5px solid #D9CFC1;}'
+    +'.totals .row.grand{font-size:14px;font-weight:500;color:#2C2218;border-bottom:none;border-top:1.5px solid #8B6B48;padding-top:10px;margin-top:6px;}'
+    +'.sig{margin-top:50px;display:flex;justify-content:space-between;gap:60px;page-break-inside:avoid;}'
+    +'.sig .col{flex:1;font-size:12px;color:#2C2218;border-top:0.5px solid #2C2218;padding-top:6px;min-height:44px;}'
+    +'.noprint{position:fixed;top:10px;right:10px;z-index:10;}'
+    +'@media print{.noprint{display:none;}body{margin:0;}}'
+    +'</style></head><body>'
+    +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;letter-spacing:0.04em;">列印 / 儲存為 PDF</button></div>'
+    +'<div class="hd"><div><div class="brand">有心制作 · 空間設計</div><h1>追加減明細表</h1>'
+    +'<div class="meta">專案：<b>'+esc(projName)+'</b>'+(projAddr?'　｜　'+esc(projAddr):'')+'</div></div>'
+    +'<div class="right"><div>列印日期：'+dateStr+'</div><div>追加減監工費率：'+pct+'%</div></div></div>'
+    +'<table><thead><tr>'
+    +'<th class="c" style="width:36px;">序</th>'
+    +'<th>項目內容</th>'
+    +'<th class="c" style="width:58px;">類別</th>'
+    +'<th class="r" style="width:96px;">單價</th>'
+    +'<th class="r" style="width:54px;">數量</th>'
+    +'<th class="r" style="width:112px;">小計</th>'
+    +'</tr></thead><tbody>'+rowsHtml+'</tbody></table>'
+    +'<div class="totals">'
+    +'<div class="row"><span>追加小計</span><span>+$'+fmtN(addTotal)+'</span></div>'
+    +'<div class="row"><span>減項小計</span><span>-$'+fmtN(subTotal)+'</span></div>'
+    +'<div class="row"><span>追加減淨額</span><span>'+fmtS(net)+'</span></div>'
+    +'<div class="row"><span>監工費（'+pct+'%）</span><span>'+fmtS(fee)+'</span></div>'
+    +'<div class="row grand"><span>含監工費總計</span><span>'+fmtS(grand)+'</span></div>'
+    +'</div>'
+    +'<div class="sig"><div class="col">業主簽名／日期：</div><div class="col">有心制作代表／日期：</div></div>'
+    +'<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>'
+    +'</body></html>';
+
+  const w=window.open('','_blank');
+  if(!w){alert('請先在瀏覽器允許此網站彈出視窗，再點一次匯出 PDF');return;}
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
 // ========== CLIENT PAYMENT ==========
