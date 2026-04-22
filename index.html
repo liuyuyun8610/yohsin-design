@@ -3605,25 +3605,28 @@ function getDesignFeeNum(pid){
 
 function getScheduleTotal(pid){
   const design=getDesignFeeNum(pid);
+  // 若期程內已包含「設計費」類別之期別，用 max 保底避免 total < 已排期總額
+  const itemsSum=(scheduleData[pid]||[]).reduce((s,r)=>s+(r.amount||0),0);
   // Priority 1: use contractAmount from project record
   const proj=projects.find(p=>Number(p.id)===Number(pid));
-  if(proj&&proj.contractAmount>0) return proj.contractAmount+design;
+  if(proj&&proj.contractAmount>0) return Math.max(proj.contractAmount+design, itemsSum);
   // Priority 2: get from payment calculation's sum-total element
   const el=document.getElementById('sum-total');
   if(el&&currentDetailProjId===pid){
     const txt=el.textContent.replace(/[$,]/g,'');
     const n=parseFloat(txt);
-    if(n>0) return n+design;
+    if(n>0) return Math.max(n+design, itemsSum);
   }
   // Priority 3: recalc from profitData
-  if(!profitData[pid]) return design;
+  if(!profitData[pid]) return Math.max(design, itemsSum);
   initProjData(pid);
   let conTotal=0,eqTotal=0;
   PROFIT_ITEMS.forEach(it=>{const v=profitData[pid][it.key].client||0;if(it.type==='equip')eqTotal+=v;else conTotal+=v;});
   (customProfitRows[pid]||[]).forEach(r=>{conTotal+=r.client||0;});
   const pct=parseFloat(paymentData[pid]?.constructionPct)||0;
   const equipPct=parseFloat(paymentData[pid]?.equipPct)||3;
-  return conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*equipPct/100)+design;
+  const calc=conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*equipPct/100)+design;
+  return Math.max(calc, itemsSum);
 }
 
 async function renderSchedule(){
@@ -6617,7 +6620,8 @@ async function renderClientDashboard(){
   }catch(e){}
   const schedule=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
-  const total=(contractAmt>0?contractAmt:schedule.reduce((s,r)=>s+(r.amount||0),0))+dashDesignFee;
+  const dashItemsSum=schedule.reduce((s,r)=>s+(r.amount||0),0);
+  const total=Math.max((contractAmt>0?contractAmt:dashItemsSum)+dashDesignFee, dashItemsSum);
   const received=schedule.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const pending=total-received;
   const pct=total>0?Math.round(received/total*100):0;
@@ -6920,7 +6924,9 @@ async function renderClientPayment(){
   }catch(e){}
   const allItems=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
-  const total=(contractAmt>0?contractAmt:allItems.reduce((s,r)=>s+(r.amount||0),0))+designFeeNum;
+  const itemsSum=allItems.reduce((s,r)=>s+(r.amount||0),0);
+  // 取「工程+設計費」與「期程總和」兩者較大者，避免某一邊沒填造成 received > total
+  const total=Math.max((contractAmt>0?contractAmt:itemsSum)+designFeeNum, itemsSum);
   const received=allItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const pending=total-received;
   const pct=total>0?Math.round(received/total*100):0;
