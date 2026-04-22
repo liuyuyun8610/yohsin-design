@@ -3592,26 +3592,35 @@ async function savePaymentSettings(){
   showLoader(false);
 }
 
+// 解析設計費字串（可能含逗號）為數字
+function getDesignFeeNum(pid){
+  const raw=paymentData[pid]?.designFee;
+  if(raw==null||raw==='') return 0;
+  const n=Number(String(raw).replace(/,/g,''));
+  return isNaN(n)?0:n;
+}
+
 function getScheduleTotal(pid){
+  const design=getDesignFeeNum(pid);
   // Priority 1: use contractAmount from project record
   const proj=projects.find(p=>Number(p.id)===Number(pid));
-  if(proj&&proj.contractAmount>0) return proj.contractAmount;
+  if(proj&&proj.contractAmount>0) return proj.contractAmount+design;
   // Priority 2: get from payment calculation's sum-total element
   const el=document.getElementById('sum-total');
   if(el&&currentDetailProjId===pid){
     const txt=el.textContent.replace(/[$,]/g,'');
     const n=parseFloat(txt);
-    if(n>0) return n;
+    if(n>0) return n+design;
   }
   // Priority 3: recalc from profitData
-  if(!profitData[pid]) return 0;
+  if(!profitData[pid]) return design;
   initProjData(pid);
   let conTotal=0,eqTotal=0;
   PROFIT_ITEMS.forEach(it=>{const v=profitData[pid][it.key].client||0;if(it.type==='equip')eqTotal+=v;else conTotal+=v;});
   (customProfitRows[pid]||[]).forEach(r=>{conTotal+=r.client||0;});
   const pct=parseFloat(paymentData[pid]?.constructionPct)||0;
   const equipPct=parseFloat(paymentData[pid]?.equipPct)||3;
-  return conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*equipPct/100);
+  return conTotal+Math.round(conTotal*pct/100)+eqTotal+Math.round(eqTotal*equipPct/100)+design;
 }
 
 async function renderSchedule(){
@@ -6592,13 +6601,20 @@ async function renderClientDashboard(){
   await loadClientChangeOrders(pid);
 
   // --- 4+5. 收款狀況 + 下次請款 ---
+  let dashDesignFee=0;
   try{
-    const {data}=await sbClient.from('payment_settings').select('schedule_json').eq('project_id',pid).single();
-    if(data&&data.schedule_json) scheduleData[pid]=JSON.parse(data.schedule_json);
+    const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('project_id',pid).single();
+    if(data){
+      if(data.schedule_json) scheduleData[pid]=JSON.parse(data.schedule_json);
+      if(data.design_fee!=null&&data.design_fee!==''){
+        const n=Number(String(data.design_fee).replace(/,/g,''));
+        if(!isNaN(n)) dashDesignFee=n;
+      }
+    }
   }catch(e){}
   const schedule=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
-  const total=contractAmt>0?contractAmt:schedule.reduce((s,r)=>s+(r.amount||0),0);
+  const total=(contractAmt>0?contractAmt:schedule.reduce((s,r)=>s+(r.amount||0),0))+dashDesignFee;
   const received=schedule.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const pending=total-received;
   const pct=total>0?Math.round(received/total*100):0;
@@ -6790,16 +6806,21 @@ async function renderClientPayment(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
   const pid=Number(c.projectId);
   const proj=projects.find(p=>Number(p.id)===pid);
-  // Load schedule from DB
+  // Load schedule + design fee from DB
+  let designFeeNum=0;
   try{
-    const {data,error}=await sbClient.from('payment_settings').select('schedule_json').eq('project_id',pid).single();
-    if(!error&&data&&data.schedule_json){
-      try{ scheduleData[pid]=JSON.parse(data.schedule_json); }catch(e){}
+    const {data,error}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('project_id',pid).single();
+    if(!error&&data){
+      if(data.schedule_json){ try{ scheduleData[pid]=JSON.parse(data.schedule_json); }catch(e){} }
+      if(data.design_fee!=null&&data.design_fee!==''){
+        const n=Number(String(data.design_fee).replace(/,/g,''));
+        if(!isNaN(n)) designFeeNum=n;
+      }
     }
   }catch(e){}
   const allItems=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
-  const total=contractAmt>0?contractAmt:allItems.reduce((s,r)=>s+(r.amount||0),0);
+  const total=(contractAmt>0?contractAmt:allItems.reduce((s,r)=>s+(r.amount||0),0))+designFeeNum;
   const received=allItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const pending=total-received;
   const pct=total>0?Math.round(received/total*100):0;
