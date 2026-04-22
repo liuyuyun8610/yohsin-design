@@ -3437,15 +3437,27 @@ async function renderDashboard(){
     }
   }
 
-  // Load schedule data for overdue detection
+  // Load schedule data + design fee for overdue detection & accurate contract totals
+  const dashDesignFees = {};
   for(const p of projects){
-    if(!scheduleData[p.id]){
-      try{
-        const {data}=await sbClient.from('payment_settings').select('schedule_json').eq('project_id',p.id).single();
-        if(data&&data.schedule_json) scheduleData[p.id]=JSON.parse(data.schedule_json);
-        else scheduleData[p.id]=[];
-      }catch(e){ scheduleData[p.id]=[]; }
-    }
+    try{
+      const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('project_id',p.id).single();
+      if(data){
+        if(data.schedule_json) scheduleData[p.id]=JSON.parse(data.schedule_json);
+        else if(!scheduleData[p.id]) scheduleData[p.id]=[];
+        if(data.design_fee!=null&&data.design_fee!==''){
+          const n=Number(String(data.design_fee).replace(/,/g,''));
+          dashDesignFees[p.id]=isNaN(n)?0:n;
+        }
+      } else if(!scheduleData[p.id]) scheduleData[p.id]=[];
+    }catch(e){ if(!scheduleData[p.id]) scheduleData[p.id]=[]; }
+  }
+  // 每個專案合約應含設計費；亦以期程項目總和保底，避免 received > contract 出現負待收
+  function dashContractTotal(p){
+    const base=Number(p.contractAmount)||0;
+    const design=dashDesignFees[p.id]||0;
+    const itemsSum=(scheduleData[p.id]||[]).reduce((s,r)=>s+(r.amount||0),0);
+    return Math.max(base+design, itemsSum);
   }
 
   // Load procurement costs synced from work-system
@@ -3461,8 +3473,8 @@ async function renderDashboard(){
     return p.date.startsWith(String(year)) || p.date.startsWith(String(year-1)) || p.status==='進行中';
   });
 
-  // Contract amounts
-  const totalContract = projects.reduce((s,p)=>s+(p.contractAmount||0),0);
+  // Contract amounts (含設計費、以期程項目總和保底)
+  const totalContract = projects.reduce((s,p)=>s+dashContractTotal(p),0);
   const totalReceived = projects.reduce((s,p)=>s+(p.receivedAmount||0),0);
   const totalPending  = totalContract - totalReceived;
   const activeProj    = projects.filter(p=>p.status==='進行中').length;
@@ -3496,10 +3508,10 @@ async function renderDashboard(){
   const pl = document.getElementById('dash-proj-list');
   pl.innerHTML = projects.length ? '' : '<div class="empty-state">尚無專案</div>';
   projects.forEach(p=>{
-    const contract = p.contractAmount||0;
+    const contract = dashContractTotal(p);
     const received = p.receivedAmount||0;
-    const pending  = contract - received;
-    const pct      = contract>0 ? Math.round(received/contract*100) : 0;
+    const pending  = Math.max(0, contract - received);
+    const pct      = contract>0 ? Math.min(100, Math.round(received/contract*100)) : 0;
     const sc       = p.status==='進行中'?'pill-green':p.status==='待付款'?'pill-amber':'pill-gray';
     const row = document.createElement('div');
     row.style.cssText='padding:10px 0;border-bottom:0.5px solid var(--border);';
