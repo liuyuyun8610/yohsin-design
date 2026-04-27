@@ -6310,7 +6310,11 @@ function previewLogImgs(e){
 async function pushToLineGroup(groupId, photoUrls, message){
   const res=await fetch(LINE_PUSH_URL,{
     method:'POST',
-    headers:{'Content-Type':'application/json','X-Admin-Secret':ADMIN_PUSH_SECRET},
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+SB_KEY,
+      'X-Admin-Secret':ADMIN_PUSH_SECRET
+    },
     body:JSON.stringify({to:groupId,photoUrls:photoUrls.slice(0,4),message})
   });
   if(!res.ok){
