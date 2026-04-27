@@ -1684,8 +1684,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">此專案的所有文件，上傳後自動同步至客戶端。</div>
         
       <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">專案圖紙</div>
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可上傳多個版本，標記「最終版」的顯示在客戶主要區域，其餘自動歸入舊版本。</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:0.4rem;">
+          <div class="card-title" style="margin-bottom:0;">專案圖紙</div>
+          <button class="btn-ink" onclick="notifyDrawingUpdateClick()" style="font-size:12px;padding:6px 14px;background:#06C755;border:none;display:inline-flex;align-items:center;gap:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            LINE 通知提醒
+          </button>
+        </div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可上傳多個版本，標記「最終版」的顯示在客戶主要區域，其餘自動歸入舊版本。上傳完成後請按右上「LINE 通知提醒」一次通知客戶。</div>
         <div class="stabs" id="drawing-type-tabs">
           <button class="stab active" onclick="switchDrawingType('平面系統圖',this)">平面系統圖</button>
           <button class="stab" onclick="switchDrawingType('立面系統圖',this)">立面系統圖</button>
@@ -5391,7 +5397,6 @@ function addDrawingVersion(){
         } else {
           alert(`✓ 成功上傳 ${successCount} 張到「${albumName}」相簿`);
         }
-        if(successCount>0) await maybePushDrawingUpdate(cid,'3D 效果圖');
       }catch(e){alert('上傳失敗：'+e.message);}
       showLoader(false);
     })();
@@ -5421,9 +5426,6 @@ function addDrawingVersion(){
       document.getElementById('drawing-is-final').checked=false;
       fi.value='';
       renderAdminDrawingList(cid);
-      showLoader(false);
-      await maybePushDrawingUpdate(cid,currentDrawingType);
-      return;
     }catch(e){alert(e.message);}
     showLoader(false);
   })();
@@ -6349,7 +6351,8 @@ async function pushToLineGroup(groupId, photoUrls, message){
 async function maybePushDrawingUpdate(cid, drawingType){
   const c=clients.find(x=>x.id===cid);
   const proj=c?projects.find(p=>p.id===c.projectId):null;
-  if(!proj||!proj.lineGroupId) return;
+  if(!proj){alert('找不到此客戶對應的專案');return;}
+  if(!proj.lineGroupId){alert('此專案尚未設定 LINE 客戶群組 ID。\n請至「專案管理」→ 編輯專案 → 填入群組 ID 後再試。');return;}
   if(!confirm(`要推播「${drawingType}更新」通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}`)) return;
   showLoader(true);
   try{
@@ -6358,6 +6361,14 @@ async function maybePushDrawingUpdate(cid, drawingType){
     alert('已推播到客戶 LINE 群組！');
   }catch(err){alert(err.message);console.error(err);}
   showLoader(false);
+}
+// 「LINE 通知提醒」按鈕：根據目前所選的圖紙頁籤推播
+async function notifyDrawingUpdateClick(){
+  const cid=getAdminDocClientId();
+  if(!cid){alert('請先選擇客戶');return;}
+  const labelMap={'平面系統圖':'平面系統圖','立面系統圖':'立面系統圖','效果圖':'3D 效果圖'};
+  const label=labelMap[currentDrawingType]||currentDrawingType;
+  await maybePushDrawingUpdate(cid,label);
 }
 async function addAdminLog(){
   const date=document.getElementById('log-date').value;
