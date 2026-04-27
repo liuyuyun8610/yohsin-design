@@ -5073,10 +5073,28 @@ function renderAdminDrawingList(cid){
           const noteTa=document.createElement('textarea');
           noteTa.className='render-thumb-note-input';
           noteTa.rows=2;
-          noteTa.placeholder='備注（客戶點開可見）';
+          noteTa.placeholder='備注（按 Enter 儲存）';
           noteTa.value=v.note||'';
           noteTa.onclick=e=>e.stopPropagation();
-          noteTa.onblur=async()=>{const n=noteTa.value;if(n===v.note)return;v.note=n;if(v.dbId)try{await sbClient.from('project_docs').update({note:n}).eq('id',v.dbId);}catch(e){console.error(e);}};
+          const saveNote=async()=>{
+            const n=noteTa.value;
+            if(n===v.note) return;
+            if(!v.dbId){alert('此圖還沒存到資料庫，無法儲存備注');return;}
+            try{
+              const {error}=await sbClient.from('project_docs').update({note:n}).eq('id',v.dbId);
+              if(error) throw error;
+              v.note=n;
+              noteTa.style.background='#e8f4e8';
+              setTimeout(()=>{noteTa.style.background='#fafafa';},700);
+            }catch(err){
+              console.error(err);
+              alert('備注儲存失敗：'+err.message);
+            }
+          };
+          noteTa.onblur=saveNote;
+          noteTa.onkeydown=e=>{
+            if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();noteTa.blur();}
+          };
           cell.appendChild(noteTa);
         } else {
           cell.style.cssText+='aspect-ratio:1;';
