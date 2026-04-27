@@ -5368,28 +5368,12 @@ function addDrawingVersion(){
         if(preview) preview.innerHTML='';
         if(albumNameEl) albumNameEl.value=todayStr();
         renderAdminDrawingList(cid);
-        // 推播 3D 圖更新通知到客戶 LINE 群組（不附照片，只發文字 + 登入網址）
-        const c=clients.find(x=>x.id===cid);
-        const proj=c?projects.find(p=>p.id===c.projectId):null;
-        if(proj&&proj.lineGroupId&&successCount>0){
-          if(errors.length){
-            alert(`上傳結果：${successCount} / ${files.length} 成功\n\n失敗原因：\n${errors.slice(0,3).join('\n')}`);
-          }
-          const ok=confirm(`已上傳 ${successCount} 張到「${albumName}」相簿！\n要推播 3D 圖更新通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}`);
-          if(ok){
-            showLoader(true);
-            try{
-              const msg='大家好～我們有更新3D圖，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：'+window.location.origin+'/';
-              await pushToLineGroup(proj.lineGroupId,[],msg);
-              alert('已推播到客戶 LINE 群組！');
-            }catch(err){alert(err.message);console.error(err);}
-            showLoader(false);
-          }
-        } else if(errors.length){
+        if(errors.length){
           alert(`上傳結果：${successCount} / ${files.length} 成功\n\n失敗原因：\n${errors.slice(0,3).join('\n')}`);
         } else {
           alert(`✓ 成功上傳 ${successCount} 張到「${albumName}」相簿`);
         }
+        if(successCount>0) await maybePushDrawingUpdate(cid,'3D 效果圖');
       }catch(e){alert('上傳失敗：'+e.message);}
       showLoader(false);
     })();
@@ -5419,6 +5403,9 @@ function addDrawingVersion(){
       document.getElementById('drawing-is-final').checked=false;
       fi.value='';
       renderAdminDrawingList(cid);
+      showLoader(false);
+      await maybePushDrawingUpdate(cid,currentDrawingType);
+      return;
     }catch(e){alert(e.message);}
     showLoader(false);
   })();
@@ -6338,6 +6325,21 @@ async function pushToLineGroup(groupId, photoUrls, message){
     const detail=await res.text();
     throw new Error('LINE 推播失敗（'+res.status+'）：'+detail);
   }
+}
+
+// 圖面更新（平面 / 立面 / 效果圖）共用的「跳確認 → 推播純文字 + 登入網址」邏輯
+async function maybePushDrawingUpdate(cid, drawingType){
+  const c=clients.find(x=>x.id===cid);
+  const proj=c?projects.find(p=>p.id===c.projectId):null;
+  if(!proj||!proj.lineGroupId) return;
+  if(!confirm(`要推播「${drawingType}更新」通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}`)) return;
+  showLoader(true);
+  try{
+    const msg=`大家好～我們有更新${drawingType}，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：${window.location.origin}/`;
+    await pushToLineGroup(proj.lineGroupId,[],msg);
+    alert('已推播到客戶 LINE 群組！');
+  }catch(err){alert(err.message);console.error(err);}
+  showLoader(false);
 }
 async function addAdminLog(){
   const date=document.getElementById('log-date').value;
