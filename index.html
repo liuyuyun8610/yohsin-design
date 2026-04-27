@@ -5368,7 +5368,24 @@ function addDrawingVersion(){
         if(preview) preview.innerHTML='';
         if(albumNameEl) albumNameEl.value=todayStr();
         renderAdminDrawingList(cid);
-        if(errors.length){
+        // 推播 3D 圖更新通知到客戶 LINE 群組（不附照片，只發文字 + 登入網址）
+        const c=clients.find(x=>x.id===cid);
+        const proj=c?projects.find(p=>p.id===c.projectId):null;
+        if(proj&&proj.lineGroupId&&successCount>0){
+          if(errors.length){
+            alert(`上傳結果：${successCount} / ${files.length} 成功\n\n失敗原因：\n${errors.slice(0,3).join('\n')}`);
+          }
+          const ok=confirm(`已上傳 ${successCount} 張到「${albumName}」相簿！\n要推播 3D 圖更新通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}`);
+          if(ok){
+            showLoader(true);
+            try{
+              const msg='大家好～我們有更新3D圖，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：'+window.location.origin+'/';
+              await pushToLineGroup(proj.lineGroupId,[],msg);
+              alert('已推播到客戶 LINE 群組！');
+            }catch(err){alert(err.message);console.error(err);}
+            showLoader(false);
+          }
+        } else if(errors.length){
           alert(`上傳結果：${successCount} / ${files.length} 成功\n\n失敗原因：\n${errors.slice(0,3).join('\n')}`);
         } else {
           alert(`✓ 成功上傳 ${successCount} 張到「${albumName}」相簿`);
