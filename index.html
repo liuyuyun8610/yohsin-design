@@ -8,17 +8,26 @@
 <meta http-equiv="Expires" content="0">
 <title>有心制作・空間設計 — 客戶專案入口</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;font-style:normal !important;}
 :root{
-  --sand:#F5F0E8;--sand-dark:#EAE3D2;--ink:#2A2520;--ink-muted:#6B6258;--ink-light:#9A8F84;
-  --accent:#8B6F4E;--accent-light:#C4A882;--accent-pale:#F0E8DC;
-  --green:#4A6741;--green-pale:#E8EFE6;--red:#8B3A2E;--red-pale:#F5ECEA;
-  --blue:#2E5A8B;--blue-pale:#E8EEF5;--border:rgba(42,37,32,0.12);
+  /* Abso-style palette: warm paper + ink + hairline */
+  --sand:#FAF6EC;--sand-dark:#F2EDE2;
+  --ink:#2A2620;--ink-muted:#7A6F5E;--ink-light:#A89D86;
+  --accent:#8B6F4E;--accent-light:#BBA98A;--accent-pale:#F2EDE2;
+  --green:#5A7350;--green-pale:#EAEFE5;
+  --red:#A85F3E;--red-pale:#F2E8E1;
+  --blue:#5C7794;--blue-pale:#E8ECF1;
+  --border:#C9BFA8;
+  /* Newer abso-aligned aliases — used by Phase 1+ rewrites */
+  --paper:#FAF6EC;--paper-soft:#F2EDE2;
+  --line:#C9BFA8;--line-soft:#E0D8C5;
+  --persimmon:#A85F3E;
 }
 *,*::before,*::after{box-sizing:border-box;}
 html,body{max-width:100%;overflow-x:hidden;}
-body{font-family:'Noto Sans TC',sans-serif;color:var(--ink);font-size:14px;background:var(--sand);min-height:100vh;}
+body{font-family:'Noto Sans TC',-apple-system,sans-serif;color:var(--ink);font-size:14px;font-weight:300;letter-spacing:0.02em;background:var(--paper);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.7;}
+.serif,h1,h2,h3,h4,h5,h6{font-family:'Noto Serif TC',serif;font-weight:400;letter-spacing:0.08em;}
 img,video,iframe{max-width:100%;height:auto;}
 table{max-width:100%;}
 
