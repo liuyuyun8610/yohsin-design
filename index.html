@@ -1348,6 +1348,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <th style="padding:9px 14px;text-align:right;">金額</th>
               <th style="padding:9px 14px;">狀態</th>
               <th style="padding:9px 14px;">實收日期</th>
+              <th style="padding:9px 14px;text-align:right;">收據</th>
             </tr></thead>
             <tbody id="client-pay-design-tbody"></tbody>
           </table>
@@ -1387,6 +1388,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <th style="padding:9px 14px;text-align:right;">金額</th>
               <th style="padding:9px 14px;">狀態</th>
               <th style="padding:9px 14px;">實收日期</th>
+              <th style="padding:9px 14px;text-align:right;">收據</th>
             </tr></thead>
             <tbody id="client-pay-construction-tbody"></tbody>
           </table>
@@ -7399,6 +7401,112 @@ async function exportChangeOrdersPdf(){
   w.document.close();
 }
 
+// ========== 收據下載（單期收執聯）==========
+function downloadReceipt(item, categoryItems, category){
+  const c=clients.find(x=>x.id===currentClientId);
+  if(!c||!c.projectId){alert('找不到專案資訊');return;}
+  const pid=Number(c.projectId);
+  const proj=projects.find(p=>Number(p.id)===pid);
+  const projName=(proj&&proj.name)||'—';
+  const projAddr=((proj&&proj.address)||'')+((proj&&proj.unit)?(' '+proj.unit):'');
+  const clientName=c.name||'';
+
+  const catTotal=categoryItems.reduce((s,r)=>s+(r.amount||0),0);
+  const catReceived=categoryItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const catPending=catTotal-catReceived;
+  const itemPct=catTotal>0?Math.round((item.amount||0)/catTotal*100):0;
+
+  const today=new Date();
+  const dateStr=today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
+
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmtPct=(amt)=>catTotal>0?Math.round(amt/catTotal*100)+'%':'—';
+
+  const scheduleRows=categoryItems.map(r=>{
+    const note=r.status==='已收'?'已收款':'';
+    const dateCell=r.status==='已收'?(r.received||r.due||'—'):(r.due||'—');
+    return `<tr>
+      <td style="padding:8px 12px;">${esc(r.name||'—')}</td>
+      <td style="padding:8px 12px;text-align:center;color:#2C2218;">${esc(dateCell)}</td>
+      <td style="padding:8px 12px;text-align:right;">${fmtN(r.amount||0)}</td>
+      <td style="padding:8px 12px;text-align:right;color:#6E5E4E;">${fmtPct(r.amount||0)}</td>
+      <td style="padding:8px 12px;text-align:left;color:#3B6D11;">${note}</td>
+    </tr>`;
+  }).join('');
+
+  const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(projName)+' 收執聯</title>'
+    +'<style>'
+    +'@page{size:A4;margin:18mm 18mm;}'
+    +'*{box-sizing:border-box;}'
+    +'body{font-family:"NumQuicksand","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#2C2218;font-size:12px;line-height:1.6;margin:0;background:#fff;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;margin-bottom:14px;}'
+    +'.logo-box{width:60px;height:50px;border:1.5px solid #2C2218;display:flex;align-items:center;justify-content:center;font-size:8px;letter-spacing:0.1em;color:#2C2218;text-align:center;line-height:1.25;}'
+    +'.brand{text-align:right;font-family:"Noto Serif TC",serif;line-height:1.5;}'
+    +'.brand .cn{font-size:14px;letter-spacing:0.18em;color:#2C2218;}'
+    +'.brand .en{font-size:10.5px;letter-spacing:0.32em;color:#6E5E4E;margin-top:4px;}'
+    +'.title{font-family:"Noto Serif TC",serif;font-size:30px;letter-spacing:0.18em;font-weight:500;margin:6px 0 18px;}'
+    +'.proj-meta{border-top:1px solid #2C2218;border-bottom:0.5px solid #2C2218;padding:9px 0;font-size:11.5px;color:#2C2218;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin-bottom:24px;}'
+    +'.proj-meta b{font-weight:500;}'
+    +'.req-list{margin:6px 0 14px;font-size:12.5px;}'
+    +'.req-row{display:flex;align-items:flex-start;padding:5px 0;}'
+    +'.req-label{width:74px;font-weight:500;}'
+    +'.req-name{flex:1;}'
+    +'.req-amt{width:120px;text-align:right;font-weight:500;}'
+    +'.batch-total{display:flex;justify-content:flex-end;align-items:baseline;gap:30px;border-top:0.5px solid #6E5E4E;padding:10px 0 0;margin:10px 0 28px;}'
+    +'.batch-total .lbl{font-size:11.5px;color:#2C2218;}'
+    +'.batch-total .val{font-size:18px;font-weight:500;letter-spacing:0.04em;width:120px;text-align:right;}'
+    +'.sched-title{text-align:center;font-size:11.5px;letter-spacing:0.12em;margin:24px 0 6px;color:#2C2218;}'
+    +'table.sched{width:100%;border-collapse:collapse;}'
+    +'table.sched thead th{font-size:11px;color:#2C2218;font-weight:500;padding:8px 12px;border-bottom:1.5px solid #2C2218;letter-spacing:0.04em;text-align:left;}'
+    +'table.sched thead th.r{text-align:right;} table.sched thead th.c{text-align:center;}'
+    +'table.sched tbody td{font-size:12px;border-bottom:0.5px solid #D9CFC1;}'
+    +'.totals{margin:22px 0 0 auto;width:55%;}'
+    +'.totals .row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 4px;border-bottom:0.5px solid #D9CFC1;font-size:12.5px;}'
+    +'.totals .row.contract{font-weight:500;border-top:1.5px solid #2C2218;border-bottom:0.5px solid #D9CFC1;padding-top:11px;}'
+    +'.noprint{position:fixed;top:10px;right:10px;z-index:10;}'
+    +'@media print{.noprint{display:none;}body{margin:0;}}'
+    +'</style></head><body>'
+    +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;letter-spacing:0.04em;">列印 / 儲存為 PDF</button></div>'
+    +'<div class="hd">'
+    +'<div class="logo-box"><div>INTERIOR<br/>DESIGN</div></div>'
+    +'<div class="brand"><div class="cn">有心制作　空間設計服務</div><div class="en">YUNG SHIN DESIGN CO., LTD.</div></div>'
+    +'</div>'
+    +'<div class="title">收執聯</div>'
+    +'<div class="proj-meta">'
+    +'<div>專案名稱：<b>'+esc(projName)+'</b></div>'
+    +'<div>報價版次：'+dateStr+'</div>'
+    +'<div>客戶：'+esc(clientName)+'</div>'
+    +'<div>專案位置：'+esc(projAddr||'—')+'</div>'
+    +'<div>專案設計師：Maggie</div>'
+    +'<div>電子郵件：ysdesign1331@gmail.com</div>'
+    +'</div>'
+    +'<div class="req-list">'
+    +'<div class="req-row"><div class="req-label">請款項目</div><div class="req-name">1. '+esc(item.name||'—')+'　'+itemPct+'%</div><div class="req-amt">'+fmtN(item.amount||0)+'</div></div>'
+    +'</div>'
+    +'<div class="batch-total"><div class="lbl">已收款金額</div><div class="val">'+fmtN(item.amount||0)+'</div></div>'
+    +'<div class="sched-title">截至當日款項期數明細</div>'
+    +'<table class="sched"><thead><tr>'
+    +'<th>款項名稱</th>'
+    +'<th class="c">已收款／預計收款日</th>'
+    +'<th class="r">金額</th>'
+    +'<th class="r">百分比</th>'
+    +'<th>備註</th>'
+    +'</tr></thead><tbody>'+scheduleRows+'</tbody></table>'
+    +'<div class="totals">'
+    +'<div class="row contract"><span>'+category+'合約總金額</span><span>'+fmtN(catTotal)+'</span></div>'
+    +'<div class="row"><span>已收款金額</span><span>'+fmtN(catReceived)+'</span></div>'
+    +'<div class="row"><span>未收款金額</span><span>'+fmtN(catPending)+'</span></div>'
+    +'</div>'
+    +'<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>'
+    +'</body></html>';
+
+  const w=window.open('','_blank');
+  if(!w){alert('請先在瀏覽器允許此網站彈出視窗，再點一次收據下載');return;}
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
 // ========== CLIENT PAYMENT ==========
 async function renderClientPayment(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
@@ -7440,7 +7548,7 @@ async function renderClientPayment(){
   const statusPill={'已收':'pill-green','未收':'pill-unpaid','逾期':'pill-danger'};
 
   // Helper: render rows into a tbody
-  function renderPayRows(tbodyId, emptyId, items){
+  function renderPayRows(tbodyId, emptyId, items, category){
     const tb=document.getElementById(tbodyId);
     const emp=document.getElementById(emptyId);
     if(!tb) return;
@@ -7461,6 +7569,21 @@ async function renderClientPayment(){
         <td style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
         <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
         <td style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
+      const tdReceipt=document.createElement('td');
+      tdReceipt.style.cssText='padding:9px 14px;text-align:right;';
+      if(displayStatus==='已收'){
+        const btn=document.createElement('button');
+        btn.textContent='收據下載';
+        btn.style.cssText='font-size:10px;padding:4px 10px;border:0.5px solid var(--ink-muted);background:transparent;color:var(--ink-muted);cursor:pointer;border-radius:0;letter-spacing:0.06em;font-family:inherit;';
+        btn.onmouseenter=()=>{btn.style.borderColor='var(--ink)';btn.style.color='var(--ink)';};
+        btn.onmouseleave=()=>{btn.style.borderColor='var(--ink-muted)';btn.style.color='var(--ink-muted)';};
+        btn.onclick=()=>downloadReceipt(r,items,category);
+        tdReceipt.appendChild(btn);
+      } else {
+        tdReceipt.style.color='var(--ink-light)';
+        tdReceipt.textContent='—';
+      }
+      tr.appendChild(tdReceipt);
       tb.appendChild(tr);
     });
   }
@@ -7469,8 +7592,8 @@ async function renderClientPayment(){
   const designItems=allItems.filter(r=>r.category==='設計費');
   const constructionItems=allItems.filter(r=>!r.category||r.category==='工程款');
 
-  renderPayRows('client-pay-design-tbody','client-pay-design-empty',designItems);
-  renderPayRows('client-pay-construction-tbody','client-pay-construction-empty',constructionItems);
+  renderPayRows('client-pay-design-tbody','client-pay-design-empty',designItems,'設計費');
+  renderPayRows('client-pay-construction-tbody','client-pay-construction-empty',constructionItems,'工程款');
 
   // Section summaries
   const designReceived=designItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
