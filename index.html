@@ -677,6 +677,107 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .bank-info-card summary::-webkit-details-marker{display:none;}
 .bank-info-card summary::marker{display:none;content:'';}
 .bank-info-card[open] .bank-arrow{transform:rotate(180deg);}
+
+/* ================================================
+   ABSO-STYLE OVERRIDES (Phase 2)
+   Strip rounded corners, drop shadows, colored bg pills,
+   and replace with hairline + serif + minimal aesthetics
+   across all inner pages — admin and client both.
+   ================================================ */
+/* ---- Backgrounds: switch to paper for everything ---- */
+#s-client,#s-admin{background:var(--paper);}
+#s-client .topbar,#s-admin .topbar{background:rgba(250,246,236,0.95);box-shadow:none;border-bottom:0.5px solid var(--line);backdrop-filter:none;-webkit-backdrop-filter:none;}
+#s-client .pb,#s-admin .pb{padding-top:32px;padding-bottom:48px;}
+
+/* ---- Cards: no box, just bottom hairline as section divider ---- */
+.card,#s-client .card{background:transparent;border:none;border-radius:0;padding:18px 0 24px;margin-bottom:24px;box-shadow:none;border-bottom:0.5px solid var(--line);}
+.card:last-child,#s-client .card:last-child{border-bottom:none;}
+.card-title,#s-client .card-title{font-family:'Noto Serif TC',serif;font-size:11px;font-weight:400;letter-spacing:0.32em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:14px;}
+
+/* ---- Page titles: editorial serif with tag ---- */
+.page-title,#s-client .page-title{font-family:'Noto Serif TC',serif;font-size:28px;font-weight:300;letter-spacing:0.18em;color:var(--ink);margin:8px 0 32px;line-height:1.3;padding-bottom:24px;border-bottom:0.5px solid var(--line);}
+
+/* ---- Stat boxes / pay-sum: counter style ---- */
+.pay-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:0.5px solid var(--line);border-bottom:0.5px solid var(--line);padding:0;margin:0 0 24px;background:transparent;}
+.pay-box,#s-client .pay-sum .pay-box{background:transparent;border-radius:0;padding:24px 16px;text-align:center;}
+.pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:0.5px solid var(--line);}
+.pay-lbl{font-size:10px;letter-spacing:0.32em;color:var(--ink-light);text-transform:uppercase;margin-bottom:14px;}
+.pay-val{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:300;letter-spacing:0.04em;color:var(--ink);}
+.pay-val.danger{color:var(--persimmon);}
+
+/* ---- Buttons: primary = black serif; secondary = text + hairline ---- */
+.btn-ink,#s-client .btn-ink{font-family:'Noto Serif TC',serif;font-size:12px;font-weight:400;letter-spacing:0.4em;background:var(--ink);color:var(--paper);padding:11px 26px;border:none;border-radius:0;cursor:pointer;transition:background .25s;}
+.btn-ink:hover,#s-client .btn-ink:hover{background:var(--ink-muted);}
+.btn-ghost,#s-client .btn-ghost{font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:0.3em;background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;color:var(--ink-muted);padding:8px 4px;cursor:pointer;transition:all .2s;}
+.btn-ghost:hover,#s-client .btn-ghost:hover{color:var(--ink);border-bottom-color:var(--ink);}
+.btn-sm,#s-client .btn-sm,.act-btn{font-family:'Noto Sans TC',sans-serif;font-size:11px;letter-spacing:0.18em;background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;color:var(--ink-muted);padding:5px 4px;margin-right:14px;cursor:pointer;transition:all .2s;}
+.btn-sm:hover,.act-btn:hover{color:var(--ink);border-bottom-color:var(--ink);}
+.act-btn.danger{color:var(--persimmon);}
+.act-btn.danger:hover{color:var(--persimmon);border-bottom-color:var(--persimmon);}
+
+/* ---- Pills: text + letter-spacing, no bg ---- */
+.pill{display:inline-block;font-size:10px;padding:0;border-radius:0;background:transparent !important;letter-spacing:0.18em;text-transform:uppercase;font-weight:400;}
+.pill-green,#s-client .pill-green{background:transparent !important;color:var(--green);}
+.pill-amber,#s-client .pill-amber{background:transparent !important;color:#9A7826;}
+.pill-blue{background:transparent !important;color:var(--blue);}
+.pill-gray,#s-client .pill-gray{background:transparent !important;color:var(--ink-light);}
+
+/* ---- Top nav (admin + client): serif + hairline underline ---- */
+.tnav,#s-client .tnav{font-family:'Noto Serif TC',serif;font-size:13px;letter-spacing:0.3em;color:var(--ink-light);padding:6px 0;margin:0 12px;border:none;border-bottom:0.5px solid transparent;border-radius:0;background:transparent !important;transition:all .2s;}
+.tnav:hover,#s-client .tnav:hover{color:var(--ink);background:transparent !important;}
+.tnav.active,#s-client .tnav.active{color:var(--ink);background:transparent !important;border-bottom-color:var(--ink);font-weight:400;}
+.mobile-tnav,#s-client .mobile-tnav{font-family:'Noto Serif TC',serif;font-size:14px;letter-spacing:0.2em;background:transparent;border-color:var(--line);}
+.mobile-tnav.active,#s-client .mobile-tnav.active{background:transparent;color:var(--ink);}
+
+/* ---- Sub-tabs (stabs/stab) ---- */
+.stabs,#s-client .stabs{gap:24px;margin-bottom:18px;border-bottom:0.5px solid var(--line);padding-bottom:0;}
+.stab,#s-client .stab{font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:0.25em;background:transparent !important;border:none;border-bottom:1.5px solid transparent;border-radius:0;color:var(--ink-light);padding:10px 0;}
+.stab.active,#s-client .stab.active{background:transparent !important;color:var(--ink);border-color:var(--ink);font-weight:400;}
+
+/* ---- Tables: minimal hairline, no card wrapper ---- */
+.tbl-wrap{background:transparent;border:none;border-radius:0;border-top:0.5px solid var(--line);border-bottom:0.5px solid var(--line);overflow-x:auto;}
+.ptbl,#s-client .ptbl{font-family:'Noto Sans TC',sans-serif;}
+.ptbl th,#s-client .ptbl th{font-family:'Noto Sans TC',sans-serif;font-size:10px;letter-spacing:0.22em;color:var(--ink-light);text-transform:uppercase;font-weight:400;padding:14px 14px;background:transparent !important;border-bottom:0.5px solid var(--line);}
+.ptbl td,#s-client .ptbl td{font-size:13px;color:var(--ink);padding:14px 14px;border-bottom:0.5px solid var(--line-soft);background:transparent;font-weight:300;}
+.ptbl tr:last-child td{border-bottom:none;}
+
+/* ---- Form inputs: bottom border only ---- */
+.form-input,.fi-cli,#s-client .ci,#s-client .cs,.profit-input,#s-client input.ci{background:transparent !important;border:none;border-bottom:0.5px solid var(--line);border-radius:0 !important;padding:9px 0;font-weight:300;letter-spacing:0.05em;}
+.form-input:focus,.profit-input:focus{border-bottom-color:var(--ink);background:transparent !important;}
+.form-label{font-family:'Noto Sans TC',sans-serif;font-size:10px;letter-spacing:0.32em;color:var(--ink-muted);text-transform:uppercase;font-weight:400;}
+
+/* ---- Modals: clean rectangle ---- */
+.modal{background:var(--paper);border:0.5px solid var(--line);border-radius:0;padding:36px 40px;box-shadow:0 12px 48px rgba(42,38,32,0.08);}
+.modal-ttl{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:300;letter-spacing:0.16em;color:var(--ink);margin-bottom:24px;padding-bottom:16px;border-bottom:0.5px solid var(--line);}
+
+/* ---- Section header (sec-head) ---- */
+.sec-head{padding-bottom:16px;border-bottom:0.5px solid var(--line);margin-bottom:24px;}
+.sec-ttl{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:300;letter-spacing:0.18em;color:var(--ink);}
+
+/* ---- Misc: divider, add-row-btn ---- */
+.divider{height:0.5px;background:var(--line);margin:24px 0;}
+.add-row-btn,#s-client .add-row-btn{font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:0.3em;color:var(--ink-light);background:transparent;border:none;border-top:0.5px solid var(--line-soft);padding:14px 0;text-align:center;width:100%;cursor:pointer;}
+.add-row-btn:hover{color:var(--ink);}
+
+/* ---- Logout button on topbar ---- */
+.btn-out,#s-client .btn-out{font-family:'Noto Serif TC',serif;font-size:11px;letter-spacing:0.3em;background:transparent;border:none;color:var(--ink-light);padding:6px 4px;cursor:pointer;}
+.btn-out:hover{color:var(--ink);}
+
+/* ---- Brand area in topbar ---- */
+.tb-brand{border-color:var(--line);}
+.tb-name{font-family:'Noto Serif TC',serif;font-weight:400;letter-spacing:0.18em;color:var(--ink);}
+.tb-sub{font-size:9px;letter-spacing:0.32em;color:var(--ink-light);text-transform:uppercase;}
+
+/* ---- Bank info card: refresh to abso style ---- */
+.bank-info-card{background:transparent !important;border-left:none !important;border:0.5px solid var(--line) !important;border-radius:0 !important;}
+.bank-info-card summary{font-family:'Noto Serif TC',serif !important;font-size:11px !important;letter-spacing:0.32em !important;color:var(--ink-muted) !important;}
+.bank-info-card[open] summary{color:var(--ink) !important;}
+
+/* ---- Progress bar: thin and ink-colored ---- */
+#client-pay-bar,#dash-pay-bar{background:var(--ink) !important;}
+
+/* ---- Status badges in tables (e.g. 已收/未收) ---- */
+.psm{padding:0 !important;background:transparent !important;font-size:10px !important;letter-spacing:0.18em !important;text-transform:uppercase;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
