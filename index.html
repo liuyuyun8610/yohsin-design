@@ -168,7 +168,9 @@ table{max-width:100%;}
   .modal{border-radius:16px;}
 }
 .page{display:none;}
-.page.active{display:block;}
+.page.active{display:block;animation:page-soft-in 0.34s cubic-bezier(0.22,0.61,0.36,1) both;}
+@keyframes page-soft-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@media (prefers-reduced-motion:reduce){.page.active{animation:none;}}
 .page-title{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:22px;font-weight:500;margin-bottom:1.3rem;}
 
 /* CARDS */
