@@ -4678,28 +4678,12 @@ function renderAdminClients(){
         <button class="act-btn" onclick="openCM(${c.id})">編輯</button>
         <button class="act-btn danger" onclick="deleteClient(${c.id})">刪除</button>
         <button class="act-btn" onclick="goToClientDocs(${c.id})">文件</button>
-        <button class="act-btn" onclick="copyCredentials(${c.id})" title="複製帳號密碼" style="background:var(--accent-pale);color:var(--accent);border-color:var(--accent-light);">複製帳密</button>
         <button class="act-btn" onclick="pushClientCredentialsToLine(${c.id})" title="把帳密推到客戶 LINE 群組" style="background:#06C755;color:#fff;border-color:#06C755;">LINE 通知帳密</button>
       </td>`;
     tb.appendChild(tr);
   });
 }
 function togglePw(id){showPass[id]=!showPass[id];renderAdminClients();}
-function copyCredentials(id){
-  const c=clients.find(x=>x.id===id);
-  if(!c) return;
-  const proj=projects.find(p=>p.id===c.projectId);
-  const text=`帳號：${c.user}\n密碼：${c.pass}\n姓名：${c.name}${proj?'\n專案：'+proj.name:''}`;
-  navigator.clipboard.writeText(text).then(()=>{
-    // Brief toast notification
-    const btn=document.querySelector(`button[onclick="copyCredentials(${id})"]`);
-    if(btn){const orig=btn.textContent;btn.textContent='✓ 已複製';btn.style.background='var(--green-pale)';btn.style.color='var(--green)';setTimeout(()=>{btn.textContent=orig;btn.style.background='';btn.style.color='';},1500);}
-  }).catch(()=>{
-    // Fallback for older browsers
-    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    alert('已複製帳號密碼！');
-  });
-}
 function populateProjSel(selId,currentVal){
   const sel=document.getElementById(selId);if(!sel)return;
   sel.innerHTML='<option value="">— 選擇歸屬專案 —</option>';
