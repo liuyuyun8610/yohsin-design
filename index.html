@@ -4679,6 +4679,7 @@ function renderAdminClients(){
         <button class="act-btn danger" onclick="deleteClient(${c.id})">刪除</button>
         <button class="act-btn" onclick="goToClientDocs(${c.id})">文件</button>
         <button class="act-btn" onclick="copyCredentials(${c.id})" title="複製帳號密碼" style="background:var(--accent-pale);color:var(--accent);border-color:var(--accent-light);">複製帳密</button>
+        <button class="act-btn" onclick="pushClientCredentialsToLine(${c.id})" title="把帳密推到客戶 LINE 群組" style="background:#06C755;color:#fff;border-color:#06C755;">LINE 通知帳密</button>
       </td>`;
     tb.appendChild(tr);
   });
@@ -6529,19 +6530,33 @@ async function pushToLineGroup(groupId, photoUrls, message){
   }
 }
 
-// 圖面更新（平面 / 立面 / 效果圖）共用的「跳確認 → 推播純文字 + 登入網址 + 帳密」邏輯
+// 圖面更新（平面 / 立面 / 效果圖）共用的「跳確認 → 推播純文字 + 登入網址」邏輯
 async function maybePushDrawingUpdate(cid, drawingType){
   const c=clients.find(x=>x.id===cid);
   const proj=c?projects.find(p=>p.id===c.projectId):null;
   if(!proj){alert('找不到此客戶對應的專案');return;}
   if(!proj.lineGroupId){alert('此專案尚未設定 LINE 客戶群組 ID。\n請至「專案管理」→ 編輯專案 → 填入群組 ID 後再試。');return;}
-  if(!confirm(`要推播「${drawingType}更新」通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}\n會一併附上客戶帳號 ${c.user||'(無)'}`)) return;
+  if(!confirm(`要推播「${drawingType}更新」通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}`)) return;
   showLoader(true);
   try{
-    let msg=`大家好～我們有更新${drawingType}，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：${window.location.origin}/`;
-    if(c.user&&c.pass){
-      msg+=`\n帳號：${c.user}\n密碼：${c.pass}`;
-    }
+    const msg=`大家好～我們有更新${drawingType}，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：${window.location.origin}/`;
+    await pushToLineGroup(proj.lineGroupId,[],msg);
+    alert('已推播到客戶 LINE 群組！');
+  }catch(err){alert(err.message);console.error(err);}
+  showLoader(false);
+}
+// 「LINE 通知帳密」按鈕：把該客戶的帳號密碼推到對應專案的 LINE 群組
+async function pushClientCredentialsToLine(clientId){
+  const c=clients.find(x=>x.id===clientId);
+  if(!c){alert('找不到此客戶');return;}
+  if(!c.user||!c.pass){alert('此客戶尚未設定帳號或密碼');return;}
+  const proj=projects.find(p=>p.id===c.projectId);
+  if(!proj){alert('此客戶尚未指派專案');return;}
+  if(!proj.lineGroupId){alert('此專案尚未設定 LINE 客戶群組 ID。\n請至「專案管理」→ 編輯專案 → 填入群組 ID 後再試。');return;}
+  if(!confirm(`要將以下帳密推播到 LINE 群組嗎？\n\n專案：${proj.name}\n客戶：${c.name}\n帳號：${c.user}\n密碼：${c.pass}`)) return;
+  showLoader(true);
+  try{
+    const msg=`您好～以下為您的專屬登入資訊：\n\n登入網址：${window.location.origin}/\n帳號：${c.user}\n密碼：${c.pass}\n\n登入後可隨時查看專案進度與圖面，有任何問題請告訴我們，謝謝。`;
     await pushToLineGroup(proj.lineGroupId,[],msg);
     alert('已推播到客戶 LINE 群組！');
   }catch(err){alert(err.message);console.error(err);}
