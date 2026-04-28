@@ -6868,7 +6868,12 @@ async function renderAdminLogs(){
     if(log.work){const t=document.createElement('div');t.className='lwt';t.style.marginTop='4px';t.textContent=log.work;cont.appendChild(t);}
     if(log.photos&&log.photos.length){
       const row=document.createElement('div');row.className='lpr';
-      log.photos.forEach(src=>{const img=document.createElement('img');img.className='lmp';img.src=src;row.appendChild(img);});
+      log.photos.forEach((src,i)=>{
+        const img=document.createElement('img');img.className='lmp';img.src=src;
+        img.style.cursor='zoom-in';
+        img.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));openRenderLightbox(i);};
+        row.appendChild(img);
+      });
       cont.appendChild(row);
     }
     const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;margin-top:6px;';
@@ -7047,11 +7052,11 @@ async function renderClientDashboard(){
     photoStrip.innerHTML='';
     const show=log.photos.slice(0,4);
     const rest=log.photos.length-4;
-    show.forEach(src=>{
+    show.forEach((src,i)=>{
       const img=document.createElement('img');
       img.src=src; img.alt='施工照片';
-      img.style.cssText='height:80px;width:80px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer;';
-      img.onclick=()=>{window.open(src,'_blank');};
+      img.style.cssText='height:80px;width:80px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:zoom-in;';
+      img.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));openRenderLightbox(i);};
       photoStrip.appendChild(img);
     });
     if(rest>0){
@@ -8038,9 +8043,10 @@ function renderDetail(){
   if(log.photos&&log.photos.length){
     const pl=document.createElement('div');pl.className='sec-lbl';pl.textContent='施工照片';body.appendChild(pl);
     const pg=document.createElement('div');pg.className='photo-grid';
-    log.photos.forEach(src=>{
-      const w=document.createElement('div');w.className='pt';
+    log.photos.forEach((src,i)=>{
+      const w=document.createElement('div');w.className='pt';w.style.cursor='zoom-in';
       const img=document.createElement('img');img.src=src;img.alt='施工照片';
+      w.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));openRenderLightbox(i);};
       w.appendChild(img);pg.appendChild(w);
     });
     body.appendChild(pg);
