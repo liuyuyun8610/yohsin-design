@@ -18,16 +18,16 @@
 :root{
   /* Abso-style palette: warm paper + ink + hairline */
   --sand:#F0EAE5;--sand-dark:#E6E0DB;
-  --ink:#2A2620;--ink-muted:#7A6F5E;--ink-light:#A89D86;
+  --ink:#2A2620;--ink-muted:#4F4F4F;--ink-light:#6E6E6E;
   --accent:#8B6F4E;--accent-light:#BBA98A;--accent-pale:#E6E0DB;
-  --green:#5A7350;--green-pale:#EAEFE5;
-  --red:#A85F3E;--red-pale:#F2E8E1;
+  --green:#4F6346;--green-pale:#EAEFE5;
+  --red:#8E5235;--red-pale:#F2E8E1;
   --blue:#5C7794;--blue-pale:#E8ECF1;
   --border:#C9BFA8;
   /* Newer abso-aligned aliases — used by Phase 1+ rewrites */
   --paper:#F0EAE5;--paper-soft:#E6E0DB;
   --line:#C9BFA8;--line-soft:#E0D8C5;
-  --persimmon:#A85F3E;
+  --persimmon:#8E5235;
 }
 *,*::before,*::after{box-sizing:border-box;}
 html,body{max-width:100%;overflow-x:hidden;}
@@ -728,11 +728,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .pill-gray,#s-client .pill-gray{background:transparent !important;color:var(--ink-light);}
 
 /* ---- Top nav (admin + client): serif + hairline underline ---- */
-.tnav,#s-client .tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;letter-spacing:0.3em;color:#5A5A5A;padding:6px 0;margin:0 12px;border:none;border-bottom:0.5px solid transparent;border-radius:0;background:transparent !important;transition:all .2s;}
-.tnav:hover,#s-client .tnav:hover{color:#2D2D2D;background:transparent !important;}
-.tnav.active,#s-client .tnav.active{color:#2D2D2D;background:transparent !important;border-bottom-color:#2D2D2D;font-weight:500;}
-.mobile-tnav,#s-client .mobile-tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:14px;font-weight:500;letter-spacing:0.2em;background:transparent;border-color:var(--line);color:#5A5A5A;}
-.mobile-tnav.active,#s-client .mobile-tnav.active{background:transparent;color:#2D2D2D;font-weight:500;}
+.tnav,#s-client .tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;letter-spacing:0.3em;color:var(--ink-muted);padding:6px 0;margin:0 12px;border:none;border-bottom:0.5px solid transparent;border-radius:0;background:transparent !important;transition:all .2s;}
+.tnav:hover,#s-client .tnav:hover{color:var(--ink);background:transparent !important;}
+.tnav.active,#s-client .tnav.active{color:var(--ink);background:transparent !important;border-bottom-color:var(--ink);font-weight:500;}
+.mobile-tnav,#s-client .mobile-tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:14px;font-weight:500;letter-spacing:0.2em;background:transparent;border-color:var(--line);color:var(--ink-muted);}
+.mobile-tnav.active,#s-client .mobile-tnav.active{background:transparent;color:var(--ink);font-weight:500;}
 
 /* ---- Sub-tabs (stabs/stab) ---- */
 .stabs,#s-client .stabs{gap:24px;margin-bottom:18px;border-bottom:0.5px solid var(--line);padding-bottom:0;}
@@ -765,13 +765,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .add-row-btn:hover{color:var(--ink);}
 
 /* ---- Logout button on topbar ---- */
-.btn-out,#s-client .btn-out{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:11px;letter-spacing:0.3em;background:transparent;border:none;color:#7A7A7A;padding:6px 4px;cursor:pointer;}
-.btn-out:hover{color:#2D2D2D;}
+.btn-out,#s-client .btn-out{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:11px;letter-spacing:0.3em;background:transparent;border:none;color:var(--ink-light);padding:6px 4px;cursor:pointer;}
+.btn-out:hover{color:var(--ink);}
 
 /* ---- Brand area in topbar ---- */
 .tb-brand{border-color:var(--line);}
-.tb-name{font-family:'NumQuicksand','Noto Serif TC',serif;font-weight:400;letter-spacing:0.18em;color:#2D2D2D;}
-.tb-sub{font-size:9px;letter-spacing:0.32em;color:#7A7A7A;text-transform:uppercase;}
+.tb-name{font-family:'NumQuicksand','Noto Serif TC',serif;font-weight:400;letter-spacing:0.18em;color:var(--ink);}
+.tb-sub{font-size:9px;letter-spacing:0.32em;color:var(--ink-light);text-transform:uppercase;}
 
 /* ---- Bank info card: refresh to abso style ---- */
 .bank-info-card{background:transparent !important;border-left:none !important;border:0.5px solid var(--line) !important;border-radius:0 !important;}
@@ -1504,11 +1504,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
             <span style="font-size:13px;color:var(--ink-muted);">利潤總計</span>
-            <span style="font-size:16px;font-weight:500;font-family:'NumQuicksand','Noto Serif TC',serif;color:var(--green);" id="dash-profit-total">$0</span>
+            <span style="font-size:14px;font-weight:700;font-family:'NumQuicksand','Noto Serif TC',serif;" id="dash-profit-total">$0</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;">
             <span style="font-size:13px;color:var(--ink-muted);">平均利潤率</span>
-            <span style="font-size:16px;font-weight:500;color:var(--green);" id="dash-profit-pct">0%</span>
+            <span style="font-size:14px;font-weight:700;font-family:'NumQuicksand','Noto Serif TC',serif;" id="dash-profit-pct">0%</span>
           </div>
         </div>
 
