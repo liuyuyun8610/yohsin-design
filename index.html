@@ -789,16 +789,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 /* ---- Mobile fixes for Phase 2 ---- */
 @media(max-width:720px){
+  /* 容器最少 16px 左右留白；上限隨螢幕拉到 32px */
+  #s-client .pb,#s-admin .pb{padding-left:clamp(1rem, 5vw, 2rem) !important;padding-right:clamp(1rem, 5vw, 2rem) !important;}
+  /* body 強制 10px 留白底線：避免任何 overflow 內容貼齊邊界 */
+  html,body{padding-left:env(safe-area-inset-left, 0);padding-right:env(safe-area-inset-right, 0);}
   /* 統計三欄在手機上改成直立疊加，每行「標題 + 金額」一列 */
   .pay-sum,#s-client .pay-sum,#s-admin .pay-sum{grid-template-columns:1fr !important;}
-  .pay-sum .pay-box,#s-client .pay-sum .pay-box{padding:13px 6px !important;text-align:left !important;display:flex;justify-content:space-between;align-items:baseline;}
+  .pay-sum .pay-box,#s-client .pay-sum .pay-box{padding:13px 12px !important;text-align:left !important;display:flex;justify-content:space-between;align-items:baseline;}
   .pay-sum .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:none !important;border-top:0.5px solid var(--line) !important;}
   .pay-sum .pay-lbl{margin-bottom:0 !important;font-size:11px !important;}
   .pay-sum .pay-val{font-size:18px !important;}
-  /* 容器更舒適的左右留白 */
-  #s-client .pb,#s-admin .pb{padding-left:clamp(1.25rem, 5vw, 2rem) !important;padding-right:clamp(1.25rem, 5vw, 2rem) !important;}
-  /* 付款 schedule 表格內距收緊一點（手機橫向滾動仍可用） */
-  .ptbl th,.ptbl td{padding:8px 10px !important;font-size:12px !important;}
+  /* 付款 schedule 表格：cell 內距 12px 確保最後一欄滾到底時也有 ≥10px 視覺空隙 */
+  .ptbl th,.ptbl td{padding:8px 12px !important;font-size:12px !important;}
+  /* 表格本體 padding-right 保留 10px 空隙 */
+  .ptbl{padding-right:10px;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
