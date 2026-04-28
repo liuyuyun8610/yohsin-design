@@ -803,6 +803,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .ptbl th,.ptbl td{padding:8px 12px !important;font-size:12px !important;}
   /* 表格本體 padding-right 保留 10px 空隙 */
   .ptbl{padding-right:10px;}
+  /* 設計費 / 工程款 section header 在手機上，hairline 裝飾線收掉、title 左 summary 右 */
+  #pay-section-design > div:first-child,
+  #pay-section-construction > div:first-child{justify-content:space-between !important;flex-wrap:wrap;gap:6px !important;}
+  #pay-section-design > div:first-child > div:nth-child(2),
+  #pay-section-construction > div:first-child > div:nth-child(2){display:none !important;}
+  #pay-design-summary,#pay-construction-summary{min-width:0;font-size:11.5px !important;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
