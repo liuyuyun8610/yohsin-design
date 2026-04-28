@@ -657,6 +657,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client ::-webkit-scrollbar{width:5px;height:5px;}
 #s-client ::-webkit-scrollbar-track{background:transparent;}
 #s-client ::-webkit-scrollbar-thumb{background:rgba(139,107,72,0.2);border-radius:3px;}
+.bank-info-card summary::-webkit-details-marker{display:none;}
+.bank-info-card summary::marker{display:none;content:'';}
+.bank-info-card[open] .bank-arrow{transform:rotate(180deg);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1224,9 +1227,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </table>
           <div id="client-pay-design-empty" style="text-align:center;padding:1.5rem;font-size:13px;color:var(--ink-light);display:none;">尚無設計費記錄</div>
         </div>
-        <div class="card" style="margin-top:10px;padding:14px 18px;background:#FAF7F2;border-left:3px solid var(--blue);">
-          <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);font-weight:500;margin-bottom:8px;">💳 設計費 匯款資訊</div>
-          <div style="font-size:12.5px;color:var(--ink);line-height:1.95;">
+        <details class="bank-info-card" style="margin-top:10px;background:#FAF7F2;border-left:3px solid var(--blue);border-radius:6px;overflow:hidden;">
+          <summary style="padding:12px 18px;cursor:pointer;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);font-weight:500;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;">
+            <span>💳 設計費 匯款資訊</span>
+            <span class="bank-arrow" style="font-size:11px;color:var(--blue);transition:transform .15s;">▾</span>
+          </summary>
+          <div style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;">
             <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">戶　　名</span>有心制作室內裝修設計有限公司</div>
             <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行代碼</span><span style="font-family:monospace;">007</span></div>
             <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行名稱</span>第一商業銀行</div>
@@ -1237,7 +1243,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <button onclick="copyBankAcct(this,'29010013031')" style="font-size:11px;padding:2px 10px;border:0.5px solid var(--blue);background:#fff;color:var(--blue);border-radius:5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">複製帳號</button>
             </div>
           </div>
-        </div>
+        </details>
       </div>
 
       <!-- 工程款 區塊 -->
@@ -1260,9 +1266,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </table>
           <div id="client-pay-construction-empty" style="text-align:center;padding:1.5rem;font-size:13px;color:var(--ink-light);display:none;">尚無工程款記錄</div>
         </div>
-        <div class="card" style="margin-top:10px;padding:14px 18px;background:#FAF7F2;border-left:3px solid var(--accent);">
-          <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:8px;">💳 工程款 匯款資訊</div>
-          <div style="font-size:12.5px;color:var(--ink);line-height:1.95;">
+        <details class="bank-info-card" style="margin-top:10px;background:#FAF7F2;border-left:3px solid var(--accent);border-radius:6px;overflow:hidden;">
+          <summary style="padding:12px 18px;cursor:pointer;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:500;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;">
+            <span>💳 工程款 匯款資訊</span>
+            <span class="bank-arrow" style="font-size:11px;color:var(--accent);transition:transform .15s;">▾</span>
+          </summary>
+          <div style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;">
             <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">戶　　名</span>劉郁筠</div>
             <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行代碼</span><span style="font-family:monospace;">822</span></div>
             <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行名稱</span>中國信託銀行</div>
@@ -1273,7 +1282,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <button onclick="copyBankAcct(this,'129510916882')" style="font-size:11px;padding:2px 10px;border:0.5px solid var(--accent);background:#fff;color:var(--accent);border-radius:5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">複製帳號</button>
             </div>
           </div>
-        </div>
+        </details>
       </div>
 
       <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
