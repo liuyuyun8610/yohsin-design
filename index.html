@@ -708,7 +708,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:0.5px solid var(--line);}
 .pay-lbl{font-size:10px;letter-spacing:0.32em;color:var(--ink-light);text-transform:uppercase;margin-bottom:14px;}
 .pay-val{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:24px;font-weight:300;letter-spacing:0.04em;color:var(--ink);}
-.pay-val.danger{color:var(--persimmon);}
+.pay-val.danger{color:#BF5843;}
 
 /* ---- Buttons: primary = black serif; secondary = text + hairline ---- */
 .btn-ink,#s-client .btn-ink{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:12px;font-weight:400;letter-spacing:0.4em;background:var(--ink);color:var(--paper);padding:11px 26px;border:none;border-radius:0;cursor:pointer;transition:background .25s;}
@@ -3706,7 +3706,7 @@ async function renderDashboard(){
       <div style="display:flex;gap:16px;font-size:12px;color:var(--ink-muted);margin-bottom:6px;">
         <span>合約：<b style="color:var(--ink);">$${fmtN(contract)}</b></span>
         <span>已收：<b style="color:var(--green);">$${fmtN(received)}</b></span>
-        <span>待收：<b style="color:${pending>0?'var(--red)':'var(--ink-muted)'};">$${fmtN(pending)}</b></span>
+        <span>待收：<b style="color:${pending>0?'#BF5843':'var(--ink-muted)'};">$${fmtN(pending)}</b></span>
       </div>
       ${contract>0?`<div style="height:5px;background:var(--sand-dark);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px;transition:width 0.4s;"></div></div>`:''}`;
     pl.appendChild(row);
