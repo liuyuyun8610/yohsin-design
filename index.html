@@ -6347,16 +6347,19 @@ async function pushToLineGroup(groupId, photoUrls, message){
   }
 }
 
-// 圖面更新（平面 / 立面 / 效果圖）共用的「跳確認 → 推播純文字 + 登入網址」邏輯
+// 圖面更新（平面 / 立面 / 效果圖）共用的「跳確認 → 推播純文字 + 登入網址 + 帳密」邏輯
 async function maybePushDrawingUpdate(cid, drawingType){
   const c=clients.find(x=>x.id===cid);
   const proj=c?projects.find(p=>p.id===c.projectId):null;
   if(!proj){alert('找不到此客戶對應的專案');return;}
   if(!proj.lineGroupId){alert('此專案尚未設定 LINE 客戶群組 ID。\n請至「專案管理」→ 編輯專案 → 填入群組 ID 後再試。');return;}
-  if(!confirm(`要推播「${drawingType}更新」通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}`)) return;
+  if(!confirm(`要推播「${drawingType}更新」通知到客戶 LINE 群組嗎？\n\n專案：${proj.name}\n會一併附上客戶帳號 ${c.user||'(無)'}`)) return;
   showLoader(true);
   try{
-    const msg=`大家好～我們有更新${drawingType}，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：${window.location.origin}/`;
+    let msg=`大家好～我們有更新${drawingType}，有空可以去看看，有任何問題請再提出，謝謝。\n\n登入網址：${window.location.origin}/`;
+    if(c.user&&c.pass){
+      msg+=`\n帳號：${c.user}\n密碼：${c.pass}`;
+    }
     await pushToLineGroup(proj.lineGroupId,[],msg);
     alert('已推播到客戶 LINE 群組！');
   }catch(err){alert(err.message);console.error(err);}
