@@ -659,6 +659,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client ::-webkit-scrollbar-thumb{background:rgba(139,107,72,0.2);border-radius:3px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
 <body>
 
@@ -1476,7 +1478,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- 利潤分析 -->
       <div id="proj-tab-profit">
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫各工程項目的廠商報價與客戶報價，系統自動計算利潤與百分比。</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:1rem;">
+          <div style="font-size:12px;color:var(--ink-muted);">填寫各工程項目的廠商報價與客戶報價，系統自動計算利潤與百分比。或上傳 PDF 報價單一鍵填入客戶報價。</div>
+          <button class="btn-ink" onclick="openQuotePdfImport()" style="font-size:12px;padding:6px 14px;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;">📄</span>
+            從 PDF 報價單自動填入
+          </button>
+        </div>
         <div class="tbl-wrap" style="border-radius:14px;">
           <table id="profit-table" style="min-width:600px;">
             <thead><tr>
@@ -4218,6 +4226,128 @@ function switchProjTab(tab,el){
     const firstDrawingTab=document.querySelector('#drawing-type-tabs .stab');
     if(firstDrawingTab) switchDrawingType('平面系統圖',firstDrawingTab);
   }
+}
+
+// ===== PDF 報價單自動填入客戶報價 =====
+// 中文項目 → PROFIT_ITEMS.key 對照（順序重要：較長／較具體的關鍵字放前面）
+const PDF_LABEL_KEYS=[
+  ['保護','protect'],
+  ['拆除','demo'],
+  ['消防','fire'],
+  ['泥作','plaster'],
+  ['磁磚','tile'],
+  ['石材','stone'],
+  ['玻璃','glass'],
+  ['木作','wood'],
+  ['塗料','coating'],
+  ['油漆','paint'],
+  ['清潔','clean'],
+  ['燈具','light'],
+  ['系統櫃','cabinet'],
+  ['廚具','cabinet'],
+  ['木地板','floor'],
+  ['地面','floor'],
+  ['鋁窗','alum_w'],
+  ['鋁門','alum_d'],
+  ['大門','main_d'],
+  ['鐵件','iron'],
+  ['窗簾','curtain'],
+  ['布藝','curtain'],
+  ['設備','equip'],
+  ['HVAC','ac'],
+  ['空調','ac'],
+  ['電路','mep'],
+  ['水電','mep'],
+  ['電力','mep'],
+];
+function matchToProfitKey(label){
+  for(const [kw,key] of PDF_LABEL_KEYS){
+    if(label.includes(kw)) return key;
+  }
+  return null;
+}
+async function parseQuotePdfText(file){
+  if(!window.pdfjsLib) throw new Error('PDF 解析套件未載入，請重整頁面再試');
+  const arrayBuffer=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+  let fullText='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    // 用 Y 座標分組重建行
+    const lines={};
+    for(const item of content.items){
+      const y=Math.round(item.transform[5]);
+      if(!lines[y]) lines[y]=[];
+      lines[y].push({x:item.transform[4],text:item.str});
+    }
+    const sorted=Object.entries(lines)
+      .sort((a,b)=>Number(b[0])-Number(a[0]))
+      .map(([_,parts])=>parts.sort((a,b)=>a.x-b.x).map(p=>p.text).join(' '));
+    fullText+=sorted.join('\n')+'\n';
+  }
+  // 抽 "序號 ... 1 項 價格" 的行
+  const items=[];
+  const re=/^\s*(\d{1,2})\s+(.+?)\s+1\s+項\s+([\d,]+)\s*$/;
+  for(const line of fullText.split('\n')){
+    const m=line.match(re);
+    if(!m) continue;
+    const idx=parseInt(m[1]);
+    if(idx<1||idx>50) continue;
+    const label=m[2].trim();
+    const price=parseInt(m[3].replace(/,/g,''));
+    if(price>0) items.push({idx,label,price});
+  }
+  return items;
+}
+async function openQuotePdfImport(){
+  const pid=currentDetailProjId;
+  if(!pid){alert('請先進入專案');return;}
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='application/pdf';
+  input.onchange=async(e)=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    showLoader(true);
+    try{
+      const items=await parseQuotePdfText(file);
+      if(items.length===0){alert('PDF 沒解析到任何工程項目。\n請確認檔案格式類似：「序號  項目名稱  1  項  價格」');showLoader(false);return;}
+      // 對應 + 預覽
+      const mapped=[],unmatched=[];
+      const keyHits={}; // key → 出現次數（重複 warning 用）
+      for(const it of items){
+        const key=matchToProfitKey(it.label);
+        if(!key){unmatched.push(it);continue;}
+        keyHits[key]=(keyHits[key]||0)+1;
+        const sysLabel=PROFIT_ITEMS.find(p=>p.key===key)?.label||key;
+        mapped.push({...it,key,sysLabel,combined:it.label.includes('及')});
+      }
+      const lines=mapped.map(m=>`${m.combined?'⚠️ ':''}${m.label} → ${m.sysLabel}：${m.price.toLocaleString()}`).slice(0,12).join('\n');
+      const more=mapped.length>12?`\n…（共 ${mapped.length} 項）`:'';
+      const dup=Object.entries(keyHits).filter(([_,n])=>n>1).map(([k,n])=>`${PROFIT_ITEMS.find(p=>p.key===k)?.label}（${n} 項合併）`).join('、');
+      const dupNote=dup?`\n\n⚠️ 重複對應同一項目（後者覆蓋前者）：${dup}`:'';
+      const unNote=unmatched.length?`\n\n⚠️ ${unmatched.length} 項未對應，請手動填入：\n${unmatched.map(u=>`${u.label}：${u.price.toLocaleString()}`).join('\n')}`:'';
+      const ok=confirm(`找到 ${items.length} 項：\n\n${lines}${more}${dupNote}${unNote}\n\n將覆蓋目前的客戶報價，確定填入嗎？`);
+      if(!ok){showLoader(false);return;}
+      // 寫入
+      if(!profitData[pid]){profitData[pid]={};PROFIT_ITEMS.forEach(it=>{profitData[pid][it.key]={vendor:0,client:0};});}
+      let filled=0;
+      for(const m of mapped){
+        if(!profitData[pid][m.key]) profitData[pid][m.key]={vendor:0,client:0};
+        profitData[pid][m.key].client=m.price;
+        try{await dbSaveProfitItem(pid,m.key,profitData[pid][m.key].vendor,m.price);filled++;}
+        catch(err){console.error('save failed',m.key,err);}
+      }
+      renderProfitTable();
+      let msg=`✓ 已填入 ${filled} 項客戶報價`;
+      if(mapped.some(m=>m.combined)) msg+=`\n\n⚠️ 含合併項目（如「鐵件及鋁門」），系統內為分開項目，請手動拆分。`;
+      if(unmatched.length) msg+=`\n\n⚠️ ${unmatched.length} 項未對應請手動填入：\n${unmatched.map(u=>`・${u.label}：${u.price.toLocaleString()}`).join('\n')}`;
+      alert(msg);
+    }catch(err){alert('讀取 PDF 失敗：'+err.message);console.error(err);}
+    showLoader(false);
+  };
+  input.click();
 }
 
 async function renderProfitTable(){
