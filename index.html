@@ -2335,6 +2335,24 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">收據 Logo</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">客戶下載付款收據時，左上角顯示的公司 Logo（建議透明底 PNG）</div>
+          <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:11px;color:var(--ink-light);margin-bottom:0.6rem;">目前</div>
+              <div id="receipt-logo-preview" style="width:140px;height:80px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);font-size:10px;color:var(--ink-light);">未設定</div>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink-muted);cursor:pointer;">
+                ⬆ 更換收據 Logo
+                <input type="file" id="receipt-logo-input" accept="image/*" style="display:none;" onchange="uploadReceiptLogo(event)">
+              </label>
+              <div style="font-size:11px;color:var(--ink-light);margin-top:0.6rem;line-height:1.7;">建議寬高比 4:3 或正方形，會自動 contain-fit 到收據左上角。空白時使用預設 INTERIOR DESIGN 字塊。</div>
+            </div>
+          </div>
+        </div>
+
         <!-- 3 個 Icon 合併成一張卡 -->
         <div class="card">
           <div class="card-title">客戶總覽快捷圖示</div>
@@ -2642,6 +2660,7 @@ async function loadAllData() {
       if(s.key==='gallery_icon_url'&&s.value) applyGalleryIcon(s.value);
       if(s.key==='plan_icon_url'&&s.value) applyPlanIcon(s.value);
       if(s.key==='elev_icon_url'&&s.value) applyElevIcon(s.value);
+      if(s.key==='receipt_logo'&&s.value) applyReceiptLogo(s.value);
       if(s.key==='anthropic_api_key'&&s.value) anthropicApiKey=s.value;
     });
 
@@ -3133,6 +3152,25 @@ async function uploadPlanIcon(e){
     alert('✓ 平面系統圖 Icon 已更新');
   }catch(err){alert('上傳失敗：'+err.message);}
   document.getElementById('plan-icon-input').value='';
+  showLoader(false);
+}
+
+// ── 收據 Logo ──
+function applyReceiptLogo(url){
+  window._receiptLogoSrc=url;
+  const preview=document.getElementById('receipt-logo-preview');
+  if(preview) preview.innerHTML=`<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+}
+async function uploadReceiptLogo(e){
+  const file=e.target.files[0];if(!file)return;
+  showLoader(true);
+  try{
+    const url=await uploadToStorage(file,'icons');
+    await sbClient.from('system_settings').upsert({key:'receipt_logo',value:url},{onConflict:'key'});
+    applyReceiptLogo(url);
+    alert('✓ 收據 Logo 已更新');
+  }catch(err){alert('上傳失敗：'+err.message);}
+  document.getElementById('receipt-logo-input').value='';
   showLoader(false);
 }
 
@@ -7468,7 +7506,9 @@ function downloadReceipt(item, categoryItems, category){
     +'</style></head><body>'
     +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;letter-spacing:0.04em;">列印 / 儲存為 PDF</button></div>'
     +'<div class="hd">'
-    +'<div class="logo-box"><div>INTERIOR<br/>DESIGN</div></div>'
+    +(window._receiptLogoSrc
+      ? '<img src="'+esc(window._receiptLogoSrc)+'" alt="Logo" style="max-width:140px;max-height:70px;object-fit:contain;">'
+      : '<div class="logo-box"><div>INTERIOR<br/>DESIGN</div></div>')
     +'<div class="brand"><div class="cn">有心制作　空間設計服務</div><div class="en">YUNG SHIN DESIGN CO., LTD.</div></div>'
     +'</div>'
     +'<div class="title">收執聯</div>'
