@@ -724,6 +724,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .pill{display:inline-block;font-size:10px;padding:0;border-radius:0;background:transparent !important;letter-spacing:0.18em;text-transform:uppercase;font-weight:400;}
 .pill-green,#s-client .pill-green{background:transparent !important;color:var(--green);}
 .pill-amber,#s-client .pill-amber{background:transparent !important;color:#9A7826;}
+.pill-unpaid,#s-client .pill-unpaid{background:transparent !important;color:#BF5843;}
 .pill-blue{background:transparent !important;color:var(--blue);}
 .pill-gray,#s-client .pill-gray{background:transparent !important;color:var(--ink-light);}
 
@@ -1472,7 +1473,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.5rem;">
         <div class="stat-box"><div class="stat-lbl">當年度合約總額</div><div class="stat-val" id="dash-total" style="font-size:20px;">$0</div></div>
         <div class="stat-box"><div class="stat-lbl">已收款</div><div class="stat-val gn" id="dash-received" style="font-size:20px;">$0</div></div>
-        <div class="stat-box"><div class="stat-lbl">未收款</div><div class="stat-val am" id="dash-pending" style="font-size:20px;">$0</div></div>
+        <div class="stat-box"><div class="stat-lbl">未收款</div><div class="stat-val am" id="dash-pending" style="font-size:20px;color:#BF5843;">$0</div></div>
         <div class="stat-box"><div class="stat-lbl">進行中專案</div><div class="stat-val" id="dash-active-proj" style="font-size:20px;">0</div></div>
       </div>
 
@@ -1761,7 +1762,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div class="stat-val gn" style="font-size:18px;" id="sch-received">$0</div>
             <div style="height:5px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden;"><div id="sch-bar" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .3s;"></div></div>
           </div>
-          <div class="stat-box"><div class="stat-lbl">未收款</div><div class="stat-val am" style="font-size:18px;" id="sch-pending">$0</div></div>
+          <div class="stat-box"><div class="stat-lbl">未收款</div><div class="stat-val am" style="font-size:18px;color:#BF5843;" id="sch-pending">$0</div></div>
           <div class="stat-box"><div class="stat-lbl">收款進度</div><div class="stat-val" style="font-size:18px;" id="sch-pct">0%</div></div>
         </div>
 
@@ -3878,7 +3879,7 @@ async function renderSchedule(){
       const dd=new Date(r.due.replace(/\//g,'-'));return !isNaN(dd)&&dd<today;
     })();
     // select 顏色對應真實儲存狀態；到期日已過的視覺提示只用行底色+日期欄小字
-    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
+    const statusColor={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#BF5843;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'}[r.status]||'';
     const toDateVal=s=>(s||'').replace(/\//g,'-');
     const tr=document.createElement('tr');
     tr.style.borderBottom='0.5px solid var(--border)';
@@ -3928,7 +3929,7 @@ async function renderSchedule(){
 }
 
 function setSchSelColor(el){
-  const colors={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#854F0B;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'};
+  const colors={'已收':'color:#3B6D11;background:#EAF3DE','未收':'color:#BF5843;background:#FAEEDA','逾期':'color:#A32D2D;background:#FCEBEB'};
   const base='padding:9px 12px;font-family:\'NumQuicksand\',\'Noto Sans TC\',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;outline:none;width:100%;cursor:pointer;';
   el.style.cssText=base+(colors[el.value]||'');
 }
@@ -7402,7 +7403,7 @@ async function renderClientPayment(){
   if(empty)empty.style.display='none';
 
   const today=new Date();today.setHours(0,0,0,0);
-  const statusPill={'已收':'pill-green','未收':'pill-amber','逾期':'pill-danger'};
+  const statusPill={'已收':'pill-green','未收':'pill-unpaid','逾期':'pill-danger'};
 
   // Helper: render rows into a tbody
   function renderPayRows(tbodyId, emptyId, items){
