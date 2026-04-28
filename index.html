@@ -786,6 +786,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 /* ---- Status badges in tables (e.g. 已收/未收) ---- */
 .psm{padding:0 !important;background:transparent !important;font-size:10px !important;letter-spacing:0.18em !important;text-transform:uppercase;}
+
+/* ---- Mobile fixes for Phase 2 ---- */
+@media(max-width:720px){
+  /* 統計三欄在手機上改成直立疊加，每行「標題 + 金額」一列 */
+  .pay-sum,#s-client .pay-sum,#s-admin .pay-sum{grid-template-columns:1fr !important;}
+  .pay-sum .pay-box,#s-client .pay-sum .pay-box{padding:13px 6px !important;text-align:left !important;display:flex;justify-content:space-between;align-items:baseline;}
+  .pay-sum .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:none !important;border-top:0.5px solid var(--line) !important;}
+  .pay-sum .pay-lbl{margin-bottom:0 !important;font-size:11px !important;}
+  .pay-sum .pay-val{font-size:18px !important;}
+  /* 容器更舒適的左右留白 */
+  #s-client .pb,#s-admin .pb{padding-left:clamp(1.25rem, 5vw, 2rem) !important;padding-right:clamp(1.25rem, 5vw, 2rem) !important;}
+  /* 付款 schedule 表格內距收緊一點（手機橫向滾動仍可用） */
+  .ptbl th,.ptbl td{padding:8px 10px !important;font-size:12px !important;}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
