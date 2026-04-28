@@ -35,22 +35,30 @@ table{max-width:100%;}
 .screen.active{display:block;}
 #s-login.active{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:2rem;}
 
-/* LOGIN */
-.login-wrap{background:#fff;border:0.5px solid var(--border);border-radius:20px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(42,37,32,0.08);}
-.logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:1.8rem;}
-.logo-svg-lg{width:72px;height:62px;margin-bottom:0.8rem;}
-.logo-name{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:500;letter-spacing:0.14em;color:var(--ink);}
-.logo-sub{font-size:11px;letter-spacing:0.22em;color:var(--ink-light);margin-top:4px;}
-.mode-switch{display:flex;background:var(--sand);border-radius:10px;padding:3px;margin-bottom:1.5rem;}
-.mdbtn{flex:1;padding:7px;font-size:12px;border:none;border-radius:8px;cursor:pointer;background:none;color:var(--ink-muted);font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;}
-.mdbtn.active{background:#fff;color:var(--ink);font-weight:500;}
-.fl{display:block;font-size:11px;letter-spacing:0.1em;color:var(--ink-muted);text-align:left;margin-bottom:5px;text-transform:uppercase;}
-.fi{width:100%;padding:10px 14px;font-family:'Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;margin-bottom:1rem;}
-.fi:focus{border-color:var(--accent-light);background:#fff;}
-.btn-enter{width:100%;padding:12px;background:#AB9E93;color:#fff;border:none;border-radius:10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;letter-spacing:0.08em;cursor:pointer;transition:background 0.15s;}
-.btn-enter:hover{background:var(--accent);}
-.l-err{font-size:12px;color:var(--red);margin-top:0.7rem;min-height:16px;}
-.l-hint{margin-top:1rem;font-size:11px;color:var(--ink-light);line-height:1.9;background:var(--sand);border-radius:8px;padding:10px 14px;}
+/* LOGIN — abso-style: no card, hairline only, serif typography */
+#s-login.active{padding:60px 24px;}
+.login-wrap{background:transparent;border:none;border-radius:0;padding:0;width:100%;max-width:460px;text-align:center;box-shadow:none;}
+.logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:0;}
+.logo-svg-lg{width:60px;height:60px;margin-bottom:18px;opacity:0.92;}
+.site-logo-img{margin-bottom:18px !important;}
+.logo-name{font-family:'Noto Serif TC',serif;font-size:30px;font-weight:300;letter-spacing:0.22em;color:var(--ink);line-height:1.25;}
+.logo-sub{font-size:11px;letter-spacing:0.42em;color:var(--ink-light);margin-top:18px;text-transform:uppercase;}
+.login-line{border:none;border-top:0.5px solid var(--line);margin:48px 0;width:100%;}
+.mode-switch{display:flex;background:transparent;border-top:0.5px solid var(--line);border-bottom:0.5px solid var(--line);border-radius:0;padding:0;margin-bottom:40px;}
+.mdbtn{flex:1;padding:32px 16px;font-family:'Noto Serif TC',serif;font-size:16px;font-weight:300;letter-spacing:0.45em;border:none;border-radius:0;cursor:pointer;background:transparent;color:var(--ink-muted);transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.mdbtn + .mdbtn{border-left:0.5px solid var(--line);}
+.mdbtn:hover{color:var(--ink);background:var(--paper-soft);}
+.mdbtn.active{color:var(--ink);font-weight:400;background:transparent;}
+.mdbtn.active::after{content:'';width:20px;height:1px;background:var(--ink);}
+.fl{display:block;font-size:11px;letter-spacing:0.3em;color:var(--ink-muted);text-align:left;margin-bottom:8px;text-transform:uppercase;}
+.fi{width:100%;padding:12px 0;font-family:'Noto Sans TC',sans-serif;font-size:14px;font-weight:300;letter-spacing:0.05em;border:none;border-bottom:0.5px solid var(--line);border-radius:0;background:transparent;color:var(--ink);outline:none;margin-bottom:28px;}
+.fi:focus{border-bottom-color:var(--ink);background:transparent;}
+.fi::placeholder{color:var(--ink-light);font-weight:300;letter-spacing:0.05em;}
+.btn-enter{display:inline-block;width:auto;font-family:'Noto Serif TC',serif;font-size:13px;font-weight:400;letter-spacing:0.55em;background:var(--ink);color:var(--paper);padding:18px 64px 18px 70px;border:none;border-radius:0;cursor:pointer;margin-top:12px;transition:background .25s;}
+.btn-enter:hover{background:var(--ink-muted);}
+.btn-enter:disabled{background:var(--line);color:var(--ink-light);cursor:not-allowed;}
+.l-err{font-size:12px;color:var(--persimmon);margin-top:18px;letter-spacing:0.1em;min-height:18px;}
+.l-hint{margin-top:1rem;font-size:11px;color:var(--ink-light);line-height:1.9;background:transparent;border-radius:0;padding:0;}
 
 /* TOPBAR */
 .topbar{background:#fff;border-bottom:0.5px solid var(--border);height:56px;display:flex;align-items:center;padding:0 1.2rem;position:sticky;top:0;z-index:200;}
@@ -766,22 +774,24 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <div id="s-login" class="screen active">
   <div class="login-wrap">
     <div class="logo-area">
-      <img src="" alt="有心制作" class="site-logo-img" style="width:110px;height:110px;object-fit:contain;margin-bottom:0.6rem;">
+      <img src="" alt="有心制作" class="site-logo-img" style="width:96px;height:96px;object-fit:contain;">
       <div class="logo-name" id="login-site-title">有心制作專案區</div>
-      <div class="logo-sub">· 空間設計 ·</div>
+      <div class="logo-sub">Yohsin Design · Interior Studio</div>
     </div>
+    <hr class="login-line">
     <div class="mode-switch">
       <button class="mdbtn active" onclick="setMode('client',this)">客戶登入</button>
       <button class="mdbtn" onclick="setMode('admin',this)">設計師後台</button>
     </div>
-    <label class="fl">帳號</label>
-    <input class="fi" id="l-user" placeholder="請輸入帳號">
-    <label class="fl">密碼</label>
-    <input class="fi" type="password" id="l-pass" placeholder="請輸入密碼">
-    <button class="btn-enter" onclick="doLogin()">進入</button>
+    <div style="text-align:left;">
+      <label class="fl">帳　號</label>
+      <input class="fi" id="l-user" placeholder="請輸入帳號">
+      <label class="fl">密　碼</label>
+      <input class="fi" type="password" id="l-pass" placeholder="請輸入密碼">
+    </div>
+    <button class="btn-enter" onclick="doLogin()">登　入</button>
     <div class="l-err" id="l-err"></div>
-    <div class="l-hint"></div>
-    <div id="db-status" style="display:none;margin-top:0.8rem;font-size:11px;color:#8B3A2E;background:#F5ECEA;border-radius:8px;padding:8px 12px;"></div>
+    <div id="db-status" style="display:none;margin-top:24px;font-size:11px;color:var(--persimmon);letter-spacing:0.1em;"></div>
   </div>
 </div>
 
