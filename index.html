@@ -4039,12 +4039,13 @@ async function markProjectComplete(){
 let currentDetailProjId = null;
 
 const PROFIT_ITEMS = [
-  {key:'protect', label:'保護',   type:'construction'},
-  {key:'demo',    label:'拆除',   type:'construction'},
-  {key:'mep',     label:'水電',   type:'construction'},
-  {key:'ac',      label:'空調',   type:'equip'},
-  {key:'plaster', label:'泥作',   type:'construction'},
-  {key:'tile',    label:'磁磚',   type:'construction'},
+  {key:'protect',   label:'保護',   type:'construction'},
+  {key:'demo',      label:'拆除',   type:'construction'},
+  {key:'mep',       label:'水電',   type:'construction'},
+  {key:'ac',        label:'空調',   type:'equip'},
+  {key:'plaster',   label:'泥作',   type:'construction'},
+  {key:'partition', label:'隔間',   type:'construction'},
+  {key:'tile',      label:'磁磚',   type:'construction'},
   {key:'stone',   label:'石材',   type:'construction'},
   {key:'glass',   label:'玻璃',   type:'construction'},
   {key:'iron',    label:'鐵件',   type:'construction'},
@@ -4234,8 +4235,11 @@ const PDF_LABEL_KEYS=[
   ['保護','protect'],
   ['拆除','demo'],
   ['消防','fire'],
-  ['泥作','plaster'],
+  ['隔間','partition'],
+  ['磁磚材料','tile'],
   ['磁磚','tile'],
+  ['泥作工資','plaster'],
+  ['泥作','plaster'],
   ['石材','stone'],
   ['玻璃','glass'],
   ['木作','wood'],
@@ -4266,37 +4270,73 @@ function matchToProfitKey(label){
   }
   return null;
 }
+// 在 lines 裡找 泥作工程 detail 區塊，把 泥作工資/磁磚材料/隔間工程 三個 sub-section 各自的小計加總
+function parsePlasterSubsections(lines){
+  const sums={plaster:0,tile:0,partition:0};
+  let inPlaster=false,currentSub=null,foundAny=false;
+  for(const raw of lines){
+    const line=raw.trim();
+    // 進入 泥作工程 detail 區塊（detail page header 通常單獨一行）
+    if(/^5?\s*泥作工程/.test(line)&&!/1\s+項/.test(line)){inPlaster=true;currentSub=null;continue;}
+    if(!inPlaster) continue;
+    // 離開（碰到下一個工程的 detail header 或 項目金額合計）
+    if(/^[6-9]\s+\S+工程/.test(line)||/^1[0-8]\s+\S+工程/.test(line)){break;}
+    if(/^項目金額合計/.test(line)){inPlaster=false;break;}
+    // sub-section 標頭
+    if(line==='泥作工資'){currentSub='plaster';foundAny=true;continue;}
+    if(line==='磁磚材料'){currentSub='tile';foundAny=true;continue;}
+    if(line==='隔間工程'){currentSub='partition';foundAny=true;continue;}
+    // 明細小計：行首是 1-2 位序號，整行尾數是該行小計
+    if(currentSub&&/^\d{1,2}\s+\S/.test(line)){
+      const nums=line.match(/[\d,]+/g);
+      if(nums&&nums.length>=4){
+        const last=parseInt(nums[nums.length-1].replace(/,/g,''));
+        if(!isNaN(last)&&last>=100) sums[currentSub]+=last;
+      }
+    }
+  }
+  return foundAny?sums:null;
+}
 async function parseQuotePdfText(file){
   if(!window.pdfjsLib) throw new Error('PDF 解析套件未載入，請重整頁面再試');
   const arrayBuffer=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
-  let fullText='';
+  const allLines=[];
   for(let i=1;i<=pdf.numPages;i++){
     const page=await pdf.getPage(i);
     const content=await page.getTextContent();
-    // 用 Y 座標分組重建行
-    const lines={};
+    const lineMap={};
     for(const item of content.items){
       const y=Math.round(item.transform[5]);
-      if(!lines[y]) lines[y]=[];
-      lines[y].push({x:item.transform[4],text:item.str});
+      if(!lineMap[y]) lineMap[y]=[];
+      lineMap[y].push({x:item.transform[4],text:item.str});
     }
-    const sorted=Object.entries(lines)
+    const sorted=Object.entries(lineMap)
       .sort((a,b)=>Number(b[0])-Number(a[0]))
       .map(([_,parts])=>parts.sort((a,b)=>a.x-b.x).map(p=>p.text).join(' '));
-    fullText+=sorted.join('\n')+'\n';
+    allLines.push(...sorted);
   }
-  // 抽 "序號 ... 1 項 價格" 的行
-  const items=[];
+  // Step 1: 抽主目錄頁的 "序號 ... 1 項 價格" 行
+  const mainItems=[];
   const re=/^\s*(\d{1,2})\s+(.+?)\s+1\s+項\s+([\d,]+)\s*$/;
-  for(const line of fullText.split('\n')){
+  for(const line of allLines){
     const m=line.match(re);
     if(!m) continue;
     const idx=parseInt(m[1]);
     if(idx<1||idx>50) continue;
-    const label=m[2].trim();
-    const price=parseInt(m[3].replace(/,/g,''));
-    if(price>0) items.push({idx,label,price});
+    mainItems.push({idx,label:m[2].trim(),price:parseInt(m[3].replace(/,/g,''))});
+  }
+  // Step 2: 偵測泥作 detail 子分類，若有則拆開取代主項
+  const plasterSubs=parsePlasterSubsections(allLines);
+  const items=[];
+  for(const it of mainItems){
+    if(it.label.includes('泥作')&&plasterSubs){
+      if(plasterSubs.plaster>0)   items.push({label:'泥作工資',price:plasterSubs.plaster,_key:'plaster'});
+      if(plasterSubs.tile>0)      items.push({label:'磁磚材料',price:plasterSubs.tile,_key:'tile'});
+      if(plasterSubs.partition>0) items.push({label:'隔間工程',price:plasterSubs.partition,_key:'partition'});
+    } else {
+      items.push(it);
+    }
   }
   return items;
 }
@@ -4317,7 +4357,7 @@ async function openQuotePdfImport(){
       const mapped=[],unmatched=[];
       const keyHits={}; // key → 出現次數（重複 warning 用）
       for(const it of items){
-        const key=matchToProfitKey(it.label);
+        const key=it._key||matchToProfitKey(it.label);
         if(!key){unmatched.push(it);continue;}
         keyHits[key]=(keyHits[key]||0)+1;
         const sysLabel=PROFIT_ITEMS.find(p=>p.key===key)?.label||key;
