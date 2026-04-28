@@ -4316,15 +4316,27 @@ async function parseQuotePdfText(file){
       .map(([_,parts])=>parts.sort((a,b)=>a.x-b.x).map(p=>p.text).join(' '));
     allLines.push(...sorted);
   }
-  // Step 1: 抽主目錄頁的 "序號 ... 1 項 價格" 行
+  // Step 1: 抽主目錄頁的工程項目
+  // 只看 summary table（直到看到 "室內裝修工程費用"/"Interior Decoration"/"Grand Total" 為止）
   const mainItems=[];
-  const re=/^\s*(\d{1,2})\s+(.+?)\s+1\s+項\s+([\d,]+)\s*$/;
-  for(const line of allLines){
-    const m=line.match(re);
+  const seenIdx=new Set();
+  for(const rawLine of allLines){
+    const line=rawLine.trim();
+    if(/室內裝修工程費用|Interior\s*Decoration|Grand\s*Total/i.test(line)) break;
+    // 取出行尾的最後一個數字（候選價格），中間任何位置允許出現 "1 項" 字樣
+    const m=line.match(/^\s*(\d{1,2})\s+(.+?)\s+([\d,]+)\s*$/);
     if(!m) continue;
     const idx=parseInt(m[1]);
-    if(idx<1||idx>50) continue;
-    mainItems.push({idx,label:m[2].trim(),price:parseInt(m[3].replace(/,/g,''))});
+    if(idx<1||idx>50||seenIdx.has(idx)) continue;
+    let label=m[2].trim();
+    const price=parseInt(m[3].replace(/,/g,''));
+    if(isNaN(price)||price<100) continue;
+    // 主項目 label 一定要包含「工程」字樣（過濾掉 detail page 的子項）
+    if(!/工程/.test(label)) continue;
+    // 把 "X 項" 或 "X項" 從 label 結尾去掉
+    label=label.replace(/\s*\d+\s*項\s*$/,'').trim();
+    seenIdx.add(idx);
+    mainItems.push({idx,label,price});
   }
   // Step 2: 偵測泥作 detail 子分類，若有則拆開取代主項
   const plasterSubs=parsePlasterSubsections(allLines);
