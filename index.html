@@ -795,12 +795,28 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .pay-sum .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:none !important;border-top:0.5px solid var(--line) !important;}
   .pay-sum .pay-lbl{margin-bottom:0 !important;font-size:11px !important;}
   .pay-sum .pay-val{font-size:18px !important;}
-  /* 付款 schedule 表格：手機版藏掉「預計日期」+「實收日期」（用 class 標記，比 nth-child 可靠） */
+  /* 付款 schedule 在手機改成 card-grid layout（沿用其他頁面的 card 風格）*/
+  .ptbl{display:block !important;width:100% !important;}
+  .ptbl thead{display:none !important;}
+  .ptbl tbody{display:block !important;}
+  .ptbl tbody tr{
+    display:grid !important;
+    grid-template-columns:1fr auto;
+    column-gap:12px;
+    row-gap:6px;
+    padding:14px 4px !important;
+    border-bottom:0.5px solid var(--line);
+    align-items:center;
+    background:transparent !important;
+  }
+  .ptbl tbody tr:last-child{border-bottom:none !important;}
+  .ptbl tbody .pcell{padding:0 !important;border:none !important;background:transparent !important;font-size:13px !important;white-space:normal !important;}
+  .ptbl tbody .pcell-name{grid-column:1;grid-row:1;font-weight:500;color:var(--ink);}
+  .ptbl tbody .pcell-amt{grid-column:2;grid-row:1;text-align:right;font-family:'NumQuicksand','Noto Serif TC',serif;}
+  .ptbl tbody .pcell-status{grid-column:1;grid-row:2;font-size:11px !important;}
+  .ptbl tbody .pcell-receipt{grid-column:2;grid-row:2;text-align:right;}
+  .ptbl tbody .pcell-receipt button{font-size:11px !important;padding:4px 12px !important;}
   .ptbl .col-mobile-hide{display:none !important;}
-  .ptbl th,.ptbl td{padding:9px 8px !important;font-size:12px !important;}
-  .ptbl{display:table !important;white-space:normal !important;width:100% !important;table-layout:auto;}
-  /* 收據按鈕在手機上稍微緊湊 */
-  .ptbl tbody td:last-child button{font-size:11px !important;padding:4px 10px !important;letter-spacing:0.04em !important;}
   /* 設計費 / 工程款 section header：hairline 裝飾線收掉、title 左 summary 右 */
   #pay-section-design > div:first-child,
   #pay-section-construction > div:first-child{justify-content:space-between !important;flex-wrap:wrap;gap:6px !important;}
@@ -7630,12 +7646,13 @@ async function renderClientPayment(){
       const tr=document.createElement('tr');
       if(displayStatus==='逾期') tr.style.background='#FFF5F5';
       tr.innerHTML=`
-        <td style="padding:9px 14px;">${r.name||'—'}</td>
-        <td class="col-mobile-hide" style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
-        <td style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
-        <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
-        <td class="col-mobile-hide" style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
+        <td class="pcell pcell-name" style="padding:9px 14px;">${r.name||'—'}</td>
+        <td class="pcell pcell-due col-mobile-hide" style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
+        <td class="pcell pcell-amt" style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
+        <td class="pcell pcell-status" style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
+        <td class="pcell pcell-recv col-mobile-hide" style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
       const tdReceipt=document.createElement('td');
+      tdReceipt.className='pcell pcell-receipt';
       tdReceipt.style.cssText='padding:9px 8px;text-align:right;';
       if(displayStatus==='已收'){
         const btn=document.createElement('button');
