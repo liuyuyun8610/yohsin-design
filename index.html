@@ -1189,6 +1189,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div id="client-quotes"></div>
           </div>
         </div>
+        <div class="doc-section">
+          <div class="doc-section-title">相關聲明 ／ 切結書</div>
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;line-height:1.7;">下列為條件性聲明文件。請依需求閱讀、必要時於文末簽署。</div>
+          <div id="client-acknowledgements"></div>
+        </div>
       </div>
 
     </div>
@@ -2597,7 +2602,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="fg-2" style="margin-bottom:0.8rem;">
         <div class="fg" style="margin-bottom:0;"><label>文章標題</label><input id="am-t" placeholder="設計流程說明"></div>
         <div class="fg" style="margin-bottom:0;"><label>分類標籤</label><select id="am-tag">
-          <option>施工注意</option><option>設計流程</option><option>材料知識</option>
+          <option>施工注意</option><option>設計流程</option><option>材料知識</option><option>切結書</option>
           <option>付款說明</option><option>售後保固</option><option>開工前準備</option><option>其他</option>
         </select></div>
       </div>
@@ -3092,6 +3097,7 @@ function _enterClient(c){
       dbLoadMeetings(cid).catch(e=>console.warn('load meetings failed',e)),
     ]);
     renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
+    loadClientSignatures().then(renderClientAcknowledgements);
     // Auto-fill today's date for client note form
     const cnDate=document.getElementById('cn-date');
     if(cnDate&&!cnDate.value){const t=new Date();cnDate.value=t.getFullYear()+'-'+(t.getMonth()+1).toString().padStart(2,'0')+'-'+t.getDate().toString().padStart(2,'0');}
@@ -7866,10 +7872,12 @@ async function loadClientSignatures(){
 
 async function renderKnowledge(){
   await loadClientSignatures();
+  renderClientAcknowledgements();
   const c=clients.find(x=>x.id===currentClientId);
   const el=document.getElementById('know-list');el.innerHTML='';
   (c?c.assigned:[]).forEach(aid=>{
     const a=articles.find(x=>x.id===aid);if(!a)return;
+    if(a.tag==='切結書') return; // 切結書 走 合約文件頁，不在注意事項顯示
     const d=document.createElement('div');d.className='know-item';
     let sigBlock='';
     if(a.requires_signature){
@@ -7902,6 +7910,48 @@ async function renderKnowledge(){
   if(!el.children.length)el.innerHTML='<div class="empty-state">尚未指派任何文章</div>';
 }
 function toggleKnow(hd){hd.querySelector('.know-arr').classList.toggle('open');hd.nextElementSibling.classList.toggle('open');}
+
+function renderClientAcknowledgements(){
+  const el=document.getElementById('client-acknowledgements');
+  if(!el) return;
+  const c=clients.find(x=>x.id===currentClientId);
+  el.innerHTML='';
+  const ackArticles=(c?c.assigned:[]).map(aid=>articles.find(x=>x.id===aid)).filter(a=>a&&a.tag==='切結書');
+  if(!ackArticles.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--ink-light);padding:0.6rem;">尚無相關聲明文件</div>';
+    return;
+  }
+  ackArticles.forEach(a=>{
+    const d=document.createElement('div');d.className='know-item';
+    let sigBlock='';
+    if(a.requires_signature){
+      const existing=_clientSignatures[a.id];
+      if(existing){
+        const dt=new Date(existing.signed_at);
+        const dtStr=dt.getFullYear()+'.'+String(dt.getMonth()+1).padStart(2,'0')+'.'+String(dt.getDate()).padStart(2,'0');
+        sigBlock=`
+          <div style="margin-top:18px;padding:14px 16px;background:#F6F4EE;border:0.5px solid var(--line);border-radius:8px;">
+            <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;letter-spacing:0.04em;">已簽署 · ${dtStr}</div>
+            <div style="font-size:13px;color:var(--ink);margin-bottom:8px;">${(existing.agreement_text||a.signature_label||'').replace(/[<>]/g,'')}</div>
+            <img src="${existing.signature_url}" alt="signature" style="max-height:80px;max-width:240px;background:#fff;border:0.5px solid var(--border);border-radius:4px;padding:4px;">
+          </div>`;
+      } else {
+        const labelEsc=String(a.signature_label||'').replace(/"/g,'&quot;');
+        sigBlock=`
+          <div style="margin-top:18px;padding:14px 16px;background:#FFF;border:0.5px solid var(--accent-light);border-radius:8px;">
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);">
+              <input type="checkbox" id="ack-chk-${a.id}" onchange="document.getElementById('ack-btn-${a.id}').disabled=!this.checked;">
+              <span>${labelEsc}</span>
+            </label>
+            <button id="ack-btn-${a.id}" disabled onclick="openSignatureModal(${a.id})" class="btn-ink" style="margin-top:10px;font-size:12px;padding:8px 18px;opacity:0.4;">簽名確認</button>
+            <style>#ack-btn-${a.id}:not([disabled]){opacity:1;}</style>
+          </div>`;
+      }
+    }
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">切結書</span></div></div><div class="know-bd">${a.body}${sigBlock}</div>`;
+    el.appendChild(d);
+  });
+}
 
 // ── Signature canvas modal ──
 let _sigCanvasState={articleId:null,drawing:false,lastX:0,lastY:0,hasInk:false};
