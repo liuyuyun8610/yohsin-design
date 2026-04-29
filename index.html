@@ -2642,6 +2642,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
+      <!-- 已簽署客戶清單（編輯既有文章且要求簽名時顯示） -->
+      <div id="am-signers-block" style="display:none;margin:1rem 0;padding:14px 16px;background:#FAF7F2;border:0.5px solid var(--accent-light);border-radius:8px;">
+        <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.04em;margin-bottom:10px;">已簽署 <span id="am-signers-count">0</span> 位客戶</div>
+        <div id="am-signers-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closeAM()">取消</button>
         <button class="btn-ink" onclick="saveArticle()">儲存</button>
@@ -8576,6 +8582,7 @@ function openAM(id){
   const reqSig=document.getElementById('am-req-sig');
   const sigLabel=document.getElementById('am-sig-label');
   const sigRow=document.getElementById('am-sig-label-row');
+  const signersBlock=document.getElementById('am-signers-block');
   if(id){
     const a=articles.find(x=>x.id===id);
     document.getElementById('am-t').value=a.title;
@@ -8584,6 +8591,12 @@ function openAM(id){
     reqSig.checked=!!a.requires_signature;
     sigLabel.value=a.signature_label||'';
     sigRow.style.display=reqSig.checked?'block':'none';
+    if(a.requires_signature){
+      signersBlock.style.display='block';
+      loadAdminSignersForArticle(id);
+    } else {
+      signersBlock.style.display='none';
+    }
   } else {
     document.getElementById('am-t').value='';
     document.getElementById('am-body').value='';
@@ -8591,11 +8604,53 @@ function openAM(id){
     reqSig.checked=false;
     sigLabel.value='';
     sigRow.style.display='none';
+    signersBlock.style.display='none';
   }
   // Reset preview
   document.getElementById('art-preview-panel').style.display='none';
   document.getElementById('art-preview-btn').textContent='▸ 顯示預覽';
   document.getElementById('am-modal').style.display='block';
+}
+
+async function loadAdminSignersForArticle(articleId){
+  const list=document.getElementById('am-signers-list');
+  const cnt=document.getElementById('am-signers-count');
+  list.innerHTML='<div style="font-size:12px;color:var(--ink-light);">載入中…</div>';
+  try{
+    const {data,error}=await sbClient.from('client_signatures').select('*').eq('article_id',articleId).order('signed_at',{ascending:false});
+    if(error) throw error;
+    cnt.textContent=(data||[]).length;
+    if(!data||!data.length){list.innerHTML='<div style="font-size:12px;color:var(--ink-light);">尚無客戶簽署</div>';return;}
+    list.innerHTML='';
+    data.forEach(s=>{
+      const cli=clients.find(c=>c.id===s.client_id);
+      const cliName=cli?cli.name:`客戶 #${s.client_id}`;
+      const dt=new Date(s.signed_at);
+      const dtStr=dt.getFullYear()+'.'+String(dt.getMonth()+1).padStart(2,'0')+'.'+String(dt.getDate()).padStart(2,'0')+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px;background:#fff;border:0.5px solid var(--border);border-radius:6px;';
+      row.innerHTML=`
+        <img src="${s.signature_url}" style="width:80px;height:50px;object-fit:contain;background:#fff;border:0.5px solid var(--border);border-radius:4px;flex-shrink:0;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);">${cliName}</div>
+          <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${dtStr}</div>
+        </div>
+        <button class="act-btn danger" data-sig-id="${s.id}">刪除</button>`;
+      row.querySelector('button').onclick=()=>deleteSignature(s.id,articleId);
+      list.appendChild(row);
+    });
+  }catch(e){list.innerHTML='<div style="font-size:12px;color:var(--red);">載入失敗：'+e.message+'</div>';}
+}
+
+async function deleteSignature(sigId,articleId){
+  if(!confirm('確定刪除這筆簽署紀錄？刪除後該客戶可重新簽名。')) return;
+  showLoader(true);
+  try{
+    const {error}=await sbClient.from('client_signatures').delete().eq('id',sigId);
+    if(error) throw error;
+    await loadAdminSignersForArticle(articleId);
+  }catch(e){alert('刪除失敗：'+e.message);}
+  showLoader(false);
 }
 function closeAM(){document.getElementById('am-modal').style.display='none';}
 
