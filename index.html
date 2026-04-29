@@ -795,13 +795,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .pay-sum .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:none !important;border-top:0.5px solid var(--line) !important;}
   .pay-sum .pay-lbl{margin-bottom:0 !important;font-size:11px !important;}
   .pay-sum .pay-val{font-size:18px !important;}
-  /* 付款 schedule 表格：手機版藏掉「預計日期 (col 2)」+「實收日期 (col 5)」，剩下 期別/金額/狀態/收據 四欄能完整顯示 */
-  .ptbl thead th:nth-child(2),.ptbl thead th:nth-child(5),
-  .ptbl tbody td:nth-child(2),.ptbl tbody td:nth-child(5){display:none !important;}
-  .ptbl th,.ptbl td{padding:9px 10px !important;font-size:12px !important;}
-  .ptbl{display:table !important;white-space:normal !important;width:100% !important;}
+  /* 付款 schedule 表格：手機版藏掉「預計日期」+「實收日期」（用 class 標記，比 nth-child 可靠） */
+  .ptbl .col-mobile-hide{display:none !important;}
+  .ptbl th,.ptbl td{padding:9px 8px !important;font-size:12px !important;}
+  .ptbl{display:table !important;white-space:normal !important;width:100% !important;table-layout:auto;}
   /* 收據按鈕在手機上稍微緊湊 */
-  .ptbl tbody td:last-child button{font-size:10px !important;padding:3px 8px !important;letter-spacing:0.04em !important;}
+  .ptbl tbody td:last-child button{font-size:11px !important;padding:4px 10px !important;letter-spacing:0.04em !important;}
   /* 設計費 / 工程款 section header：hairline 裝飾線收掉、title 左 summary 右 */
   #pay-section-design > div:first-child,
   #pay-section-construction > div:first-child{justify-content:space-between !important;flex-wrap:wrap;gap:6px !important;}
@@ -1369,10 +1368,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <table class="ptbl" style="margin:0;">
             <thead><tr>
               <th style="padding:9px 14px;">期別</th>
-              <th style="padding:9px 14px;">預計日期</th>
+              <th class="col-mobile-hide" style="padding:9px 14px;">預計日期</th>
               <th style="padding:9px 14px;text-align:right;">金額</th>
               <th style="padding:9px 14px;">狀態</th>
-              <th style="padding:9px 14px;">實收日期</th>
+              <th class="col-mobile-hide" style="padding:9px 14px;">實收日期</th>
               <th style="padding:9px 14px;text-align:right;">收據</th>
             </tr></thead>
             <tbody id="client-pay-design-tbody"></tbody>
@@ -1409,10 +1408,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <table class="ptbl" style="margin:0;">
             <thead><tr>
               <th style="padding:9px 14px;">期別</th>
-              <th style="padding:9px 14px;">預計日期</th>
+              <th class="col-mobile-hide" style="padding:9px 14px;">預計日期</th>
               <th style="padding:9px 14px;text-align:right;">金額</th>
               <th style="padding:9px 14px;">狀態</th>
-              <th style="padding:9px 14px;">實收日期</th>
+              <th class="col-mobile-hide" style="padding:9px 14px;">實收日期</th>
               <th style="padding:9px 14px;text-align:right;">收據</th>
             </tr></thead>
             <tbody id="client-pay-construction-tbody"></tbody>
@@ -7632,10 +7631,10 @@ async function renderClientPayment(){
       if(displayStatus==='逾期') tr.style.background='#FFF5F5';
       tr.innerHTML=`
         <td style="padding:9px 14px;">${r.name||'—'}</td>
-        <td style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
+        <td class="col-mobile-hide" style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
         <td style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
         <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
-        <td style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
+        <td class="col-mobile-hide" style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
       const tdReceipt=document.createElement('td');
       tdReceipt.style.cssText='padding:9px 8px;text-align:right;';
       if(displayStatus==='已收'){
