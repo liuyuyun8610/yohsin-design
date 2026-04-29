@@ -2491,7 +2491,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 <!-- SIGNATURE MODAL -->
 <div id="sig-modal" style="display:none;position:fixed;inset:0;background:rgba(10,8,6,0.55);z-index:9998;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#fff;border:0.5px solid var(--line);border-radius:12px;max-width:600px;width:100%;padding:22px 24px;">
+  <div style="background:#fff;border:0.5px solid var(--line);border-radius:12px;max-width:760px;width:100%;padding:22px 24px;">
     <div style="font-family:'Noto Serif TC',serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;">線上簽名</div>
     <div id="sig-modal-label" style="font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:14px;"></div>
     <div style="background:#FAF7F2;border:0.5px dashed var(--accent-light);border-radius:8px;padding:16px;text-align:center;">
@@ -7907,10 +7907,12 @@ function openSignatureModal(articleId){
   // Set canvas size based on display size for crisp rendering
   const dpr=window.devicePixelRatio||1;
   const rect=canvas.parentElement.getBoundingClientRect();
-  canvas.width=Math.min(rect.width-32,560)*dpr;
-  canvas.height=200*dpr;
-  canvas.style.width=Math.min(rect.width-32,560)+'px';
-  canvas.style.height='200px';
+  const cssW=Math.min(rect.width-32,700);
+  const cssH=Math.max(240,Math.round(cssW*0.42)); // 維持 landscape 比例，最少 240px
+  canvas.width=cssW*dpr;
+  canvas.height=cssH*dpr;
+  canvas.style.width=cssW+'px';
+  canvas.style.height=cssH+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   ctx.lineWidth=2.5;
