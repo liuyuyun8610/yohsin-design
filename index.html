@@ -2489,6 +2489,29 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   </div>
 </div>
 
+<!-- SIGNATURE MODAL -->
+<div id="sig-modal" style="display:none;position:fixed;inset:0;background:rgba(10,8,6,0.55);z-index:9998;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border:0.5px solid var(--line);border-radius:12px;max-width:600px;width:100%;padding:22px 24px;">
+    <div style="font-family:'Noto Serif TC',serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;">線上簽名</div>
+    <div id="sig-modal-label" style="font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:14px;"></div>
+    <div style="background:#FAF7F2;border:0.5px dashed var(--accent-light);border-radius:8px;padding:16px;text-align:center;">
+      <canvas id="sig-canvas"
+        style="background:#fff;border-radius:6px;cursor:crosshair;touch-action:none;"
+        onmousedown="_sigStart(event)" onmousemove="_sigMove(event)" onmouseup="_sigEnd()" onmouseleave="_sigEnd()"
+        ontouchstart="_sigStart(event)" ontouchmove="_sigMove(event)" ontouchend="_sigEnd()"
+      ></canvas>
+      <div style="font-size:11px;color:var(--ink-light);margin-top:8px;">用滑鼠／手指在框內簽名</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:8px;margin-top:18px;">
+      <button class="btn-ghost" onclick="clearSignaturePad()">清除重簽</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" onclick="closeSignatureModal()">取消</button>
+        <button class="btn-ink" onclick="saveSignature()">確認簽名</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- RENDER LIGHTBOX -->
 <div id="render-lightbox" class="render-lightbox" style="display:none;" onclick="handleLbBgClick(event)">
   <span class="render-lb-close" onclick="closeRenderLightbox()">✕</span>
@@ -2606,6 +2629,19 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;letter-spacing:0.06em;">預覽效果：</div>
         <div class="art-preview-box know-bd open" id="art-preview-content"></div>
       </div>
+
+      <!-- 簽名要求 -->
+      <div style="margin:1rem 0;padding:12px 14px;background:var(--sand);border:0.5px solid var(--border);border-radius:8px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);font-weight:500;">
+          <input type="checkbox" id="am-req-sig" onchange="document.getElementById('am-sig-label-row').style.display=this.checked?'block':'none';">
+          <span>需要客戶簽名確認</span>
+        </label>
+        <div id="am-sig-label-row" style="display:none;margin-top:10px;">
+          <label class="fl" style="font-size:11px;color:var(--ink-muted);">聲明文字（顯示在文章下方）</label>
+          <input class="form-input" id="am-sig-label" placeholder="例：我已閱讀上方內容，並且要自行發包空調" style="margin-bottom:0;">
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closeAM()">取消</button>
         <button class="btn-ink" onclick="saveArticle()">儲存</button>
@@ -2718,7 +2754,8 @@ async function loadAllData() {
     nextCId = clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1;
 
     articles = (artData||[]).map(a => ({
-      id:a.id, title:a.title, tag:a.tag, body:a.body
+      id:a.id, title:a.title, tag:a.tag, body:a.body,
+      requires_signature:!!a.requires_signature, signature_label:a.signature_label||''
     }));
     nextAId = articles.length ? Math.max(...articles.map(a=>a.id))+1 : 1;
 
@@ -2790,7 +2827,8 @@ async function dbDeleteClient(id) {
 }
 
 async function dbSaveArticle(a) {
-  const row = { title:a.title, tag:a.tag, body:a.body, sort_order:a.id||0 };
+  const row = { title:a.title, tag:a.tag, body:a.body, sort_order:a.id||0,
+    requires_signature:!!a.requires_signature, signature_label:a.signature_label||null };
   if (a.id && articles.find(x=>x.id===a.id)) {
     await sb.from('articles').update(row, 'id=eq.'+a.id);
   } else {
@@ -7809,18 +7847,132 @@ async function renderClientPayment(){
 }
 
 // ========== KNOWLEDGE ==========
-function renderKnowledge(){
+let _clientSignatures={}; // article_id -> {signature_url, agreement_text, signed_at}
+
+async function loadClientSignatures(){
+  if(!currentClientId) return;
+  _clientSignatures={};
+  try{
+    const {data}=await sbClient.from('client_signatures').select('*').eq('client_id',currentClientId);
+    if(data) data.forEach(s=>{_clientSignatures[s.article_id]=s;});
+  }catch(e){console.warn('load signatures',e);}
+}
+
+async function renderKnowledge(){
+  await loadClientSignatures();
   const c=clients.find(x=>x.id===currentClientId);
   const el=document.getElementById('know-list');el.innerHTML='';
   (c?c.assigned:[]).forEach(aid=>{
     const a=articles.find(x=>x.id===aid);if(!a)return;
     const d=document.createElement('div');d.className='know-item';
-    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">${a.tag}</span></div></div><div class="know-bd">${a.body}</div>`;
+    let sigBlock='';
+    if(a.requires_signature){
+      const existing=_clientSignatures[a.id];
+      if(existing){
+        const dt=new Date(existing.signed_at);
+        const dtStr=dt.getFullYear()+'.'+String(dt.getMonth()+1).padStart(2,'0')+'.'+String(dt.getDate()).padStart(2,'0');
+        sigBlock=`
+          <div style="margin-top:18px;padding:14px 16px;background:#F6F4EE;border:0.5px solid var(--line);border-radius:8px;">
+            <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;letter-spacing:0.04em;">已簽署 · ${dtStr}</div>
+            <div style="font-size:13px;color:var(--ink);margin-bottom:8px;">${(existing.agreement_text||a.signature_label||'').replace(/[<>]/g,'')}</div>
+            <img src="${existing.signature_url}" alt="signature" style="max-height:80px;max-width:240px;background:#fff;border:0.5px solid var(--border);border-radius:4px;padding:4px;">
+          </div>`;
+      } else {
+        const labelEsc=String(a.signature_label||'').replace(/"/g,'&quot;');
+        sigBlock=`
+          <div style="margin-top:18px;padding:14px 16px;background:#FFF;border:0.5px solid var(--accent-light);border-radius:8px;">
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);">
+              <input type="checkbox" id="sig-chk-${a.id}" onchange="document.getElementById('sig-btn-${a.id}').disabled=!this.checked;">
+              <span>${labelEsc}</span>
+            </label>
+            <button id="sig-btn-${a.id}" disabled onclick="openSignatureModal(${a.id})" class="btn-ink" style="margin-top:10px;font-size:12px;padding:8px 18px;opacity:0.4;">簽名確認</button>
+            <style>#sig-btn-${a.id}:not([disabled]){opacity:1;}</style>
+          </div>`;
+      }
+    }
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">${a.tag}</span></div></div><div class="know-bd">${a.body}${sigBlock}</div>`;
     el.appendChild(d);
   });
   if(!el.children.length)el.innerHTML='<div class="empty-state">尚未指派任何文章</div>';
 }
 function toggleKnow(hd){hd.querySelector('.know-arr').classList.toggle('open');hd.nextElementSibling.classList.toggle('open');}
+
+// ── Signature canvas modal ──
+let _sigCanvasState={articleId:null,drawing:false,lastX:0,lastY:0,hasInk:false};
+function openSignatureModal(articleId){
+  const a=articles.find(x=>x.id===articleId);if(!a)return;
+  _sigCanvasState={articleId,drawing:false,lastX:0,lastY:0,hasInk:false};
+  document.getElementById('sig-modal-label').textContent=a.signature_label||'簽名';
+  const canvas=document.getElementById('sig-canvas');
+  // Set canvas size based on display size for crisp rendering
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.parentElement.getBoundingClientRect();
+  canvas.width=Math.min(rect.width-32,560)*dpr;
+  canvas.height=200*dpr;
+  canvas.style.width=Math.min(rect.width-32,560)+'px';
+  canvas.style.height='200px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.lineWidth=2.5;
+  ctx.lineCap='round';
+  ctx.strokeStyle='#2A2620';
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  document.getElementById('sig-modal').style.display='flex';
+}
+function closeSignatureModal(){document.getElementById('sig-modal').style.display='none';}
+function clearSignaturePad(){
+  const canvas=document.getElementById('sig-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  _sigCanvasState.hasInk=false;
+}
+function _sigPoint(e){
+  const canvas=document.getElementById('sig-canvas');
+  const r=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  return {x:t.clientX-r.left, y:t.clientY-r.top};
+}
+function _sigStart(e){e.preventDefault();const p=_sigPoint(e);_sigCanvasState.drawing=true;_sigCanvasState.lastX=p.x;_sigCanvasState.lastY=p.y;}
+function _sigMove(e){
+  if(!_sigCanvasState.drawing) return;
+  e.preventDefault();
+  const p=_sigPoint(e);
+  const ctx=document.getElementById('sig-canvas').getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(_sigCanvasState.lastX,_sigCanvasState.lastY);
+  ctx.lineTo(p.x,p.y);
+  ctx.stroke();
+  _sigCanvasState.lastX=p.x;
+  _sigCanvasState.lastY=p.y;
+  _sigCanvasState.hasInk=true;
+}
+function _sigEnd(){_sigCanvasState.drawing=false;}
+async function saveSignature(){
+  if(!_sigCanvasState.hasInk){alert('請先簽名');return;}
+  const articleId=_sigCanvasState.articleId;
+  const a=articles.find(x=>x.id===articleId);if(!a)return;
+  const canvas=document.getElementById('sig-canvas');
+  showLoader(true);
+  try{
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    const file=new File([blob],`sig-${currentClientId}-${articleId}.png`,{type:'image/png'});
+    const url=await uploadToStorage(file,'meeting-photos');
+    const row={
+      client_id:currentClientId,
+      article_id:articleId,
+      signature_url:url,
+      agreement_text:a.signature_label||'',
+    };
+    const {error}=await sbClient.from('client_signatures').upsert(row,{onConflict:'client_id,article_id'});
+    if(error) throw error;
+    closeSignatureModal();
+    await renderKnowledge();
+    alert('✓ 簽名已儲存');
+  }catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
+}
 
 // ========== CHECKLIST ==========
 function switchStab(id,el){
@@ -8419,8 +8571,25 @@ function renderArtGrid(){
 function openAM(id){
   editAId=id||null;
   document.getElementById('am-ttl').textContent=id?'編輯文章':'新增文章';
-  if(id){const a=articles.find(x=>x.id===id);document.getElementById('am-t').value=a.title;document.getElementById('am-tag').value=a.tag;document.getElementById('am-body').value=a.body;}
-  else{document.getElementById('am-t').value='';document.getElementById('am-body').value='';document.getElementById('am-tag').value='施工注意';}
+  const reqSig=document.getElementById('am-req-sig');
+  const sigLabel=document.getElementById('am-sig-label');
+  const sigRow=document.getElementById('am-sig-label-row');
+  if(id){
+    const a=articles.find(x=>x.id===id);
+    document.getElementById('am-t').value=a.title;
+    document.getElementById('am-tag').value=a.tag;
+    document.getElementById('am-body').value=a.body;
+    reqSig.checked=!!a.requires_signature;
+    sigLabel.value=a.signature_label||'';
+    sigRow.style.display=reqSig.checked?'block':'none';
+  } else {
+    document.getElementById('am-t').value='';
+    document.getElementById('am-body').value='';
+    document.getElementById('am-tag').value='施工注意';
+    reqSig.checked=false;
+    sigLabel.value='';
+    sigRow.style.display='none';
+  }
   // Reset preview
   document.getElementById('art-preview-panel').style.display='none';
   document.getElementById('art-preview-btn').textContent='▸ 顯示預覽';
@@ -8549,7 +8718,31 @@ function artInsertTemplate(){
   // Auto-show preview
   if(document.getElementById('art-preview-panel').style.display==='none') toggleArtPreview();
 }
-async function saveArticle(){const t=document.getElementById('am-t').value.trim(),tg=document.getElementById('am-tag').value,b=document.getElementById('am-body').value.trim();if(!t||!b){alert('請填寫標題和內容');return;}showLoader(true);try{if(editAId){const a=articles.find(x=>x.id===editAId);Object.assign(a,{title:t,tag:tg,body:b});await dbSaveArticle(a);}else{const a={title:t,tag:tg,body:b};await dbSaveArticle(a);articles.push(a);}}catch(e){alert('儲存失敗：'+e.message);}showLoader(false);closeAM();renderArtGrid();}
+async function saveArticle(){
+  const t=document.getElementById('am-t').value.trim();
+  const tg=document.getElementById('am-tag').value;
+  const b=document.getElementById('am-body').value.trim();
+  const reqSig=document.getElementById('am-req-sig').checked;
+  const sigLabel=document.getElementById('am-sig-label').value.trim();
+  if(!t||!b){alert('請填寫標題和內容');return;}
+  if(reqSig&&!sigLabel){alert('已勾選需要簽名，請填寫聲明文字');return;}
+  showLoader(true);
+  try{
+    const patch={title:t,tag:tg,body:b,requires_signature:reqSig,signature_label:reqSig?sigLabel:null};
+    if(editAId){
+      const a=articles.find(x=>x.id===editAId);
+      Object.assign(a,patch);
+      await dbSaveArticle(a);
+    } else {
+      const a={...patch};
+      await dbSaveArticle(a);
+      articles.push(a);
+    }
+  }catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
+  closeAM();
+  renderArtGrid();
+}
 async function deleteArt(id){if(!confirm('確定刪除？'))return;showLoader(true);try{await dbDeleteArticle(id);}catch(e){alert('刪除失敗：'+e.message);showLoader(false);return;}articles=articles.filter(x=>x.id!==id);clients.forEach(c=>{c.assigned=c.assigned.filter(aid=>aid!==id);});showLoader(false);renderArtGrid();}
 
 // ========== ASSIGN ==========
