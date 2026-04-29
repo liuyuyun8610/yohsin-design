@@ -7637,13 +7637,13 @@ async function renderClientPayment(){
         <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
         <td style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
       const tdReceipt=document.createElement('td');
-      tdReceipt.style.cssText='padding:9px 14px;text-align:right;';
+      tdReceipt.style.cssText='padding:9px 8px;text-align:right;';
       if(displayStatus==='已收'){
         const btn=document.createElement('button');
-        btn.textContent='收據下載';
-        btn.style.cssText='font-size:10px;padding:4px 10px;border:0.5px solid var(--ink-muted);background:transparent;color:var(--ink-muted);cursor:pointer;border-radius:0;letter-spacing:0.06em;font-family:inherit;';
-        btn.onmouseenter=()=>{btn.style.borderColor='var(--ink)';btn.style.color='var(--ink)';};
-        btn.onmouseleave=()=>{btn.style.borderColor='var(--ink-muted)';btn.style.color='var(--ink-muted)';};
+        btn.textContent='下載';
+        btn.style.cssText='font-size:11px;padding:4px 10px;border:none;background:var(--ink);color:var(--paper);cursor:pointer;border-radius:0;letter-spacing:0.04em;font-family:inherit;white-space:nowrap;';
+        btn.onmouseenter=()=>{btn.style.background='var(--ink-muted)';};
+        btn.onmouseleave=()=>{btn.style.background='var(--ink)';};
         btn.onclick=()=>downloadReceipt(r,items,category);
         tdReceipt.appendChild(btn);
       } else {
