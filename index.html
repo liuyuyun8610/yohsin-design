@@ -787,24 +787,47 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 /* ---- Status badges in tables (e.g. 已收/未收) ---- */
 .psm{padding:0 !important;background:transparent !important;font-size:10px !important;letter-spacing:0.18em !important;text-transform:uppercase;}
 
+/* ---- Mobile-only payment schedule cards ---- */
+.pay-cards-mobile{display:none;}
+.pay-card{
+  border:0.5px solid var(--line);
+  border-radius:8px;
+  padding:14px 14px;
+  margin:10px 12px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.pay-card .pc-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.pay-card .pc-name{font-size:13px;font-weight:500;color:var(--ink);}
+.pay-card .pc-amt{font-size:14px;font-weight:500;font-family:'NumQuicksand','Noto Serif TC',serif;color:var(--ink);}
+.pay-card .pc-meta{font-size:11px;color:var(--ink-light);letter-spacing:0.04em;}
+.pay-card .pc-status{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:400;}
+.pay-card .pc-status.s-paid{color:var(--green);}
+.pay-card .pc-status.s-pending{color:#BF5843;}
+.pay-card .pc-status.s-overdue{color:#A32D2D;}
+.pay-card .pc-btn{
+  font-size:11px;padding:5px 14px;border:none;
+  background:var(--ink);color:var(--paper);cursor:pointer;
+  border-radius:0;letter-spacing:0.06em;font-family:'NumQuicksand','Noto Serif TC',serif;
+  white-space:nowrap;
+}
+.pay-card .pc-btn:hover{background:var(--ink-muted);}
+
 /* ---- Mobile fixes for Phase 2 ---- */
 @media(max-width:720px){
+  /* Toggle: hide desktop table, show mobile card list */
+  .ptbl{display:none !important;}
+  .pay-cards-mobile{display:block !important;}
+  /* 容器外框留白：mobile 給更舒適的左右 padding */
+  #s-client .pb,#s-admin .pb{padding-left:1.25rem !important;padding-right:1.25rem !important;}
   /* 統計三欄在手機上改成直立疊加，每行「標題 + 金額」一列 */
   .pay-sum,#s-client .pay-sum,#s-admin .pay-sum{grid-template-columns:1fr !important;}
   .pay-sum .pay-box,#s-client .pay-sum .pay-box{padding:13px 12px !important;text-align:left !important;display:flex;justify-content:space-between;align-items:baseline;}
   .pay-sum .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:none !important;border-top:0.5px solid var(--line) !important;}
   .pay-sum .pay-lbl{margin-bottom:0 !important;font-size:11px !important;}
   .pay-sum .pay-val{font-size:18px !important;}
-  /* 付款 schedule 表格（手機）：強制 display:table 覆蓋 .pb table{display:block} 全域規則 */
-  .ptbl{display:table !important;width:100% !important;table-layout:auto !important;}
-  .ptbl thead{display:table-header-group !important;}
-  .ptbl tbody{display:table-row-group !important;}
-  .ptbl tr{display:table-row !important;background:transparent !important;}
-  .ptbl th,.ptbl td{display:table-cell !important;}
-  .ptbl thead th{padding:8px 4px !important;font-size:10px !important;}
-  .ptbl tbody td{padding:10px 4px !important;font-size:12px !important;border-bottom:0.5px solid var(--line-soft) !important;}
-  .ptbl .col-mobile-hide{display:none !important;}
-  .ptbl tbody td:last-child button{font-size:10px !important;padding:3px 8px !important;letter-spacing:0 !important;}
   /* 設計費 / 工程款 section header：hairline 裝飾線收掉、title 左 summary 右 */
   #pay-section-design > div:first-child,
   #pay-section-construction > div:first-child{justify-content:space-between !important;flex-wrap:wrap;gap:6px !important;}
@@ -1380,6 +1403,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             </tr></thead>
             <tbody id="client-pay-design-tbody"></tbody>
           </table>
+          <div class="pay-cards-mobile" id="client-pay-design-cards"></div>
           <div id="client-pay-design-empty" style="text-align:center;padding:1.5rem;font-size:13px;color:var(--ink-light);display:none;">尚無設計費記錄</div>
         </div>
         <details class="bank-info-card" style="margin-top:10px;background:#FAF7F2;border-left:3px solid var(--blue);border-radius:6px;overflow:hidden;">
@@ -1420,6 +1444,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             </tr></thead>
             <tbody id="client-pay-construction-tbody"></tbody>
           </table>
+          <div class="pay-cards-mobile" id="client-pay-construction-cards"></div>
           <div id="client-pay-construction-empty" style="text-align:center;padding:1.5rem;font-size:13px;color:var(--ink-light);display:none;">尚無工程款記錄</div>
         </div>
         <details class="bank-info-card" style="margin-top:10px;background:#FAF7F2;border-left:3px solid var(--accent);border-radius:6px;overflow:hidden;">
@@ -7617,12 +7642,14 @@ async function renderClientPayment(){
   const today=new Date();today.setHours(0,0,0,0);
   const statusPill={'已收':'pill-green','未收':'pill-unpaid','逾期':'pill-danger'};
 
-  // Helper: render rows into a tbody
+  // Helper: render rows into a tbody (desktop) and mobile card list
   function renderPayRows(tbodyId, emptyId, items, category){
     const tb=document.getElementById(tbodyId);
+    const cardsEl=document.getElementById(tbodyId.replace('tbody','cards'));
     const emp=document.getElementById(emptyId);
     if(!tb) return;
     tb.innerHTML='';
+    if(cardsEl) cardsEl.innerHTML='';
     if(!items.length){if(emp)emp.style.display='block';return;}
     if(emp)emp.style.display='none';
     items.forEach(r=>{
@@ -7631,21 +7658,21 @@ async function renderClientPayment(){
         const dueDate=new Date(r.due.replace(/\//g,'-'));
         if(!isNaN(dueDate)&&dueDate<today) displayStatus='逾期';
       }
+      // ── Desktop table row ──
       const tr=document.createElement('tr');
       if(displayStatus==='逾期') tr.style.background='#FFF5F5';
       tr.innerHTML=`
-        <td class="pcell pcell-name" style="padding:9px 14px;">${r.name||'—'}</td>
-        <td class="pcell pcell-due col-mobile-hide" style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
-        <td class="pcell pcell-amt" style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
-        <td class="pcell pcell-status" style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
-        <td class="pcell pcell-recv col-mobile-hide" style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
+        <td style="padding:9px 14px;">${r.name||'—'}</td>
+        <td style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
+        <td style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
+        <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
+        <td style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
       const tdReceipt=document.createElement('td');
-      tdReceipt.className='pcell pcell-receipt';
-      tdReceipt.style.cssText='padding:9px 8px;text-align:right;';
+      tdReceipt.style.cssText='padding:9px 14px;text-align:right;';
       if(displayStatus==='已收'){
         const btn=document.createElement('button');
         btn.textContent='下載';
-        btn.style.cssText='font-size:11px;padding:4px 10px;border:none;background:var(--ink);color:var(--paper);cursor:pointer;border-radius:0;letter-spacing:0.04em;font-family:inherit;white-space:nowrap;';
+        btn.style.cssText='font-size:11px;padding:4px 12px;border:none;background:var(--ink);color:var(--paper);cursor:pointer;border-radius:0;letter-spacing:0.04em;font-family:inherit;white-space:nowrap;';
         btn.onmouseenter=()=>{btn.style.background='var(--ink-muted)';};
         btn.onmouseleave=()=>{btn.style.background='var(--ink)';};
         btn.onclick=()=>downloadReceipt(r,items,category);
@@ -7656,6 +7683,34 @@ async function renderClientPayment(){
       }
       tr.appendChild(tdReceipt);
       tb.appendChild(tr);
+
+      // ── Mobile card ──
+      if(cardsEl){
+        const card=document.createElement('div');
+        card.className='pay-card';
+        const statusClass=displayStatus==='已收'?'s-paid':displayStatus==='逾期'?'s-overdue':'s-pending';
+        const dateLine=displayStatus==='已收'
+          ? (r.received?`實收 ${r.received}`:'已收款')
+          : (r.due?`預計 ${r.due}${displayStatus==='逾期'?' ⚠️':''}`:'');
+        const btnHtml=displayStatus==='已收'
+          ? `<button class="pc-btn">下載</button>`
+          : `<span style="font-size:11px;color:var(--ink-light);">—</span>`;
+        card.innerHTML=`
+          <div class="pc-row">
+            <span class="pc-name">${r.name||'—'}</span>
+            <span class="pc-amt">$${fmtN(r.amount||0)}</span>
+          </div>
+          <div class="pc-row">
+            <span class="pc-status ${statusClass}">${displayStatus}</span>
+            <span class="pc-meta">${dateLine}</span>
+            ${btnHtml}
+          </div>`;
+        if(displayStatus==='已收'){
+          const btn=card.querySelector('.pc-btn');
+          if(btn) btn.onclick=()=>downloadReceipt(r,items,category);
+        }
+        cardsEl.appendChild(card);
+      }
     });
   }
 
