@@ -795,28 +795,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .pay-sum .pay-box + .pay-box,#s-client .pay-sum .pay-box + .pay-box{border-left:none !important;border-top:0.5px solid var(--line) !important;}
   .pay-sum .pay-lbl{margin-bottom:0 !important;font-size:11px !important;}
   .pay-sum .pay-val{font-size:18px !important;}
-  /* 付款 schedule 在手機改成 card-grid layout（沿用其他頁面的 card 風格）*/
-  .ptbl{display:block !important;width:100% !important;}
-  .ptbl thead{display:none !important;}
-  .ptbl tbody{display:block !important;}
-  .ptbl tbody tr{
-    display:grid !important;
-    grid-template-columns:1fr auto;
-    column-gap:12px;
-    row-gap:6px;
-    padding:14px 4px !important;
-    border-bottom:0.5px solid var(--line);
-    align-items:center;
-    background:transparent !important;
-  }
-  .ptbl tbody tr:last-child{border-bottom:none !important;}
-  .ptbl tbody .pcell{padding:0 !important;border:none !important;background:transparent !important;font-size:13px !important;white-space:normal !important;}
-  .ptbl tbody .pcell-name{grid-column:1;grid-row:1;font-weight:500;color:var(--ink);}
-  .ptbl tbody .pcell-amt{grid-column:2;grid-row:1;text-align:right;font-family:'NumQuicksand','Noto Serif TC',serif;}
-  .ptbl tbody .pcell-status{grid-column:1;grid-row:2;font-size:11px !important;}
-  .ptbl tbody .pcell-receipt{grid-column:2;grid-row:2;text-align:right;}
-  .ptbl tbody .pcell-receipt button{font-size:11px !important;padding:4px 12px !important;}
+  /* 付款 schedule 表格（手機）：強制 display:table 覆蓋 .pb table{display:block} 全域規則 */
+  .ptbl{display:table !important;width:100% !important;table-layout:auto !important;}
+  .ptbl thead{display:table-header-group !important;}
+  .ptbl tbody{display:table-row-group !important;}
+  .ptbl tr{display:table-row !important;background:transparent !important;}
+  .ptbl th,.ptbl td{display:table-cell !important;}
+  .ptbl thead th{padding:8px 4px !important;font-size:10px !important;}
+  .ptbl tbody td{padding:10px 4px !important;font-size:12px !important;border-bottom:0.5px solid var(--line-soft) !important;}
   .ptbl .col-mobile-hide{display:none !important;}
+  .ptbl tbody td:last-child button{font-size:10px !important;padding:3px 8px !important;letter-spacing:0 !important;}
   /* 設計費 / 工程款 section header：hairline 裝飾線收掉、title 左 summary 右 */
   #pay-section-design > div:first-child,
   #pay-section-construction > div:first-child{justify-content:space-between !important;flex-wrap:wrap;gap:6px !important;}
