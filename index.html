@@ -1421,17 +1421,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <span>設計費 匯款資訊</span>
             <span class="bank-arrow" style="font-size:11px;color:var(--blue);transition:transform .15s;">▾</span>
           </summary>
-          <div style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;">
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">戶　　名</span>有心制作室內裝修設計有限公司</div>
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行代碼</span><span style="font-family:'NumQuicksand',monospace;">007</span></div>
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行名稱</span>第一商業銀行</div>
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">分　　行</span>林口分行</div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行帳號</span>
-              <span style="font-family:'NumQuicksand',monospace;font-weight:500;font-size:13px;">29010013031</span>
-              <button onclick="copyBankAcct(this,'29010013031')" style="font-size:11px;padding:2px 10px;border:0.5px solid var(--blue);background:#fff;color:var(--blue);border-radius:5px;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">複製帳號</button>
-            </div>
-          </div>
+          <div id="bank-design-body" style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;"></div>
         </details>
       </div>
 
@@ -1462,17 +1452,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <span>工程款 匯款資訊</span>
             <span class="bank-arrow" style="font-size:11px;color:var(--accent);transition:transform .15s;">▾</span>
           </summary>
-          <div style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;">
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">戶　　名</span>劉郁筠</div>
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行代碼</span><span style="font-family:'NumQuicksand',monospace;">822</span></div>
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行名稱</span>中國信託銀行</div>
-            <div><span style="color:var(--ink-muted);display:inline-block;width:75px;">分　　行</span>中壢分行</div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行帳號</span>
-              <span style="font-family:'NumQuicksand',monospace;font-weight:500;font-size:13px;">12951-09168-82</span>
-              <button onclick="copyBankAcct(this,'129510916882')" style="font-size:11px;padding:2px 10px;border:0.5px solid var(--accent);background:#fff;color:var(--accent);border-radius:5px;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">複製帳號</button>
-            </div>
-          </div>
+          <div id="bank-construction-body" style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;"></div>
         </details>
       </div>
 
@@ -2416,6 +2396,32 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">付款明細頁 — 設計費 匯款帳戶</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端付款明細頁，展開「設計費 匯款資訊」時顯示的內容。</div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;align-items:center;font-size:13px;">
+            <label style="color:var(--ink-muted);">戶　　名</label><input class="form-input" id="bd-design-holder" style="margin:0;" placeholder="有心制作室內裝修設計有限公司">
+            <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-design-code" style="margin:0;" placeholder="007">
+            <label style="color:var(--ink-muted);">銀行名稱</label><input class="form-input" id="bd-design-bank" style="margin:0;" placeholder="第一商業銀行">
+            <label style="color:var(--ink-muted);">分　　行</label><input class="form-input" id="bd-design-branch" style="margin:0;" placeholder="林口分行">
+            <label style="color:var(--ink-muted);">銀行帳號</label><input class="form-input" id="bd-design-account" style="margin:0;" placeholder="29010013031">
+          </div>
+          <div style="margin-top:1rem;text-align:right;"><button class="btn-ink" onclick="saveBankInfo('design')">儲存設計費帳戶</button></div>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">付款明細頁 — 工程款 匯款帳戶</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端付款明細頁，展開「工程款 匯款資訊」時顯示的內容。</div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;align-items:center;font-size:13px;">
+            <label style="color:var(--ink-muted);">戶　　名</label><input class="form-input" id="bd-construction-holder" style="margin:0;" placeholder="劉郁筠">
+            <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-construction-code" style="margin:0;" placeholder="822">
+            <label style="color:var(--ink-muted);">銀行名稱</label><input class="form-input" id="bd-construction-bank" style="margin:0;" placeholder="中國信託銀行">
+            <label style="color:var(--ink-muted);">分　　行</label><input class="form-input" id="bd-construction-branch" style="margin:0;" placeholder="中壢分行">
+            <label style="color:var(--ink-muted);">銀行帳號</label><input class="form-input" id="bd-construction-account" style="margin:0;" placeholder="12951-09168-82">
+          </div>
+          <div style="margin-top:1rem;text-align:right;"><button class="btn-ink" onclick="saveBankInfo('construction')">儲存工程款帳戶</button></div>
+        </div>
+
         <!-- 3 個 Icon 合併成一張卡 -->
         <div class="card">
           <div class="card-title">客戶總覽快捷圖示</div>
@@ -2724,8 +2730,14 @@ async function loadAllData() {
       if(s.key==='plan_icon_url'&&s.value) applyPlanIcon(s.value);
       if(s.key==='elev_icon_url'&&s.value) applyElevIcon(s.value);
       if(s.key==='receipt_logo'&&s.value) applyReceiptLogo(s.value);
+      if(s.key==='bank_design'&&s.value){try{window._bankInfo.design={...BANK_DEFAULTS.design,...JSON.parse(s.value)};}catch(e){}}
+      if(s.key==='bank_construction'&&s.value){try{window._bankInfo.construction={...BANK_DEFAULTS.construction,...JSON.parse(s.value)};}catch(e){}}
       if(s.key==='anthropic_api_key'&&s.value) anthropicApiKey=s.value;
     });
+
+    // 套用匯款帳戶到客戶端付款頁 + admin 表單
+    applyBankInfo('design');
+    applyBankInfo('construction');
 
     dbReady = true;
     console.log('✅ DB loaded — projects:', projects.length, 'clients:', clients.length, 'articles:', articles.length);
@@ -3215,6 +3227,56 @@ async function uploadPlanIcon(e){
     alert('✓ 平面系統圖 Icon 已更新');
   }catch(err){alert('上傳失敗：'+err.message);}
   document.getElementById('plan-icon-input').value='';
+  showLoader(false);
+}
+
+// ── 匯款帳戶（設計費 / 工程款）──
+const BANK_DEFAULTS={
+  design:{holder:'有心制作室內裝修設計有限公司',code:'007',bank:'第一商業銀行',branch:'林口分行',account:'29010013031'},
+  construction:{holder:'劉郁筠',code:'822',bank:'中國信託銀行',branch:'中壢分行',account:'12951-09168-82'},
+};
+const BANK_ACCENT={design:'var(--blue)',construction:'var(--accent)'};
+window._bankInfo={design:{...BANK_DEFAULTS.design},construction:{...BANK_DEFAULTS.construction}};
+
+function applyBankInfo(type){
+  const data=window._bankInfo[type];
+  const body=document.getElementById('bank-'+type+'-body');
+  if(!body) return;
+  const accent=BANK_ACCENT[type];
+  // 帳號去掉破折號當複製值
+  const acctClean=(data.account||'').replace(/[^\d]/g,'');
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  body.innerHTML=
+    `<div><span style="color:var(--ink-muted);display:inline-block;width:75px;">戶　　名</span>${esc(data.holder)}</div>`+
+    `<div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行代碼</span><span style="font-family:'NumQuicksand',monospace;">${esc(data.code)}</span></div>`+
+    `<div><span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行名稱</span>${esc(data.bank)}</div>`+
+    `<div><span style="color:var(--ink-muted);display:inline-block;width:75px;">分　　行</span>${esc(data.branch)}</div>`+
+    `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">`+
+      `<span style="color:var(--ink-muted);display:inline-block;width:75px;">銀行帳號</span>`+
+      `<span style="font-family:'NumQuicksand',monospace;font-weight:500;font-size:13px;">${esc(data.account)}</span>`+
+      `<button onclick="copyBankAcct(this,'${esc(acctClean)}')" style="font-size:11px;padding:2px 10px;border:0.5px solid ${accent};background:#fff;color:${accent};border-radius:5px;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">複製帳號</button>`+
+    `</div>`;
+  // 也填入 admin form（如果元素存在）
+  ['holder','code','bank','branch','account'].forEach(field=>{
+    const inp=document.getElementById('bd-'+type+'-'+field);
+    if(inp) inp.value=data[field]||'';
+  });
+}
+async function saveBankInfo(type){
+  const data={
+    holder:document.getElementById('bd-'+type+'-holder').value.trim(),
+    code:document.getElementById('bd-'+type+'-code').value.trim(),
+    bank:document.getElementById('bd-'+type+'-bank').value.trim(),
+    branch:document.getElementById('bd-'+type+'-branch').value.trim(),
+    account:document.getElementById('bd-'+type+'-account').value.trim(),
+  };
+  showLoader(true);
+  try{
+    await sbClient.from('system_settings').upsert({key:'bank_'+type,value:JSON.stringify(data)},{onConflict:'key'});
+    window._bankInfo[type]=data;
+    applyBankInfo(type);
+    alert('✓ '+(type==='design'?'設計費':'工程款')+' 帳戶已儲存');
+  }catch(err){alert('儲存失敗：'+err.message);}
   showLoader(false);
 }
 
