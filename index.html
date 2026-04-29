@@ -822,6 +822,18 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .pay-cards-mobile{display:block !important;}
   /* 容器外框留白：mobile 給更舒適的左右 padding */
   #s-client .pb,#s-admin .pb{padding-left:1.25rem !important;padding-right:1.25rem !important;}
+  /* 付款明細頁：把每張 .card 還原成視覺卡片（白底 + 邊框 + 內距），phase 2 的 flat hairline 在手機上失去視覺辨識 */
+  #p-payment .card{
+    background:#fff !important;
+    border:0.5px solid var(--line) !important;
+    border-radius:10px !important;
+    padding:14px !important;
+    margin-bottom:14px !important;
+    box-shadow:0 1px 4px rgba(58,42,26,0.04);
+  }
+  /* section header（✏️ 設計費 / ✏️ 工程款）區塊外不要再上 card 邊框（重複） */
+  #pay-section-design,#pay-section-construction{margin-bottom:14px;}
+  #pay-section-design > div:first-child,#pay-section-construction > div:first-child{padding:0 4px;}
   /* 統計三欄在手機上改成直立疊加，每行「標題 + 金額」一列 */
   .pay-sum,#s-client .pay-sum,#s-admin .pay-sum{grid-template-columns:1fr !important;}
   .pay-sum .pay-box,#s-client .pay-sum .pay-box{padding:13px 12px !important;text-align:left !important;display:flex;justify-content:space-between;align-items:baseline;}
