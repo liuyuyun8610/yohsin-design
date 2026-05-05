@@ -1206,12 +1206,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="meeting-tab active" onclick="switchMeetingTab('line',this)">LINE 記錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議記錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('client_note',this)">業主筆記</button>
+          <button class="meeting-tab" onclick="switchMeetingTab('pending',this)">待確認事項</button>
         </div>
         <div id="meeting-line-panel">
           <div id="client-line-meetings"></div>
         </div>
         <div id="meeting-formal-panel" style="display:none;">
           <div id="client-formal-meetings"></div>
+        </div>
+        <div id="meeting-pending-panel" style="display:none;">
+          <div id="client-pending-items"></div>
         </div>
         <div id="meeting-client-note-panel" style="display:none;">
           <!-- 新增筆記表單 -->
@@ -1959,6 +1963,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
           <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
           <button class="stab" onclick="switchAdminMeetingTab('client_note',this)">業主筆記</button>
+          <button class="stab" onclick="switchAdminMeetingTab('pending',this)">待確認事項</button>
         </div>
 
         <!-- LINE 記錄：上傳截圖 -->
@@ -2072,6 +2077,31 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="admin-client-note-panel" style="display:none;">
           <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;padding:8px 12px;background:#EAF0FB;border-radius:8px;">✏️ 業主自行新增的筆記記錄，於此只讀。如需刪除，請直接操作。</div>
           <div id="admin-client-notes-list"></div>
+        </div>
+
+        <!-- 待確認事項：admin 可新增 / 編輯 / 勾選已完成 -->
+        <div id="admin-pending-panel" style="display:none;">
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">會議後整理需要客戶確認的項目，客戶端可看到列表與狀態（只讀）。勾選已完成不會把文字劃掉，僅用徽章標示。</div>
+          <div id="admin-pending-list" style="margin-bottom:1rem;"></div>
+          <div class="divider"></div>
+          <div class="form-grid2" style="margin-bottom:0.6rem;">
+            <div class="form-group">
+              <label class="form-label">日期</label>
+              <input type="date" class="form-input" id="pending-date" style="margin-bottom:0;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">標題 <span style="color:var(--red);">*</span></label>
+              <input class="form-input" id="pending-title" placeholder="例：客廳壁面顏色確認" style="margin-bottom:0;">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0.6rem;">
+            <label class="form-label">說明（選填）</label>
+            <textarea class="form-input" id="pending-content" placeholder="補充細節、選項等" rows="3" style="margin-bottom:0;resize:vertical;"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="btn-ghost" onclick="cancelPendingEdit()" id="pending-cancel-btn" style="display:none;">取消</button>
+            <button class="btn-ink" onclick="addPendingItem()" id="pending-save-btn">＋ 儲存待確認事項</button>
+          </div>
         </div>
       </div>
 
@@ -3119,6 +3149,7 @@ function _enterClient(c){
       pid ? dbLoadChecklist(pid).catch(e=>console.warn('load checklist failed',e)) : Promise.resolve(),
       dbLoadDocs(cid).catch(e=>console.warn('load docs failed',e)),
       dbLoadMeetings(cid).catch(e=>console.warn('load meetings failed',e)),
+      dbLoadPendingItems(cid).catch(e=>console.warn('load pending failed',e)),
     ]);
     renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
     loadClientSignatures().then(renderClientAcknowledgements);
@@ -3727,6 +3758,34 @@ async function dbSaveMeeting(pid, meetType, item){
 
 async function dbDeleteMeeting(dbId){
   const {error}=await sbClient.from('meetings').delete().eq('id',dbId);
+  if(error) throw error;
+}
+
+// ========== PENDING ITEMS（待確認事項）==========
+async function dbLoadPendingItems(pid){
+  if(!pid||isNaN(pid)){return;}
+  try{
+    const {data,error}=await sbClient.from('pending_items').select('*').eq('project_id',pid).order('item_date',{ascending:false}).order('id',{ascending:false});
+    if(error) throw error;
+    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    docsData[pid].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at}));
+  }catch(e){console.warn('dbLoadPendingItems failed:',e.message);}
+}
+
+async function dbSavePendingItem(pid,item){
+  const row={project_id:pid,title:item.title,content:item.content||'',item_date:item.date||todayStr(),status:item.status||'pending',confirmed_at:item.status==='confirmed'?(item.confirmedAt||new Date().toISOString()):null};
+  if(item.dbId){
+    const {error}=await sbClient.from('pending_items').update(row).eq('id',item.dbId);
+    if(error) throw error;
+  } else {
+    const {data,error}=await sbClient.from('pending_items').insert(row).select();
+    if(error) throw error;
+    if(data&&data[0]) item.dbId=data[0].id;
+  }
+}
+
+async function dbDeletePendingItem(dbId){
+  const {error}=await sbClient.from('pending_items').delete().eq('id',dbId);
   if(error) throw error;
 }
 
@@ -5413,12 +5472,14 @@ function toggleMeetingRecord(hd){
 }
 function toggleOldVersions(id){const el=document.getElementById(id);el.classList.toggle('open');el.previousElementSibling.textContent=(el.classList.contains('open')?'▾':'▸')+' 舊版本資料';}
 function switchMeetingTab(tab,el){
-  document.querySelectorAll('#p-docs .meeting-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#p-meetings .meeting-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('meeting-line-panel').style.display=tab==='line'?'block':'none';
   document.getElementById('meeting-formal-panel').style.display=tab==='formal'?'block':'none';
   document.getElementById('meeting-client-note-panel').style.display=tab==='client_note'?'block':'none';
+  document.getElementById('meeting-pending-panel').style.display=tab==='pending'?'block':'none';
   if(tab==='client_note') renderClientNotes();
+  if(tab==='pending') renderClientPendingItems();
 }
 
 // ========== CLIENT NOTES ==========
@@ -5552,8 +5613,9 @@ async function renderAdminDocs(){
   await dbLoadDocs(cid);
   await dbLoadMeetings(cid);
   await dbLoadMaterials(cid);
+  await dbLoadPendingItems(cid);
   showLoader(false);
-  renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);renderAdminFurniturePlanList(cid);renderAdminClientNotesList(cid);
+  renderAdminDrawingList(cid);renderAdminLineList(cid);renderAdminFormalList(cid);renderAdminContractList(cid);renderAdminQuoteList(cid);renderAdminFurniturePlanList(cid);renderAdminClientNotesList(cid);renderAdminPendingItems(cid);
   renderMaterials(cid);
 }
 function switchDrawingType(type,el){
@@ -6258,11 +6320,17 @@ async function updateCliFurPhotoName(cid,idx,newName){
 
 function switchAdminMeetingTab(tab,el){
   adminMeetingTab=tab;
-  document.querySelectorAll('#a-docs .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  el.parentElement.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   document.getElementById('admin-line-panel').style.display=tab==='line'?'block':'none';
   document.getElementById('admin-formal-panel').style.display=tab==='formal'?'block':'none';
   document.getElementById('admin-client-note-panel').style.display=tab==='client_note'?'block':'none';
+  document.getElementById('admin-pending-panel').style.display=tab==='pending'?'block':'none';
   if(tab==='client_note') renderAdminClientNotesList(getAdminDocClientId());
+  if(tab==='pending'){
+    const dateEl=document.getElementById('pending-date');
+    if(dateEl&&!dateEl.value){const t=new Date();dateEl.value=t.getFullYear()+'-'+(t.getMonth()+1).toString().padStart(2,'0')+'-'+t.getDate().toString().padStart(2,'0');}
+    renderAdminPendingItems(getAdminDocClientId());
+  }
   if(tab==='formal'){
     // 自動載入上次未完成的草稿
     const cid=getAdminDocClientId();
@@ -6311,6 +6379,156 @@ async function adminDeleteClientNote(dbId,cid){
     await dbDeleteMeeting(dbId);
     if(docsData[cid]?.clientNotes){docsData[cid].clientNotes=docsData[cid].clientNotes.filter(n=>n.dbId!==dbId);}
     renderAdminClientNotesList(cid);
+  }catch(e){alert('刪除失敗：'+e.message);}
+  showLoader(false);
+}
+
+// ========== PENDING ITEMS（待確認事項）UI ==========
+let editingPendingId=null;
+
+function pendingStatusBadge(status){
+  if(status==='confirmed'){
+    return '<span style="font-size:10px;background:#EDF5E9;color:#3A5E32;padding:2px 8px;border-radius:5px;margin-right:4px;display:inline-flex;align-items:center;gap:3px;">✓ 已確認</span>';
+  }
+  return '<span style="font-size:10px;background:#FAF0DE;color:#7A5218;padding:2px 8px;border-radius:5px;margin-right:4px;">待確認</span>';
+}
+
+function renderAdminPendingItems(cid){
+  const el=document.getElementById('admin-pending-list'); if(!el) return;
+  const items=((docsData[cid]?.pendingItems)||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  el.innerHTML='';
+  if(!items.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚未新增任何待確認事項</div>';return;}
+  const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
+  items.forEach(p=>{
+    const isDone=p.status==='confirmed';
+    const item=document.createElement('div');item.className='meeting-record';item.style.borderRadius='0';item.style.borderBottom='0.5px solid var(--border)';
+    if(isDone) item.style.background='#FAFCF8';
+    item.innerHTML=`
+      <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
+        <span class="meeting-record-date">${p.date||''}</span>
+        <span class="meeting-record-title">${p.title||'（無標題）'}</span>
+        ${pendingStatusBadge(p.status)}
+        <span class="meeting-record-arr">›</span>
+      </div>
+      <div class="meeting-record-bd" style="padding-top:10px;">
+        ${p.content?`<div style="font-size:13px;white-space:pre-wrap;">${smartFormat(p.content)}</div>`:''}
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" ${isDone?'checked':''} onclick="event.stopPropagation()" onchange="togglePendingItemStatus(${p.dbId},this.checked)">
+            標記為已確認
+          </label>
+          <div style="margin-left:auto;display:flex;gap:6px;">
+            <button class="btn-sm" onclick="editPendingItem(${p.dbId})">編輯</button>
+            <button class="btn-sm danger" onclick="deletePendingItem(${p.dbId},${cid})">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    wrap.appendChild(item);
+  });
+  el.appendChild(wrap);
+}
+
+function renderClientPendingItems(){
+  const el=document.getElementById('client-pending-items'); if(!el) return;
+  const cid=currentClientId;
+  const items=((docsData[cid]?.pendingItems)||[]).slice().sort((a,b)=>{
+    // 待確認排前面，已確認排後面；同狀態內按日期新到舊
+    if(a.status!==b.status) return a.status==='confirmed'?1:-1;
+    return (b.date||'').localeCompare(a.date||'');
+  });
+  el.innerHTML='';
+  if(!items.length){el.innerHTML='<div class="empty-state" style="padding:1.2rem 0.5rem;color:var(--cli-muted,#6E5E4E);">目前沒有待確認事項</div>';return;}
+  const wrap=document.createElement('div');
+  items.forEach(p=>{
+    const isDone=p.status==='confirmed';
+    const card=document.createElement('div');card.className='meeting-record';
+    if(isDone) card.style.background='#FAFCF8';
+    card.innerHTML=`
+      <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
+        <span class="meeting-record-date">${p.date||''}</span>
+        <span class="meeting-record-title">${p.title||'（無標題）'}</span>
+        ${pendingStatusBadge(p.status)}
+        <span class="meeting-record-arr">›</span>
+      </div>
+      ${p.content?`<div class="meeting-record-bd" style="padding-top:10px;font-size:13px;white-space:pre-wrap;">${smartFormat(p.content)}</div>`:'<div class="meeting-record-bd" style="padding-top:6px;font-size:12px;color:var(--cli-light,#A09080);">（無補充說明）</div>'}`;
+    wrap.appendChild(card);
+  });
+  el.appendChild(wrap);
+}
+
+async function addPendingItem(){
+  const cid=getAdminDocClientId();
+  if(!cid){alert('請先選擇客戶');return;}
+  const titleEl=document.getElementById('pending-title');
+  const contentEl=document.getElementById('pending-content');
+  const dateEl=document.getElementById('pending-date');
+  const title=(titleEl?.value||'').trim();
+  if(!title){alert('請填寫標題');return;}
+  const content=(contentEl?.value||'').trim();
+  const date=(dateEl?.value||todayStr());
+  showLoader(true);
+  try{
+    if(editingPendingId){
+      const list=docsData[cid]?.pendingItems||[];
+      const item=list.find(x=>x.dbId===editingPendingId);
+      if(item){
+        item.title=title; item.content=content; item.date=date;
+        await dbSavePendingItem(cid,item);
+      }
+    } else {
+      const newItem={title,content,date,status:'pending'};
+      await dbSavePendingItem(cid,newItem);
+      docsData[cid].pendingItems=docsData[cid].pendingItems||[];
+      docsData[cid].pendingItems.push(newItem);
+    }
+    cancelPendingEdit();
+    renderAdminPendingItems(cid);
+  }catch(e){alert('儲存失敗：'+e.message);}
+  showLoader(false);
+}
+
+function editPendingItem(dbId){
+  const cid=getAdminDocClientId();
+  const item=(docsData[cid]?.pendingItems||[]).find(x=>x.dbId===dbId);
+  if(!item) return;
+  editingPendingId=dbId;
+  document.getElementById('pending-title').value=item.title||'';
+  document.getElementById('pending-content').value=item.content||'';
+  document.getElementById('pending-date').value=item.date||todayStr();
+  document.getElementById('pending-save-btn').textContent='儲存修改';
+  document.getElementById('pending-cancel-btn').style.display='inline-flex';
+  document.getElementById('pending-title').focus();
+  document.getElementById('admin-pending-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelPendingEdit(){
+  editingPendingId=null;
+  const t=document.getElementById('pending-title'); if(t) t.value='';
+  const c=document.getElementById('pending-content'); if(c) c.value='';
+  const saveBtn=document.getElementById('pending-save-btn'); if(saveBtn) saveBtn.textContent='＋ 儲存待確認事項';
+  const cancelBtn=document.getElementById('pending-cancel-btn'); if(cancelBtn) cancelBtn.style.display='none';
+}
+
+async function togglePendingItemStatus(dbId,checked){
+  const cid=getAdminDocClientId();
+  const item=(docsData[cid]?.pendingItems||[]).find(x=>x.dbId===dbId);
+  if(!item) return;
+  item.status=checked?'confirmed':'pending';
+  item.confirmedAt=checked?new Date().toISOString():null;
+  try{
+    await dbSavePendingItem(cid,item);
+    renderAdminPendingItems(cid);
+  }catch(e){alert('更新失敗：'+e.message); item.status=checked?'pending':'confirmed';renderAdminPendingItems(cid);}
+}
+
+async function deletePendingItem(dbId,cid){
+  if(!confirm('確定刪除此待確認事項？'))return;
+  showLoader(true);
+  try{
+    await dbDeletePendingItem(dbId);
+    if(docsData[cid]?.pendingItems){docsData[cid].pendingItems=docsData[cid].pendingItems.filter(x=>x.dbId!==dbId);}
+    if(editingPendingId===dbId) cancelPendingEdit();
+    renderAdminPendingItems(cid);
   }catch(e){alert('刪除失敗：'+e.message);}
   showLoader(false);
 }
