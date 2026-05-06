@@ -3097,21 +3097,38 @@ function goAdminPageMobile(id,el){
 
 // ========== AUTH ==========
 function setMode(m,el){loginMode=m;document.querySelectorAll('.mdbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
-function doLogin(){
+async function doLogin(){
   const u=document.getElementById('l-user').value.trim(), p=document.getElementById('l-pass').value.trim();
   const err=document.getElementById('l-err');err.textContent='';
-  if(loginMode==='admin'){
-    if(u==='admin'&&p===adminPassword){
-      sessionStorage.setItem('ys_session', JSON.stringify({mode:'admin',u,p}));
-      _enterAdmin();
-    } else err.textContent='帳號或密碼錯誤';
-  } else {
-    const c=clients.find(x=>x.user===u&&x.pass===p);
-    if(c){
-      sessionStorage.setItem('ys_session', JSON.stringify({mode:'client',u,p}));
-      _enterClient(c);
-    } else err.textContent='帳號或密碼錯誤，請再試一次';
-  }
+  err.dataset.busy='1';
+  try{
+    if(loginMode==='admin'){
+      // Server-side hash 驗證
+      const {data:ok,error}=await sbClient.rpc('verify_admin',{p_password:p});
+      if(error){err.textContent='登入失敗：'+error.message;return;}
+      if(u==='admin' && ok===true){
+        sessionStorage.setItem('ys_session', JSON.stringify({mode:'admin',u}));
+        _enterAdmin();
+      } else err.textContent='帳號或密碼錯誤';
+    } else {
+      const {data,error}=await sbClient.rpc('verify_client',{p_username:u,p_password:p});
+      if(error){err.textContent='登入失敗：'+error.message;return;}
+      const row=Array.isArray(data)?data[0]:data;
+      if(row){
+        // 把驗證回傳的客戶資料映射成既有 clients 陣列項目（不含 pass 明碼）
+        const c={
+          id:row.id, user:row.username||u, pass:'', name:row.name||'',
+          projectId:row.project_id, status:row.status, note:row.note||'',
+          assigned:row.assigned_articles||[], isBoss:!!row.is_boss,
+        };
+        // 確保 currentClientId 等可用
+        const idx=clients.findIndex(x=>x.id===c.id);
+        if(idx>=0) clients[idx]=c; else clients.push(c);
+        sessionStorage.setItem('ys_session', JSON.stringify({mode:'client',u,clientId:c.id}));
+        _enterClient(c);
+      } else err.textContent='帳號或密碼錯誤，請再試一次';
+    }
+  } finally { delete err.dataset.busy; }
 }
 
 function _enterAdmin(){
@@ -9182,17 +9199,19 @@ document.addEventListener('DOMContentLoaded', function() {
       initPublicSurvey(surveyToken);
       return;
     }
-    // Auto-restore session after data loaded
+    // Auto-restore session after data loaded（不再用密碼比對；session 失效就讓使用者重登）
     try{
       const sess=sessionStorage.getItem('ys_session');
       if(!sess) return;
-      const {mode,u,p}=JSON.parse(sess);
-      if(mode==='admin'&&u==='admin'&&p===adminPassword){
+      const {mode,u,clientId}=JSON.parse(sess);
+      if(mode==='admin' && u==='admin'){
         _enterAdmin();
-      } else if(mode==='client'){
-        const c=clients.find(x=>x.user===u&&x.pass===p);
+      } else if(mode==='client' && clientId){
+        const c=clients.find(x=>Number(x.id)===Number(clientId));
         if(c) _enterClient(c);
-        else sessionStorage.removeItem('ys_session'); // 密碼已更改，清除
+        else sessionStorage.removeItem('ys_session');
+      } else {
+        sessionStorage.removeItem('ys_session');
       }
     }catch(e){ sessionStorage.removeItem('ys_session'); }
   });
