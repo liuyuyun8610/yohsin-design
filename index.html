@@ -2575,7 +2575,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <img id="contract-signed-img" alt="簽名" style="max-height:120px;border:0.5px solid var(--line);border-radius:6px;background:#fff;padding:6px;">
       </div>
       <div id="contract-sign-pending">
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:8px;">請在下方框內以滑鼠／手指簽名，確認此合約內容</div>
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#fff;border:0.5px solid var(--line);border-radius:8px;margin-bottom:10px;cursor:pointer;font-size:12.5px;line-height:1.7;color:var(--ink);">
+          <input type="checkbox" id="contract-ack-check" onchange="onContractAckChange()" style="margin-top:3px;flex-shrink:0;">
+          <span>本人已逐項閱讀並完整理解上述合約之全部條款內容，並知悉本合約經雙方簽署後即發生法律效力。本人於下方所為之線上簽名，等同親自簽署，作為同意本合約全部約定之憑證。</span>
+        </label>
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;">勾選同意後，請在下方框內以滑鼠／手指完成簽名</div>
         <div style="background:#fff;border:0.5px dashed var(--accent-light);border-radius:8px;padding:10px;display:flex;justify-content:center;">
           <canvas id="contract-sig-canvas"
             style="background:#fff;border:0.5px solid var(--line);border-radius:6px;cursor:crosshair;touch-action:none;"
@@ -2584,7 +2588,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <div style="display:flex;justify-content:space-between;gap:8px;margin-top:10px;">
           <button class="btn-ghost" onclick="clearContractSignature()" style="font-size:12px;">清除重簽</button>
-          <button class="btn-ink" onclick="submitContractSignature()" style="font-size:13px;padding:9px 22px;">確認簽名</button>
+          <button class="btn-ink" id="contract-confirm-btn" onclick="submitContractSignature()" disabled style="font-size:13px;padding:9px 22px;opacity:0.5;cursor:not-allowed;">確認簽名</button>
         </div>
       </div>
     </div>
@@ -8370,11 +8374,23 @@ function findContractDocByDbId(dbId){
   const list=[...((d.contracts&&d.contracts.design)||[]), ...((d.contracts&&d.contracts.construction)||[])];
   return list.find(c=>String(c.dbId)===String(dbId))||null;
 }
+function onContractAckChange(){
+  const chk=document.getElementById('contract-ack-check');
+  const btn=document.getElementById('contract-confirm-btn');
+  if(!chk||!btn)return;
+  if(chk.checked){
+    btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';
+  } else {
+    btn.disabled=true;btn.style.opacity='0.5';btn.style.cursor='not-allowed';
+  }
+}
 function openContractViewer(dbId){
   const c=findContractDocByDbId(dbId);if(!c){alert('找不到合約');return;}
   document.getElementById('contract-modal-title').textContent=c.name||'合約';
   const iframe=document.getElementById('contract-frame');
   iframe.srcdoc=c.contractHtml||'<p style="padding:24px;color:#666;">合約內容尚未同步，請聯繫設計師。</p>';
+  // 重置同意勾選
+  const ack=document.getElementById('contract-ack-check');if(ack){ack.checked=false;onContractAckChange();}
   // 已簽名 vs 待簽名分支
   const signed=!!c.signedAt;
   document.getElementById('contract-already-signed').style.display=signed?'block':'none';
@@ -8432,6 +8448,8 @@ function _csigMove(e){
 }
 function _csigEnd(){_contractState.drawing=false;}
 async function submitContractSignature(){
+  const ack=document.getElementById('contract-ack-check');
+  if(!ack||!ack.checked){alert('請先勾選「本人已逐項閱讀並完整理解上述合約」同意聲明');return;}
   if(!_contractState.hasInk){alert('請先簽名');return;}
   const dbId=_contractState.dbId;
   const c=findContractDocByDbId(dbId);if(!c){alert('找不到合約');return;}
