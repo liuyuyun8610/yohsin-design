@@ -3599,7 +3599,7 @@ async function dbLoadDocs(pid){
     docsData[pid].contracts={design:[],construction:[]};
     docsData[pid].quotes=[];
     (data||[]).forEach(r=>{
-      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',contractHtml:r.contract_html||'',signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||''};
+      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',contractHtml:r.contract_html||'',contractData:r.contract_data||null,signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||''};
       if(r.doc_type.startsWith('drawing_')){
         const dtype=r.doc_type.replace('drawing_','');
         if(!docsData[pid].drawings[dtype])docsData[pid].drawings[dtype]=[];
@@ -8496,6 +8496,56 @@ function _csigMove(e){
   _contractState.lastX=p.x;_contractState.lastY=p.y;_contractState.hasInk=true;
 }
 function _csigEnd(){_contractState.drawing=false;}
+// 簽完設計合約後，自動把 3 期付款排程寫到 payment_settings.schedule_json
+async function autoFillDesignFeeScheduleAfterSign(c){
+  if(!c||!c.contractData) return;
+  const data=c.contractData;
+  // 重算總價（與 work-system computeDesignTotals 同邏輯）
+  const billableArea=Math.max(Number(data.area)||0, 10);
+  const hasFeeItems=Array.isArray(data.feeItems)&&data.feeItems.length>0;
+  const itemsTotal=hasFeeItems?data.feeItems.reduce((s,it)=>s+Number(it.qty||0)*Number(it.unitPrice||0),0):0;
+  const originalTotal=hasFeeItems?Math.round(itemsTotal):Math.round(billableArea*Number(data.pricePerPing||0));
+  const total=(data.discountTotal!=null && Number(data.discountTotal)>0)?Math.round(Number(data.discountTotal)):originalTotal;
+  if(!total) return;
+  const pct1=Number(data.pay1Pct||50);
+  const pct2=Number(data.pay2Pct||40);
+  const pay1=Math.round(total*pct1/100);
+  const pay2=Math.round(total*pct2/100);
+  const pay3=total-pay1-pay2;
+  // 找 ys 真實 project_id
+  const cli=clients.find(x=>x.id===currentClientId);
+  if(!cli||!cli.projectId) return;
+  const projectId=cli.projectId;
+
+  try{
+    const {data:existing}=await sbClient.from('payment_settings')
+      .select('schedule_json,design_fee,construction_pct,equip_pct')
+      .eq('project_id',projectId).maybeSingle();
+    let scheduleArr=[];
+    if(existing?.schedule_json){
+      try{ scheduleArr=JSON.parse(existing.schedule_json); }catch(e){}
+    }
+    if(!Array.isArray(scheduleArr)) scheduleArr=[];
+    // 安全閥：已有任何「設計費」類別 → 不覆蓋（admin 可能已手動輸入）
+    if(scheduleArr.some(s=>s&&s.category==='設計費')) return;
+    const newDesignRows=[
+      {name:`設計費簽約金（${pct1}%）`,        amount:pay1, due:'', status:'未收', received:'', category:'設計費'},
+      {name:`設計費平面定案（${pct2}%）`,      amount:pay2, due:'', status:'未收', received:'', category:'設計費'},
+      {name:`設計費全部圖說完成（${100-pct1-pct2}%）`, amount:pay3, due:'', status:'未收', received:'', category:'設計費'},
+    ];
+    scheduleArr=[...newDesignRows,...scheduleArr];
+    await sbClient.from('payment_settings').upsert({
+      project_id:projectId,
+      design_fee:total,
+      construction_pct:existing?.construction_pct||0,
+      equip_pct:existing?.equip_pct||3,
+      schedule_json:JSON.stringify(scheduleArr),
+    },{onConflict:'project_id'});
+  } catch(e){
+    console.warn('autoFillDesignFeeSchedule failed:', e?.message);
+  }
+}
+
 async function submitContractSignature(){
   const ack=document.getElementById('contract-ack-check');
   if(!ack||!ack.checked){alert('請先勾選「本人已逐項閱讀並完整理解上述合約」同意聲明');return;}
@@ -8519,9 +8569,11 @@ async function submitContractSignature(){
     if(error) throw error;
     // 更新本地資料
     c.signatureUrl=url;c.signedAt=signedAt;c.clientAddress=addr;c.clientPhone=phone;
+    // 自動把設計費分期寫到付款排程（只有設計合約 + 沒有現有設計費 entry 時生效）
+    try{ await autoFillDesignFeeScheduleAfterSign(c); }catch(e){console.warn(e);}
     closeContractViewer();
     renderClientDocs();
-    alert('✓ 簽名已儲存，感謝您！');
+    alert('✓ 簽名已儲存，付款期程已自動帶入「付款明細」，感謝您！');
   }catch(e){alert('儲存失敗：'+e.message);}
   showLoader(false);
 }
