@@ -2556,9 +2556,17 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <!-- CONTRACT VIEWER MODAL -->
 <div id="contract-modal" style="display:none;position:fixed;inset:0;background:rgba(10,8,6,0.55);z-index:9997;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;border-radius:12px;max-width:1000px;width:100%;height:90vh;display:flex;flex-direction:column;overflow:hidden;">
-    <div style="padding:14px 20px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-family:'Noto Serif TC',serif;font-size:15px;font-weight:600;color:var(--ink);" id="contract-modal-title">合約</div>
-      <button class="btn-ghost" onclick="closeContractViewer()" style="font-size:13px;">關閉</button>
+    <div style="padding:14px 20px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div style="font-family:'Noto Serif TC',serif;font-size:15px;font-weight:600;color:var(--ink);flex:1;min-width:0;" id="contract-modal-title">合約</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-ghost" onclick="printContractForClient()" style="font-size:12px;padding:6px 14px;border:0.5px solid var(--line);">
+          <span style="margin-right:4px;">🖨</span>列印 / 下載 PDF
+        </button>
+        <button class="btn-ghost" onclick="closeContractViewer()" style="font-size:13px;">關閉</button>
+      </div>
+    </div>
+    <div style="padding:8px 20px;background:#FAF7F2;font-size:11px;color:var(--ink-muted);border-bottom:0.5px solid var(--line);">
+      簽名前可點上方「列印 / 下載 PDF」仔細閱讀完整合約內容。確認無誤後再於下方簽名。
     </div>
     <iframe id="contract-frame" style="flex:1;width:100%;border:0;background:#fff;"></iframe>
     <div id="contract-sign-zone" style="padding:14px 20px;border-top:0.5px solid var(--line);background:#FBF8F4;">
@@ -8391,6 +8399,16 @@ function openContractViewer(dbId){
   document.getElementById('contract-modal').style.display='flex';
 }
 function closeContractViewer(){document.getElementById('contract-modal').style.display='none';}
+function printContractForClient(){
+  // 客戶簽名前列印 / 另存 PDF — 開新視窗載入合約 HTML，再觸發瀏覽器列印
+  const c=findContractDocByDbId(_contractState.dbId);
+  if(!c||!c.contractHtml){alert('合約內容尚未載入');return;}
+  const w=window.open('', '_blank');
+  if(!w){alert('請允許瀏覽器彈出視窗以列印 / 下載 PDF');return;}
+  // 在合約 HTML 後面插入自動列印的 script
+  const html=c.contractHtml + `<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>`;
+  w.document.open();w.document.write(html);w.document.close();
+}
 function clearContractSignature(){
   const canvas=document.getElementById('contract-sig-canvas');
   const ctx=canvas.getContext('2d');
