@@ -1657,6 +1657,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
         <button class="stab" onclick="switchProjTab('schedule',this)">收款進度</button>
         <button class="stab" onclick="switchProjTab('changes',this)">追加減</button>
+        <button class="stab" onclick="switchProjTab('meetings',this)">會議記錄</button>
         <button class="stab" onclick="switchProjTab('docs',this)">文件管理</button>
       </div>
 
@@ -1905,6 +1906,159 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 
       <!-- 文件管理 Tab -->
+      <div id="proj-tab-meetings" style="display:none;">
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">所有會議溝通紀錄與待確認事項。</div>
+
+        <!-- 會議記錄管理 -->
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-title">會議記錄</div>
+          <div class="stabs">
+            <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
+            <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
+            <button class="stab" onclick="switchAdminMeetingTab('client_note',this)">業主筆記</button>
+            <button class="stab" onclick="switchAdminMeetingTab('pending',this)">待確認事項</button>
+          </div>
+
+          <!-- LINE 記錄：上傳截圖 -->
+          <div id="admin-line-panel">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳 LINE 對話截圖，依日期分組顯示給客戶。備注方便設計師快速識別內容。</div>
+            <div id="admin-line-list" style="margin-bottom:1rem;"></div>
+            <div class="divider"></div>
+            <div class="form-grid2" style="margin-bottom:0.8rem;">
+              <div class="form-group">
+                <label class="form-label">截圖日期</label>
+                <input type="date" class="form-input" id="line-date" style="margin-bottom:0;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">備注（設計師內部用）</label>
+                <input class="form-input" id="line-note" placeholder="例：確認平面圖、討論廚房動線" style="margin-bottom:0;">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">上傳截圖</label>
+              <div class="upload-zone" onclick="document.getElementById('line-img-input').click()">
+                <div class="upload-zone-icon"></div>
+                <div class="upload-zone-text">點擊上傳 LINE 對話截圖</div>
+                <div class="upload-zone-hint">支援 JPG、PNG，可多張同時上傳</div>
+              </div>
+              <input type="file" id="line-img-input" accept="image/*" multiple style="display:none;" onchange="previewLineImgs(event)">
+              <div id="line-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addLineScreenshot()">儲存截圖</button></div>
+          </div>
+
+          <!-- 會議記錄：文字 + 圖片 -->
+          <div id="admin-formal-panel" style="display:none;">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫正式會議記錄，可附上會議現場照片或手寫記錄圖片。</div>
+            <div id="admin-formal-list" style="margin-bottom:1rem;"></div>
+            <div class="divider"></div>
+            <div class="form-grid2" style="margin-bottom:0.8rem;">
+              <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;" oninput="formalAutosave()"></div>
+              <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;" oninput="formalAutosave()"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.8rem;">
+              <label class="form-label">與會人員</label>
+              <input class="form-input" id="formal-attendees" placeholder="例：設計師 Vera、業主 Amanda、工程監工 Jason" style="margin-bottom:0;" oninput="formalAutosave()">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>會議內容</span>
+                <span id="formal-autosave-status" style="font-size:10px;color:var(--ink-light);font-weight:400;letter-spacing:0;"></span>
+              </label>
+              <!-- 富文字工具列 -->
+              <div class="rte-toolbar" id="formal-rte-toolbar">
+                <button type="button" class="rte-btn" onclick="rteCmd('bold')" title="粗體 (Ctrl+B)"><b>B</b></button>
+                <button type="button" class="rte-btn" onclick="rteCmd('italic')" title="斜體 (Ctrl+I)"><i>I</i></button>
+                <button type="button" class="rte-btn" onclick="rteCmd('underline')" title="底線 (Ctrl+U)"><u>U</u></button>
+                <div class="rte-sep"></div>
+                <button type="button" class="rte-btn" onclick="rteHeading('h3')" title="標題">H</button>
+                <button type="button" class="rte-btn" onclick="rteHeading('p')" title="內文">¶</button>
+                <div class="rte-sep"></div>
+                <select class="rte-select" onchange="rteSetFontSize(this.value);this.value=''" title="字級">
+                  <option value="">字級</option>
+                  <option value="11px">小 (11)</option>
+                  <option value="13px">中 (13)</option>
+                  <option value="15px">大 (15)</option>
+                  <option value="18px">特大 (18)</option>
+                  <option value="24px">超大 (24)</option>
+                </select>
+                <label class="rte-color-label" title="文字顏色">
+                  <span style="font-size:13px;font-weight:bold;">A</span>
+                  <input type="color" id="rte-color-picker" onchange="rteSetColor(this.value)" value="#2A1A0E" style="width:18px;height:18px;border:none;background:none;padding:0;cursor:pointer;">
+                </label>
+                <div class="rte-sep"></div>
+                <button type="button" class="rte-btn" onclick="rteCmd('insertUnorderedList')" title="項目清單">• 清單</button>
+                <button type="button" class="rte-btn" onclick="rteCmd('insertOrderedList')" title="編號清單">1. 清單</button>
+                <div class="rte-sep"></div>
+                <button type="button" class="rte-btn" onclick="rteInsertHr()" title="分隔線">─</button>
+                <button type="button" class="rte-btn" onclick="rteInsertCollapsible()" title="可收合段落（將選取內容包成可摺疊區塊；未選取則插入空白範本）">▾ 可收合段落</button>
+                <button type="button" class="rte-btn" onclick="rteDuplicateCollapsible()" title="複製目前游標所在的可收合段落，貼在它下方">複製此段</button>
+                <div class="rte-sep"></div>
+                <button type="button" class="rte-btn" onclick="rteInsertImageFromPicker()" title="插入圖片到游標位置">插入圖</button>
+                <button type="button" class="rte-btn rte-btn-danger" onclick="rteClear()" title="清除格式">清除</button>
+              </div>
+              <!-- 可編輯區域 -->
+              <div id="formal-content-rte" class="rte-body" contenteditable="true"
+                data-placeholder="填寫會議重點、決議事項…可拖曳圖片進來插入"
+                oninput="formalAutosave()"
+                ondragover="event.preventDefault();this.classList.add('rte-drop-hover')"
+                ondragleave="this.classList.remove('rte-drop-hover')"
+                ondrop="rteHandleDrop(event)"></div>
+              <!-- 隱藏 textarea 供儲存用 -->
+
+              <textarea id="formal-content" style="display:none;"></textarea>
+            </div>
+            <div class="form-group" style="margin-top:0.8rem;">
+              <label class="form-label">附件圖片（選填）</label>
+              <div class="upload-zone"
+                onclick="document.getElementById('formal-img-input').click()"
+                ondragover="event.preventDefault();this.classList.add('dz-hover')"
+                ondragleave="this.classList.remove('dz-hover')"
+                ondrop="handleFormalDrop(event)"
+              >
+                <div class="upload-zone-icon"></div>
+                <div class="upload-zone-text">點擊或拖曳圖片到這裡</div>
+                <div class="upload-zone-hint">支援多張同時上傳；可重複拖曳累加；新增、編輯都可用</div>
+              </div>
+              <input type="file" id="formal-img-input" accept="image/*" multiple style="display:none;" onchange="previewFormalImgs(event)">
+              <div id="formal-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議記錄</button></div>
+          </div>
+
+          <!-- 業主筆記：唯讀 + 可刪除 -->
+          <div id="admin-client-note-panel" style="display:none;">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;padding:8px 12px;background:#EAF0FB;border-radius:8px;">✏️ 業主自行新增的筆記記錄，於此只讀。如需刪除，請直接操作。</div>
+            <div id="admin-client-notes-list"></div>
+          </div>
+
+          <!-- 待確認事項：admin 可新增 / 編輯 / 勾選已完成 -->
+          <div id="admin-pending-panel" style="display:none;">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">會議後整理需要客戶確認的項目，客戶端可看到列表與狀態（只讀）。勾選已完成不會把文字劃掉，僅用徽章標示。</div>
+            <div id="admin-pending-list" style="margin-bottom:1rem;"></div>
+            <div class="divider"></div>
+            <div class="form-grid2" style="margin-bottom:0.6rem;">
+              <div class="form-group">
+                <label class="form-label">日期</label>
+                <input type="date" class="form-input" id="pending-date" style="margin-bottom:0;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">標題 <span style="color:var(--red);">*</span></label>
+                <input class="form-input" id="pending-title" placeholder="例：客廳壁面顏色確認" style="margin-bottom:0;">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.6rem;">
+              <label class="form-label">說明（選填）</label>
+              <textarea class="form-input" id="pending-content" placeholder="補充細節、選項等" rows="3" style="margin-bottom:0;resize:vertical;"></textarea>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+              <button class="btn-ghost" onclick="cancelPendingEdit()" id="pending-cancel-btn" style="display:none;">取消</button>
+              <button class="btn-ink" onclick="addPendingItem()" id="pending-save-btn">＋ 儲存待確認事項</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="proj-tab-docs" style="display:none;">
         <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">此專案的所有文件，上傳後自動同步至客戶端。</div>
         
@@ -1954,155 +2108,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="btn-ink" onclick="addDrawingVersion()">＋ 建立相簿並上傳</button>
         </div>
         <div id="drawing-multi-preview" style="display:none;margin-top:10px;"></div>
-      </div>
-
-      <!-- 會議記錄管理 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title">會議記錄</div>
-        <div class="stabs">
-          <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
-          <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
-          <button class="stab" onclick="switchAdminMeetingTab('client_note',this)">業主筆記</button>
-          <button class="stab" onclick="switchAdminMeetingTab('pending',this)">待確認事項</button>
-        </div>
-
-        <!-- LINE 記錄：上傳截圖 -->
-        <div id="admin-line-panel">
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">上傳 LINE 對話截圖，依日期分組顯示給客戶。備注方便設計師快速識別內容。</div>
-          <div id="admin-line-list" style="margin-bottom:1rem;"></div>
-          <div class="divider"></div>
-          <div class="form-grid2" style="margin-bottom:0.8rem;">
-            <div class="form-group">
-              <label class="form-label">截圖日期</label>
-              <input type="date" class="form-input" id="line-date" style="margin-bottom:0;">
-            </div>
-            <div class="form-group">
-              <label class="form-label">備注（設計師內部用）</label>
-              <input class="form-input" id="line-note" placeholder="例：確認平面圖、討論廚房動線" style="margin-bottom:0;">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">上傳截圖</label>
-            <div class="upload-zone" onclick="document.getElementById('line-img-input').click()">
-              <div class="upload-zone-icon"></div>
-              <div class="upload-zone-text">點擊上傳 LINE 對話截圖</div>
-              <div class="upload-zone-hint">支援 JPG、PNG，可多張同時上傳</div>
-            </div>
-            <input type="file" id="line-img-input" accept="image/*" multiple style="display:none;" onchange="previewLineImgs(event)">
-            <div id="line-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
-          </div>
-          <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addLineScreenshot()">儲存截圖</button></div>
-        </div>
-
-        <!-- 會議記錄：文字 + 圖片 -->
-        <div id="admin-formal-panel" style="display:none;">
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫正式會議記錄，可附上會議現場照片或手寫記錄圖片。</div>
-          <div id="admin-formal-list" style="margin-bottom:1rem;"></div>
-          <div class="divider"></div>
-          <div class="form-grid2" style="margin-bottom:0.8rem;">
-            <div class="form-group"><label class="form-label">會議日期</label><input type="date" class="form-input" id="formal-date" style="margin-bottom:0;" oninput="formalAutosave()"></div>
-            <div class="form-group"><label class="form-label">會議標題</label><input class="form-input" id="formal-title" placeholder="例：平面確認會議" style="margin-bottom:0;" oninput="formalAutosave()"></div>
-          </div>
-          <div class="form-group" style="margin-bottom:0.8rem;">
-            <label class="form-label">與會人員</label>
-            <input class="form-input" id="formal-attendees" placeholder="例：設計師 Vera、業主 Amanda、工程監工 Jason" style="margin-bottom:0;" oninput="formalAutosave()">
-          </div>
-          <div class="form-group">
-            <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">
-              <span>會議內容</span>
-              <span id="formal-autosave-status" style="font-size:10px;color:var(--ink-light);font-weight:400;letter-spacing:0;"></span>
-            </label>
-            <!-- 富文字工具列 -->
-            <div class="rte-toolbar" id="formal-rte-toolbar">
-              <button type="button" class="rte-btn" onclick="rteCmd('bold')" title="粗體 (Ctrl+B)"><b>B</b></button>
-              <button type="button" class="rte-btn" onclick="rteCmd('italic')" title="斜體 (Ctrl+I)"><i>I</i></button>
-              <button type="button" class="rte-btn" onclick="rteCmd('underline')" title="底線 (Ctrl+U)"><u>U</u></button>
-              <div class="rte-sep"></div>
-              <button type="button" class="rte-btn" onclick="rteHeading('h3')" title="標題">H</button>
-              <button type="button" class="rte-btn" onclick="rteHeading('p')" title="內文">¶</button>
-              <div class="rte-sep"></div>
-              <select class="rte-select" onchange="rteSetFontSize(this.value);this.value=''" title="字級">
-                <option value="">字級</option>
-                <option value="11px">小 (11)</option>
-                <option value="13px">中 (13)</option>
-                <option value="15px">大 (15)</option>
-                <option value="18px">特大 (18)</option>
-                <option value="24px">超大 (24)</option>
-              </select>
-              <label class="rte-color-label" title="文字顏色">
-                <span style="font-size:13px;font-weight:bold;">A</span>
-                <input type="color" id="rte-color-picker" onchange="rteSetColor(this.value)" value="#2A1A0E" style="width:18px;height:18px;border:none;background:none;padding:0;cursor:pointer;">
-              </label>
-              <div class="rte-sep"></div>
-              <button type="button" class="rte-btn" onclick="rteCmd('insertUnorderedList')" title="項目清單">• 清單</button>
-              <button type="button" class="rte-btn" onclick="rteCmd('insertOrderedList')" title="編號清單">1. 清單</button>
-              <div class="rte-sep"></div>
-              <button type="button" class="rte-btn" onclick="rteInsertHr()" title="分隔線">─</button>
-              <button type="button" class="rte-btn" onclick="rteInsertCollapsible()" title="可收合段落（將選取內容包成可摺疊區塊；未選取則插入空白範本）">▾ 可收合段落</button>
-              <button type="button" class="rte-btn" onclick="rteDuplicateCollapsible()" title="複製目前游標所在的可收合段落，貼在它下方">複製此段</button>
-              <div class="rte-sep"></div>
-              <button type="button" class="rte-btn" onclick="rteInsertImageFromPicker()" title="插入圖片到游標位置">插入圖</button>
-              <button type="button" class="rte-btn rte-btn-danger" onclick="rteClear()" title="清除格式">清除</button>
-            </div>
-            <!-- 可編輯區域 -->
-            <div id="formal-content-rte" class="rte-body" contenteditable="true"
-              data-placeholder="填寫會議重點、決議事項…可拖曳圖片進來插入"
-              oninput="formalAutosave()"
-              ondragover="event.preventDefault();this.classList.add('rte-drop-hover')"
-              ondragleave="this.classList.remove('rte-drop-hover')"
-              ondrop="rteHandleDrop(event)"></div>
-            <!-- 隱藏 textarea 供儲存用 -->
-
-            <textarea id="formal-content" style="display:none;"></textarea>
-          </div>
-          <div class="form-group" style="margin-top:0.8rem;">
-            <label class="form-label">附件圖片（選填）</label>
-            <div class="upload-zone"
-              onclick="document.getElementById('formal-img-input').click()"
-              ondragover="event.preventDefault();this.classList.add('dz-hover')"
-              ondragleave="this.classList.remove('dz-hover')"
-              ondrop="handleFormalDrop(event)"
-            >
-              <div class="upload-zone-icon"></div>
-              <div class="upload-zone-text">點擊或拖曳圖片到這裡</div>
-              <div class="upload-zone-hint">支援多張同時上傳；可重複拖曳累加；新增、編輯都可用</div>
-            </div>
-            <input type="file" id="formal-img-input" accept="image/*" multiple style="display:none;" onchange="previewFormalImgs(event)">
-            <div id="formal-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
-          </div>
-          <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議記錄</button></div>
-        </div>
-
-        <!-- 業主筆記：唯讀 + 可刪除 -->
-        <div id="admin-client-note-panel" style="display:none;">
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;padding:8px 12px;background:#EAF0FB;border-radius:8px;">✏️ 業主自行新增的筆記記錄，於此只讀。如需刪除，請直接操作。</div>
-          <div id="admin-client-notes-list"></div>
-        </div>
-
-        <!-- 待確認事項：admin 可新增 / 編輯 / 勾選已完成 -->
-        <div id="admin-pending-panel" style="display:none;">
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">會議後整理需要客戶確認的項目，客戶端可看到列表與狀態（只讀）。勾選已完成不會把文字劃掉，僅用徽章標示。</div>
-          <div id="admin-pending-list" style="margin-bottom:1rem;"></div>
-          <div class="divider"></div>
-          <div class="form-grid2" style="margin-bottom:0.6rem;">
-            <div class="form-group">
-              <label class="form-label">日期</label>
-              <input type="date" class="form-input" id="pending-date" style="margin-bottom:0;">
-            </div>
-            <div class="form-group">
-              <label class="form-label">標題 <span style="color:var(--red);">*</span></label>
-              <input class="form-input" id="pending-title" placeholder="例：客廳壁面顏色確認" style="margin-bottom:0;">
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:0.6rem;">
-            <label class="form-label">說明（選填）</label>
-            <textarea class="form-input" id="pending-content" placeholder="補充細節、選項等" rows="3" style="margin-bottom:0;resize:vertical;"></textarea>
-          </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px;">
-            <button class="btn-ghost" onclick="cancelPendingEdit()" id="pending-cancel-btn" style="display:none;">取消</button>
-            <button class="btn-ink" onclick="addPendingItem()" id="pending-save-btn">＋ 儲存待確認事項</button>
-          </div>
-        </div>
       </div>
 
       <!-- 材料挑選 -->
@@ -3768,12 +3773,12 @@ async function dbLoadPendingItems(pid){
     const {data,error}=await sbClient.from('pending_items').select('*').eq('project_id',pid).order('item_date',{ascending:false}).order('id',{ascending:false});
     if(error) throw error;
     if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
-    docsData[pid].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at}));
+    docsData[pid].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at,confirmationNote:r.confirmation_note||''}));
   }catch(e){console.warn('dbLoadPendingItems failed:',e.message);}
 }
 
 async function dbSavePendingItem(pid,item){
-  const row={project_id:pid,title:item.title,content:item.content||'',item_date:item.date||todayStr(),status:item.status||'pending',confirmed_at:item.status==='confirmed'?(item.confirmedAt||new Date().toISOString()):null};
+  const row={project_id:pid,title:item.title,content:item.content||'',item_date:item.date||todayStr(),status:item.status||'pending',confirmed_at:item.status==='confirmed'?(item.confirmedAt||new Date().toISOString()):null,confirmation_note:item.status==='confirmed'?(item.confirmationNote||''):null};
   if(item.dbId){
     const {error}=await sbClient.from('pending_items').update(row).eq('id',item.dbId);
     if(error) throw error;
@@ -4663,10 +4668,17 @@ async function openProjectDetail(pid){
 function switchProjTab(tab,el){
   document.querySelectorAll('#proj-detail-tabs .stab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['progress','profit','payment','schedule','changes','docs'].forEach(t=>{
+  ['progress','profit','payment','schedule','changes','meetings','docs'].forEach(t=>{
     const el=document.getElementById('proj-tab-'+t);
     if(el) el.style.display=t===tab?'block':'none';
   });
+  if(tab==='meetings'){
+    // 確保 admin meeting 子分頁渲染（沿用 docs-client-sel 的選擇邏輯）
+    const projClient=clients.find(c=>Number(c.projectId)===Number(currentDetailProjId));
+    if(projClient){const sel=document.getElementById('docs-client-sel');if(sel) sel.value=currentDetailProjId;}
+    populateDocsClientSel();
+    renderAdminDocs();
+  }
   if(tab==='payment'){
     const pid=currentDetailProjId;
     const pctEl=document.getElementById('pay-construction-pct');
@@ -6403,6 +6415,15 @@ function renderAdminPendingItems(cid){
     const isDone=p.status==='confirmed';
     const item=document.createElement('div');item.className='meeting-record';item.style.borderRadius='0';item.style.borderBottom='0.5px solid var(--border)';
     if(isDone) item.style.background='#FAFCF8';
+    const noteHtml=isDone
+      ? `<div style="margin-top:10px;padding:8px 10px;background:#FAFCF8;border:0.5px dashed var(--border);border-radius:8px;">
+           <label style="font-size:11px;color:var(--ink-muted);display:block;margin-bottom:4px;">確認備注（誰、何時、決議了什麼）</label>
+           <textarea data-pending-note-id="${p.dbId}" placeholder="例：3/8 客戶確認，採用 A 方案" rows="2"
+             style="width:100%;font-family:inherit;font-size:12px;line-height:1.6;padding:6px 8px;border:0.5px solid var(--border);border-radius:6px;background:#fff;color:var(--ink);outline:none;resize:vertical;box-sizing:border-box;"
+             onblur="updatePendingItemNote('${p.dbId}', this.value)">${(p.confirmationNote||'').replace(/</g,'&lt;')}</textarea>
+           ${p.confirmedAt?`<p style="font-size:10px;color:var(--ink-light);margin-top:4px;">已於 ${new Date(p.confirmedAt).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} 確認</p>`:''}
+         </div>`
+      : '';
     item.innerHTML=`
       <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
         <span class="meeting-record-date">${p.date||''}</span>
@@ -6412,14 +6433,15 @@ function renderAdminPendingItems(cid){
       </div>
       <div class="meeting-record-bd" style="padding-top:10px;">
         ${p.content?`<div style="font-size:13px;white-space:pre-wrap;">${smartFormat(p.content)}</div>`:''}
+        ${noteHtml}
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;">
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-            <input type="checkbox" ${isDone?'checked':''} onclick="event.stopPropagation()" onchange="togglePendingItemStatus(${p.dbId},this.checked)">
+            <input type="checkbox" ${isDone?'checked':''} onclick="event.stopPropagation()" onchange="togglePendingItemStatus('${p.dbId}',this.checked)">
             標記為已確認
           </label>
           <div style="margin-left:auto;display:flex;gap:6px;">
-            <button class="btn-sm" onclick="editPendingItem(${p.dbId})">編輯</button>
-            <button class="btn-sm danger" onclick="deletePendingItem(${p.dbId},${cid})">刪除</button>
+            <button class="btn-sm" onclick="editPendingItem('${p.dbId}')">編輯</button>
+            <button class="btn-sm danger" onclick="deletePendingItem('${p.dbId}',${cid})">刪除</button>
           </div>
         </div>
       </div>`;
@@ -6443,6 +6465,9 @@ function renderClientPendingItems(){
     const isDone=p.status==='confirmed';
     const card=document.createElement('div');card.className='meeting-record';
     if(isDone) card.style.background='#FAFCF8';
+    const noteHtml=isDone&&p.confirmationNote
+      ? `<div style="margin-top:8px;padding:8px 10px;background:#FAFCF8;border-left:2px solid var(--cli-green,#4A6741);border-radius:4px;font-size:12px;color:var(--cli-muted,#6E5E4E);line-height:1.65;white-space:pre-wrap;">${smartFormat(p.confirmationNote)}</div>`
+      : '';
     card.innerHTML=`
       <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
         <span class="meeting-record-date">${p.date||''}</span>
@@ -6450,7 +6475,10 @@ function renderClientPendingItems(){
         ${pendingStatusBadge(p.status)}
         <span class="meeting-record-arr">›</span>
       </div>
-      ${p.content?`<div class="meeting-record-bd" style="padding-top:10px;font-size:13px;white-space:pre-wrap;">${smartFormat(p.content)}</div>`:'<div class="meeting-record-bd" style="padding-top:6px;font-size:12px;color:var(--cli-light,#A09080);">（無補充說明）</div>'}`;
+      <div class="meeting-record-bd" style="padding-top:10px;">
+        ${p.content?`<div style="font-size:13px;white-space:pre-wrap;">${smartFormat(p.content)}</div>`:'<div style="font-size:12px;color:var(--cli-light,#A09080);">（無補充說明）</div>'}
+        ${noteHtml}
+      </div>`;
     wrap.appendChild(card);
   });
   el.appendChild(wrap);
@@ -6511,14 +6539,28 @@ function cancelPendingEdit(){
 
 async function togglePendingItemStatus(dbId,checked){
   const cid=getAdminDocClientId();
-  const item=(docsData[cid]?.pendingItems||[]).find(x=>x.dbId===dbId);
+  const item=(docsData[cid]?.pendingItems||[]).find(x=>String(x.dbId)===String(dbId));
   if(!item) return;
   item.status=checked?'confirmed':'pending';
   item.confirmedAt=checked?new Date().toISOString():null;
+  if(!checked) item.confirmationNote='';
   try{
     await dbSavePendingItem(cid,item);
     renderAdminPendingItems(cid);
   }catch(e){alert('更新失敗：'+e.message); item.status=checked?'pending':'confirmed';renderAdminPendingItems(cid);}
+}
+
+// 確認備注：textarea blur 時呼叫
+async function updatePendingItemNote(dbId,note){
+  const cid=getAdminDocClientId();
+  const item=(docsData[cid]?.pendingItems||[]).find(x=>String(x.dbId)===String(dbId));
+  if(!item) return;
+  if((item.confirmationNote||'')===(note||'')) return;  // 沒變不存
+  item.confirmationNote=note||'';
+  try{
+    await dbSavePendingItem(cid,item);
+    // 不重新 render，避免使用者打字中斷
+  }catch(e){alert('儲存備注失敗：'+e.message);}
 }
 
 async function deletePendingItem(dbId,cid){
