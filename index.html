@@ -4001,7 +4001,7 @@ async function renderDashboard(){
   const dashDesignFees = {};
   for(const p of projects){
     try{
-      const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('project_id',p.id).single();
+      const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.id).single();
       if(data){
         if(data.schedule_json) scheduleData[p.id]=JSON.parse(data.schedule_json);
         else if(!scheduleData[p.id]) scheduleData[p.id]=[];
@@ -7692,7 +7692,7 @@ async function renderClientDashboard(){
   // --- 4+5. 收款狀況 + 下次請款 ---
   let dashDesignFee=0;
   try{
-    const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('project_id',pid).single();
+    const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',pid).single();
     if(data){
       if(data.schedule_json) scheduleData[pid]=JSON.parse(data.schedule_json);
       if(data.design_fee!=null&&data.design_fee!==''){
@@ -8106,7 +8106,7 @@ async function renderClientPayment(){
   // Load schedule + design fee from DB
   let designFeeNum=0;
   try{
-    const {data,error}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('project_id',pid).single();
+    const {data,error}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',pid).single();
     if(!error&&data){
       if(data.schedule_json){ try{ scheduleData[pid]=JSON.parse(data.schedule_json); }catch(e){} }
       if(data.design_fee!=null&&data.design_fee!==''){
