@@ -3036,8 +3036,8 @@ async function dbDeleteChecklistItem(id) {
 
 async function dbLoadProfit(projectId) {
   const [profitRows, payRow] = await Promise.all([
-    sb.from('profit_items').selectWhere('*','project_id=eq.'+projectId),
-    sb.from('payment_settings').selectWhere('*','project_id=eq.'+projectId),
+    sb.from('profit_items').selectWhere('*','ys_project_id=eq.'+projectId),
+    sb.from('payment_settings').selectWhere('*','ys_project_id=eq.'+projectId),
   ]);
   initProjData(projectId);
   customProfitRows[projectId]=[];
@@ -3067,11 +3067,11 @@ async function dbLoadProfit(projectId) {
 }
 
 async function dbSaveProfitItem(projectId, key, vendor, client) {
-  await sb.from('profit_items').upsert({ project_id:projectId, item_key:key, vendor_price:vendor, client_price:client }, 'project_id,item_key');
+  await sb.from('profit_items').upsert({ ys_project_id:projectId, item_key:key, vendor_price:vendor, client_price:client }, 'ys_project_id,item_key');
 }
 
 async function dbSavePaymentSettings(projectId, pct, designFee, equipPct) {
-  await sb.from('payment_settings').upsert({ project_id:projectId, construction_pct:pct||0, design_fee:designFee||'', equip_pct:parseFloat(equipPct)||3 }, 'project_id');
+  await sb.from('payment_settings').upsert({ ys_project_id:projectId, construction_pct:pct||0, design_fee:designFee||'', equip_pct:parseFloat(equipPct)||3 }, 'ys_project_id');
 }
 
 
@@ -4362,8 +4362,8 @@ async function saveSchedule(){
     if(e1) throw e1;
     const scheduleJson=JSON.stringify(items);
     const {error:e2}=await sbClient.from('payment_settings').upsert(
-      {project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', equip_pct:parseFloat(paymentData[pid]?.equipPct)||3, schedule_json:scheduleJson},
-      {onConflict:'project_id'}
+      {ys_project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', equip_pct:parseFloat(paymentData[pid]?.equipPct)||3, schedule_json:scheduleJson},
+      {onConflict:'ys_project_id'}
     );
     if(e2) throw e2;
     alert('收款進度已儲存！');
@@ -5098,7 +5098,7 @@ async function dbSaveCustomProfitRow(pid,i){
     if(r.dbId){
       await sbClient.from('profit_items').update({item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).eq('id',r.dbId);
     } else {
-      const {data,error}=await sbClient.from('profit_items').insert({project_id:pid,item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).select();
+      const {data,error}=await sbClient.from('profit_items').insert({ys_project_id:pid,item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).select();
       if(error) throw error;
       if(data&&data[0]) customProfitRows[pid][i].dbId=data[0].id;
     }
@@ -8527,7 +8527,7 @@ async function autoFillDesignFeeScheduleAfterSign(c){
   try{
     const {data:existing}=await sbClient.from('payment_settings')
       .select('schedule_json,design_fee,construction_pct,equip_pct')
-      .eq('project_id',projectId).maybeSingle();
+      .eq('ys_project_id',projectId).maybeSingle();
     let scheduleArr=[];
     if(existing?.schedule_json){
       try{ scheduleArr=JSON.parse(existing.schedule_json); }catch(e){}
@@ -8542,12 +8542,12 @@ async function autoFillDesignFeeScheduleAfterSign(c){
     ];
     scheduleArr=[...newDesignRows,...scheduleArr];
     await sbClient.from('payment_settings').upsert({
-      project_id:projectId,
+      ys_project_id:projectId,
       design_fee:total,
       construction_pct:existing?.construction_pct||0,
       equip_pct:existing?.equip_pct||3,
       schedule_json:JSON.stringify(scheduleArr),
-    },{onConflict:'project_id'});
+    },{onConflict:'ys_project_id'});
   } catch(e){
     console.warn('autoFillDesignFeeSchedule failed:', e?.message);
   }
