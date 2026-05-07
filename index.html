@@ -1656,7 +1656,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="stab" style="display:none" onclick="switchProjTab('profit',this)">利潤分析</button>
         <button class="stab" style="display:none" onclick="switchProjTab('payment',this)">付款計算</button>
         <button class="stab" style="display:none" onclick="switchProjTab('schedule',this)">收款進度</button>
-        <button class="stab" onclick="switchProjTab('changes',this)">追加減</button>
+        <button class="stab" style="display:none" onclick="switchProjTab('changes',this)">追加減</button>
         <button class="stab" onclick="switchProjTab('meetings',this)">會議記錄</button>
         <button class="stab" onclick="switchProjTab('docs',this)">文件管理</button>
       </div>
@@ -7852,10 +7852,13 @@ function goToMeetingTab(tab){
 
 async function loadClientChangeOrders(pid){
   try{
-    const {data,error}=await sbClient.from('change_orders').select('*').eq('project_id',pid).order('seq_no',{ascending:true});
-    if(error) throw error;
-    const items=data||[];
-    const pct=items.length?Number(items[0].supervision_pct)||0:0;
+    const [coRes, psRes] = await Promise.all([
+      wsClient.from('change_orders').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
+      wsClient.from('payment_settings').select('co_supervision_pct').eq('ys_project_id',pid).maybeSingle(),
+    ]);
+    if(coRes.error) throw coRes.error;
+    const items=coRes.data||[];
+    const pct=Number(psRes?.data?.co_supervision_pct)||0;
     let addTotal=0,subTotal=0;
     items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addTotal+=amt;else subTotal+=amt;});
     const net=addTotal-subTotal;
@@ -7928,15 +7931,18 @@ async function exportChangeOrdersPdf(){
   const projAddr=(proj&&(proj.address||''))+((proj&&proj.unit)?(' '+proj.unit):'');
 
   let items=[];
+  let pct=0;
   try{
-    const {data,error}=await sbClient.from('change_orders').select('*').eq('project_id',pid).order('seq_no',{ascending:true});
-    if(error) throw error;
-    items=data||[];
+    const [coRes, psRes] = await Promise.all([
+      wsClient.from('change_orders').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
+      wsClient.from('payment_settings').select('co_supervision_pct').eq('ys_project_id',pid).maybeSingle(),
+    ]);
+    if(coRes.error) throw coRes.error;
+    items=coRes.data||[];
+    pct=Number(psRes?.data?.co_supervision_pct)||0;
   }catch(e){alert('讀取追加減資料失敗：'+e.message);return;}
 
   if(!items.length){alert('目前尚無追加減記錄可匯出');return;}
-
-  const pct=Number(items[0].supervision_pct)||0;
   let addTotal=0,subTotal=0;
   items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addTotal+=amt;else subTotal+=amt;});
   const net=addTotal-subTotal;
