@@ -4003,7 +4003,7 @@ async function renderDashboard(){
     try{
       const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.ys_project_id).single();
       if(data){
-        if(data.schedule_json) scheduleData[p.id]=JSON.parse(data.schedule_json);
+        if(data.schedule_json) scheduleData[p.id]=(typeof data.schedule_json==='string')?JSON.parse(data.schedule_json):data.schedule_json;
         else if(!scheduleData[p.id]) scheduleData[p.id]=[];
         if(data.design_fee!=null&&data.design_fee!==''){
           const n=Number(String(data.design_fee).replace(/,/g,''));
@@ -7696,7 +7696,7 @@ async function renderClientDashboard(){
     const _ysPid=_proj?.ys_project_id;
     const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
     if(data){
-      if(data.schedule_json) scheduleData[pid]=JSON.parse(data.schedule_json);
+      if(data.schedule_json) scheduleData[pid]=(typeof data.schedule_json==='string')?JSON.parse(data.schedule_json):data.schedule_json;
       if(data.design_fee!=null&&data.design_fee!==''){
         const n=Number(String(data.design_fee).replace(/,/g,''));
         if(!isNaN(n)) dashDesignFee=n;
@@ -8111,7 +8111,11 @@ async function renderClientPayment(){
     const _ysPid=proj?.ys_project_id ?? pid;
     const {data,error}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
     if(!error&&data){
-      if(data.schedule_json){ try{ scheduleData[pid]=JSON.parse(data.schedule_json); }catch(e){} }
+      if(data.schedule_json){
+        scheduleData[pid] = (typeof data.schedule_json === 'string')
+          ? (()=>{try{return JSON.parse(data.schedule_json)}catch(e){return []}})()
+          : data.schedule_json;
+      }
       if(data.design_fee!=null&&data.design_fee!==''){
         const n=Number(String(data.design_fee).replace(/,/g,''));
         if(!isNaN(n)) designFeeNum=n;
