@@ -2782,6 +2782,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <script>
 const SB_URL='https://vqxxaameifyvezvozvnf.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxeHhhYW1laWZ5dmV6dm96dm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjYwNjAsImV4cCI6MjA5MTYwMjA2MH0.RHCaYPLv8HDzUYvjqTwch-Xy5j0vQZCeE_ETcykr-Qk';
+// work-system Supabase（ERP 寫入的 DB；payment_settings + profit_items 從這邊讀）
+const WS_URL='https://kwtozldimwidbkemrdgg.supabase.co';
+const WS_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dG96bGRpbXdpZGJrZW1yZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDcyNTcsImV4cCI6MjA5MTcyMzI1N30.OK8qXUNSDEeCakMHyV9_fJZBGMtpE_wANNCzWvkBYuc';
 // LINE push edge function — secret is bundled into admin JS; if leaked, rotate via `openssl rand -hex 32` and update both Supabase secret + this constant.
 const LINE_PUSH_URL = SB_URL + '/functions/v1/line-push';
 const ADMIN_PUSH_SECRET = '653917f6e000993ceefe26e69685832fd150812107c5031ec11324d23762f914';
@@ -2789,6 +2792,7 @@ const SITE_LOGO_B64='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAA
 
 // supabase init deferred to after SDK loads
 let sbClient = null;
+let wsClient = null; // work-system 專案的 Supabase client
 // =============================================
 // SUPABASE WRAPPER
 // =============================================
@@ -2841,6 +2845,27 @@ const sb = {
         throw new Error('刪除條件不完整，已取消');
       }
       const {error} = await q;
+      if(error) throw new Error(error.message);
+    },
+  })
+};
+
+// ws wrapper：跟 sb 一樣，但走 wsClient（work-system 專案）
+const ws = {
+  from: (table) => ({
+    selectWhere: async (cols, filter) => {
+      let q = wsClient.from(table).select(cols);
+      const parts = filter.split('&');
+      parts.forEach(part => {
+        const m = part.match(/^(\w+)=eq\.(.+)$/);
+        if(m) q = q.eq(m[1], m[2]);
+      });
+      const {data,error} = await q;
+      if(error) throw new Error(error.message);
+      return data;
+    },
+    upsert: async (row, onConflict) => {
+      const {error} = await wsClient.from(table).upsert(row, {onConflict});
       if(error) throw new Error(error.message);
     },
   })
@@ -3036,8 +3061,8 @@ async function dbDeleteChecklistItem(id) {
 
 async function dbLoadProfit(projectId) {
   const [profitRows, payRow] = await Promise.all([
-    sb.from('profit_items').selectWhere('*','ys_project_id=eq.'+projectId),
-    sb.from('payment_settings').selectWhere('*','ys_project_id=eq.'+projectId),
+    ws.from('profit_items').selectWhere('*','ys_project_id=eq.'+projectId),
+    ws.from('payment_settings').selectWhere('*','ys_project_id=eq.'+projectId),
   ]);
   initProjData(projectId);
   customProfitRows[projectId]=[];
@@ -3067,11 +3092,11 @@ async function dbLoadProfit(projectId) {
 }
 
 async function dbSaveProfitItem(projectId, key, vendor, client) {
-  await sb.from('profit_items').upsert({ ys_project_id:projectId, item_key:key, vendor_price:vendor, client_price:client }, 'ys_project_id,item_key');
+  await ws.from('profit_items').upsert({ ys_project_id:projectId, item_key:key, vendor_price:vendor, client_price:client }, 'ys_project_id,item_key');
 }
 
 async function dbSavePaymentSettings(projectId, pct, designFee, equipPct) {
-  await sb.from('payment_settings').upsert({ ys_project_id:projectId, construction_pct:pct||0, design_fee:designFee||'', equip_pct:parseFloat(equipPct)||3 }, 'ys_project_id');
+  await ws.from('payment_settings').upsert({ ys_project_id:projectId, construction_pct:pct||0, design_fee:designFee||'', equip_pct:parseFloat(equipPct)||3 }, 'ys_project_id');
 }
 
 
@@ -4001,7 +4026,7 @@ async function renderDashboard(){
   const dashDesignFees = {};
   for(const p of projects){
     try{
-      const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.ys_project_id).single();
+      const {data}=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.ys_project_id).single();
       if(data){
         if(data.schedule_json) scheduleData[p.id]=(typeof data.schedule_json==='string')?JSON.parse(data.schedule_json):data.schedule_json;
         else if(!scheduleData[p.id]) scheduleData[p.id]=[];
@@ -4361,7 +4386,7 @@ async function saveSchedule(){
     const {error:e1}=await sbClient.from('projects').update({received_amount:receivedAmt,contract_amount:total||0}).eq('id',pid);
     if(e1) throw e1;
     const scheduleJson=JSON.stringify(items);
-    const {error:e2}=await sbClient.from('payment_settings').upsert(
+    const {error:e2}=await wsClient.from('payment_settings').upsert(
       {ys_project_id:pid, construction_pct:parseFloat(paymentData[pid]?.constructionPct)||0, design_fee:paymentData[pid]?.designFee||'', equip_pct:parseFloat(paymentData[pid]?.equipPct)||3, schedule_json:scheduleJson},
       {onConflict:'ys_project_id'}
     );
@@ -5066,7 +5091,7 @@ function addCustomProfitRow(pid){
 function removeCustomProfitRow(pid,i){
   const row=customProfitRows[pid][i];
   if(row&&row.dbId){
-    sbClient.from('profit_items').delete().eq('id',row.dbId).then(()=>{});
+    wsClient.from('profit_items').delete().eq('id',row.dbId).then(()=>{});
   }
   customProfitRows[pid].splice(i,1);
   renderProfitTable();
@@ -5096,9 +5121,9 @@ async function dbSaveCustomProfitRow(pid,i){
   try{
     const itemKey='__custom__'+(r.label||'custom');
     if(r.dbId){
-      await sbClient.from('profit_items').update({item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).eq('id',r.dbId);
+      await wsClient.from('profit_items').update({item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).eq('id',r.dbId);
     } else {
-      const {data,error}=await sbClient.from('profit_items').insert({ys_project_id:pid,item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).select();
+      const {data,error}=await wsClient.from('profit_items').insert({ys_project_id:pid,item_key:itemKey,vendor_price:r.vendor||0,client_price:r.client||0}).select();
       if(error) throw error;
       if(data&&data[0]) customProfitRows[pid][i].dbId=data[0].id;
     }
@@ -7694,7 +7719,7 @@ async function renderClientDashboard(){
   try{
     const _proj=projects.find(p=>p.id===pid);
     const _ysPid=_proj?.ys_project_id;
-    const {data}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
+    const {data}=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
     if(data){
       if(data.schedule_json) scheduleData[pid]=(typeof data.schedule_json==='string')?JSON.parse(data.schedule_json):data.schedule_json;
       if(data.design_fee!=null&&data.design_fee!==''){
@@ -8109,7 +8134,7 @@ async function renderClientPayment(){
   let designFeeNum=0;
   try{
     const _ysPid=proj?.ys_project_id ?? pid;
-    const {data,error}=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
+    const {data,error}=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
     if(!error&&data){
       if(data.schedule_json){
         scheduleData[pid] = (typeof data.schedule_json === 'string')
@@ -8525,7 +8550,7 @@ async function autoFillDesignFeeScheduleAfterSign(c){
   const projectId=cli.projectId;
 
   try{
-    const {data:existing}=await sbClient.from('payment_settings')
+    const {data:existing}=await wsClient.from('payment_settings')
       .select('schedule_json,design_fee,construction_pct,equip_pct')
       .eq('ys_project_id',projectId).maybeSingle();
     let scheduleArr=[];
@@ -8541,7 +8566,7 @@ async function autoFillDesignFeeScheduleAfterSign(c){
       {name:`設計費全部圖說完成（${100-pct1-pct2}%）`, amount:pay3, due:'', status:'未收', received:'', category:'設計費'},
     ];
     scheduleArr=[...newDesignRows,...scheduleArr];
-    await sbClient.from('payment_settings').upsert({
+    await wsClient.from('payment_settings').upsert({
       ys_project_id:projectId,
       design_fee:total,
       construction_pct:existing?.construction_pct||0,
@@ -9445,7 +9470,11 @@ function renderAssignBody(){
 async function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();try{await dbUpdateClientArticles(cid,c.assigned);}catch(e){console.error('assign save failed',e);}}
 
 document.addEventListener('DOMContentLoaded', function() {
-  try { sbClient = window.supabase.createClient(SB_URL, SB_KEY); console.log('✅ Supabase ready'); } catch(e){ console.error('Supabase init failed:',e); }
+  try {
+    sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+    wsClient = window.supabase.createClient(WS_URL, WS_KEY);
+    console.log('✅ Supabase ready (sb + ws)');
+  } catch(e){ console.error('Supabase init failed:',e); }
   // Apply logo to all instances (stored once in JS to avoid 3× duplication in HTML)
   document.querySelectorAll('.site-logo-img').forEach(img=>{ if(!img.src||img.src===window.location.href) img.src=SITE_LOGO_B64; });
   var cm=document.getElementById('cm-modal');
