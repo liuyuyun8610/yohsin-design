@@ -1653,9 +1653,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <!-- 頁籤 -->
       <div class="stabs" id="proj-detail-tabs">
         <button class="stab active" onclick="switchProjTab('progress',this)">專案進度</button>
-        <button class="stab" onclick="switchProjTab('profit',this)">利潤分析</button>
-        <button class="stab" onclick="switchProjTab('payment',this)">付款計算</button>
-        <button class="stab" onclick="switchProjTab('schedule',this)">收款進度</button>
+        <button class="stab" style="display:none" onclick="switchProjTab('profit',this)">利潤分析</button>
+        <button class="stab" style="display:none" onclick="switchProjTab('payment',this)">付款計算</button>
+        <button class="stab" style="display:none" onclick="switchProjTab('schedule',this)">收款進度</button>
         <button class="stab" onclick="switchProjTab('changes',this)">追加減</button>
         <button class="stab" onclick="switchProjTab('meetings',this)">會議記錄</button>
         <button class="stab" onclick="switchProjTab('docs',this)">文件管理</button>
