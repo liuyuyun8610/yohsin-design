@@ -7835,17 +7835,15 @@ function switchDocsTab(tab){
 }
 
 function goToMeetings(){
-  const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
-  goPage('p-docs', docsNav);
-  setTimeout(()=>switchDocsTab('meetings'), 80);
+  const meetNav=document.querySelector('#s-client .tnav[onclick*="p-meetings"]');
+  goPage('p-meetings', meetNav);
 }
 
 function goToMeetingTab(tab){
-  const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
-  goPage('p-docs', docsNav);
+  const meetNav=document.querySelector('#s-client .tnav[onclick*="p-meetings"]');
+  goPage('p-meetings', meetNav);
   setTimeout(()=>{
-    switchDocsTab('meetings');
-    const tabBtn=document.querySelector(`#p-docs .meeting-tab[onclick*="${tab}"]`);
+    const tabBtn=document.querySelector(`#p-meetings .meeting-tab[onclick*="${tab}"]`);
     if(tabBtn) switchMeetingTab(tab, tabBtn);
   }, 120);
 }
