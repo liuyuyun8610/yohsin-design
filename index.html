@@ -4023,10 +4023,18 @@ async function renderDashboard(){
   }
 
   // Load schedule data + design fee for overdue detection & accurate contract totals
+  // 優先 work-system；沒資料就 fallback ys-interior（舊資料）
   const dashDesignFees = {};
   for(const p of projects){
     try{
-      const {data}=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.ys_project_id).single();
+      let data=null;
+      const wsRes=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.ys_project_id).maybeSingle();
+      if(wsRes?.data && (wsRes.data.schedule_json || wsRes.data.design_fee)){
+        data=wsRes.data;
+      } else {
+        const sbRes=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',p.ys_project_id).maybeSingle();
+        data=sbRes?.data ?? null;
+      }
       if(data){
         if(data.schedule_json) scheduleData[p.id]=(typeof data.schedule_json==='string')?JSON.parse(data.schedule_json):data.schedule_json;
         else if(!scheduleData[p.id]) scheduleData[p.id]=[];
@@ -7715,11 +7723,19 @@ async function renderClientDashboard(){
   await loadClientChangeOrders(pid);
 
   // --- 4+5. 收款狀況 + 下次請款 ---
+  // 優先 work-system；沒資料就 fallback ys-interior
   let dashDesignFee=0;
   try{
     const _proj=projects.find(p=>p.id===pid);
     const _ysPid=_proj?.ys_project_id;
-    const {data}=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
+    let data=null;
+    const wsRes=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).maybeSingle();
+    if(wsRes?.data && (wsRes.data.schedule_json || wsRes.data.design_fee)){
+      data=wsRes.data;
+    } else {
+      const sbRes=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).maybeSingle();
+      data=sbRes?.data ?? null;
+    }
     if(data){
       if(data.schedule_json) scheduleData[pid]=(typeof data.schedule_json==='string')?JSON.parse(data.schedule_json):data.schedule_json;
       if(data.design_fee!=null&&data.design_fee!==''){
@@ -8138,8 +8154,16 @@ async function renderClientPayment(){
   let designFeeNum=0;
   try{
     const _ysPid=proj?.ys_project_id ?? pid;
-    const {data,error}=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).single();
-    if(!error&&data){
+    // 優先 work-system；沒資料就 fallback ys-interior（舊資料）
+    let data=null;
+    const wsRes=await wsClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).maybeSingle();
+    if(wsRes?.data && (wsRes.data.schedule_json || wsRes.data.design_fee)){
+      data=wsRes.data;
+    } else {
+      const sbRes=await sbClient.from('payment_settings').select('schedule_json, design_fee').eq('ys_project_id',_ysPid).maybeSingle();
+      data=sbRes?.data ?? null;
+    }
+    if(data){
       if(data.schedule_json){
         scheduleData[pid] = (typeof data.schedule_json === 'string')
           ? (()=>{try{return JSON.parse(data.schedule_json)}catch(e){return []}})()
