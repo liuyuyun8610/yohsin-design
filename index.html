@@ -7335,16 +7335,25 @@ async function populateLogClientSel(){
   try{
     if(!wsClient) throw new Error('wsClient 未初始化');
     const {data,error}=await wsClient.from('projects')
-      .select('ys_project_id, name, status, year, start_date, end_date')
-      .not('ys_project_id','is',null);
+      .select('ys_project_id, name, status, year, start_date, end_date');
     if(error) throw error;
-    rows=data||[];
+    rows=(data||[]).filter(p=>p.ys_project_id!=null);
+    console.log('[施工日誌] ws projects:', rows.length, rows.slice(0,3));
   }catch(e){
-    console.warn('施工日誌專案下拉讀取失敗，fallback 用 ys-interior projects',e);
-    rows=projects.map(p=>({ys_project_id:p.id, name:p.name, status:p.status, year:null, start_date:p.date||null, end_date:p.endDate||null}));
+    console.warn('[施工日誌] ws 讀取失敗:', e);
   }
 
-  // 取專案年份：優先 year 欄位 → start_date → end_date
+  // 沒讀到 → fallback ys-interior projects 全域
+  if(!rows.length){
+    rows=projects.map(p=>({ys_project_id:p.id, name:p.name, status:p.status, year:null, start_date:p.date||null, end_date:p.endDate||null}));
+    console.log('[施工日誌] fallback ys projects:', rows.length);
+  }
+
+  if(!rows.length){
+    const o=document.createElement('option');o.value='';o.textContent='（尚無專案資料）';sel.appendChild(o);return;
+  }
+
+  // 取專案年份：year > start_date > end_date
   const projYear=(p)=>{
     if(p.year!=null) return Number(p.year);
     if(p.start_date) return new Date(p.start_date).getFullYear();
@@ -7352,18 +7361,23 @@ async function populateLogClientSel(){
     return null;
   };
 
-  // 過濾：只顯示今年和去年（2026 + 2025）；沒有年份資訊的也保留（避免漏新建專案）
+  // 過濾：只顯示 今年 + 去年（year >= 今年-1）；年份未知的也保留
   const curYr=new Date().getFullYear();
   const minYr=curYr-1;
-  rows=rows.filter(p=>{const y=projYear(p);return y==null||y>=minYr;});
+  let filtered=rows.filter(p=>{const y=projYear(p);return y==null||y>=minYr;});
 
-  if(!rows.length){
-    const o=document.createElement('option');o.value='';o.textContent='（無 '+minYr+'-'+curYr+' 年專案）';sel.appendChild(o);return;
+  // 如果過濾完全空（資料可能 year/date 都是更早或都是 null 但不對）
+  // → fallback 顯示全部（按年份排序），讓用戶至少看得到東西
+  let usingFallback=false;
+  if(!filtered.length){
+    console.warn('[施工日誌] year filter 過濾後為 0，fallback 顯示全部',rows);
+    filtered=rows;
+    usingFallback=true;
   }
 
-  // 分年度群組（用 disabled option 當分隔線，比 optgroup 在 Safari/Chrome 上更明顯）
+  // 分年度群組（用 disabled option 當分隔線）
   const byYear=new Map();
-  rows.forEach(p=>{
+  filtered.forEach(p=>{
     const y=projYear(p);
     const k=y!=null?y:'未指定年份';
     if(!byYear.has(k)) byYear.set(k,[]);
@@ -7375,8 +7389,15 @@ async function populateLogClientSel(){
     return Number(b)-Number(a);
   });
 
-  yearKeys.forEach((y,idx)=>{
-    // 年份標題（disabled 不可選，當分隔線）
+  if(usingFallback){
+    const note=document.createElement('option');
+    note.disabled=true;
+    note.style.color='#B85C38';
+    note.textContent='⚠️ 專案缺年份資料，顯示全部';
+    sel.appendChild(note);
+  }
+
+  yearKeys.forEach(y=>{
     const hdr=document.createElement('option');
     hdr.disabled=true;
     hdr.style.background='#EFE9DD';
