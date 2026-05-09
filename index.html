@@ -3358,7 +3358,7 @@ async function goAdminPage(id,el){
   if(id==='a-dashboard') renderDashboard();
   if(id==='a-docs'){populateDocsClientSel();await renderAdminDocs();}
   if(id==='a-settings') renderBossAccounts();
-  if(id==='a-logs'){populateLogClientSel();await renderAdminLogs();}
+  if(id==='a-logs'){await populateLogClientSel();await renderAdminLogs();}
   if(id==='a-survey') renderSurveyLinksAdmin();
   if(id==='a-assign') renderAssignClist();
   if(id==='a-clients') renderAdminClients();
@@ -7326,14 +7326,65 @@ function renderAdminQuoteList(cid){
 }
 
 // ========== ADMIN LOGS ==========
-function populateLogClientSel(){
+// 從 work-system (ERP) 抓專案，分年度群組，超過一年的不顯示
+async function populateLogClientSel(){
   const sel=document.getElementById('log-client-sel');if(!sel)return;
   const cur=sel.value;sel.innerHTML='';
-  if(!projects.length){const o=document.createElement('option');o.value='';o.textContent='（尚無專案）';sel.appendChild(o);return;}
-  projects.filter(p=>p.status!=='已完工'&&p.status!=='已過保').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
-  projects.filter(p=>p.status==='已完工').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' (保固中)';sel.appendChild(o);});
-  projects.filter(p=>p.status==='已過保').forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' (已過保)';sel.appendChild(o);});
-  if(cur)sel.value=cur;
+
+  let rows=[];
+  try{
+    if(!wsClient) throw new Error('wsClient 未初始化');
+    const {data,error}=await wsClient.from('projects')
+      .select('ys_project_id, name, status, year, end_date')
+      .not('ys_project_id','is',null);
+    if(error) throw error;
+    rows=data||[];
+  }catch(e){
+    console.warn('施工日誌專案下拉讀取失敗，fallback 用 ys-interior projects',e);
+    rows=projects.map(p=>({ys_project_id:p.id, name:p.name, status:p.status, year:null, end_date:p.endDate||null}));
+  }
+
+  // 過濾：超過一年以上的不顯示
+  const today=new Date();
+  const cutoff=new Date(today.getFullYear()-1, today.getMonth(), today.getDate());
+  const curYr=today.getFullYear();
+  rows=rows.filter(p=>{
+    if(p.year!=null) return Number(p.year) >= curYr-1;          // 有 year：今年 + 去年
+    if(p.end_date) return new Date(p.end_date) >= cutoff;       // 沒 year 看 end_date
+    return true;                                                // 都沒有 → 保留（可能是新建）
+  });
+
+  if(!rows.length){
+    const o=document.createElement('option');o.value='';o.textContent='（一年內無專案）';sel.appendChild(o);return;
+  }
+
+  // 分年度群組
+  const byYear=new Map();
+  rows.forEach(p=>{
+    const y=p.year!=null?Number(p.year):(p.end_date?new Date(p.end_date).getFullYear():'其他');
+    if(!byYear.has(y)) byYear.set(y,[]);
+    byYear.get(y).push(p);
+  });
+  const yearKeys=Array.from(byYear.keys()).sort((a,b)=>{
+    if(a==='其他') return 1;
+    if(b==='其他') return -1;
+    return Number(b)-Number(a);
+  });
+
+  yearKeys.forEach(y=>{
+    const grp=document.createElement('optgroup');
+    grp.label=y==='其他'?'其他':(y+' 年');
+    byYear.get(y).sort((a,b)=>(a.name||'').localeCompare(b.name||'','zh-Hant')).forEach(p=>{
+      const o=document.createElement('option');
+      o.value=p.ys_project_id;
+      const sfx=p.status==='已完工'?' (保固中)':(p.status==='已過保'?' (已過保)':'');
+      o.textContent=(p.name||'')+sfx;
+      grp.appendChild(o);
+    });
+    sel.appendChild(grp);
+  });
+
+  if(cur) sel.value=cur;
   // Auto-fill today's date
   const dateInput=document.getElementById('log-date');
   if(dateInput&&!dateInput.value){
@@ -7508,17 +7559,22 @@ async function saveLogEdit(key,pid){
   const log=calLogs[key]; if(!log) return;
   const tag=document.getElementById(`edit-tag-${key}`)?.value.trim()||'';
   const work=document.getElementById(`edit-work-${key}`)?.value.trim()||'';
+  const newDate=document.getElementById(`edit-date-${key}`)?.value || key;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('日期格式錯誤');return;}
   showLoader(true);
   try{
     // 上傳新照片
     const newFiles=_editLogPendingPhotos[key]||[];
     const newUrls=newFiles.length?await uploadFilesToStorage(newFiles,'construction-logs'):[];
     const photos=[...(log.photos||[]),...newUrls];
-    // 更新記憶體
-    calLogs[key]={...log,tag,work,photos};
+    // 日期改了 → 先刪舊 row，再用新 key 寫入（複合 PK 是 project_id+log_date）
+    if(newDate!==key){
+      if(pid) await dbDeleteLog(pid,key);
+      delete calLogs[key];
+    }
+    calLogs[newDate]={tag,work,photos};
     _editLogPendingPhotos[key]=[];
-    // 存 DB
-    if(pid) await dbSaveLog(pid,key,calLogs[key]);
+    if(pid) await dbSaveLog(pid,newDate,calLogs[newDate]);
     toggleLogEdit(key,false);
     renderAdminLogs();renderCalendar();
   }catch(e){alert('儲存失敗：'+e.message);}
@@ -7575,6 +7631,10 @@ async function renderAdminLogs(){
     editRow.style.cssText='display:none;margin-top:10px;padding:12px;background:var(--sand);border-radius:10px;gap:8px;flex-direction:column;';
     editRow.innerHTML=`
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="min-width:150px;">
+          <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">施工日期</div>
+          <input type="date" class="form-input" style="margin-bottom:0;" value="${key}" id="edit-date-${key}">
+        </div>
         <div style="flex:1;min-width:140px;">
           <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">工程標籤</div>
           <input class="form-input" style="margin-bottom:0;" value="${log.tag||''}" placeholder="例：木作工程" id="edit-tag-${key}">
