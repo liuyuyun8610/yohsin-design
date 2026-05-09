@@ -4419,12 +4419,14 @@ async function saveSchedule(){
     isCoAuto: r.isCoAuto||false
   }));
   const receivedAmt=items.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
-  const total=getScheduleTotal(pid);
   const proj=projects.find(p=>Number(p.id)===Number(pid));
-  if(proj){ proj.receivedAmount=receivedAmt; if(total>0) proj.contractAmount=total; }
+  if(proj){ proj.receivedAmount=receivedAmt; }
+  // 注意：絕對不寫 contract_amount。
+  // contract_amount 由 work-system 的 recomputeContractAmount() 統一管理（=工程款合約，不含設計費）。
+  // 之前這裡寫 contract_amount=schedule 加總會把 work-system 算好的值覆寫成「含設計費」的 schedule 總額。
   showLoader(true);
   try{
-    const {error:e1}=await sbClient.from('projects').update({received_amount:receivedAmt,contract_amount:total||0}).eq('id',pid);
+    const {error:e1}=await sbClient.from('projects').update({received_amount:receivedAmt}).eq('id',pid);
     if(e1) throw e1;
     const scheduleJson=JSON.stringify(items);
     const {error:e2}=await wsClient.from('payment_settings').upsert(
