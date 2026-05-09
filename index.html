@@ -7335,53 +7335,62 @@ async function populateLogClientSel(){
   try{
     if(!wsClient) throw new Error('wsClient 未初始化');
     const {data,error}=await wsClient.from('projects')
-      .select('ys_project_id, name, status, year, end_date')
+      .select('ys_project_id, name, status, year, start_date, end_date')
       .not('ys_project_id','is',null);
     if(error) throw error;
     rows=data||[];
   }catch(e){
     console.warn('施工日誌專案下拉讀取失敗，fallback 用 ys-interior projects',e);
-    rows=projects.map(p=>({ys_project_id:p.id, name:p.name, status:p.status, year:null, end_date:p.endDate||null}));
+    rows=projects.map(p=>({ys_project_id:p.id, name:p.name, status:p.status, year:null, start_date:p.date||null, end_date:p.endDate||null}));
   }
 
-  // 過濾：超過一年以上的不顯示
-  const today=new Date();
-  const cutoff=new Date(today.getFullYear()-1, today.getMonth(), today.getDate());
-  const curYr=today.getFullYear();
-  rows=rows.filter(p=>{
-    if(p.year!=null) return Number(p.year) >= curYr-1;          // 有 year：今年 + 去年
-    if(p.end_date) return new Date(p.end_date) >= cutoff;       // 沒 year 看 end_date
-    return true;                                                // 都沒有 → 保留（可能是新建）
-  });
+  // 取專案年份：優先 year 欄位 → start_date → end_date
+  const projYear=(p)=>{
+    if(p.year!=null) return Number(p.year);
+    if(p.start_date) return new Date(p.start_date).getFullYear();
+    if(p.end_date) return new Date(p.end_date).getFullYear();
+    return null;
+  };
+
+  // 過濾：只顯示今年和去年（2026 + 2025）；沒有年份資訊的也保留（避免漏新建專案）
+  const curYr=new Date().getFullYear();
+  const minYr=curYr-1;
+  rows=rows.filter(p=>{const y=projYear(p);return y==null||y>=minYr;});
 
   if(!rows.length){
-    const o=document.createElement('option');o.value='';o.textContent='（一年內無專案）';sel.appendChild(o);return;
+    const o=document.createElement('option');o.value='';o.textContent='（無 '+minYr+'-'+curYr+' 年專案）';sel.appendChild(o);return;
   }
 
-  // 分年度群組
+  // 分年度群組（用 disabled option 當分隔線，比 optgroup 在 Safari/Chrome 上更明顯）
   const byYear=new Map();
   rows.forEach(p=>{
-    const y=p.year!=null?Number(p.year):(p.end_date?new Date(p.end_date).getFullYear():'其他');
-    if(!byYear.has(y)) byYear.set(y,[]);
-    byYear.get(y).push(p);
+    const y=projYear(p);
+    const k=y!=null?y:'未指定年份';
+    if(!byYear.has(k)) byYear.set(k,[]);
+    byYear.get(k).push(p);
   });
   const yearKeys=Array.from(byYear.keys()).sort((a,b)=>{
-    if(a==='其他') return 1;
-    if(b==='其他') return -1;
+    if(a==='未指定年份') return 1;
+    if(b==='未指定年份') return -1;
     return Number(b)-Number(a);
   });
 
-  yearKeys.forEach(y=>{
-    const grp=document.createElement('optgroup');
-    grp.label=y==='其他'?'其他':(y+' 年');
+  yearKeys.forEach((y,idx)=>{
+    // 年份標題（disabled 不可選，當分隔線）
+    const hdr=document.createElement('option');
+    hdr.disabled=true;
+    hdr.style.background='#EFE9DD';
+    hdr.style.color='#5C4830';
+    hdr.style.fontWeight='600';
+    hdr.textContent=`──── ${y==='未指定年份'?y:(y+' 年')} ────`;
+    sel.appendChild(hdr);
     byYear.get(y).sort((a,b)=>(a.name||'').localeCompare(b.name||'','zh-Hant')).forEach(p=>{
       const o=document.createElement('option');
       o.value=p.ys_project_id;
       const sfx=p.status==='已完工'?' (保固中)':(p.status==='已過保'?' (已過保)':'');
       o.textContent=(p.name||'')+sfx;
-      grp.appendChild(o);
+      sel.appendChild(o);
     });
-    sel.appendChild(grp);
   });
 
   if(cur) sel.value=cur;
