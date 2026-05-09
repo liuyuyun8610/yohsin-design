@@ -782,7 +782,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .bank-info-card[open] summary{color:var(--ink) !important;}
 
 /* ---- Progress bar: thin and ink-colored ---- */
-#client-pay-bar,#dash-pay-bar{background:#5E786E !important;}
+#dash-pay-bar{background:#5E786E !important;}
 
 /* ---- Status badges in tables (e.g. 已收/未收) ---- */
 .psm{padding:0 !important;background:transparent !important;font-size:10px !important;letter-spacing:0.18em !important;text-transform:uppercase;}
@@ -1385,21 +1385,23 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="p-payment">
       <div class="page-title">付款明細及收據</div>
 
-      <!-- 總覽 -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="pay-sum">
-          <div class="pay-box"><div class="pay-lbl">合約總額</div><div class="pay-val" id="client-pay-total">$—</div></div>
-          <div class="pay-box"><div class="pay-lbl">已收總額</div><div class="pay-val" id="client-pay-received">$—</div></div>
-          <div class="pay-box"><div class="pay-lbl">待收金額</div><div class="pay-val danger" id="client-pay-pending">$—</div></div>
+      <!-- 設計費 總覽 -->
+      <div class="card" id="pay-overview-design" style="margin-bottom:0.8rem;">
+        <div style="font-size:11px;letter-spacing:0.16em;color:var(--blue);font-weight:500;margin-bottom:10px;">✏️ 設計費</div>
+        <div class="pay-sum" style="margin:0;border-top:none;border-bottom:none;">
+          <div class="pay-box"><div class="pay-lbl">合約</div><div class="pay-val" id="client-pay-design-contract">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">已收</div><div class="pay-val" id="client-pay-design-received">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">待收</div><div class="pay-val danger" id="client-pay-design-pending">$—</div></div>
         </div>
-        <!-- 整體進度條 -->
-        <div style="margin-top:10px;">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-light);margin-bottom:5px;">
-            <span>收款進度</span><span id="client-pay-pct">0%</span>
-          </div>
-          <div style="height:6px;background:var(--sand-dark);border-radius:3px;overflow:hidden;">
-            <div id="client-pay-bar" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .4s;"></div>
-          </div>
+      </div>
+
+      <!-- 工程款 總覽 -->
+      <div class="card" id="pay-overview-construction" style="margin-bottom:1rem;">
+        <div style="font-size:11px;letter-spacing:0.16em;color:var(--accent);font-weight:500;margin-bottom:10px;">✏️ 工程款</div>
+        <div class="pay-sum" style="margin:0;border-top:none;border-bottom:none;">
+          <div class="pay-box"><div class="pay-lbl">合約</div><div class="pay-val" id="client-pay-construction-contract">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">已收</div><div class="pay-val" id="client-pay-construction-received">$—</div></div>
+          <div class="pay-box"><div class="pay-lbl">待收</div><div class="pay-val danger" id="client-pay-construction-pending">$—</div></div>
         </div>
       </div>
 
@@ -8208,19 +8210,36 @@ async function renderClientPayment(){
   }catch(e){}
   const allItems=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
-  const itemsSum=allItems.reduce((s,r)=>s+(r.amount||0),0);
-  // 取「工程+設計費」與「期程總和」兩者較大者，避免某一邊沒填造成 received > total
-  const total=Math.max((contractAmt>0?contractAmt:itemsSum)+designFeeNum, itemsSum);
-  const received=allItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
-  const pending=total-received;
-  const pct=total>0?Math.round(received/total*100):0;
+
+  // Split by category（default 工程款 for legacy data）
+  const designItems=allItems.filter(r=>r.category==='設計費');
+  const constructionItems=allItems.filter(r=>!r.category||r.category==='工程款');
+
+  // 設計費：合約取「payment_settings.design_fee」與「期程設計費總和」較大者
+  const designItemsSum=designItems.reduce((s,r)=>s+(r.amount||0),0);
+  const designContract=Math.max(designFeeNum, designItemsSum);
+  const designReceived=designItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const designPending=designContract-designReceived;
+
+  // 工程款：合約取「projects.contractAmount」與「期程工程款總和」較大者
+  const conItemsSum=constructionItems.reduce((s,r)=>s+(r.amount||0),0);
+  const conContract=Math.max(contractAmt, conItemsSum);
+  const conReceived=constructionItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const conPending=conContract-conReceived;
+
   const setEl=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  setEl('client-pay-total','$'+fmtN(total));
-  setEl('client-pay-received','$'+fmtN(received));
-  setEl('client-pay-pending','$'+fmtN(pending));
-  setEl('client-pay-pct',pct+'%');
-  const barEl=document.getElementById('client-pay-bar');
-  if(barEl) barEl.style.width=pct+'%';
+  setEl('client-pay-design-contract','$'+fmtN(designContract));
+  setEl('client-pay-design-received','$'+fmtN(designReceived));
+  setEl('client-pay-design-pending','$'+fmtN(designPending));
+  setEl('client-pay-construction-contract','$'+fmtN(conContract));
+  setEl('client-pay-construction-received','$'+fmtN(conReceived));
+  setEl('client-pay-construction-pending','$'+fmtN(conPending));
+
+  // 沒有對應期程項目時把該總覽卡藏起來，避免顯示 $0 誤導
+  const ovDesign=document.getElementById('pay-overview-design');
+  const ovCon=document.getElementById('pay-overview-construction');
+  if(ovDesign) ovDesign.style.display=(designItems.length||designFeeNum>0)?'block':'none';
+  if(ovCon) ovCon.style.display=(constructionItems.length||contractAmt>0)?'block':'none';
 
   const empty=document.getElementById('client-pay-empty');
   if(!allItems.length){if(empty)empty.style.display='block';return;}
@@ -8301,20 +8320,12 @@ async function renderClientPayment(){
     });
   }
 
-  // Split by category (default 工程款 for legacy data)
-  const designItems=allItems.filter(r=>r.category==='設計費');
-  const constructionItems=allItems.filter(r=>!r.category||r.category==='工程款');
-
   renderPayRows('client-pay-design-tbody','client-pay-design-empty',designItems,'設計費');
   renderPayRows('client-pay-construction-tbody','client-pay-construction-empty',constructionItems,'工程款');
 
-  // Section summaries
-  const designReceived=designItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
-  const designTotal=designItems.reduce((s,r)=>s+(r.amount||0),0);
-  const conReceived=constructionItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
-  const conTotal=constructionItems.reduce((s,r)=>s+(r.amount||0),0);
-  setEl('pay-design-summary',designItems.length?`已收 $${fmtN(designReceived)} ／ 共 $${fmtN(designTotal)}`:'');
-  setEl('pay-construction-summary',constructionItems.length?`已收 $${fmtN(conReceived)} ／ 共 $${fmtN(conTotal)}`:'');
+  // Section summaries（沿用上方已算好的 designReceived / designItemsSum / conReceived / conItemsSum）
+  setEl('pay-design-summary',designItems.length?`已收 $${fmtN(designReceived)} ／ 共 $${fmtN(designItemsSum)}`:'');
+  setEl('pay-construction-summary',constructionItems.length?`已收 $${fmtN(conReceived)} ／ 共 $${fmtN(conItemsSum)}`:'');
 
   // Hide empty sections entirely
   const secDesign=document.getElementById('pay-section-design');
