@@ -2839,14 +2839,16 @@ const sb = {
       if(error) throw new Error(error.message);
     },
     delete: async (filter) => {
-      const match = filter.match(/id=eq\.([^&]+)/);
-      const matchDate = filter.match(/log_date=eq\.([^&]+)/);
-      const matchPid = filter.match(/project_id=eq\.([^&]+)/);
+      // 注意：用 (?:^|&) 鎖定欄位開頭，避免 'project_id=eq.X' 被誤抓成 'id=eq.X'
+      const match     = filter.match(/(?:^|&)id=eq\.([^&]+)/);
+      const matchDate = filter.match(/(?:^|&)log_date=eq\.([^&]+)/);
+      const matchPid  = filter.match(/(?:^|&)project_id=eq\.([^&]+)/);
       let q = sbClient.from(table).delete();
-      if(match){
-        q = q.eq('id', match[1]);
-      } else if(matchDate && matchPid){
+      if(matchDate && matchPid){
+        // 複合鍵刪除（construction_logs）優先處理
         q = q.eq('project_id', matchPid[1]).eq('log_date', matchDate[1]);
+      } else if(match){
+        q = q.eq('id', match[1]);
       } else {
         throw new Error('刪除條件不完整，已取消');
       }
