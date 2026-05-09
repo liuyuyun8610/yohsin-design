@@ -983,6 +983,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goPage('p-meetings',this)">會議記錄</button>
       <button class="tnav" onclick="goPage('p-knowledge',this)">注意事項</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
+      <button class="tnav" onclick="goPage('p-materials',this)">選材</button>
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
       <button class="tnav" onclick="goPage('p-payment',this)">付款明細</button>
       <button class="tnav" id="nav-changes" onclick="goPage('p-changes',this)" style="display:none;">追加減</button>
@@ -1003,6 +1004,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議記錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">注意事項</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-materials',this,'client')">選材</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">付款明細</button>
       <button class="mobile-tnav" id="mobile-nav-changes" onclick="goPageMobile('p-changes',this,'client')" style="display:none;">追加減</button>
@@ -1315,6 +1317,18 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="notice-desc" style="margin-bottom:1rem;">填入電器瓦數與電壓，系統自動計算電流並建議是否需要專用迴路（≥10A 建議專用迴路）。</div>
         <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>區域</th><th>瓦數 W</th><th>電壓 V</th><th>數量</th><th>電流 A</th><th>迴路建議</th><th>備註</th><th style="width:28px;"></th></tr></thead><tbody id="pow-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('pow')">＋ 新增一行</button></div>
       </div>
+    </div>
+
+    <!-- 選材 -->
+    <div class="page" id="p-materials">
+      <div class="page-title">選材決策</div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.4rem;line-height:1.7;">
+        以下是您家各空間的選材紀錄。狀態顏色：<span class="pill pill-gray" style="font-size:10px;">未選擇</span>
+        <span class="pill pill-amber" style="font-size:10px;">客戶確認中</span>
+        <span class="pill pill-green" style="font-size:10px;">已確認</span>
+      </div>
+      <div id="client-materials-list"></div>
+      <div id="client-materials-empty" style="display:none;text-align:center;padding:3rem;color:var(--ink-light);font-size:13px;">尚未建立選材紀錄</div>
     </div>
 
     <!-- 施工照片 -->
@@ -3162,7 +3176,7 @@ function closeMobileMenu(type){
 }
 function goPageMobile(id,el,type){
   const desktopBtns=document.querySelectorAll('#s-client .tnav');
-  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-construction','p-payment','p-changes'];
+  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-materials','p-construction','p-payment','p-changes'];
   const idx=pages.indexOf(id);
   desktopBtns.forEach((t,i)=>{if(i===idx)t.classList.add('active');else t.classList.remove('active');});
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
@@ -3175,7 +3189,7 @@ function goPageMobile(id,el,type){
   if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
-
+  if(id==='p-materials') renderClientMaterials();
 }
 function goAdminPageMobile(id,el){
   goAdminPage(id,document.querySelector('#s-admin .tb-nav .tnav[onclick*="'+id+'"]')||document.querySelector('#s-admin .tnav'));
@@ -3350,7 +3364,7 @@ function goPage(id,el){
   if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
-
+  if(id==='p-materials') renderClientMaterials();
 }
 async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
@@ -8270,6 +8284,98 @@ function downloadReceipt(item, categoryItems, category){
   w.document.open();
   w.document.write(html);
   w.document.close();
+}
+
+// ========== CLIENT MATERIALS ==========
+// Phase 1：read-only 顯示。Phase 2 才加客戶確認 + 電子簽名。
+async function renderClientMaterials(){
+  const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
+  const proj=projects.find(p=>Number(p.id)===Number(c.projectId));
+  const ysPid=proj?.ys_project_id ?? c.projectId;
+  const listEl=document.getElementById('client-materials-list');
+  const emptyEl=document.getElementById('client-materials-empty');
+  if(!listEl) return;
+  listEl.innerHTML='<div style="text-align:center;padding:2rem;color:var(--ink-light);font-size:13px;">讀取中…</div>';
+
+  let rows=[];
+  try{
+    if(!wsClient) throw new Error('wsClient 未初始化');
+    const {data,error}=await wsClient.from('material_selections')
+      .select('*')
+      .eq('ys_project_id',ysPid)
+      .is('deleted_at',null)
+      .order('space').order('created_at');
+    if(error) throw error;
+    rows=data||[];
+  }catch(e){
+    listEl.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--red);font-size:13px;">讀取失敗：${e.message}</div>`;
+    return;
+  }
+
+  if(!rows.length){
+    listEl.innerHTML='';
+    if(emptyEl) emptyEl.style.display='block';
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
+
+  // 拿空間排序
+  let spaceOrder=[];
+  try{
+    const {data:cat}=await wsClient.from('material_space_catalog').select('name, sort_order').order('sort_order');
+    spaceOrder=(cat||[]).map(c=>c.name);
+  }catch(e){}
+
+  // 分空間
+  const bySpace=new Map();
+  rows.forEach(r=>{ if(!bySpace.has(r.space)) bySpace.set(r.space,[]); bySpace.get(r.space).push(r); });
+  const spaces=Array.from(bySpace.keys()).sort((a,b)=>{
+    const ia=spaceOrder.indexOf(a), ib=spaceOrder.indexOf(b);
+    if(ia===-1 && ib===-1) return a.localeCompare(b);
+    if(ia===-1) return 1;
+    if(ib===-1) return -1;
+    return ia-ib;
+  });
+
+  const statusPill=(s)=>{
+    const cls=s==='已確認'||s==='已下單'?'pill-green':
+              s==='客戶確認中'||s==='變更中'?'pill-amber':
+              s==='設計師提案'?'pill-blue':'pill-gray';
+    return `<span class="pill ${cls}" style="font-size:10px;">${s||'未選擇'}</span>`;
+  };
+
+  const html=spaces.map(space=>{
+    const items=bySpace.get(space);
+    return `
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
+          <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ ${space}</div>
+          <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
+          <div style="font-size:11px;color:var(--ink-muted);">${items.length} 項</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">
+          ${items.map(it=>{
+            const photo=Array.isArray(it.photos)&&it.photos[0]?.url;
+            const lines=[it.brand,it.name,it.model].filter(Boolean).join(' / ');
+            return `<div class="card" style="padding:0;overflow:hidden;">
+              ${photo?`<img src="${photo}" style="width:100%;height:140px;object-fit:cover;display:block;">`:`<div style="height:140px;background:var(--sand);display:flex;align-items:center;justify-content:center;color:var(--ink-light);font-size:11px;">尚未上傳照片</div>`}
+              <div style="padding:10px 12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">
+                  <div style="font-size:13px;font-weight:500;color:var(--ink);">${it.item}</div>
+                  ${statusPill(it.status)}
+                </div>
+                ${lines?`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">${lines}</div>`:''}
+                ${it.location?`<div style="font-size:11px;color:var(--ink-muted);">📍 ${it.location}</div>`:''}
+                ${it.designer_advice?`<div style="font-size:11px;color:var(--accent);background:var(--sand);padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">💡 ${it.designer_advice}</div>`:''}
+                ${it.caveats?`<div style="font-size:11px;color:var(--red);background:#FFF5F0;padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">⚠️ ${it.caveats}</div>`:''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+  listEl.innerHTML=html;
 }
 
 // ========== CLIENT PAYMENT ==========
