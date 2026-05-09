@@ -8215,15 +8215,15 @@ async function renderClientPayment(){
   const designItems=allItems.filter(r=>r.category==='設計費');
   const constructionItems=allItems.filter(r=>!r.category||r.category==='工程款');
 
-  // 設計費：合約取「payment_settings.design_fee」與「期程設計費總和」較大者
+  // 設計費：以 payment_settings.design_fee 為權威；沒設定才用期程加總保底
   const designItemsSum=designItems.reduce((s,r)=>s+(r.amount||0),0);
-  const designContract=Math.max(designFeeNum, designItemsSum);
+  const designContract=designFeeNum>0?designFeeNum:designItemsSum;
   const designReceived=designItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const designPending=designContract-designReceived;
 
-  // 工程款：合約取「projects.contractAmount」與「期程工程款總和」較大者
+  // 工程款：以 projects.contract_amount（ERP 自動算的客戶報價+監工費）為權威；沒設定才用期程加總保底
   const conItemsSum=constructionItems.reduce((s,r)=>s+(r.amount||0),0);
-  const conContract=Math.max(contractAmt, conItemsSum);
+  const conContract=contractAmt>0?contractAmt:conItemsSum;
   const conReceived=constructionItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
   const conPending=conContract-conReceived;
 
