@@ -5854,10 +5854,14 @@ function populateDocsClientSel(){
   if(cur) sel.value=cur;
 }
 function getAdminDocClientId(){
-  // When inside project detail, use the project's associated client
+  // When inside project detail, use the project's associated client.
+  // 注意：project_docs 在 DB 裡是用 project_id 當外鍵；當這個專案還沒建客戶帳號時
+  // fallback 直接用 project_id 當 key（in-memory 鍵 + DB project_id 都對得起來），
+  // 不要硬擋 alert 讓設計師無法上傳。
   if(currentDetailProjId){
     const c=clients.find(x=>Number(x.projectId)===Number(currentDetailProjId));
     if(c) return Number(c.id);
+    return Number(currentDetailProjId);  // ← 沒對到客戶就直接用專案 ID
   }
   const val=parseInt(document.getElementById('docs-client-sel')?.value)||0;
   return val;
