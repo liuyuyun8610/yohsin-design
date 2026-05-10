@@ -7909,19 +7909,19 @@ async function renderClientDashboard(){
       nowEl.innerHTML=nowItems.map(r=>`
         <div style="background:#F0F6FF;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
           <div>
-            <div style="font-size:14px;font-weight:500;color:#185FA5;">${r.name}</div>
-            ${r.startDate||r.endDate?`<div style="font-size:11px;color:#378ADD;margin-top:2px;">${[r.startDate,r.endDate].filter(Boolean).join(' → ')}</div>`:''}
+            <div style="font-size:14px;font-weight:500;color:#6E665F;">${r.name}</div>
+            ${r.startDate||r.endDate?`<div style="font-size:11px;color:#6E665F;margin-top:2px;">${[r.startDate,r.endDate].filter(Boolean).join(' → ')}</div>`:''}
           </div>
           <span class="pill pill-green" style="font-size:10px;">進行中</span>
         </div>`).join('');
     } else {
-      nowEl.innerHTML='<div style="font-size:12px;color:var(--ink-light);">暫無進行中的工程</div>';
+      nowEl.innerHTML='<div style="font-size:12px;color:#6E665F;">暫無進行中的工程</div>';
     }
   }
   if(doneEl){
     if(doneItems.length){
-      doneEl.innerHTML=`<span style="font-size:11px;color:var(--ink-light);margin-right:4px;">已完成：</span>`+
-        doneItems.map(r=>`<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:4px 10px;border-radius:6px;">${r.name}</span>`).join('');
+      doneEl.innerHTML=`<span style="font-size:11px;color:#6E665F;margin-right:4px;">已完成：</span>`+
+        doneItems.map(r=>`<span style="font-size:11px;background:#EAF3DE;color:#6E665F;padding:4px 10px;border-radius:6px;">${r.name}</span>`).join('');
     } else { doneEl.innerHTML=''; }
   }
 
