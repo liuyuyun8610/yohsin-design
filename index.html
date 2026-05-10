@@ -7835,13 +7835,17 @@ async function renderClientPhaseTimeline(proj) {
     const fg   = isCurrent ? '#fff'    : isDone ? '#4A7C59' : '#8A8478';
     const opacity = isCurrent ? 1 : isDone ? 0.85 : 0.5;
     const scale = isCurrent ? 'transform:scale(1.06);box-shadow:0 4px 12px rgba(70,60,50,0.15);' : '';
+    const fg2 = isCurrent ? '#1A1A1A' : isDone ? '#4A7C59' : '#8A8478';
+    const op2 = isCurrent ? 1 : isDone ? 0.8 : 0.4;
+    const scale2 = isCurrent ? 'transform:scale(1.10);' : '';
+    const imgFilter = isDone ? 'filter:grayscale(0.2);' : '';
     const visual = p.image_url
-      ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px;height:48px;object-fit:contain;">`
+      ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px;height:48px;object-fit:contain;${imgFilter}">`
       : `<div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>`;
-    return `<div style="flex-shrink:0;width:78px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;border-radius:10px;background:${bg};color:${fg};opacity:${opacity};${scale}border:1px solid ${isCurrent?'#928981':'transparent'};transition:all .15s;">
+    return `<div style="flex-shrink:0;width:78px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;background:transparent;color:${fg2};opacity:${op2};${scale2}transition:all .15s;">
       ${visual}
-      <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;">${p.name}</div>
-      ${isCurrent ? `<div style="font-size:9px;margin-top:3px;">📍 NOW</div>` : ''}
+      <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;${isCurrent?'font-weight:600;':''}">${p.name}</div>
+      ${isCurrent ? `<div style="font-size:9px;margin-top:3px;color:#B0A7A2;">📍 NOW</div>` : ''}
       ${isDone    ? `<div style="font-size:10px;margin-top:3px;">✓</div>` : ''}
     </div>`;
   }).join('<div style="width:6px;flex-shrink:0;align-self:center;height:1px;background:#D9D2D0;"></div>');
