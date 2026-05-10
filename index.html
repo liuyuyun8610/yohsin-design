@@ -3246,7 +3246,8 @@ async function doLogin(){
         // 確保 currentClientId 等可用
         const idx=clients.findIndex(x=>x.id===c.id);
         if(idx>=0) clients[idx]=c; else clients.push(c);
-        sessionStorage.setItem('ys_session', JSON.stringify({mode:'client',u,clientId:c.id}));
+        // 用 localStorage（跨 tab/重啟瀏覽器都記得）+ 存完整 client（restore 不用查 DB）
+        localStorage.setItem('ys_session', JSON.stringify({mode:'client',u,client:c}));
         _enterClient(c);
       } else err.textContent='帳號或密碼錯誤，請再試一次';
     }
@@ -3323,6 +3324,7 @@ function _enterClient(c){
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('l-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('l-pass').focus();});
 function doLogout(){
+  localStorage.removeItem('ys_session');
   sessionStorage.removeItem('ys_session');
   // Phase B：若有 Supabase Auth session 一併清掉
   try{ sbClient.auth.signOut(); }catch(e){}
@@ -9975,20 +9977,28 @@ document.addEventListener('DOMContentLoaded', function() {
         _enterAdmin();
         return;
       }
-      // 既有路徑（過渡期 + 客戶 RPC session）
-      const sess=sessionStorage.getItem('ys_session');
+      // 客戶端 session：先看 localStorage（新版），再 fallback sessionStorage（舊版過渡）
+      const sess=localStorage.getItem('ys_session') || sessionStorage.getItem('ys_session');
       if(!sess) return;
-      const {mode,u,clientId}=JSON.parse(sess);
+      const parsed=JSON.parse(sess);
+      const {mode,u,client,clientId}=parsed;
       if(mode==='admin' && u==='admin'){
         _enterAdmin();
+      } else if(mode==='client' && client){
+        // 新版：直接用存好的 client 物件（不用查 DB，anon 也能 restore）
+        const idx=clients.findIndex(x=>Number(x.id)===Number(client.id));
+        if(idx>=0) clients[idx]=client; else clients.push(client);
+        _enterClient(client);
       } else if(mode==='client' && clientId){
+        // 舊版：只有 clientId — 試著從 clients 找；找不到清掉 session
         const c=clients.find(x=>Number(x.id)===Number(clientId));
         if(c) _enterClient(c);
-        else sessionStorage.removeItem('ys_session');
+        else { localStorage.removeItem('ys_session'); sessionStorage.removeItem('ys_session'); }
       } else {
+        localStorage.removeItem('ys_session');
         sessionStorage.removeItem('ys_session');
       }
-    }catch(e){ sessionStorage.removeItem('ys_session'); }
+    }catch(e){ localStorage.removeItem('ys_session'); sessionStorage.removeItem('ys_session'); }
   });
 });
 </script>
