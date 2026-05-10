@@ -5908,14 +5908,19 @@ function populateDocsClientSel(){
   if(cur) sel.value=cur;
 }
 function getAdminDocClientId(){
-  // When inside project detail, use the project's associated client.
-  // 注意：project_docs 在 DB 裡是用 project_id 當外鍵；當這個專案還沒建客戶帳號時
-  // fallback 直接用 project_id 當 key（in-memory 鍵 + DB project_id 都對得起來），
-  // 不要硬擋 alert 讓設計師無法上傳。
+  // 約定：project_docs.project_id 在這個 app 實際存的是 client.id（命名歷史包袱）。
+  // 這裡的責任是回傳「正確的 client.id」給 dbSaveDoc / dbLoadDocs。
   if(currentDetailProjId){
     const c=clients.find(x=>Number(x.projectId)===Number(currentDetailProjId));
     if(c) return Number(c.id);
-    return Number(currentDetailProjId);  // ← 沒對到客戶就直接用專案 ID
+    // 還沒對到，但專案有 client_id 欄位也可以拿
+    const proj=projects.find(p=>Number(p.id)===Number(currentDetailProjId));
+    if(proj && proj.client_id) return Number(proj.client_id);
+    if(proj && proj.clientId) return Number(proj.clientId);
+    // 最後才 fallback 用 project ID（會造成客戶端讀不到，要 alert 警告）
+    console.warn('[getAdminDocClientId] 找不到對應客戶，fallback 用 project ID', currentDetailProjId);
+    alert('⚠️ 系統警告：這個專案找不到對應的客戶帳號，上傳的文件客戶端可能看不到。\n\n請先：\n1. 整頁強制刷新 (Cmd+Shift+R) 讓客戶資料重新載入\n2. 或到客戶管理建立此專案的客戶帳號\n3. 才上傳文件');
+    return Number(currentDetailProjId);
   }
   const val=parseInt(document.getElementById('docs-client-sel')?.value)||0;
   return val;
