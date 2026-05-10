@@ -7795,8 +7795,10 @@ const PHASE_LIST_FALLBACK = [
   { sort_order: 11, name: '入住完工',  emoji: '🏡' },
 ];
 let _phaseListCache = null;
+let _phaseListCacheTime = 0;
 async function getPhaseList() {
-  if (_phaseListCache) return _phaseListCache;
+  // 30 秒內共用 cache，超過就重抓（讓 admin 改名後客戶半分鐘內看得到）
+  if (_phaseListCache && Date.now() - _phaseListCacheTime < 30000) return _phaseListCache;
   try {
     if (!wsClient) throw new Error('wsClient not ready');
     const { data, error } = await wsClient
@@ -7806,12 +7808,14 @@ async function getPhaseList() {
     if (error) throw error;
     if (data && data.length > 0) {
       _phaseListCache = data;
+      _phaseListCacheTime = Date.now();
       return data;
     }
   } catch (e) {
     console.warn('[phase] fetch templates failed, using fallback', e);
   }
   _phaseListCache = PHASE_LIST_FALLBACK;
+  _phaseListCacheTime = Date.now();
   return PHASE_LIST_FALLBACK;
 }
 
