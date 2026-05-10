@@ -7840,7 +7840,7 @@ async function renderClientPhaseTimeline(proj) {
     const scale2 = isCurrent ? 'transform:scale(1.10);' : '';
     const imgFilter = isDone ? 'filter:grayscale(0.2);' : '';
     const visual = p.image_url
-      ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px;height:48px;object-fit:contain;${imgFilter}">`
+      ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px;height:48px;object-fit:contain;mix-blend-mode:multiply;${imgFilter}">`
       : `<div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>`;
     return `<div style="flex-shrink:0;width:78px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;background:transparent;color:${fg2};opacity:${op2};${scale2}transition:all .15s;">
       ${visual}
