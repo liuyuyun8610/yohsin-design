@@ -1053,7 +1053,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
 
       <!-- 1. 目前施工進度 -->
-      <div class="card" style="margin-bottom:12px;background:#FBF8F4;">
+      <div class="card" style="margin-bottom:12px;background:transparent;border:none;box-shadow:none;padding:0 4px;">
         <div class="card-title">目前施工進度</div>
         <div id="dash-progress-now" style="margin-bottom:10px;"></div>
         <div id="dash-progress-done" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
@@ -7907,7 +7907,7 @@ async function renderClientDashboard(){
   if(nowEl){
     if(nowItems.length){
       nowEl.innerHTML=nowItems.map(r=>`
-        <div style="background:#F0F6FF;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <div style="background:#FBF8F4;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
           <div>
             <div style="font-size:14px;font-weight:500;color:#6E665F;">${r.name}</div>
             ${r.startDate||r.endDate?`<div style="font-size:11px;color:#6E665F;margin-top:2px;">${[r.startDate,r.endDate].filter(Boolean).join(' → ')}</div>`:''}
