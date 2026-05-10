@@ -7842,7 +7842,7 @@ async function renderClientPhaseTimeline(proj) {
     const visual = p.image_url
       ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px;height:48px;object-fit:contain;${imgFilter}">`
       : `<div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>`;
-    return `<div style="flex-shrink:0;width:78px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;background:transparent;opacity:${op2};${scale2}transition:all .15s;">
+    return `<div ${isCurrent ? 'data-current-phase="1"' : ''} style="flex-shrink:0;width:78px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;background:transparent;opacity:${op2};${scale2}transition:all .15s;">
       ${visual}
       <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;color:#6E665F;font-weight:400;">${p.name}</div>
       ${isCurrent ? `<div style="font-size:9px;margin-top:3px;color:#B0A7A2;">📍 NOW</div>` : ''}
@@ -7850,6 +7850,13 @@ async function renderClientPhaseTimeline(proj) {
   }).join('<div style="width:6px;flex-shrink:0;align-self:center;height:1px;background:#D9D2D0;"></div>');
 
   tilesEl.innerHTML = `<div style="display:flex;align-items:stretch;gap:0;min-width:fit-content;">${tiles}</div>`;
+  // 自動把現在的階段捲到中間（手機版尤其重要）；用戶仍可自己左右滑
+  setTimeout(() => {
+    const current = tilesEl.querySelector('[data-current-phase="1"]');
+    if (!current) return;
+    const left = current.offsetLeft - (tilesEl.clientWidth - current.offsetWidth) / 2;
+    tilesEl.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }, 50);
 }
 
 async function renderClientDashboard(){
