@@ -1109,16 +1109,19 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div id="dash-pay-pending" style="font-size:18px;font-weight:500;color:#854F0B;">$—</div>
           </div>
         </div>
-        <!-- 下次請款提醒 -->
-        <div id="dash-next-pay" style="display:none;background:#FFFFFF;border:0.5px solid var(--cli-border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:10px;letter-spacing:.05em;color:#854F0B;margin-bottom:3px;">下次請款提醒</div>
-            <div id="dash-next-name" style="font-size:14px;font-weight:500;color:#696663;"></div>
-            <div id="dash-next-date" style="font-size:12px;color:#854F0B;margin-top:2px;"></div>
+        <!-- 下一步預定收款 -->
+        <div id="dash-next-pay" style="display:none;background:#FFFFFF;border:0.5px solid var(--cli-border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+          <!-- 圓形 icon -->
+          <div style="width:42px;height:42px;border-radius:50%;background:#EFE9DD;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">💰</div>
+          <!-- 中間：標題 + 期數 + 日期 -->
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:10px;letter-spacing:.12em;color:var(--cli-light,#A09080);margin-bottom:4px;">下一步預定收款</div>
+            <div id="dash-next-name" style="font-size:14px;font-weight:500;color:#6E665F;"></div>
+            <div id="dash-next-date" style="font-size:11px;color:var(--cli-light,#A09080);margin-top:2px;"></div>
           </div>
-          <div style="text-align:right;">
-            <div id="dash-next-amt" style="font-size:18px;font-weight:500;color:#696663;"></div>
-            <div style="font-size:10px;color:#854F0B;margin-top:2px;">預計請款金額</div>
+          <!-- 右側金額 -->
+          <div style="text-align:right;flex-shrink:0;">
+            <div id="dash-next-amt" style="font-size:20px;font-weight:500;color:#6E665F;letter-spacing:0.02em;"></div>
           </div>
         </div>
       </div>
