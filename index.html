@@ -7780,21 +7780,42 @@ async function renderClientProgress(){
 }
 
 // ========== CLIENT DASHBOARD ==========
-// 裝修旅程 11 站時間軸
-const PHASE_LIST = [
-  { n: 1, label: '文書溝通',   emoji: '📋' },
-  { n: 2, label: '平面設計',   emoji: '📐' },
-  { n: 3, label: '設計定案',   emoji: '✅' },
-  { n: 4, label: '簽約準備',   emoji: '✍️' },
-  { n: 5, label: '拆除工程',   emoji: '🔨' },
-  { n: 6, label: '水電工程',   emoji: '⚡' },
-  { n: 7, label: '木作工程',   emoji: '🪵' },
-  { n: 8, label: '水漆工程',   emoji: '🎨' },
-  { n: 9, label: '系統櫃地板', emoji: '🏠' },
-  { n: 10, label: '清潔驗收',  emoji: '✨' },
-  { n: 11, label: '入住完工',  emoji: '🏡' },
+// 裝修旅程時間軸（從 work-system project_phase_templates 抓，fallback 內建 11 站）
+const PHASE_LIST_FALLBACK = [
+  { sort_order: 1, name: '文書溝通',   emoji: '📋' },
+  { sort_order: 2, name: '平面設計',   emoji: '📐' },
+  { sort_order: 3, name: '設計定案',   emoji: '✅' },
+  { sort_order: 4, name: '簽約準備',   emoji: '✍️' },
+  { sort_order: 5, name: '拆除工程',   emoji: '🔨' },
+  { sort_order: 6, name: '水電工程',   emoji: '⚡' },
+  { sort_order: 7, name: '木作工程',   emoji: '🪵' },
+  { sort_order: 8, name: '水漆工程',   emoji: '🎨' },
+  { sort_order: 9, name: '系統櫃地板', emoji: '🏠' },
+  { sort_order: 10, name: '清潔驗收',  emoji: '✨' },
+  { sort_order: 11, name: '入住完工',  emoji: '🏡' },
 ];
-function renderClientPhaseTimeline(proj) {
+let _phaseListCache = null;
+async function getPhaseList() {
+  if (_phaseListCache) return _phaseListCache;
+  try {
+    if (!wsClient) throw new Error('wsClient not ready');
+    const { data, error } = await wsClient
+      .from('project_phase_templates')
+      .select('name, emoji, sort_order')
+      .order('sort_order');
+    if (error) throw error;
+    if (data && data.length > 0) {
+      _phaseListCache = data;
+      return data;
+    }
+  } catch (e) {
+    console.warn('[phase] fetch templates failed, using fallback', e);
+  }
+  _phaseListCache = PHASE_LIST_FALLBACK;
+  return PHASE_LIST_FALLBACK;
+}
+
+async function renderClientPhaseTimeline(proj) {
   const card = document.getElementById('dash-phase-card');
   const tilesEl = document.getElementById('dash-phase-tiles');
   const progEl = document.getElementById('dash-phase-progress');
@@ -7802,18 +7823,21 @@ function renderClientPhaseTimeline(proj) {
   if (!proj || !proj.currentPhase) { card.style.display = 'none'; return; }
   card.style.display = 'block';
   const cp = Number(proj.currentPhase) || 1;
-  if (progEl) progEl.textContent = `第 ${cp} 站 · 共 11 站`;
 
-  const tiles = PHASE_LIST.map(p => {
-    const isCurrent = p.n === cp;
-    const isDone    = p.n < cp;
+  const list = await getPhaseList();
+  if (progEl) progEl.textContent = `第 ${cp} 站 · 共 ${list.length} 站`;
+
+  const tiles = list.map(p => {
+    const n = p.sort_order;
+    const isCurrent = n === cp;
+    const isDone    = n < cp;
     const bg   = isCurrent ? '#B0A7A2' : isDone ? '#D8E0D5' : '#F0EBE0';
     const fg   = isCurrent ? '#fff'    : isDone ? '#4A7C59' : '#8A8478';
     const opacity = isCurrent ? 1 : isDone ? 0.85 : 0.5;
     const scale = isCurrent ? 'transform:scale(1.06);box-shadow:0 4px 12px rgba(70,60,50,0.15);' : '';
     return `<div style="flex-shrink:0;width:74px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;border-radius:10px;background:${bg};color:${fg};opacity:${opacity};${scale}border:1px solid ${isCurrent?'#928981':'transparent'};transition:all .15s;">
-      <div style="font-size:24px;line-height:1;">${p.emoji}</div>
-      <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;">${p.label}</div>
+      <div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>
+      <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;">${p.name}</div>
       ${isCurrent ? `<div style="font-size:9px;margin-top:3px;">📍 NOW</div>` : ''}
       ${isDone    ? `<div style="font-size:10px;margin-top:3px;">✓</div>` : ''}
     </div>`;
