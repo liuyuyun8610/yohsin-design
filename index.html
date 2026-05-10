@@ -1024,6 +1024,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：— ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
       </div>
 
+      <!-- 裝修旅程時間軸（Monopoly 風） -->
+      <div class="card" id="dash-phase-card" style="margin-bottom:12px;display:none;">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>裝修旅程</span>
+          <span id="dash-phase-progress" style="font-size:11px;color:var(--ink-muted);font-weight:400;text-transform:none;letter-spacing:0;"></span>
+        </div>
+        <div id="dash-phase-tiles" style="overflow-x:auto;padding:8px 4px 4px;"></div>
+      </div>
+
       <!-- 快捷圖紙入口 -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
         <div onclick="goToDrawingType('效果圖')" style="background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.10)'" onmouseout="this.style.boxShadow='none'">
@@ -2914,7 +2923,8 @@ async function loadAllData() {
       date:p.date||'', endDate:p.end_date||'',
       contractAmount:Number(p.contract_amount)||0,
       receivedAmount:Number(p.received_amount)||0,
-      lineGroupId:p.line_group_id||''
+      lineGroupId:p.line_group_id||'',
+      currentPhase:Number(p.current_phase)||1
     }));
     nextPId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
 
@@ -7768,6 +7778,48 @@ async function renderClientProgress(){
 }
 
 // ========== CLIENT DASHBOARD ==========
+// 裝修旅程 11 站時間軸
+const PHASE_LIST = [
+  { n: 1, label: '文書溝通',   emoji: '📋' },
+  { n: 2, label: '平面設計',   emoji: '📐' },
+  { n: 3, label: '設計定案',   emoji: '✅' },
+  { n: 4, label: '簽約準備',   emoji: '✍️' },
+  { n: 5, label: '拆除工程',   emoji: '🔨' },
+  { n: 6, label: '水電工程',   emoji: '⚡' },
+  { n: 7, label: '木作工程',   emoji: '🪵' },
+  { n: 8, label: '水漆工程',   emoji: '🎨' },
+  { n: 9, label: '系統櫃地板', emoji: '🏠' },
+  { n: 10, label: '清潔驗收',  emoji: '✨' },
+  { n: 11, label: '入住完工',  emoji: '🏡' },
+];
+function renderClientPhaseTimeline(proj) {
+  const card = document.getElementById('dash-phase-card');
+  const tilesEl = document.getElementById('dash-phase-tiles');
+  const progEl = document.getElementById('dash-phase-progress');
+  if (!card || !tilesEl) return;
+  if (!proj || !proj.currentPhase) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const cp = Number(proj.currentPhase) || 1;
+  if (progEl) progEl.textContent = `第 ${cp} 站 · 共 11 站`;
+
+  const tiles = PHASE_LIST.map(p => {
+    const isCurrent = p.n === cp;
+    const isDone    = p.n < cp;
+    const bg   = isCurrent ? '#B0A7A2' : isDone ? '#D8E0D5' : '#F0EBE0';
+    const fg   = isCurrent ? '#fff'    : isDone ? '#4A7C59' : '#8A8478';
+    const opacity = isCurrent ? 1 : isDone ? 0.85 : 0.5;
+    const scale = isCurrent ? 'transform:scale(1.06);box-shadow:0 4px 12px rgba(70,60,50,0.15);' : '';
+    return `<div style="flex-shrink:0;width:74px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;border-radius:10px;background:${bg};color:${fg};opacity:${opacity};${scale}border:1px solid ${isCurrent?'#928981':'transparent'};transition:all .15s;">
+      <div style="font-size:24px;line-height:1;">${p.emoji}</div>
+      <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;">${p.label}</div>
+      ${isCurrent ? `<div style="font-size:9px;margin-top:3px;">📍 NOW</div>` : ''}
+      ${isDone    ? `<div style="font-size:10px;margin-top:3px;">✓</div>` : ''}
+    </div>`;
+  }).join('<div style="width:6px;flex-shrink:0;align-self:center;height:1px;background:#D9D2D0;"></div>');
+
+  tilesEl.innerHTML = `<div style="display:flex;align-items:stretch;gap:0;min-width:fit-content;">${tiles}</div>`;
+}
+
 async function renderClientDashboard(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
   const pid=Number(c.projectId);
@@ -7784,6 +7836,9 @@ async function renderClientDashboard(){
     if(proj.endDate) parts.push('預計完工：'+proj.endDate);
     if(metaEl) metaEl.innerHTML=(parts.join(' ｜ ')+(parts.length?' ｜ ':' '))+`<span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
   }
+
+  // --- 裝修旅程 Monopoly 風時間軸 ---
+  renderClientPhaseTimeline(proj);
 
   // --- 保固資訊 ---
   const warrantyCard=document.getElementById('dash-warranty-card');
