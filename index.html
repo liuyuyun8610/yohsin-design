@@ -7801,7 +7801,7 @@ async function getPhaseList() {
     if (!wsClient) throw new Error('wsClient not ready');
     const { data, error } = await wsClient
       .from('project_phase_templates')
-      .select('name, emoji, sort_order')
+      .select('name, emoji, image_url, sort_order')
       .order('sort_order');
     if (error) throw error;
     if (data && data.length > 0) {
@@ -7835,8 +7835,11 @@ async function renderClientPhaseTimeline(proj) {
     const fg   = isCurrent ? '#fff'    : isDone ? '#4A7C59' : '#8A8478';
     const opacity = isCurrent ? 1 : isDone ? 0.85 : 0.5;
     const scale = isCurrent ? 'transform:scale(1.06);box-shadow:0 4px 12px rgba(70,60,50,0.15);' : '';
-    return `<div style="flex-shrink:0;width:74px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;border-radius:10px;background:${bg};color:${fg};opacity:${opacity};${scale}border:1px solid ${isCurrent?'#928981':'transparent'};transition:all .15s;">
-      <div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>
+    const visual = p.image_url
+      ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px;height:48px;object-fit:contain;">`
+      : `<div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>`;
+    return `<div style="flex-shrink:0;width:78px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 4px;border-radius:10px;background:${bg};color:${fg};opacity:${opacity};${scale}border:1px solid ${isCurrent?'#928981':'transparent'};transition:all .15s;">
+      ${visual}
       <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;">${p.name}</div>
       ${isCurrent ? `<div style="font-size:9px;margin-top:3px;">📍 NOW</div>` : ''}
       ${isDone    ? `<div style="font-size:10px;margin-top:3px;">✓</div>` : ''}
