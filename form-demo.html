@@ -313,10 +313,14 @@
   }
   .mood:hover{border-color:var(--accent);transform:translateY(-1px);}
   .mood.active{
-    background:linear-gradient(135deg,var(--paper) 0%,var(--paper-2) 100%);
-    border-color:var(--accent);
-    box-shadow:0 4px 14px rgba(140,110,63,0.12);
+    background:#E8DCC0;             /* 較深的暖沙金，跟未選有明顯對比 */
+    border:1.5px solid var(--accent);
+    box-shadow:0 4px 16px rgba(140,110,63,0.25), inset 0 0 0 1px rgba(140,110,63,0.15);
+    transform:translateY(-1px);
   }
+  .mood.active .mood-icon{color:#5C4520;font-size:24px;}
+  .mood.active .mood-name{color:#2D2418;font-weight:600;}
+  .mood.active .mood-desc{color:#5C4520;}
   .mood-icon{
     font-family:'Noto Serif TC',serif;
     font-size:22px;
@@ -830,16 +834,32 @@ async function submit(){
       btn.textContent = '送 出 諮 詢';
       return;
     }
+    // 隱藏所有原本內容
     document.querySelector('.hero').style.display = 'none';
-    document.querySelector('main').innerHTML = `
-      <div class="final">
-        <div class="final-mark">✶</div>
-        <h2>收到了<br>謝謝你的分享</h2>
-        <p>我們會在 1–3 個工作天內聯繫你。</p>
-        <p style="font-size:11px;color:var(--ink-4);margin-top:18px;">這段時間先好好生活，剩下的交給我們。</p>
+    document.querySelector('.fee-wrap')?.remove();
+    document.querySelector('main').remove();
+    document.querySelector('footer')?.remove();
+    // 加全螢幕成功畫面
+    const overlay = document.createElement('div');
+    overlay.id = 'success-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#DDD9D2 0%,#E2DBCF 100%);display:flex;align-items:center;justify-content:center;padding:2rem;animation:fadeInUp .8s cubic-bezier(0.2,0.8,0.2,1);';
+    overlay.innerHTML = `
+      <style>
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes pulse{0%,100%{transform:scale(1);opacity:0.95;}50%{transform:scale(1.04);opacity:1;}}
+      </style>
+      <div style="text-align:center;max-width:440px;">
+        <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#F4F1EB 0%,#EEE9DF 100%);box-shadow:0 8px 32px rgba(140,110,63,0.18),0 2px 8px rgba(45,36,24,0.08);margin:0 auto 36px;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif TC',serif;font-size:36px;color:#8C6E3F;animation:pulse 2.4s ease-in-out infinite;letter-spacing:0.2em;">✶</div>
+        <h2 style="font-family:'Noto Serif TC',serif;font-size:28px;color:#2D2418;font-weight:500;letter-spacing:0.12em;line-height:1.6;margin-bottom:24px;">收到了<br>謝謝你的分享</h2>
+        <p style="font-size:14px;color:#6B5F4B;line-height:2.1;letter-spacing:0.06em;margin-bottom:14px;">我們會在 <strong style="color:#2D2418;">1–3 個工作天內</strong>聯繫你<br>請留意您留下的電話或 LINE</p>
+        <p style="font-size:11px;color:#8E8474;letter-spacing:0.15em;line-height:2;margin-top:32px;font-family:'Noto Serif TC',serif;">這段時間先好好生活，剩下的交給我們</p>
+        <div style="margin-top:48px;padding-top:24px;border-top:0.5px solid rgba(45,36,24,0.08);">
+          <div style="font-family:'Noto Serif TC',serif;font-size:11px;color:#8E8474;letter-spacing:0.4em;text-indent:0.4em;">YOSHIN DESIGN</div>
+        </div>
       </div>
     `;
-    window.scrollTo({top:0,behavior:'smooth'});
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
   }catch(e){
     console.error(e);
     showToast('送出失敗（網路錯誤）');
