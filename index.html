@@ -3374,6 +3374,51 @@ function doLogout(){
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
+// ========== 全螢幕文件檢視器（PDF + 圖片）==========
+// 解決 window.open 開新分頁要切回去找的痛點
+function openDocViewer(url, name){
+  if(!url) return;
+  const isPdf = /\.pdf(\?|$)/i.test(url);
+  const isImg = /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
+
+  let modal = document.getElementById('doc-viewer-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'doc-viewer-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9500;background:#1a1a1a;display:none;flex-direction:column;';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="flex-shrink:0;padding:10px 14px;background:rgba(0,0,0,0.85);color:#fff;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <button onclick="closeDocViewer()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:16px;line-height:1;">‹</span> 返回
+      </button>
+      <div style="flex:1;font-size:13px;color:rgba(255,255,255,0.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name||''}</div>
+      <a href="${url}" target="_blank" rel="noopener" style="background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;" title="新分頁開啟原檔">
+        ↗ 新分頁
+      </a>
+    </div>
+    <div style="flex:1;overflow:auto;background:#1a1a1a;display:flex;align-items:center;justify-content:center;">
+      ${isPdf
+        ? `<iframe src="${url}#view=FitH" style="border:none;width:100%;height:100%;background:#fff;"></iframe>`
+        : isImg
+          ? `<img src="${url}" alt="${name||''}" style="max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;" onclick="this.style.maxWidth=this.style.maxWidth==='none'?'100%':'none';this.style.cursor=this.style.maxWidth==='none'?'zoom-out':'zoom-in';">`
+          : `<a href="${url}" target="_blank" style="color:#fff;text-decoration:underline;">點此開啟檔案</a>`}
+    </div>
+  `;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeDocViewer(){
+  const m = document.getElementById('doc-viewer-modal');
+  if(m) m.style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e=>{
+  const m = document.getElementById('doc-viewer-modal');
+  if(m && m.style.display !== 'none' && e.key === 'Escape') closeDocViewer();
+});
+
 // ========== PDF 第一頁縮圖 (用 PDF.js) ==========
 window._pdfThumbCache = window._pdfThumbCache || {};
 window._pdfThumbInflight = window._pdfThumbInflight || {};
@@ -5720,7 +5765,7 @@ function renderClientFurnitureGallery(d){
       if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
       renderPdfThumb(v.fileUrl, imgEl, {width:340});
     }
-    cell.onclick=()=>window.open(v.fileUrl,'_blank');
+    cell.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'空間與家具尺寸圖');
     grid.appendChild(cell);
   });
   gallery.appendChild(grid);
@@ -5785,7 +5830,7 @@ function renderClientElevationGallery(d){
       cell.style.cssText += ringStyle;
       if(isImg){
         cell.innerHTML=`${cornerBadge}<img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-        cell.onclick=()=>window.open(v.fileUrl,'_blank');
+        cell.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'立面圖');
       } else {
         // PDF：先放 placeholder + label，PDF.js 渲染好換上第一頁縮圖
         cell.style.background='#FBF8F4';
@@ -5799,7 +5844,7 @@ function renderClientElevationGallery(d){
         const loadingEl=cell.querySelector('.pdf-thumb-loading');
         if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
         renderPdfThumb(v.fileUrl, imgEl, {width:280});
-        cell.onclick=()=>window.open(v.fileUrl,'_blank');
+        cell.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'立面圖');
       }
       grid.appendChild(cell);
     });
