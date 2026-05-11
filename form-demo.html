@@ -528,11 +528,6 @@
     </ul>
   </div>
 
-  <!-- 已閱讀確認（gate，必須勾選才能送出）-->
-  <label class="ack-box">
-    <input type="checkbox" id="ack-read">
-    <span>好的，我都看過了，並且理解提案是需要收費的</span>
-  </label>
 </section>
 
 <main>
@@ -791,11 +786,6 @@ async function submit(){
   formData.region = [city, dist].filter(Boolean).join(' ') || '';
   formData.style_note = document.getElementById('style_note').value.trim();
 
-  if(!document.getElementById('ack-read').checked){
-    showToast('請先勾選「已閱讀費用說明」再送出');
-    document.querySelector('.ack-box').scrollIntoView({behavior:'smooth',block:'center'});
-    return;
-  }
   if(!formData.name){ showToast('再幫我們補一下「怎麼稱呼你」'); return; }
   if(!formData.phone && !formData.line_id){ showToast('留個電話或 LINE，方便我們聯繫你'); return; }
 
