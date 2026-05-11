@@ -11,8 +11,8 @@
   :root{
     --bg:#DDD9D2;          /* 暖灰底（對齊原網站） */
     --bg-2:#D2CDC4;
-    --paper:#EBE6DD;       /* 卡片紙色（比底色亮一階） */
-    --paper-2:#E2DBCF;
+    --paper:#F4F1EB;       /* 接近白的奶灰（卡片底色，比 bg 亮 2-3 階） */
+    --paper-2:#EEE9DF;
     --ink:#2D2418;
     --ink-2:#473A26;
     --ink-3:#6B5F4B;
@@ -150,6 +150,35 @@
     margin-top:18px;
     letter-spacing:0.1em;
     line-height:1.8;
+  }
+
+  /* 「已閱讀」勾選 gate */
+  .ack-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:18px;
+    padding:16px 22px;
+    background:var(--paper);
+    border:0.5px solid var(--line);
+    border-radius:12px;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--ink);
+    letter-spacing:0.04em;
+    box-shadow:0 4px 14px rgba(45,36,24,0.06), 0 1px 3px rgba(45,36,24,0.04);
+    transition:border-color .2s,background .2s;
+  }
+  .ack-box:hover{border-color:var(--accent);}
+  .ack-box input{
+    width:18px;height:18px;
+    accent-color:var(--accent);
+    flex-shrink:0;
+    cursor:pointer;
+  }
+  .ack-box.checked{
+    background:linear-gradient(135deg,var(--paper) 0%,var(--paper-2) 100%);
+    border-color:var(--accent);
   }
 
   /* Form container */
@@ -479,7 +508,31 @@
     </div>
   </div>
 
-  <p class="fee-note">了解以上後，請繼續往下填寫</p>
+  <!-- 裝修時程預估（讓客戶有心理準備）-->
+  <div class="fee-intro" style="margin-top:18px;">
+    <strong>裝修時程預估</strong>
+    室內設計皆為訂製，不同屋況、坪數與裝修需求會產生不同的服務與時程。下列是依照我們過往經驗擬定的預估時間，實際以個案為主。
+    <ul style="margin-top:10px;list-style:none;padding:0;">
+      <li style="padding-left:14px;position:relative;font-size:12.5px;color:var(--ink-3);line-height:2;">
+        <span style="position:absolute;left:4px;top:0;color:var(--accent);">·</span>
+        新成屋提案 — 裝修時間約 <strong style="color:var(--ink);">2.5–3 個月</strong>
+      </li>
+      <li style="padding-left:14px;position:relative;font-size:12.5px;color:var(--ink-3);line-height:2;">
+        <span style="position:absolute;left:4px;top:0;color:var(--accent);">·</span>
+        中古屋提案 — 裝修時間約 <strong style="color:var(--ink);">4.5–5 個月</strong>
+      </li>
+      <li style="padding-left:14px;position:relative;font-size:12.5px;color:var(--ink-3);line-height:2;">
+        <span style="position:absolute;left:4px;top:0;color:var(--accent);">·</span>
+        客變需求 — 配置規劃時間 <strong style="color:var(--ink);">至少 1 個月</strong>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 已閱讀確認（gate，必須勾選才能送出）-->
+  <label class="ack-box">
+    <input type="checkbox" id="ack-read">
+    <span>好的，我都看過了，並且理解提案是需要收費的</span>
+  </label>
 </section>
 
 <main>
@@ -505,6 +558,17 @@
     <div class="field">
       <label class="field-label">Email <span class="opt">(選填)</span></label>
       <input type="email" id="email" placeholder="name@example.com">
+    </div>
+
+    <div class="field" style="margin-top:18px;">
+      <label class="field-label">想預約的服務 <span class="opt">(單選)</span></label>
+      <div class="chips" data-group="service_type">
+        <div class="chip" data-val="電話或線上諮詢">電話或線上諮詢</div>
+        <div class="chip" data-val="見面諮詢（林口辦公室）">見面諮詢</div>
+        <div class="chip" data-val="預售屋客變服務">預售屋客變</div>
+        <div class="chip" data-val="新成屋裝修提案">新成屋提案</div>
+        <div class="chip" data-val="舊屋裝修提案">舊屋（中古屋）提案</div>
+      </div>
     </div>
   </div>
 
@@ -677,6 +741,15 @@ const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const formData = {};
 
+// ack-box checked state styling
+const ackEl = document.getElementById('ack-read');
+if(ackEl){
+  ackEl.addEventListener('change', e => {
+    const box = e.target.closest('.ack-box');
+    if(box) box.classList.toggle('checked', e.target.checked);
+  });
+}
+
 document.querySelectorAll('[data-group]').forEach(group => {
   const key = group.dataset.group;
   const multi = group.dataset.multi === '1';
@@ -718,6 +791,11 @@ async function submit(){
   formData.region = [city, dist].filter(Boolean).join(' ') || '';
   formData.style_note = document.getElementById('style_note').value.trim();
 
+  if(!document.getElementById('ack-read').checked){
+    showToast('請先勾選「已閱讀費用說明」再送出');
+    document.querySelector('.ack-box').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   if(!formData.name){ showToast('再幫我們補一下「怎麼稱呼你」'); return; }
   if(!formData.phone && !formData.line_id){ showToast('留個電話或 LINE，方便我們聯繫你'); return; }
 
