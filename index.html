@@ -979,7 +979,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     </div>
     <div class="tb-nav">
       <button class="tnav active" onclick="goPage('p-overview',this)">專案總覽</button>
-      <button class="tnav" onclick="goPage('p-docs',this)">資料文件</button>
+      <button class="tnav" onclick="goPage('p-docs',this)">設計圖面</button>
+      <button class="tnav" onclick="goPage('p-contracts',this)">合約文件</button>
       <button class="tnav" onclick="goPage('p-meetings',this)">會議記錄</button>
       <button class="tnav" onclick="goPage('p-knowledge',this)">注意事項</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
@@ -1000,7 +1001,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <div class="mobile-menu" id="mobile-menu-client" onclick="closeMobileMenu('client')">
     <div class="mobile-menu-inner" onclick="event.stopPropagation()">
       <button class="mobile-tnav active" onclick="goPageMobile('p-overview',this,'client')">專案總覽</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-docs',this,'client')">資料文件</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-docs',this,'client')">設計圖面</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-contracts',this,'client')">合約文件</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議記錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">注意事項</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
@@ -1162,21 +1164,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div>
 
-    <!-- 資料文件 -->
+    <!-- 設計圖面 -->
     <div class="page" id="p-docs">
-      <div class="page-title">資料文件</div>
-
-      <!-- 頂層 Tab -->
-      <div style="display:flex;gap:8px;margin-bottom:1.4rem;background:var(--sand);border-radius:12px;padding:4px;">
-        <button id="docs-tab-drawings" onclick="switchDocsTab('drawings')"
-          style="flex:1;padding:8px 0;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:#AB9E93;color:#fff;font-weight:500;letter-spacing:0.04em;">
-          設計圖紙
-        </button>
-        <button id="docs-tab-contracts" onclick="switchDocsTab('contracts')"
-          style="flex:1;padding:8px 0;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">
-          合約文件
-        </button>
-      </div>
+      <div class="page-title">設計圖面</div>
 
       <!-- ─── 設計圖紙 Panel ─── -->
       <div id="docs-panel-drawings">
@@ -1207,8 +1197,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
-      <!-- ─── 合約文件 Panel ─── -->
-      <div id="docs-panel-contracts" style="display:none;">
+    </div>
+
+    <!-- 合約文件（獨立頁面）-->
+    <div class="page" id="p-contracts">
+      <div class="page-title">合約文件</div>
+      <div id="docs-panel-contracts">
         <div class="doc-section">
           <div class="doc-section-title">設計合約</div>
           <div class="card" style="padding:0.8rem 1rem;">
@@ -1233,7 +1227,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div id="client-acknowledgements"></div>
         </div>
       </div>
-
     </div>
 
     <!-- 會議記錄 (獨立頁面) -->
@@ -3222,7 +3215,7 @@ function closeMobileMenu(type){
 }
 function goPageMobile(id,el,type){
   const desktopBtns=document.querySelectorAll('#s-client .tnav');
-  const pages=['p-overview','p-docs','p-knowledge','p-checklist','p-materials','p-construction','p-payment','p-changes'];
+  const pages=['p-overview','p-docs','p-contracts','p-knowledge','p-checklist','p-materials','p-construction','p-payment','p-changes'];
   const idx=pages.indexOf(id);
   desktopBtns.forEach((t,i)=>{if(i===idx)t.classList.add('active');else t.classList.remove('active');});
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
@@ -3380,6 +3373,14 @@ function openDocViewer(url, name){
   if(!url) return;
   const isPdf = /\.pdf(\?|$)/i.test(url);
   const isImg = /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  // ⚠️ iOS Safari iframe PDF pinch-zoom 會干擾整個 app（bug）→ 手機直接走裝置內建 PDF viewer
+  //    桌機才用 modal iframe 嵌入
+  if(isPdf && isMobile){
+    window.open(url, '_blank');
+    return;
+  }
 
   let modal = document.getElementById('doc-viewer-modal');
   if(!modal){
@@ -3394,15 +3395,15 @@ function openDocViewer(url, name){
         <span style="font-size:16px;line-height:1;">‹</span> 返回
       </button>
       <div style="flex:1;font-size:13px;color:rgba(255,255,255,0.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name||''}</div>
-      <a href="${url}" target="_blank" rel="noopener" style="background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;" title="新分頁開啟原檔">
-        ↗ 新分頁
+      <a href="${url}" target="_blank" rel="noopener" style="background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;" title="新分頁開啟（支援縮放）">
+        ↗ 新分頁開啟
       </a>
     </div>
     <div style="flex:1;overflow:auto;background:#1a1a1a;display:flex;align-items:center;justify-content:center;">
       ${isPdf
         ? `<iframe src="${url}#view=FitH" style="border:none;width:100%;height:100%;background:#fff;"></iframe>`
         : isImg
-          ? `<img src="${url}" alt="${name||''}" style="max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;" onclick="this.style.maxWidth=this.style.maxWidth==='none'?'100%':'none';this.style.cursor=this.style.maxWidth==='none'?'zoom-out':'zoom-in';">`
+          ? `<img id="doc-viewer-img" src="${url}" alt="${name||''}" style="max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;touch-action:pinch-zoom;" onclick="(function(el){el.style.maxWidth=el.style.maxWidth==='none'?'100%':'none';el.style.maxHeight=el.style.maxWidth==='none'?'none':'100%';el.style.cursor=el.style.maxWidth==='none'?'zoom-out':'zoom-in';})(this)">`
           : `<a href="${url}" target="_blank" style="color:#fff;text-decoration:underline;">點此開啟檔案</a>`}
     </div>
   `;
@@ -8520,19 +8521,9 @@ function renderDashMeetings(){
 }
 
 function switchDocsTab(tab){
-  const panels={drawings:'docs-panel-drawings',contracts:'docs-panel-contracts'};
-  const btns={drawings:'docs-tab-drawings',contracts:'docs-tab-contracts'};
-  Object.keys(panels).forEach(k=>{
-    const panel=document.getElementById(panels[k]);
-    const btn=document.getElementById(btns[k]);
-    const active=(k===tab);
-    if(panel) panel.style.display=active?'block':'none';
-    if(btn){
-      btn.style.background=active?'#AB9E93':'none';
-      btn.style.color=active?'#fff':'var(--ink-muted)';
-      btn.style.fontWeight=active?'500':'400';
-    }
-  });
+  // 合約已搬到 p-contracts 獨立頁，這裡只剩 drawings 一個 panel；保留函式以相容舊呼叫
+  const panel=document.getElementById('docs-panel-drawings');
+  if(panel) panel.style.display='block';
 }
 
 function goToMeetings(){
