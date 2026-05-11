@@ -15,6 +15,10 @@
 @font-face{font-family:'NumQuicksand';font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/quicksand/v37/6xKtdSZaM9iE8KbpRA_hK1QNYuDyPw.woff2) format('woff2');unicode-range:U+0030-0039;}
 @font-face{font-family:'NumQuicksand';font-style:normal;font-weight:500;font-display:swap;src:url(https://fonts.gstatic.com/s/quicksand/v37/6xKtdSZaM9iE8KbpRA_hK1QNYuDyPw.woff2) format('woff2');unicode-range:U+0030-0039;}
 *{box-sizing:border-box;margin:0;padding:0;font-style:normal !important;}
+@keyframes surpriseFade{from{opacity:0;transform:translateY(-4px) scale(0.85);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes surpriseSlideUp{from{opacity:0;transform:translateY(20px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes surprisePulse{0%,100%{transform:scale(1);opacity:0.85;}50%{transform:scale(1.15);opacity:1;}}
+#journey-surprise-marker{animation:surpriseFade 1.2s ease-out, surprisePulse 2.6s ease-in-out 1.5s infinite;}
 :root{
   /* Abso-style palette: warm paper + ink + hairline */
   --sand:#F0EAE5;--sand-dark:#E6E0DB;
@@ -1030,12 +1034,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
 
       <!-- 裝修旅程時間軸（Monopoly 風） -->
-      <div class="card" id="dash-phase-card" style="margin-bottom:12px;display:none;">
+      <div class="card" id="dash-phase-card" style="margin-bottom:12px;display:none;position:relative;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>裝修旅程</span>
           <span id="dash-phase-progress" style="font-size:11px;color:var(--ink-muted);font-weight:400;text-transform:none;letter-spacing:0;"></span>
         </div>
         <div id="dash-phase-tiles" style="overflow-x:auto;padding:8px 4px 4px;"></div>
+        <!-- 旅程心意：右上角極小星點，有未拆封時 fade in -->
+        <div id="journey-surprise-marker" onclick="openSurpriseInbox()" style="display:none;position:absolute;top:14px;right:14px;cursor:pointer;animation:surpriseFade 1.2s ease-out;" title="您有一份旅程心意">
+          <span style="font-size:14px;color:#A07A38;letter-spacing:-0.05em;">✶</span>
+        </div>
       </div>
 
       <!-- 快捷圖紙入口 -->
@@ -3345,6 +3353,7 @@ function _enterClient(c){
       dbLoadMeetings(cid).catch(e=>console.warn('load meetings failed',e)),
       dbLoadPendingItems(cid).catch(e=>console.warn('load pending failed',e)),
       loadDrawingViews(cid).catch(e=>console.warn('load drawing views failed',e)),
+      loadSurprises(cid).catch(e=>console.warn('load surprises failed',e)),
     ]);
     renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
     loadClientSignatures().then(renderClientAcknowledgements);
@@ -3465,6 +3474,84 @@ async function renderPdfThumb(url, imgEl, opts){
   }
   const result = await window._pdfThumbInflight[url];
   if(result && imgEl) imgEl.src = result;
+}
+
+// ========== 旅程心意（Journey Surprise）==========
+window._surprises = [];
+async function loadSurprises(cid){
+  if(!cid || !sbClient) return;
+  try{
+    const nowIso = new Date().toISOString();
+    const {data,error}=await sbClient.from('journey_surprises')
+      .select('*')
+      .eq('client_id',cid)
+      .eq('is_archived',false)
+      .lte('visible_at',nowIso)
+      .order('visible_at',{ascending:false});
+    if(error){console.warn('[surprises] load',error.message);return;}
+    window._surprises = data || [];
+  }catch(e){console.warn('[surprises] err',e);}
+}
+function refreshSurpriseMarker(){
+  const marker = document.getElementById('journey-surprise-marker');
+  if(!marker) return;
+  const unread = (window._surprises||[]).filter(s=>!s.acknowledged_at);
+  marker.style.display = unread.length ? 'block' : 'none';
+}
+function openSurpriseInbox(){
+  const list = window._surprises || [];
+  if(!list.length){ alert('目前沒有任何心意'); return; }
+  // 找第一筆未讀；如果都讀過了，顯示最新一筆
+  const target = list.find(s=>!s.acknowledged_at) || list[0];
+  openSurpriseModal(target);
+}
+function openSurpriseModal(s){
+  if(!s) return;
+  let modal = document.getElementById('surprise-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'surprise-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9700;background:rgba(20,15,10,0.55);display:none;align-items:center;justify-content:center;padding:1rem;';
+    modal.addEventListener('click', e=>{ if(e.target===modal) closeSurpriseModal(); });
+    document.body.appendChild(modal);
+  }
+  const sig = s.signature || '— 你的設計師';
+  modal.innerHTML = `
+    <div style="background:linear-gradient(160deg,#FBF6EC 0%,#F2E5C8 60%,#EAD9B6 100%);max-width:440px;width:100%;border-radius:14px;padding:2.2rem 2rem 1.6rem;box-shadow:0 20px 60px rgba(60,40,20,0.25),0 4px 12px rgba(60,40,20,0.15);position:relative;animation:surpriseSlideUp .9s cubic-bezier(0.2,0.8,0.2,1);">
+      <div style="text-align:center;margin-bottom:1rem;">
+        <div style="font-size:24px;color:#A07A38;letter-spacing:0.3em;line-height:1;">✶</div>
+        <div style="font-size:10px;letter-spacing:0.4em;color:#A07A38;margin-top:6px;text-transform:uppercase;">A small gesture</div>
+      </div>
+      <h2 style="font-family:'Noto Serif TC',serif;font-size:20px;color:#3A2E18;text-align:center;margin:0 0 1rem;font-weight:500;letter-spacing:0.04em;line-height:1.4;">${escapeHtml(s.title||'')}</h2>
+      <div style="font-size:13px;color:#5A4528;line-height:2;text-align:center;white-space:pre-wrap;font-family:'Noto Serif TC',serif;letter-spacing:0.02em;">${escapeHtml(s.message||'')}</div>
+      <p style="font-size:12px;color:#7A6240;text-align:right;font-style:italic;margin-top:1.2rem;font-family:'Noto Serif TC',serif;">${escapeHtml(sig)}</p>
+      <div style="margin-top:1.4rem;display:flex;gap:8px;justify-content:center;">
+        ${s.acknowledged_at
+          ? `<button onclick="closeSurpriseModal()" style="padding:9px 24px;background:transparent;border:1px solid rgba(122,82,24,0.35);color:#7A5218;border-radius:999px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.1em;">已收下，謝謝</button>`
+          : `<button onclick="acknowledgeSurprise('${s.id}')" style="padding:9px 28px;background:#3A2E18;color:#F5EBD8;border:none;border-radius:999px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.18em;">我收到了 ✿</button>`}
+      </div>
+      <button onclick="closeSurpriseModal()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;color:#A07A38;font-size:18px;cursor:pointer;line-height:1;">×</button>
+    </div>
+  `;
+  modal.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeSurpriseModal(){
+  const m = document.getElementById('surprise-modal');
+  if(m) m.style.display='none';
+  document.body.style.overflow='';
+}
+async function acknowledgeSurprise(id){
+  try{
+    await sbClient.from('journey_surprises').update({ acknowledged_at: new Date().toISOString() }).eq('id', id);
+    const found = (window._surprises||[]).find(s=>s.id===id);
+    if(found) found.acknowledged_at = new Date().toISOString();
+    refreshSurpriseMarker();
+    closeSurpriseModal();
+  }catch(e){ alert('儲存失敗：'+e.message); }
+}
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ========== 客戶端：圖紙未讀計數（跨裝置 DB 同步）==========
@@ -8376,6 +8463,8 @@ async function renderClientDashboard(){
 
   // --- 圖紙未讀紅點（效果圖/平面/立面）---
   refreshDrawingBadges();
+  // --- 旅程心意未讀星點（裝修旅程卡片右上角）---
+  refreshSurpriseMarker();
 
   // --- 裝修旅程 Monopoly 風時間軸 ---
   renderClientPhaseTimeline(proj);
