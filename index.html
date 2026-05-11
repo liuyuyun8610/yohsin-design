@@ -1022,8 +1022,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page active" id="p-overview">
       <!-- 專案標題 -->
       <div style="margin-bottom:1.2rem;">
-        <div id="p-proj-title" style="font-family:'NumQuicksand','Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;margin-bottom:0.4rem;"></div>
-        <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：— ｜ <span class="pill pill-green" style="margin-left:4px;">進行中</span></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:0.4rem;">
+          <div id="p-proj-title" style="font-family:'NumQuicksand','Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;line-height:1.1;"></div>
+          <span id="p-proj-status"></span>
+        </div>
+        <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：—</div>
       </div>
 
       <!-- 裝修旅程時間軸（Monopoly 風） -->
@@ -3341,6 +3344,7 @@ function _enterClient(c){
       dbLoadDocs(cid).catch(e=>console.warn('load docs failed',e)),
       dbLoadMeetings(cid).catch(e=>console.warn('load meetings failed',e)),
       dbLoadPendingItems(cid).catch(e=>console.warn('load pending failed',e)),
+      loadDrawingViews(cid).catch(e=>console.warn('load drawing views failed',e)),
     ]);
     renderKnowledge();renderChecklists();renderCalendar();renderClientDocs();
     loadClientSignatures().then(renderClientAcknowledgements);
@@ -3463,26 +3467,50 @@ async function renderPdfThumb(url, imgEl, opts){
   if(result && imgEl) imgEl.src = result;
 }
 
-// ========== 客戶端：圖紙未讀計數 ==========
-function _drawingSeenKey(cid, type){ return `ys_drawingSeen_${cid}_${type}`; }
+// ========== 客戶端：圖紙未讀計數（跨裝置 DB 同步）==========
+// in-memory cache: { [clientId_type]: lastSeenId }
+window._drawingViewsCache = window._drawingViewsCache || {};
+
+// 進客戶端時呼叫一次，把該客戶所有 type 的 seen 拉進 cache
+async function loadDrawingViews(cid){
+  if(!cid || !sbClient) return;
+  try{
+    const {data,error}=await sbClient.from('client_drawing_views').select('drawing_type,last_seen_id').eq('client_id',cid);
+    if(error){ console.warn('[drawing views] load failed', error.message); return; }
+    (data||[]).forEach(r=>{
+      window._drawingViewsCache[`${cid}_${r.drawing_type}`] = Number(r.last_seen_id) || 0;
+    });
+  }catch(e){ console.warn('[drawing views] load error', e); }
+}
+
 function getDrawingMaxSeen(cid, type){
-  try{ return parseInt(localStorage.getItem(_drawingSeenKey(cid,type))||'0',10) || 0; }catch{ return 0; }
+  return window._drawingViewsCache[`${cid}_${type}`] || 0;
 }
-function setDrawingMaxSeen(cid, type, maxId){
-  try{ localStorage.setItem(_drawingSeenKey(cid,type), String(maxId||0)); }catch{}
+
+async function setDrawingMaxSeen(cid, type, maxId){
+  if(!cid || !maxId) return;
+  const cur = getDrawingMaxSeen(cid, type);
+  if(maxId <= cur) return;  // 不要倒退
+  window._drawingViewsCache[`${cid}_${type}`] = maxId;
+  // upsert 到 DB（async，不阻塞 UI）
+  try{
+    await sbClient.from('client_drawing_views').upsert({
+      client_id: cid, drawing_type: type, last_seen_id: maxId, updated_at: new Date().toISOString(),
+    }, { onConflict: 'client_id,drawing_type' });
+  }catch(e){ console.warn('[drawing views] save failed', e?.message||e); }
 }
+
 function countUnseenDrawings(cid, type){
   const arr=docsData[cid]?.drawings?.[type]||[];
   if(!arr.length) return 0;
   const seen=getDrawingMaxSeen(cid, type);
-  // seen=0 表示這個類型從沒被點過 → 全部都當「新的」顯示
-  // （點過一次後 seen 會被設成當下最大 dbId，之後只顯示比它新的）
   return arr.filter(v=>Number(v.dbId||0) > seen).length;
 }
+
 function markDrawingTypeSeen(cid, type){
   const arr=docsData[cid]?.drawings?.[type]||[];
   const maxId=Math.max(0, ...arr.map(v=>Number(v.dbId)||0));
-  if(maxId>0) setDrawingMaxSeen(cid, type, maxId);
+  if(maxId>0) setDrawingMaxSeen(cid, type, maxId);  // fire and forget
 }
 
 // ========== NAV ==========
@@ -8324,25 +8352,26 @@ async function renderClientDashboard(){
   if(proj){
     const titleEl=document.getElementById('p-proj-title');
     if(titleEl) titleEl.textContent=proj.name;
+    const statusEl=document.getElementById('p-proj-status');
     const metaEl=document.getElementById('p-proj-meta');
     // 客戶端 friendly 名稱：已完工 → 保固中
     const STATUS_DISPLAY = {'進行中':'進行中','已完工':'保固中','已過保':'已過保','待開案':'待開案','待付款':'待付款','暫停':'暫停'};
     // 不同狀態的顏色：圓點 + 文字
     const STATUS_COLOR = {
-      '進行中': {dot:'#7FA876', text:'#3A5E32'},  // 鼠尾草綠（進行中、推進）
-      '已完工': {dot:'#C8951C', text:'#7A5218'},  // 琥珀（保固中）
-      '已過保': {dot:'#9C8F86', text:'#5A4F46'},  // 灰褐（已過保）
-      '待開案': {dot:'#A09A8E', text:'#5A4F46'},  // 灰
-      '待付款': {dot:'#B23A3A', text:'#7A2222'},  // 磚紅（緊急）
-      '暫停':   {dot:'#C8951C', text:'#7A5218'},  // 琥珀
+      '進行中': {dot:'#7FA876', text:'#3A5E32'},
+      '已完工': {dot:'#C8951C', text:'#7A5218'},
+      '已過保': {dot:'#9C8F86', text:'#5A4F46'},
+      '待開案': {dot:'#A09A8E', text:'#5A4F46'},
+      '待付款': {dot:'#B23A3A', text:'#7A2222'},
+      '暫停':   {dot:'#C8951C', text:'#7A5218'},
     };
     const c = STATUS_COLOR[proj.status] || {dot:'#7FA876', text:'#3A5E32'};
     const label = STATUS_DISPLAY[proj.status] || proj.status;
-    const statusPill = `<span style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:${c.text};padding:4px 12px 4px 10px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:0.06em;box-shadow:0 1px 3px rgba(70,60,50,0.10),0 1px 2px rgba(70,60,50,0.06);border:0.5px solid rgba(70,60,50,0.06);margin-left:8px;vertical-align:middle;"><span style="width:7px;height:7px;border-radius:50%;background:${c.dot};box-shadow:0 0 0 2px ${c.dot}22;"></span>${label}</span>`;
+    if(statusEl) statusEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:${c.text};padding:4px 12px 4px 10px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:0.06em;box-shadow:0 1px 3px rgba(70,60,50,0.10),0 1px 2px rgba(70,60,50,0.06);border:0.5px solid rgba(70,60,50,0.06);"><span style="width:7px;height:7px;border-radius:50%;background:${c.dot};box-shadow:0 0 0 2px ${c.dot}22;"></span>${label}</span>`;
     const parts=[];
     if(proj.date) parts.push('合約起始：'+proj.date);
     if(proj.endDate) parts.push('預計完工：'+proj.endDate);
-    if(metaEl) metaEl.innerHTML=(parts.join(' ｜ ')+(parts.length?' ｜ ':' '))+statusPill;
+    if(metaEl) metaEl.innerHTML=parts.join(' ｜ ') || '—';
   }
 
   // --- 圖紙未讀紅點（效果圖/平面/立面）---
