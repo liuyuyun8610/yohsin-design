@@ -8325,11 +8325,24 @@ async function renderClientDashboard(){
     const titleEl=document.getElementById('p-proj-title');
     if(titleEl) titleEl.textContent=proj.name;
     const metaEl=document.getElementById('p-proj-meta');
-    const sc=proj.status==='進行中'?'pill-green':proj.status==='已完工'?'pill-gray':'pill-amber';
+    // 客戶端 friendly 名稱：已完工 → 保固中
+    const STATUS_DISPLAY = {'進行中':'進行中','已完工':'保固中','已過保':'已過保','待開案':'待開案','待付款':'待付款','暫停':'暫停'};
+    // 不同狀態的顏色：圓點 + 文字
+    const STATUS_COLOR = {
+      '進行中': {dot:'#7FA876', text:'#3A5E32'},  // 鼠尾草綠（進行中、推進）
+      '已完工': {dot:'#C8951C', text:'#7A5218'},  // 琥珀（保固中）
+      '已過保': {dot:'#9C8F86', text:'#5A4F46'},  // 灰褐（已過保）
+      '待開案': {dot:'#A09A8E', text:'#5A4F46'},  // 灰
+      '待付款': {dot:'#B23A3A', text:'#7A2222'},  // 磚紅（緊急）
+      '暫停':   {dot:'#C8951C', text:'#7A5218'},  // 琥珀
+    };
+    const c = STATUS_COLOR[proj.status] || {dot:'#7FA876', text:'#3A5E32'};
+    const label = STATUS_DISPLAY[proj.status] || proj.status;
+    const statusPill = `<span style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:${c.text};padding:4px 12px 4px 10px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:0.06em;box-shadow:0 1px 3px rgba(70,60,50,0.10),0 1px 2px rgba(70,60,50,0.06);border:0.5px solid rgba(70,60,50,0.06);margin-left:8px;vertical-align:middle;"><span style="width:7px;height:7px;border-radius:50%;background:${c.dot};box-shadow:0 0 0 2px ${c.dot}22;"></span>${label}</span>`;
     const parts=[];
     if(proj.date) parts.push('合約起始：'+proj.date);
     if(proj.endDate) parts.push('預計完工：'+proj.endDate);
-    if(metaEl) metaEl.innerHTML=(parts.join(' ｜ ')+(parts.length?' ｜ ':' '))+`<span class="pill ${sc}" style="margin-left:4px;">${proj.status}</span>`;
+    if(metaEl) metaEl.innerHTML=(parts.join(' ｜ ')+(parts.length?' ｜ ':' '))+statusPill;
   }
 
   // --- 圖紙未讀紅點（效果圖/平面/立面）---
