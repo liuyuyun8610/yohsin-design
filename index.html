@@ -1035,6 +1035,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- 快捷圖紙入口 -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <!-- 家具尺寸圖：客戶最常用，置首 + 全寬強調樣式 -->
+        <div onclick="goToDrawingType('空間與家具尺寸圖')" style="position:relative;grid-column:span 3;background:linear-gradient(135deg,#FBF6EC 0%,#F5EBD8 100%);border:1px solid #D9C9A8;border-radius:14px;padding:14px 16px;text-align:left;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(120,90,40,0.1);display:flex;align-items:center;gap:14px;" onmouseover="this.style.boxShadow='0 8px 24px rgba(120,90,40,0.18)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(120,90,40,0.1)';this.style.transform='translateY(0)'">
+          <span id="badge-furniture" style="display:none;position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;background:#E63946;color:#fff;font-size:11px;font-weight:600;border-radius:10px;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,57,70,0.4);font-family:'NumQuicksand','Noto Sans TC',sans-serif;line-height:1;">1</span>
+          <div style="font-size:28px;flex-shrink:0;">📐</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--cli-ink,#2C2218);letter-spacing:.04em;margin-bottom:2px;">空間與家具尺寸圖</div>
+            <div style="font-size:10px;color:#7A6240;line-height:1.5;">買家具量尺寸時直接看這份｜含已預留的家具位置</div>
+          </div>
+          <div style="font-size:14px;color:#A07A38;flex-shrink:0;">›</div>
+        </div>
         <div onclick="goToDrawingType('效果圖')" style="position:relative;background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04);" onmouseover="this.style.boxShadow='0 8px 24px rgba(90,60,30,0.13), 0 2px 6px rgba(90,60,30,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04)';this.style.transform='translateY(0)'">
           <span id="badge-render" style="display:none;position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;background:#E63946;color:#fff;font-size:11px;font-weight:600;border-radius:10px;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,57,70,0.4);font-family:'NumQuicksand','Noto Sans TC',sans-serif;line-height:1;">1</span>
           <div style="font-size:24px;margin-bottom:6px;" id="ov-gallery-icon-wrap"></div>
@@ -1170,6 +1180,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- ─── 設計圖紙 Panel ─── -->
       <div id="docs-panel-drawings">
+        <!-- 空間與家具尺寸圖（置頂，買家具最常用）-->
+        <div class="doc-section" id="client-furniture-section" style="display:none;">
+          <div class="doc-section-title">📐 空間與家具尺寸圖</div>
+          <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.7;">買家具量尺寸時直接看這份。包含整體空間尺寸與已預留的家具位置標註。</div>
+          <div id="client-furniture-gallery"></div>
+        </div>
         <div class="doc-section">
           <div class="doc-section-title">施工圖紙</div>
           <div class="drawing-grid" id="client-drawings"></div>
@@ -3433,6 +3449,9 @@ function goToDrawingType(type){
     } else if(type==='立面系統圖'){
       const sec=document.getElementById('client-elevation-section');
       if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
+    } else if(type==='空間與家具尺寸圖'){
+      const sec=document.getElementById('client-furniture-section');
+      if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
     } else {
       const dg=document.getElementById('client-drawings');
       if(dg) dg.scrollIntoView({behavior:'smooth',block:'start'});
@@ -3442,7 +3461,7 @@ function goToDrawingType(type){
 
 function refreshDrawingBadges(){
   if(!currentClientId) return;
-  const types=[['效果圖','badge-render'],['平面系統圖','badge-plan'],['立面系統圖','badge-elev']];
+  const types=[['空間與家具尺寸圖','badge-furniture'],['效果圖','badge-render'],['平面系統圖','badge-plan'],['立面系統圖','badge-elev']];
   types.forEach(([t,id])=>{
     const el=document.getElementById(id);
     if(!el) return;
@@ -3781,7 +3800,7 @@ async function dbLoadDocs(pid){
   try{
     const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     // Reset
     docsData[pid].drawings={'平面系統圖':[],'立面系統圖':[],'效果圖':[]};
     docsData[pid].contracts={design:[],construction:[]};
@@ -3847,7 +3866,7 @@ async function dbLoadMeetings(pid){
   try{
     const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     docsData[pid].lineScreenshots=[];
     docsData[pid].formalMeetings=[];
     docsData[pid].clientNotes=[];
@@ -4036,7 +4055,7 @@ async function dbLoadPendingItems(pid){
   try{
     const {data,error}=await sbClient.from('pending_items').select('*').eq('project_id',pid).order('item_date',{ascending:false}).order('id',{ascending:false});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     docsData[pid].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at,confirmationNote:r.confirmation_note||''}));
   }catch(e){console.warn('dbLoadPendingItems failed:',e.message);}
 }
@@ -5389,7 +5408,7 @@ async function saveProject(){
       const proj={name,status,address,unit,date,endDate,contractAmount,receivedAmount,lineGroupId};
       await dbSaveProject(proj);
       projects.push(proj);
-      docsData[proj.id]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+      docsData[proj.id]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     }
   } catch(e){alert('儲存失敗：'+e.message);}
   showLoader(false);
@@ -5484,7 +5503,7 @@ async function saveClient(){
       const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[],isBoss};
       clients.push(newClient);
       nextCId=Math.max(nextCId,dbId+1);
-      docsData[dbId]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+      docsData[dbId]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     }
   }catch(e){
     console.error('saveClient error:', e);
@@ -5553,6 +5572,8 @@ function renderClientDocs(){
   });
   if(!dgo.children.length)dgo.innerHTML='<div style="font-size:12px;color:var(--ink-light);">無舊版本資料</div>';
 
+  // 空間與家具尺寸圖（置頂；買家具最常用）
+  renderClientFurnitureGallery(d);
   // 立面施工圖 gallery（依相簿名稱分組，PDF/圖片皆可）
   renderClientElevationGallery(d);
   // 3D 效果圖 gallery（獨立區塊，依日期分組）
@@ -5650,6 +5671,67 @@ function renderClient3DGallery(d){
     block.innerHTML = `<div style="font-size:12px;color:var(--accent);font-weight:500;margin-bottom:8px;">效果圖最終版確認</div>` +
       finals.map(v => getDrawingConfirmBlock(v, '效果圖')).join('');
     albumList.appendChild(block);
+  }
+}
+
+// 空間與家具尺寸圖（客戶端）：置頂，買家具量尺寸最常用
+function renderClientFurnitureGallery(d){
+  const sec=document.getElementById('client-furniture-section');
+  const gallery=document.getElementById('client-furniture-gallery');
+  if(!sec||!gallery) return;
+  const all=(d.drawings['空間與家具尺寸圖']||[]).filter(v=>v.fileUrl);
+  if(!all.length){sec.style.display='none';return;}
+  sec.style.display='block';
+
+  // 由新到舊排序（依 dbId）
+  const sorted=[...all].sort((a,b)=>(b.dbId||0)-(a.dbId||0));
+
+  gallery.innerHTML='';
+  // 用偏大的 grid 凸顯重要性
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;';
+  sorted.forEach(v=>{
+    const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
+    const cell=document.createElement('div');
+    cell.style.cssText='aspect-ratio:4/3;background:#fff;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;box-shadow:0 2px 8px rgba(90,60,30,0.06);transition:transform .15s,box-shadow .15s;';
+    cell.onmouseover=()=>{cell.style.transform='translateY(-2px)';cell.style.boxShadow='0 4px 12px rgba(90,60,30,0.12)';};
+    cell.onmouseout=()=>{cell.style.transform='';cell.style.boxShadow='0 2px 8px rgba(90,60,30,0.06)';};
+    const cornerBadge=v.customerConfirmedAt
+      ? `<div style="position:absolute;top:6px;right:6px;background:#6B8F4D;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;z-index:2;">✓ 已確認</div>`
+      : v.isFinal
+        ? `<div style="position:absolute;top:6px;right:6px;background:#D4A017;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;z-index:2;">🏁 最終版</div>`
+        : '';
+    if(isImg){
+      cell.innerHTML=`${cornerBadge}
+        <img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.65));color:#fff;font-size:11px;line-height:1.3;">
+          ${v.note||v.date||'家具尺寸圖'}
+        </div>`;
+    } else {
+      cell.style.background='#FBF8F4';
+      cell.innerHTML=`${cornerBadge}
+        <img class="pdf-thumb" style="width:100%;height:100%;object-fit:cover;display:block;background:#FBF8F4;" alt="">
+        <div class="pdf-thumb-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:600;color:var(--accent);letter-spacing:0.06em;pointer-events:none;">PDF</div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:#fff;font-size:11px;line-height:1.3;">
+          ${v.note||v.date||'家具尺寸圖'}
+        </div>`;
+      const imgEl=cell.querySelector('img.pdf-thumb');
+      const loadingEl=cell.querySelector('.pdf-thumb-loading');
+      if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
+      renderPdfThumb(v.fileUrl, imgEl, {width:340});
+    }
+    cell.onclick=()=>window.open(v.fileUrl,'_blank');
+    grid.appendChild(cell);
+  });
+  gallery.appendChild(grid);
+
+  // 最終版確認區塊
+  const finals=all.filter(v=>v.isFinal);
+  if(finals.length){
+    const block=document.createElement('div');
+    block.style.cssText='margin-top:10px;padding:10px;background:#FAFAF8;border:1px dashed var(--accent-pale);border-radius:8px;';
+    block.innerHTML=finals.map(v=>getDrawingConfirmBlock(v,'空間與家具尺寸圖')).join('');
+    gallery.appendChild(block);
   }
 }
 
@@ -5955,7 +6037,7 @@ async function addClientNote(){
     const imageUrls=await uploadFilesToStorage(pendingClientNoteImgs,'meeting-photos');
     const newNote={date:date.replace(/-/g,'/'),title,content,images:imageUrls};
     await dbSaveMeeting(cid,'client_note',newNote);
-    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     if(!docsData[cid].clientNotes) docsData[cid].clientNotes=[];
     docsData[cid].clientNotes.push(newNote);
     // Reset form
@@ -6023,7 +6105,7 @@ function getAdminDocClientId(){
 }
 async function renderAdminDocs(){
   const cid=getAdminDocClientId();
-  if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+  if(!docsData[cid])docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
   showLoader(true);
   await dbLoadDocs(cid);
   await dbLoadMeetings(cid);
@@ -6524,7 +6606,7 @@ function addDrawingVersion(){
     showLoader(true);
     (async()=>{
       try{
-        if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+        if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
         if(!docsData[cid].drawings[drawType]) docsData[cid].drawings[drawType]=[];
         let successCount=0;
         const errors=[];
@@ -6566,7 +6648,7 @@ function addDrawingVersion(){
     try{
       const fileUrl=await uploadToStorage(file,'drawings');
       const size=fmtFileSize(file.size);
-      if(!docsData[cid])docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+      if(!docsData[cid])docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
       if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
       if(isFinal){
         for(const v of docsData[cid].drawings[currentDrawingType]){
@@ -6766,7 +6848,7 @@ async function uploadCliFurPhotos(e){
   const statusEl=document.getElementById('cli-fur-upload-status');
   if(statusEl) statusEl.style.display='block';
   try{
-    if(!docsData[cid]) docsData[cid]={drawings:{'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面系統圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     if(!docsData[cid].furniturePlans) docsData[cid].furniturePlans=[];
     for(const file of files){
       const fileUrl=await uploadToStorage(file,'furniture-plans');
