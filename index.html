@@ -3778,7 +3778,9 @@ async function dbLoadDocs(pid){
     docsData[pid].contracts={design:[],construction:[]};
     docsData[pid].quotes=[];
     (data||[]).forEach(r=>{
-      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',contractHtml:r.contract_html||'',contractData:r.contract_data||null,signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||''};
+      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',contractHtml:r.contract_html||'',contractData:r.contract_data||null,signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||'',
+        // 圖紙最終版客戶確認欄位
+        customerConfirmedAt:r.customer_confirmed_at||null, customerSignatureName:r.customer_signature_name||'', customerAcknowledgements:r.customer_acknowledgements||null};
       if(r.doc_type.startsWith('drawing_')){
         const dtype=r.doc_type.replace('drawing_','');
         if(!docsData[pid].drawings[dtype])docsData[pid].drawings[dtype]=[];
@@ -5495,6 +5497,22 @@ function goToClientDocs(cid){
   });
 }
 
+// 給最終版圖紙產出「請確認 / 已確認」HTML 區塊（一致樣式，跟材料確認流程同 pattern）
+function getDrawingConfirmBlock(v, drawingType){
+  if(!v || !v.isFinal) return '';
+  const note = (v.note || '').replace(/'/g, "\\'");
+  if(v.customerConfirmedAt){
+    return `<div style="margin-top:8px;padding:8px 10px;background:#F0F5EC;border-left:3px solid #6B8F4D;border-radius:4px;font-size:11px;color:#3D5C24;line-height:1.5;">
+      ✓ <strong>${v.customerSignatureName || '客戶'}</strong> 已確認此施工版本<br>
+      <span style="color:var(--ink-muted);font-size:10px;">${new Date(v.customerConfirmedAt).toLocaleString('zh-TW',{hour12:false})}</span>
+    </div>`;
+  }
+  return `<div style="margin-top:8px;padding:10px;background:#FFF7E6;border-left:3px solid #D4A017;border-radius:4px;">
+    <div style="font-size:11px;color:#7A5218;margin-bottom:6px;line-height:1.5;">⚠️ 設計師已標記此版本為最終版，請確認後作為施工依據</div>
+    <button onclick="event.stopPropagation();openConfirmDrawingModal(${v.dbId},'${drawingType}','${note}')" style="width:100%;padding:8px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;letter-spacing:0.1em;font-family:inherit;">請確認此施工版本</button>
+  </div>`;
+}
+
 // ========== CLIENT DOCS ==========
 function renderClientDocs(){
   const d=docsData[currentClientId];if(!d)return;
@@ -5515,8 +5533,11 @@ function renderClientDocs(){
       const FALLBACK_COVER='https://images.pexels.com/photos/4977406/pexels-photo-4977406.jpeg?auto=compress&cs=tinysrgb&w=800';
       const thumb=hasImg?`<img src="${showVer.fileUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<img src="${FALLBACK_COVER}" alt="施工圖紙" style="width:100%;height:100%;object-fit:cover;">`;
       const finalBadge=finalVer?`<span class="pill pill-final" style="font-size:9px;">最終版</span>`:'';
-      c.innerHTML=`<div class="drawing-thumb" style="padding:0;">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} ${finalBadge}</div><div class="drawing-meta">${showVer.note} ｜ ${showVer.date}</div></div>`;
-      if(showVer.fileUrl) c.onclick=()=>window.open(showVer.fileUrl,'_blank');
+      const confirmBlock=getDrawingConfirmBlock(showVer, t);
+      c.innerHTML=`<div class="drawing-thumb" style="padding:0;">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} ${finalBadge}</div><div class="drawing-meta">${showVer.note} ｜ ${showVer.date}</div>${confirmBlock}</div>`;
+      // 整張卡片點擊開檔（但確認按鈕已 stopPropagation）
+      const thumbEl=c.querySelector('.drawing-thumb');
+      if(showVer.fileUrl && thumbEl) thumbEl.onclick=()=>window.open(showVer.fileUrl,'_blank');
       dg.appendChild(c);
     }
     oldVers.forEach(v=>{const r=document.createElement('div');r.className='old-ver-item';r.innerHTML=`<span style="font-size:16px;">${icons[t]||''}</span><span style="flex:1;">${t} — ${v.note}</span><span class="fdate">${v.date}</span>`;dgo.appendChild(r);});
@@ -8843,6 +8864,144 @@ function clearSignature(){
   _sigCtx.fillStyle = '#fff';
   _sigCtx.fillRect(0,0,rect.width,rect.height);
   _sigHasInk = false;
+}
+
+// ========== 圖紙最終版確認流程（和材料確認 pattern 一致）==========
+let _confirmingDrawingId = null;
+let _confirmingDrawingMeta = null;  // {type, note}
+function openConfirmDrawingModal(docId, drawingType, note){
+  _confirmingDrawingId = docId;
+  _confirmingDrawingMeta = { type: drawingType, note };
+
+  let modal = document.getElementById('confirm-drawing-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'confirm-drawing-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9100;display:none;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+    modal.addEventListener('click', e=>{ if(e.target===modal) closeConfirmDrawingModal(); });
+    document.body.appendChild(modal);
+  }
+  const c = clients.find(x => x.id === currentClientId);
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;max-width:540px;width:100%;margin:1rem auto;overflow:hidden;">
+      <div style="padding:1rem 1.4rem;border-bottom:1px solid var(--accent-pale);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:11px;color:var(--ink-muted);letter-spacing:0.1em;">確認施工版本</div>
+          <div style="font-size:16px;font-weight:500;color:var(--ink);margin-top:2px;">${drawingType}：${note || '（未命名）'}</div>
+        </div>
+        <button onclick="closeConfirmDrawingModal()" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--ink-muted);line-height:1;">×</button>
+      </div>
+      <div style="padding:1.2rem 1.4rem;">
+        <div style="background:#FBF8F4;border-radius:8px;padding:14px;font-size:12px;color:var(--ink-muted);line-height:1.7;margin-bottom:1rem;">
+          您即將確認本份圖紙為「同意施工版本」。確認後此版本將作為後續施工依據，若需變更需走變更流程，可能影響工期與費用。請仔細閱讀並勾選下方確認項目，並手寫簽名。
+        </div>
+
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--ink);margin-bottom:8px;cursor:pointer;">
+          <input type="checkbox" id="dr-ack-1" style="margin-top:3px;flex-shrink:0;">
+          <span>我已仔細閱讀此份圖紙，了解圖示意義與標註的尺寸內容</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--ink);margin-bottom:8px;cursor:pointer;">
+          <input type="checkbox" id="dr-ack-2" style="margin-top:3px;flex-shrink:0;">
+          <span>我同意此版本作為後續施工的設計依據</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--ink);margin-bottom:1rem;cursor:pointer;">
+          <input type="checkbox" id="dr-ack-3" style="margin-top:3px;flex-shrink:0;">
+          <span>我了解確認後若需變更，需走變更流程且可能影響工期與費用</span>
+        </label>
+
+        <label style="display:block;font-size:12px;color:var(--ink-muted);margin-bottom:4px;">姓名 <span style="color:var(--red);">*</span></label>
+        <input id="dr-confirm-name-input" value="${(c?.name || '').replace(/"/g,'&quot;')}" placeholder="請輸入您的姓名" style="width:100%;padding:8px 10px;border:1px solid var(--accent-pale);border-radius:6px;font-size:13px;font-family:inherit;margin-bottom:1rem;outline:none;">
+
+        <label style="display:block;font-size:12px;color:var(--ink-muted);margin-bottom:4px;">手寫簽名 <span style="color:var(--red);">*</span></label>
+        <canvas id="dr-sig-canvas" width="500" height="160" style="width:100%;height:160px;border:1px solid var(--accent-pale);border-radius:6px;background:#fff;display:block;cursor:crosshair;"></canvas>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span style="font-size:11px;color:var(--ink-light);">手指或滑鼠拖曳簽名</span>
+          <button onclick="clearDrawingSignature()" style="background:transparent;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit;">清除重簽</button>
+        </div>
+      </div>
+      <div style="padding:1rem 1.4rem;border-top:1px solid var(--accent-pale);display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeConfirmDrawingModal()" style="padding:10px 16px;border:1px solid var(--accent-pale);background:#fff;color:var(--ink);border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;">取消</button>
+        <button onclick="submitDrawingConfirmation()" style="padding:10px 20px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;letter-spacing:0.1em;">送出確認</button>
+      </div>
+    </div>
+  `;
+  setTimeout(() => initDrawingSignatureCanvas(), 50);
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeConfirmDrawingModal(){
+  const m = document.getElementById('confirm-drawing-modal');
+  if(m) m.style.display = 'none';
+  document.body.style.overflow = '';
+  _confirmingDrawingId = null;
+}
+let _drSigCtx, _drSigDrawing = false, _drSigHasInk = false;
+function initDrawingSignatureCanvas(){
+  const canvas = document.getElementById('dr-sig-canvas');
+  if(!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  _drSigCtx = canvas.getContext('2d');
+  _drSigCtx.scale(2,2);
+  _drSigCtx.lineWidth = 2;
+  _drSigCtx.lineCap = 'round';
+  _drSigCtx.strokeStyle = '#1a1a1a';
+  _drSigCtx.fillStyle = '#fff';
+  _drSigCtx.fillRect(0,0,rect.width,rect.height);
+  _drSigHasInk = false;
+  const getPos = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  };
+  const start = (e) => { e.preventDefault(); _drSigDrawing = true; const p = getPos(e); _drSigCtx.beginPath(); _drSigCtx.moveTo(p.x, p.y); };
+  const move = (e) => { if(!_drSigDrawing) return; e.preventDefault(); const p = getPos(e); _drSigCtx.lineTo(p.x, p.y); _drSigCtx.stroke(); _drSigHasInk = true; };
+  const end = () => { _drSigDrawing = false; };
+  canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end;
+  canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
+}
+function clearDrawingSignature(){
+  const canvas = document.getElementById('dr-sig-canvas');
+  if(!canvas || !_drSigCtx) return;
+  const rect = canvas.getBoundingClientRect();
+  _drSigCtx.fillStyle = '#fff';
+  _drSigCtx.fillRect(0,0,rect.width,rect.height);
+  _drSigHasInk = false;
+}
+async function submitDrawingConfirmation(){
+  if(!_confirmingDrawingId){ alert('找不到要確認的圖紙'); return; }
+  const acks = [];
+  if(document.getElementById('dr-ack-1')?.checked) acks.push('我已仔細閱讀此份圖紙，了解圖示意義與標註的尺寸內容');
+  if(document.getElementById('dr-ack-2')?.checked) acks.push('我同意此版本作為後續施工的設計依據');
+  if(document.getElementById('dr-ack-3')?.checked) acks.push('我了解確認後若需變更，需走變更流程且可能影響工期與費用');
+  if(acks.length < 3){ alert('請勾選全部 3 個確認項目'); return; }
+  if(!_drSigHasInk){ alert('請手寫簽名'); return; }
+  const name = document.getElementById('dr-confirm-name-input')?.value?.trim() || '';
+  if(!name){ alert('請填寫姓名'); return; }
+  const canvas = document.getElementById('dr-sig-canvas');
+  const sigData = canvas?.toDataURL('image/png') || '';
+  const ip = await getClientIp();
+  const ua = navigator.userAgent;
+
+  showLoader(true);
+  try{
+    const { error } = await sbClient.from('project_docs').update({
+      customer_acknowledgements: acks,
+      customer_signature_data: sigData,
+      customer_signature_name: name,
+      customer_ip: ip || null,
+      customer_user_agent: ua,
+      customer_confirmed_at: new Date().toISOString(),
+    }).eq('id', _confirmingDrawingId);
+    if(error) throw error;
+    closeConfirmDrawingModal();
+    alert('✓ 已確認！感謝您的回覆。');
+    // Reload docs + re-render
+    await dbLoadDocs(currentClientId);
+    renderClientDocs();
+  }catch(e){ alert('確認失敗：'+e.message); }
+  showLoader(false);
 }
 
 async function submitMaterialConfirmation(){
