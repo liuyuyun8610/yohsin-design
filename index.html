@@ -1202,8 +1202,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
         </div>
         <div class="doc-section" id="client-elevation-section" style="display:none;">
-          <div class="doc-section-title">立面施工圖</div>
-          <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.7;">設計師會分批上傳完成的立面圖，下方依日期分組。點 PDF 縮圖開新分頁查看完整圖。</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:0;">
+            <div class="doc-section-title" style="margin:0;">立面施工圖</div>
+            <button id="elev-read-all-btn" onclick="openElevationSlideshow('_elevAllItems',0)" style="display:none;background:#3A2E18;color:#F5EBD8;border:none;padding:7px 14px;border-radius:999px;font-size:11px;cursor:pointer;font-family:inherit;letter-spacing:0.1em;align-items:center;gap:6px;">
+              <span style="font-size:12px;">📖</span> 一張一張看
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳完成的立面圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
           <div id="client-elevation-gallery"></div>
         </div>
         <div class="doc-section" id="client-renders-section" style="display:none;">
@@ -3383,6 +3388,124 @@ function doLogout(){
   document.querySelectorAll('#s-admin .tb-nav .tnav').forEach(b=>b.style.display='');
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ========== 立面施工圖 slideshow 閱讀模式（一張一張看）==========
+let _elevSlideshow = { items: [], idx: 0 };
+function openElevationSlideshow(itemsKey, startIdx){
+  const items = window[itemsKey] || [];
+  if(!items.length) return;
+  _elevSlideshow = { items, idx: Math.max(0, Math.min(startIdx||0, items.length-1)) };
+
+  let modal = document.getElementById('elev-slideshow');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'elev-slideshow';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9550;background:#1a1a1a;display:none;flex-direction:column;';
+    document.body.appendChild(modal);
+    // 鍵盤導覽
+    document.addEventListener('keydown', e=>{
+      const m = document.getElementById('elev-slideshow');
+      if(!m || m.style.display==='none') return;
+      if(e.key==='Escape') closeElevSlideshow();
+      else if(e.key==='ArrowLeft') navElevSlideshow(-1);
+      else if(e.key==='ArrowRight') navElevSlideshow(1);
+    });
+  }
+  renderElevSlideshow();
+  modal.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function renderElevSlideshow(){
+  const modal = document.getElementById('elev-slideshow');
+  if(!modal) return;
+  const { items, idx } = _elevSlideshow;
+  const v = items[idx];
+  if(!v) return;
+  const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
+  const isPdf = /\.pdf(\?|$)/i.test(v.fileUrl||'');
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  // 縮圖 strip（最多顯示前後 5 張）
+  const stripStart = Math.max(0, Math.min(items.length-9, idx-4));
+  const stripItems = items.slice(stripStart, stripStart+9);
+
+  modal.innerHTML = `
+    <div style="flex-shrink:0;padding:10px 14px;background:rgba(0,0,0,0.85);color:#fff;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <button onclick="closeElevSlideshow()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:16px;line-height:1;">‹</span> 返回
+      </button>
+      <div style="flex:1;text-align:center;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.95);font-weight:500;">${escapeHtml(v.note||v.date||'立面圖')}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:2px;letter-spacing:0.2em;">${idx+1} / ${items.length}</div>
+      </div>
+      ${isPdf ? `<a href="${v.fileUrl}" target="_blank" rel="noopener" style="background:rgba(255,255,255,0.12);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;">↗ 全螢幕</a>` : '<span style="width:60px;"></span>'}
+    </div>
+    <div id="elev-slide-body" style="flex:1;overflow:auto;background:#1a1a1a;display:flex;align-items:center;justify-content:center;position:relative;touch-action:pan-y;">
+      ${isMobile && isPdf
+        ? `<div style="text-align:center;color:#fff;padding:2rem;">
+            <div style="font-size:32px;color:#A07A38;margin-bottom:1rem;">PDF</div>
+            <div style="font-size:14px;margin-bottom:1rem;">${escapeHtml(v.note||'')}</div>
+            <a href="${v.fileUrl}" target="_blank" style="display:inline-block;padding:12px 24px;background:#fff;color:#1a1a1a;border-radius:6px;text-decoration:none;font-size:13px;">用裝置 PDF 檢視器開啟</a>
+            <p style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:0.6rem;">iPhone iframe PDF 縮放會干擾全 app，建議用內建 viewer</p>
+          </div>`
+        : isPdf
+          ? `<iframe src="${v.fileUrl}#view=FitH" style="border:none;width:100%;height:100%;background:#fff;"></iframe>`
+          : isImg
+            ? `<img id="elev-slide-img" src="${v.fileUrl}" alt="" style="max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;touch-action:pinch-zoom;" onclick="(function(el){el.style.maxWidth=el.style.maxWidth==='none'?'100%':'none';el.style.maxHeight=el.style.maxWidth==='none'?'none':'100%';el.style.cursor=el.style.maxWidth==='none'?'zoom-out':'zoom-in';})(this)">`
+            : `<div style="color:#fff;">無法預覽</div>`
+      }
+      <!-- 左右翻頁按鈕（桌機顯眼，手機半透明）-->
+      ${idx > 0 ? `<button onclick="navElevSlideshow(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.55);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">‹</button>` : ''}
+      ${idx < items.length-1 ? `<button onclick="navElevSlideshow(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.55);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">›</button>` : ''}
+    </div>
+    <!-- 縮圖 strip -->
+    <div style="flex-shrink:0;background:rgba(0,0,0,0.85);padding:8px 14px;display:flex;gap:6px;overflow-x:auto;border-top:1px solid rgba(255,255,255,0.1);">
+      ${stripItems.map((it, i)=>{
+        const realIdx = stripStart + i;
+        const active = realIdx === idx;
+        const thumbIsImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(it.fileUrl||'');
+        return `<button onclick="goElevSlide(${realIdx})" style="flex-shrink:0;width:50px;height:50px;border:2px solid ${active?'#fff':'transparent'};border-radius:4px;overflow:hidden;background:${thumbIsImg?'#fff':'#FBF8F4'};cursor:pointer;padding:0;opacity:${active?'1':'0.6'};transition:opacity .15s;">
+          ${thumbIsImg
+            ? `<img src="${it.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#A07A38;">PDF</div>`}
+        </button>`;
+      }).join('')}
+    </div>
+  `;
+
+  // 滑動手勢
+  const body = document.getElementById('elev-slide-body');
+  if(body){
+    let startX = 0, startY = 0, moved = false;
+    body.ontouchstart = e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved = false; };
+    body.ontouchmove = e => {
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) moved = true;
+    };
+    body.ontouchend = e => {
+      if(!moved) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if(Math.abs(dx) > 50) navElevSlideshow(dx > 0 ? -1 : 1);
+    };
+  }
+}
+function navElevSlideshow(delta){
+  const { items, idx } = _elevSlideshow;
+  const next = idx + delta;
+  if(next < 0 || next >= items.length) return;
+  _elevSlideshow.idx = next;
+  renderElevSlideshow();
+}
+function goElevSlide(idx){
+  _elevSlideshow.idx = idx;
+  renderElevSlideshow();
+}
+function closeElevSlideshow(){
+  const m = document.getElementById('elev-slideshow');
+  if(m) m.style.display='none';
+  document.body.style.overflow='';
+}
 
 // ========== 全螢幕文件檢視器（PDF + 圖片）==========
 // 解決 window.open 開新分頁要切回去找的痛點
@@ -6025,6 +6148,10 @@ function renderClientElevationGallery(d){
   const all=(d.drawings['立面系統圖']||[]).filter(v=>v.fileUrl);
   if(!all.length){sec.style.display='none';return;}
   sec.style.display='block';
+  // 給 slideshow 用（跨相簿全部）
+  window._elevAllItems = all;
+  const readAllBtn = document.getElementById('elev-read-all-btn');
+  if(readAllBtn) readAllBtn.style.display = 'inline-flex';
 
   // group by album name (date 欄位)
   const grouped={};
@@ -6067,7 +6194,12 @@ function renderClientElevationGallery(d){
       cell.style.cssText += ringStyle;
       if(isImg){
         cell.innerHTML=`${cornerBadge}<img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-        cell.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'立面圖');
+        // 點擊：進入 slideshow 閱讀模式（一張一張看）
+        cell.onclick=()=>{
+          window._elevAllItems = all;  // 全部立面圖（跨相簿）給 slideshow 用
+          const realIdx = all.findIndex(x=>x.dbId===v.dbId);
+          openElevationSlideshow('_elevAllItems', realIdx>=0?realIdx:0);
+        };
       } else {
         // PDF：先放 placeholder + label，PDF.js 渲染好換上第一頁縮圖
         cell.style.background='#FBF8F4';
@@ -6081,7 +6213,12 @@ function renderClientElevationGallery(d){
         const loadingEl=cell.querySelector('.pdf-thumb-loading');
         if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
         renderPdfThumb(v.fileUrl, imgEl, {width:280});
-        cell.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'立面圖');
+        // 點擊：進入 slideshow 閱讀模式（一張一張看）
+        cell.onclick=()=>{
+          window._elevAllItems = all;  // 全部立面圖（跨相簿）給 slideshow 用
+          const realIdx = all.findIndex(x=>x.dbId===v.dbId);
+          openElevationSlideshow('_elevAllItems', realIdx>=0?realIdx:0);
+        };
       }
       grid.appendChild(cell);
     });
