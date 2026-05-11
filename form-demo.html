@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>有心制作 · 預約諮詢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4ECE0;
+    --paper-2:#EFE5D6;
+    --card:#FBF6EC;
+    --card-2:#F7EDD8;
+    --line:#D9C9A8;
+    --line-soft:rgba(160,122,56,0.12);
+    --ink:#3A2E18;
+    --ink-soft:#5A4528;
+    --ink-mute:#8B7654;
+    --ink-light:#A39580;
+    --accent:#A07A38;
+    --accent-soft:#B69060;
+    --sage:#7E8A6F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans TC',system-ui,sans-serif;
+    font-weight:300;
+    line-height:1.7;
+    letter-spacing:0.04em;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+  body{min-height:100vh;display:flex;flex-direction:column;}
+  .serif{font-family:'Noto Serif TC',serif;}
+
+  /* Header */
+  .topbar{
+    padding:18px 20px 0;
+    text-align:center;
+  }
+  .brand{
+    font-family:'Noto Serif TC',serif;
+    font-size:14px;
+    color:var(--ink);
+    letter-spacing:0.3em;
+    margin-bottom:4px;
+  }
+  .brand-en{
+    font-family:'Noto Serif TC',serif;
+    font-size:9px;
+    color:var(--ink-light);
+    letter-spacing:0.4em;
+    text-transform:uppercase;
+  }
+  .progress-wrap{
+    max-width:520px;
+    margin:24px auto 0;
+    padding:0 20px;
+  }
+  .progress-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:10px;
+    color:var(--ink-mute);
+    letter-spacing:0.15em;
+    margin-bottom:8px;
+  }
+  .progress-label .step-name{
+    font-family:'Noto Serif TC',serif;
+    font-size:13px;
+    color:var(--ink);
+    letter-spacing:0.1em;
+    font-weight:500;
+  }
+  .progress-track{
+    height:1px;
+    background:var(--line-soft);
+    position:relative;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--accent);
+    transition:width .6s cubic-bezier(0.2,0.8,0.2,1);
+    width:16.66%;
+  }
+
+  /* Main */
+  main{
+    flex:1;
+    max-width:520px;
+    width:100%;
+    margin:0 auto;
+    padding:32px 20px 100px;
+  }
+  .step-intro{
+    text-align:center;
+    margin-bottom:34px;
+  }
+  .step-intro h1{
+    font-family:'Noto Serif TC',serif;
+    font-size:24px;
+    font-weight:500;
+    color:var(--ink);
+    margin-bottom:10px;
+    letter-spacing:0.06em;
+    line-height:1.4;
+  }
+  .step-intro p{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.9;
+    letter-spacing:0.04em;
+    max-width:420px;
+    margin:0 auto;
+  }
+
+  .field{
+    margin-bottom:22px;
+  }
+  .label{
+    display:block;
+    font-family:'Noto Serif TC',serif;
+    font-size:13px;
+    color:var(--ink);
+    margin-bottom:8px;
+    letter-spacing:0.06em;
+    font-weight:500;
+  }
+  .label-helper{
+    font-size:11px;
+    color:var(--ink-light);
+    margin-left:6px;
+    font-family:'Noto Sans TC',sans-serif;
+    font-weight:300;
+    letter-spacing:0.04em;
+  }
+  .input,select.input,textarea.input{
+    width:100%;
+    background:#fff;
+    border:1px solid var(--line-soft);
+    border-radius:10px;
+    padding:14px 16px;
+    font-family:'Noto Sans TC',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    line-height:1.5;
+    letter-spacing:0.04em;
+    outline:none;
+    transition:border-color .2s,box-shadow .2s;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(160,122,56,0.08);
+  }
+  textarea.input{
+    resize:vertical;
+    min-height:88px;
+  }
+  select.input{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%23A07A38' stroke-width='1.5' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 16px center;
+    padding-right:42px;
+  }
+
+  /* Card-style options */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:8px;
+  }
+  .cards.cols-2{ grid-template-columns:repeat(2,1fr); }
+  .card-opt{
+    background:#fff;
+    border:1px solid var(--line-soft);
+    border-radius:12px;
+    padding:14px 14px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .15s,border-color .15s,background .15s;
+    font-size:13px;
+    color:var(--ink-soft);
+    letter-spacing:0.05em;
+    user-select:none;
+    line-height:1.4;
+  }
+  .card-opt:hover{
+    border-color:var(--line);
+    transform:translateY(-1px);
+  }
+  .card-opt.active{
+    background:var(--card-2);
+    border-color:var(--accent);
+    color:var(--ink);
+    box-shadow:inset 0 0 0 1px var(--accent);
+  }
+  .card-opt .ico{
+    display:block;
+    font-size:18px;
+    margin-bottom:5px;
+    color:var(--accent);
+  }
+
+  /* Buttons */
+  .actions{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:linear-gradient(to top,var(--paper) 0%,var(--paper) 70%,rgba(244,236,224,0));
+    padding:16px 20px 22px;
+    z-index:10;
+  }
+  .actions-inner{
+    max-width:520px;
+    margin:0 auto;
+    display:flex;
+    gap:10px;
+  }
+  .btn{
+    flex:1;
+    padding:14px 22px;
+    border-radius:999px;
+    font-family:'Noto Serif TC',serif;
+    font-size:14px;
+    letter-spacing:0.15em;
+    cursor:pointer;
+    border:none;
+    transition:transform .15s,opacity .15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-primary{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .btn-primary:active{ transform:scale(0.97); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-mute);
+    border:1px solid var(--line-soft);
+    flex:0 0 auto;
+    padding:14px 22px;
+  }
+  .btn-disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+
+  /* Step transitions */
+  .step{
+    animation:stepIn .55s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  @keyframes stepIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  /* File upload */
+  .file-zone{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:24px 16px;
+    text-align:center;
+    cursor:pointer;
+    background:#fff;
+    transition:border-color .2s,background .2s;
+  }
+  .file-zone:hover{
+    border-color:var(--accent);
+    background:var(--card);
+  }
+  .file-zone-icon{
+    font-size:22px;
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  .file-zone-text{
+    font-size:12px;
+    color:var(--ink-mute);
+    line-height:1.6;
+  }
+
+  /* Final screen */
+  .final{
+    text-align:center;
+    padding:60px 20px 40px;
+    animation:stepIn .8s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  .final-mark{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--card) 0%,var(--card-2) 100%);
+    margin:0 auto 24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    color:var(--accent);
+    box-shadow:0 4px 16px rgba(160,122,56,0.15);
+  }
+  .final h2{
+    font-family:'Noto Serif TC',serif;
+    font-size:22px;
+    font-weight:500;
+    color:var(--ink);
+    margin-bottom:14px;
+    letter-spacing:0.1em;
+    line-height:1.5;
+  }
+  .final p{
+    font-size:13px;
+    color:var(--ink-soft);
+    max-width:380px;
+    margin:0 auto 30px;
+    line-height:2;
+  }
+
+  /* Mobile fine tune */
+  @media (max-width:480px){
+    .topbar{padding:14px 16px 0;}
+    .progress-wrap{padding:0 16px;margin-top:18px;}
+    main{padding:24px 16px 100px;}
+    .step-intro{margin-bottom:26px;}
+    .step-intro h1{font-size:21px;}
+    .step-intro p{font-size:12.5px;}
+    .cards{grid-template-columns:repeat(2,1fr);gap:7px;}
+    .card-opt{padding:12px 10px;font-size:12.5px;}
+    .input{font-size:15px;padding:13px 14px;}  /* iOS 不要 zoom in */
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">有 心 制 作</div>
+  <div class="brand-en">YOSHIN DESIGN STUDIO</div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span class="step-name" id="step-name">先認識你</span>
+    <span><span id="step-num">1</span> / 6</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+</div>
+
+<main id="main">
+  <!-- 動態渲染 step 內容 -->
+</main>
+
+<div class="actions">
+  <div class="actions-inner">
+    <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">回上一頁</button>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">開始填寫</button>
+  </div>
+</div>
+
+<script>
+const STEPS = [
+  {
+    name: '先認識你',
+    title: '先簡單認識一下你',
+    subtitle: '讓我們知道該怎麼與你聯繫，之後的對話也會更順暢。',
+    fields: [
+      { key:'name',    label:'怎麼稱呼你',  type:'text',  required:true,  placeholder:'例：小明、陳小姐、Eva' },
+      { key:'phone',   label:'電話',  type:'tel',   required:true,  placeholder:'09__-___-___' },
+      { key:'line_id', label:'LINE ID', type:'text', required:false, placeholder:'方便我們之後聯繫' },
+      { key:'email',   label:'Email', type:'email', required:false, placeholder:'name@example.com' },
+      { key:'source',  label:'從哪裡認識我們',  type:'cards', required:false,
+        options:['Google 搜尋','Instagram','朋友介紹','設計媒體','100室內設計','其他'] },
+    ],
+  },
+  {
+    name: '你的空間',
+    title: '我們想先了解空間',
+    subtitle: '這些資訊讓我們可以初步判斷適合的設計與工程節奏。',
+    fields: [
+      { key:'space_type', label:'空間類型', type:'cards', required:true,
+        options:['新成屋','中古屋','預售屋','商業空間','其他'] },
+      { key:'region',     label:'所在地區', type:'text', required:false, placeholder:'例：台北市信義區' },
+      { key:'area_ping',  label:'室內坪數', type:'cards', required:false,
+        options:['10-20 坪','20-30 坪','30-40 坪','40 坪以上'] },
+      { key:'is_handover',label:'是否已交屋', type:'cards', required:false, options:['已交屋','尚未交屋','不確定'] },
+      { key:'reno_timing',label:'預計裝修時間', type:'cards', required:false,
+        options:['1-3 個月內','3-6 個月內','半年以後','還不確定'] },
+    ],
+  },
+  {
+    name: '你期待的生活感',
+    title: '你希望怎麼生活',
+    subtitle: '不只想知道你喜歡什麼風格，也想理解你希望怎麼生活在這個空間裡。',
+    fields: [
+      { key:'lifestyle_tags', label:'生活機能（可複選）', type:'cards-multi', required:false,
+        options:['收納機能','放鬆療癒','親子友善','寵物友善','展示收藏','好清潔','居家辦公','飯店感','溫暖奶茶色','日式簡約'] },
+      { key:'vibe_feel', label:'你回家後最希望空間給你的感覺', helper:'（可複選）', type:'cards-multi', required:false,
+        options:['放鬆','安靜','溫暖','整齊','有儀式感','能好好陪家人'] },
+      { key:'vibe_dislike', label:'你最不喜歡家裡出現什麼狀態', helper:'（可複選）', type:'cards-multi', required:false,
+        options:['東西沒地方放','太暗','太冷冰冰','不好清潔','動線卡卡','缺乏生活感'] },
+    ],
+  },
+  {
+    name: '風格與參考',
+    title: '有沒有什麼畫面想分享',
+    subtitle: '參考圖不需要很完整，只要是你有感覺的畫面，都可以放上來。',
+    fields: [
+      { key:'style_likes',    label:'喜歡的風格',  type:'textarea', required:false,
+        placeholder:'例：日式無印、北歐簡約、奶茶色系、有溫度的木質感…' },
+      { key:'style_dislikes', label:'不喜歡的風格', type:'textarea', required:false,
+        placeholder:'例：工業風、太冷的灰色、過度華麗的線條…' },
+      { key:'reference_links',label:'Pinterest / IG / 小紅書 連結', helper:'（可貼多個）', type:'textarea', required:false,
+        placeholder:'每行一個連結即可' },
+      { key:'reference_images', label:'上傳參考圖', type:'file', required:false },
+      { key:'style_note', label:'補充', helper:'（為什麼喜歡或不喜歡）', type:'textarea', required:false,
+        placeholder:'簡單寫幾句也可以，幫助我們理解你' },
+    ],
+  },
+  {
+    name: '預算與需求',
+    title: '你目前希望投入的範圍',
+    subtitle: '我們會依此初步評估設計與工程方向，後續會再依實際需求細談。',
+    fields: [
+      { key:'budget_range', label:'大約範圍', type:'cards', required:true,
+        options:['80–150 萬','150–250 萬','250–400 萬','400 萬以上','還不確定，希望先討論'] },
+      { key:'service_type', label:'你需要的服務', type:'cards', required:false,
+        options:['設計＋工程','僅需要設計','已有固定施工廠商'] },
+      { key:'urgent_move_in', label:'是否有急迫入住時間', type:'cards', required:false,
+        options:['是，有時間壓力','沒有，慢慢規劃就好'] },
+    ],
+  },
+  {
+    name: '最後確認',
+    title: '謝謝你，這是最後一步',
+    subtitle: '送出後，我們會先閱讀你的需求，並於 1–3 個工作天內與你聯繫。\n若需求與服務內容合適，將進一步安排初步諮詢或現場丈量。',
+    fields: [
+      { key:'note', label:'最後想補充的話（選填）', type:'textarea', required:false,
+        placeholder:'任何想跟我們說的，都可以寫在這裡。' },
+    ],
+  },
+];
+
+let currentStep = 0;
+const formData = {};
+
+function render(){
+  const step = STEPS[currentStep];
+  document.getElementById('step-name').textContent = step.name;
+  document.getElementById('step-num').textContent = currentStep + 1;
+  document.getElementById('progress-fill').style.width = ((currentStep + 1) / STEPS.length * 100) + '%';
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="step">
+      <div class="step-intro">
+        <h1>${step.title}</h1>
+        <p>${step.subtitle.replace(/\n/g,'<br>')}</p>
+      </div>
+      ${step.fields.map(f => renderField(f)).join('')}
+    </div>
+  `;
+
+  // 設定 cards toggle
+  document.querySelectorAll('.card-opt').forEach(el => {
+    el.onclick = () => {
+      const key = el.dataset.key;
+      const val = el.dataset.val;
+      const multi = el.dataset.multi === '1';
+      if(multi){
+        const cur = Array.isArray(formData[key]) ? formData[key] : [];
+        if(cur.includes(val)){
+          formData[key] = cur.filter(v => v !== val);
+        } else {
+          formData[key] = [...cur, val];
+        }
+        document.querySelectorAll(`.card-opt[data-key="${key}"]`).forEach(c => {
+          c.classList.toggle('active', (formData[key]||[]).includes(c.dataset.val));
+        });
+      } else {
+        formData[key] = val;
+        document.querySelectorAll(`.card-opt[data-key="${key}"]`).forEach(c => {
+          c.classList.toggle('active', c.dataset.val === val);
+        });
+      }
+    };
+  });
+
+  // 文字欄位 binding
+  document.querySelectorAll('.input[data-key]').forEach(el => {
+    el.value = formData[el.dataset.key] || '';
+    el.oninput = () => { formData[el.dataset.key] = el.value; };
+  });
+
+  // 按鈕狀態
+  document.getElementById('btn-prev').style.display = currentStep === 0 ? 'none' : '';
+  const nextBtn = document.getElementById('btn-next');
+  if(currentStep === STEPS.length - 1){
+    nextBtn.textContent = '送出需求';
+  } else if(currentStep === 0){
+    nextBtn.textContent = '開始填寫';
+  } else {
+    nextBtn.textContent = '下一步';
+  }
+}
+
+function renderField(f){
+  const helper = f.helper ? `<span class="label-helper">${f.helper}</span>` : '';
+  if(f.type === 'cards' || f.type === 'cards-multi'){
+    const multi = f.type === 'cards-multi';
+    const colsClass = f.options.length <= 4 ? '' : '';
+    return `<div class="field">
+      <label class="label">${f.label}${helper}</label>
+      <div class="cards">
+        ${f.options.map(opt => `<div class="card-opt" data-key="${f.key}" data-val="${opt}" data-multi="${multi?1:0}">${opt}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+  if(f.type === 'textarea'){
+    return `<div class="field">
+      <label class="label">${f.label}${helper}</label>
+      <textarea class="input" data-key="${f.key}" rows="3" placeholder="${f.placeholder||''}"></textarea>
+    </div>`;
+  }
+  if(f.type === 'file'){
+    return `<div class="field">
+      <label class="label">${f.label}${helper}</label>
+      <label class="file-zone">
+        <div class="file-zone-icon">↑</div>
+        <div class="file-zone-text">點擊或拖曳圖片到這裡<br><span style="opacity:0.7;">支援 JPG / PNG，每張 &lt; 10MB</span></div>
+        <input type="file" accept="image/*" multiple style="display:none;" onchange="handleFiles(event)">
+      </label>
+      <div id="file-list-${f.key}" style="margin-top:8px;font-size:11px;color:var(--ink-mute);"></div>
+    </div>`;
+  }
+  return `<div class="field">
+    <label class="label">${f.label}${f.required ? '' : helper}</label>
+    <input class="input" type="${f.type}" data-key="${f.key}" placeholder="${f.placeholder||''}">
+  </div>`;
+}
+
+function nextStep(){
+  // 驗證 required 欄位
+  const step = STEPS[currentStep];
+  for(const f of step.fields){
+    if(!f.required) continue;
+    const val = formData[f.key];
+    if(!val || (Array.isArray(val) && !val.length)){
+      const tip = document.createElement('div');
+      tip.style.cssText = 'position:fixed;top:30px;left:50%;transform:translateX(-50%);background:#fff;color:var(--ink);padding:10px 18px;border-radius:999px;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:99;border:1px solid var(--line-soft);';
+      tip.textContent = `這裡再幫我們補一下${f.label}，才方便後續聯繫你`;
+      document.body.appendChild(tip);
+      setTimeout(() => tip.remove(), 2400);
+      return;
+    }
+  }
+
+  if(currentStep === STEPS.length - 1){
+    submit();
+    return;
+  }
+  currentStep++;
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function prevStep(){
+  if(currentStep === 0) return;
+  currentStep--;
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function handleFiles(e){
+  const files = Array.from(e.target.files);
+  const list = document.getElementById('file-list-reference_images');
+  if(list) list.textContent = `已選擇 ${files.length} 張：${files.map(f=>f.name).join('、')}`;
+  formData.reference_images = files;
+}
+
+// ⚠️ 部署前請填入 work-system Supabase 的 URL + anon key（這兩個是 public 不會洩漏）
+//    work-system 既有的 NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
+const SB_URL = 'https://kwtozldimwidbkemrdgg.supabase.co';
+const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dG96bGRpbXdpZGJrZW1yZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDcyNTcsImV4cCI6MjA5MTcyMzI1N30.OK8qXUNSDEeCakMHyV9_fJZBGMtpE_wANNCzWvkBYuc';
+
+async function submit(){
+  // 圖片上傳暫不處理（demo），提交時只送出 metadata
+  const payload = {
+    name: formData.name || '',
+    line_id: formData.line_id || null,
+    phone: formData.phone || null,
+    email: formData.email || null,
+    source: formData.source || null,
+    space_type: formData.space_type || null,
+    region: formData.region || null,
+    area_ping: formData.area_ping || null,
+    is_handover: formData.is_handover === '已交屋' ? true : formData.is_handover === '尚未交屋' ? false : null,
+    reno_timing: formData.reno_timing || null,
+    lifestyle_tags: formData.lifestyle_tags || [],
+    vibe_feel: formData.vibe_feel || [],
+    vibe_dislike: formData.vibe_dislike || [],
+    style_likes: formData.style_likes || null,
+    style_dislikes: formData.style_dislikes || null,
+    reference_links: formData.reference_links || null,
+    style_note: formData.style_note || null,
+    budget_range: formData.budget_range || null,
+    service_type: formData.service_type || null,
+    urgent_move_in: formData.urgent_move_in === '是，有時間壓力' ? true : formData.urgent_move_in === '沒有，慢慢規劃就好' ? false : null,
+    user_agent: navigator.userAgent,
+    source_url: window.location.href,
+  };
+
+  const showSuccess = () => {
+    document.getElementById('main').innerHTML = `
+      <div class="final">
+        <div class="final-mark">✶</div>
+        <h2>我們收到你<br>家的初步想像了</h2>
+        <p>謝謝你願意花這些時間告訴我們你的需求。<br>我們會在 1–3 個工作天內與你聯繫，<br>若需求與服務合適，將進一步安排初步諮詢或現場丈量。</p>
+        <p style="font-size:11px;color:var(--ink-light);">這段時間先好好生活，剩下的交給我們慢慢理解。</p>
+      </div>
+    `;
+    document.querySelector('.actions').style.display = 'none';
+    document.querySelector('.progress-wrap').style.display = 'none';
+  };
+
+  // 如果還沒設定 anon key（demo 模式），只 console.log
+  if(!SB_ANON_KEY || SB_ANON_KEY.startsWith('請填入')){
+    console.log('[Demo mode] Form data:', payload);
+    showSuccess();
+    return;
+  }
+
+  // 真正提交
+  try{
+    const res = await fetch(`${SB_URL}/rest/v1/consultation_inquiries`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_ANON_KEY,
+        'Authorization': `Bearer ${SB_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok){
+      const detail = await res.text();
+      console.error('Submit failed:', res.status, detail);
+      alert('送出失敗，請稍後再試或直接 LINE 我們：' + (res.status === 401 ? '（未授權）' : ''));
+      return;
+    }
+    showSuccess();
+  }catch(e){
+    console.error(e);
+    alert('送出失敗（網路錯誤）：' + (e.message || e));
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
