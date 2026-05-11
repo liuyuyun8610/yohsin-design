@@ -64,6 +64,87 @@
     line-height:2;
   }
 
+  /* Fee section（在表單前的費用說明，篩選用）*/
+  .fee-wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:36px 24px 24px;
+  }
+  .fee-intro{
+    background:var(--paper);
+    border:0.5px solid var(--line);
+    border-radius:14px;
+    padding:22px 24px;
+    margin-bottom:18px;
+    font-size:13px;
+    color:var(--ink-2);
+    line-height:2;
+  }
+  .fee-intro strong{
+    display:block;
+    font-family:'Noto Serif TC',serif;
+    color:var(--ink);
+    font-size:14px;
+    margin-bottom:6px;
+    letter-spacing:0.06em;
+  }
+  .fee-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:12px;
+  }
+  .fee-card{
+    background:var(--paper);
+    border:0.5px solid var(--line);
+    border-radius:12px;
+    padding:18px 18px 16px;
+  }
+  .fee-card h4{
+    font-family:'Noto Serif TC',serif;
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink);
+    letter-spacing:0.08em;
+    margin-bottom:8px;
+    padding-bottom:8px;
+    border-bottom:0.5px solid var(--line-soft);
+  }
+  .fee-price{
+    font-family:'Noto Serif TC',serif;
+    font-size:18px;
+    color:var(--accent);
+    font-weight:500;
+    margin-bottom:10px;
+    letter-spacing:0.04em;
+  }
+  .fee-card ul{
+    list-style:none;
+    margin:0;padding:0;
+  }
+  .fee-card ul li{
+    font-size:12px;
+    color:var(--ink-3);
+    line-height:1.9;
+    padding-left:14px;
+    position:relative;
+    letter-spacing:0.03em;
+  }
+  .fee-card ul li::before{
+    content:'·';
+    position:absolute;
+    left:4px;
+    top:0;
+    color:var(--accent);
+  }
+  .fee-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-4);
+    margin-top:18px;
+    letter-spacing:0.1em;
+    line-height:1.8;
+  }
+
   /* Form container */
   main{
     max-width:560px;
@@ -305,6 +386,9 @@
   }
 
   @media (max-width:480px){
+    .fee-wrap{padding:24px 18px 12px;}
+    .fee-grid{grid-template-columns:1fr;gap:10px;}
+    .fee-card{padding:16px;}
     .hero{padding:40px 20px 28px;}
     .hero h1{font-size:24px;letter-spacing:0.06em;}
     .hero p{font-size:12.5px;}
@@ -323,7 +407,72 @@
 <section class="hero">
   <div class="brand-mark">YOSHIN DESIGN</div>
   <h1>謝謝你<br>想到我們</h1>
-  <p>這份小卡片只想了解一些事：你是誰、空間長什麼樣、想過怎樣的生活。<br>大約 2 分鐘可以填完。</p>
+  <p>在填寫前，先讓你了解我們的服務模式與費用，<br>確認方向合適後再留下資訊，<br>對彼此都會更有效率。</p>
+</section>
+
+<!-- 費用說明（篩選用：避免誤以為免費設計或超低設計費）-->
+<section class="fee-wrap">
+  <div class="fee-intro">
+    <strong>初步諮詢</strong>
+    如有任何想問的，歡迎致電或利用線上洽詢，也歡迎您到我們林口的工作室見面聊聊。
+    對於房屋暫時沒想法，建議您選擇提案服務，讓我們透過空間提案認識彼此，也會讓進度更快。
+  </div>
+
+  <div class="fee-grid">
+    <div class="fee-card">
+      <h4>新成屋提案</h4>
+      <div class="fee-price">$6,000 / 單次</div>
+      <ul>
+        <li>提案後三日內確認另有優惠</li>
+        <li>平面配置方案至少兩版</li>
+        <li>初步估價單一份</li>
+        <li>提案簡報一次</li>
+      </ul>
+    </div>
+    <div class="fee-card">
+      <h4>中古屋提案</h4>
+      <div class="fee-price">$8,000 / 單次</div>
+      <ul>
+        <li>包含乙次丈量服務</li>
+        <li>提案後五日內確認合作另有優惠</li>
+        <li>平面配置方案至少兩版</li>
+        <li>初步估價單一份</li>
+        <li>提案簡報一次</li>
+      </ul>
+    </div>
+    <div class="fee-card">
+      <h4>預售屋客變</h4>
+      <div class="fee-price">$20,000 起</div>
+      <ul>
+        <li>10-20 坪 $20,000 / 次</li>
+        <li>21-30 坪 $25,000 / 次</li>
+        <li>31-45 坪 $30,000 / 次</li>
+        <li>客變費用未來可全額折抵設計費</li>
+      </ul>
+    </div>
+    <div class="fee-card">
+      <h4>設計服務費</h4>
+      <div class="fee-price">$5,500 / 坪 起</div>
+      <ul>
+        <li>新成屋 $5,500 / 坪</li>
+        <li>中古屋 $6,500 / 坪</li>
+        <li>基本低消 $60,000 / 案</li>
+      </ul>
+    </div>
+    <div class="fee-card">
+      <h4>工程費用建議</h4>
+      <div class="fee-price">每坪 6 萬起</div>
+      <ul>
+        <li>新成屋 每坪 NT$6-10 萬</li>
+        <li>中古屋 每坪 NT$11-15 萬</li>
+        <li>工程管理費 8-10%（依案件情況）</li>
+        <li>最低提案金額 NT$120 萬</li>
+        <li>工程保固一年；設備、地板等廠商保固期內，您不會成為裝修孤兒</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="fee-note">了解以上後，請繼續往下填寫</p>
 </section>
 
 <main>
