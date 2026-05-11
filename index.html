@@ -3349,6 +3349,41 @@ function doLogout(){
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
+// ========== PDF 第一頁縮圖 (用 PDF.js) ==========
+window._pdfThumbCache = window._pdfThumbCache || {};
+window._pdfThumbInflight = window._pdfThumbInflight || {};
+async function renderPdfThumb(url, imgEl, opts){
+  if(!url || !imgEl) return;
+  if(window._pdfThumbCache[url]){ imgEl.src = window._pdfThumbCache[url]; return; }
+  // 同一個 URL 同時被多個 cell 觸發 → 共用一個 promise
+  if(!window._pdfThumbInflight[url]){
+    window._pdfThumbInflight[url] = (async()=>{
+      try{
+        if(!window.pdfjsLib) return null;
+        const pdf = await pdfjsLib.getDocument(url).promise;
+        const page = await pdf.getPage(1);
+        const baseViewport = page.getViewport({scale:1});
+        const targetW = (opts && opts.width) || 240;
+        const scale = targetW / baseViewport.width;
+        const viewport = page.getViewport({scale});
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(viewport.width);
+        canvas.height = Math.round(viewport.height);
+        const ctx = canvas.getContext('2d');
+        await page.render({canvasContext: ctx, viewport}).promise;
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        window._pdfThumbCache[url] = dataUrl;
+        return dataUrl;
+      }catch(e){
+        console.warn('[renderPdfThumb] failed', url, e?.message||e);
+        return null;
+      }
+    })();
+  }
+  const result = await window._pdfThumbInflight[url];
+  if(result && imgEl) imgEl.src = result;
+}
+
 // ========== 客戶端：圖紙未讀計數 ==========
 function _drawingSeenKey(cid, type){ return `ys_drawingSeen_${cid}_${type}`; }
 function getDrawingMaxSeen(cid, type){
@@ -3361,12 +3396,8 @@ function countUnseenDrawings(cid, type){
   const arr=docsData[cid]?.drawings?.[type]||[];
   if(!arr.length) return 0;
   const seen=getDrawingMaxSeen(cid, type);
-  // 第一次（從未看過）→ 直接認為全部已讀，不要打擾
-  if(seen===0){
-    const maxId=Math.max(0, ...arr.map(v=>Number(v.dbId)||0));
-    if(maxId>0){ setDrawingMaxSeen(cid, type, maxId); }
-    return 0;
-  }
+  // seen=0 表示這個類型從沒被點過 → 全部都當「新的」顯示
+  // （點過一次後 seen 會被設成當下最大 dbId，之後只顯示比它新的）
   return arr.filter(v=>Number(v.dbId||0) > seen).length;
 }
 function markDrawingTypeSeen(cid, type){
@@ -5625,11 +5656,17 @@ function renderClientElevationGallery(d){
         cell.innerHTML=`<img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`;
         cell.onclick=()=>window.open(v.fileUrl,'_blank');
       } else {
+        // PDF：先放 placeholder + label，PDF.js 渲染好換上第一頁縮圖
         cell.style.background='#FBF8F4';
-        cell.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;">
-          <div style="font-size:18px;font-weight:600;color:var(--accent);letter-spacing:0.06em;">PDF</div>
-          <div style="font-size:10px;color:var(--ink-muted);text-align:center;line-height:1.3;word-break:break-all;">${(v.note||'PDF').slice(0,30)}</div>
-        </div>`;
+        cell.innerHTML=`
+          <img class="pdf-thumb" style="width:100%;height:100%;object-fit:cover;display:block;background:#FBF8F4;" alt="">
+          <div class="pdf-thumb-label" style="position:absolute;left:0;right:0;bottom:0;padding:4px 6px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:#fff;font-size:10px;text-align:center;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${(v.note||'PDF').slice(0,30)}</div>
+          <div class="pdf-thumb-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:600;color:var(--accent);letter-spacing:0.06em;pointer-events:none;">PDF</div>
+        `;
+        const imgEl=cell.querySelector('img.pdf-thumb');
+        const loadingEl=cell.querySelector('.pdf-thumb-loading');
+        if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
+        renderPdfThumb(v.fileUrl, imgEl, {width:280});
         cell.onclick=()=>window.open(v.fileUrl,'_blank');
       }
       grid.appendChild(cell);
@@ -6095,14 +6132,19 @@ function renderAdminDrawingList(cid){
           };
           cell.appendChild(noteTa);
         } else {
-          // PDF 顯示：點圖示開新分頁
+          // PDF：用 PDF.js render 第一頁當縮圖
           cell.style.cssText+='aspect-ratio:1;';
           const pdfUrl=v.fileUrl||'';
-          cell.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;padding:8px;background:#FBF8F4;cursor:${pdfUrl?'pointer':'default'};" ${pdfUrl?`onclick="window.open('${pdfUrl}','_blank')"`:''}>
-            <div style="font-size:14px;font-weight:600;color:var(--accent);letter-spacing:0.05em;">PDF</div>
-            <span style="font-size:9px;color:var(--ink-muted);text-align:center;word-break:break-all;line-height:1.3;">${v.note||'PDF'}</span>
-            <button onclick="event.stopPropagation();removeDrawing(${cid},'${currentDrawingType}',${i})" style="background:var(--red-pale);color:var(--red);border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;margin-top:2px;">刪除</button>
+          cell.innerHTML=`<div style="position:relative;width:100%;height:100%;background:#FBF8F4;cursor:${pdfUrl?'pointer':'default'};overflow:hidden;" ${pdfUrl?`onclick="window.open('${pdfUrl}','_blank')"`:''}>
+            <img class="pdf-thumb-admin" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">
+            <div class="pdf-loading-admin" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:0.05em;pointer-events:none;">PDF</div>
+            <div style="position:absolute;left:0;right:0;bottom:0;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:#fff;font-size:9px;text-align:center;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${v.note||'PDF'}</div>
+            <button onclick="event.stopPropagation();removeDrawing(${cid},'${currentDrawingType}',${i})" style="position:absolute;top:4px;right:4px;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;">刪除</button>
           </div>`;
+          const imgEl=cell.querySelector('img.pdf-thumb-admin');
+          const loadingEl=cell.querySelector('.pdf-loading-admin');
+          if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
+          if(pdfUrl) renderPdfThumb(pdfUrl, imgEl, {width:240});
         }
         grid.appendChild(cell);
       });
