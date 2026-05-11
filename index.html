@@ -3481,9 +3481,35 @@ function goToDrawingType(type){
   // 標記該類型為已讀（紅點消失）
   if(currentClientId){
     markDrawingTypeSeen(currentClientId, type);
-    // 同步刷新 dashboard 上的 badge（若回頭）
     refreshDrawingBadges();
   }
+
+  // 「空間與家具尺寸圖」特例：客戶買家具時想直接看 PDF，不要再多一步
+  // → 從 dashboard 點擊時直接打開最新一份；如有多份用最終版優先
+  if(type==='空間與家具尺寸圖' && currentClientId){
+    const list = (docsData[currentClientId]?.drawings?.['空間與家具尺寸圖']||[]).filter(v=>v.fileUrl);
+    if(list.length){
+      // 排序：最終版優先 → 最新 dbId
+      const sorted = [...list].sort((a,b)=>{
+        if(!!b.isFinal !== !!a.isFinal) return (b.isFinal?1:0)-(a.isFinal?1:0);
+        return (b.dbId||0)-(a.dbId||0);
+      });
+      const top = sorted[0];
+      // 若有多份就同時切到 docs 頁，讓 modal 關掉後可以看其他份
+      const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
+      if(docsNav) goPage('p-docs', docsNav);
+      setTimeout(()=>{
+        switchDocsTab('drawings');
+        const sec=document.getElementById('client-furniture-section');
+        if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
+        // 接著立刻開全螢幕 viewer
+        openDocViewer(top.fileUrl, top.note||top.date||'空間與家具尺寸圖');
+      }, 100);
+      return;
+    }
+    // 如果沒有家具圖，就走一般流程到資料文件頁
+  }
+
   const docsNav=document.querySelector('#s-client .tnav[onclick*="p-docs"]');
   if(docsNav) goPage('p-docs', docsNav);
   setTimeout(()=>{
