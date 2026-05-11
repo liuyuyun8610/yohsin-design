@@ -439,11 +439,6 @@
     </div>
 
     <div class="field" style="margin-top:24px;">
-      <label class="field-label">參考圖連結 <span class="opt">(Pinterest / IG / 小紅書，每行一個)</span></label>
-      <textarea id="reference_links" placeholder="https://..."></textarea>
-    </div>
-
-    <div class="field">
       <label class="field-label">補充想法</label>
       <textarea id="style_note" placeholder="任何想跟我們說的，輕鬆寫"></textarea>
     </div>
@@ -512,7 +507,6 @@ async function submit(){
   formData.line_id = document.getElementById('line_id').value.trim();
   formData.email = document.getElementById('email').value.trim();
   formData.region = document.getElementById('region').value.trim();
-  formData.reference_links = document.getElementById('reference_links').value.trim();
   formData.style_note = document.getElementById('style_note').value.trim();
 
   if(!formData.name){ showToast('再幫我們補一下「怎麼稱呼你」'); return; }
@@ -534,7 +528,6 @@ async function submit(){
     reno_timing: formData.reno_timing || null,
     vibe_feel: formData.vibe_feel || [],
     vibe_dislike: formData.vibe_dislike || [],
-    reference_links: formData.reference_links || null,
     style_note: formData.style_note || null,
     budget_range: formData.budget_range || null,
     user_agent: navigator.userAgent,
