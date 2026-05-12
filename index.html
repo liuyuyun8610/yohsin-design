@@ -3297,6 +3297,12 @@ async function doLogin(){
         if(idx>=0) clients[idx]=c; else clients.push(c);
         // 用 localStorage（跨 tab/重啟瀏覽器都記得）+ 存完整 client（restore 不用查 DB）
         localStorage.setItem('ys_session', JSON.stringify({mode:'client',u,client:c}));
+        // 記錄客戶登入時間（first_login_at / last_login_at）給 ERP 顯示「使用了多久」
+        // p_skip：sessionStorage.ys_skip_login_log 為 '1' 時不記錄（給設計師預覽客戶端用）
+        try{
+          const skip = sessionStorage.getItem('ys_skip_login_log') === '1';
+          await sbClient.rpc('record_client_login', { p_client_id: c.id, p_skip: skip });
+        }catch(e){ console.warn('[record_client_login] 失敗（不影響登入）', e); }
         _enterClient(c);
       } else err.textContent='帳號或密碼錯誤，請再試一次';
     }
