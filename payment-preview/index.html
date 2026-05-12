@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>裝修財務進度 · 預覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#DDD9D2;
+    --paper:#F4F1EB;
+    --paper-2:#EEE9DF;
+    --ink:#2D2418;
+    --ink-2:#473A26;
+    --ink-3:#6B5F4B;
+    --ink-4:#8E8474;
+    --line:rgba(45,36,24,0.12);
+    --line-soft:rgba(45,36,24,0.07);
+    --accent:#A07A38;
+    --accent-2:#7A5218;
+    --sage:#7E8C72;
+    --paid-bg:#EFE6CE;
+    --upcoming:#8E8474;
+    --danger:#B8552E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC',-apple-system,sans-serif;
+    font-weight:300;
+    line-height:1.8;
+    padding:32px 24px 80px;
+  }
+
+  /* preview 提示橫條（純預覽用，正式版會拿掉） */
+  .preview-note{
+    max-width:780px;margin:0 auto 28px;
+    padding:10px 16px;
+    background:rgba(160,122,56,0.08);
+    border:0.5px solid rgba(160,122,56,0.3);
+    border-radius:6px;
+    font-size:11px;color:var(--accent);
+    letter-spacing:0.08em;text-align:center;
+  }
+
+  /* ========= HERO 區（旅程隱喻 + 總進度）========= */
+  .hero{
+    max-width:780px;margin:0 auto 32px;
+    background:linear-gradient(160deg, var(--paper) 0%, var(--paper-2) 100%);
+    border-radius:14px;
+    padding:36px 32px 32px;
+    border:0.5px solid var(--line-soft);
+    box-shadow:0 4px 20px rgba(45,36,24,0.05);
+  }
+  .hero-label{
+    font-family:'Noto Serif TC',serif;
+    font-size:10px;letter-spacing:0.32em;
+    color:var(--accent);text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .hero-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:22px;color:var(--ink);
+    letter-spacing:0.04em;margin-bottom:6px;font-weight:500;
+  }
+  .hero-pct{
+    font-family:'Noto Serif TC',serif;
+    font-size:48px;color:var(--accent-2);
+    font-weight:500;line-height:1;
+    margin:14px 0 8px;letter-spacing:0.02em;
+  }
+  .hero-pct .unit{font-size:18px;color:var(--accent);margin-left:4px;}
+  .hero-bar{
+    height:6px;background:rgba(45,36,24,0.08);
+    border-radius:999px;overflow:hidden;
+    margin:20px 0 18px;
+  }
+  .hero-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius:999px;
+    transition:width .6s ease;
+  }
+  .hero-meta{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
+    font-size:12.5px;color:var(--ink-3);
+    letter-spacing:0.04em;
+  }
+  .hero-meta-item .v{
+    font-family:'Noto Serif TC',serif;
+    color:var(--ink);font-size:14px;font-weight:500;
+    display:block;
+  }
+  .hero-meta-item .k{
+    font-size:10px;color:var(--ink-4);letter-spacing:0.18em;
+    text-transform:uppercase;margin-bottom:3px;
+  }
+
+  /* ========= 下一筆款項（醒目 CTA 卡）========= */
+  .next-due{
+    max-width:780px;margin:0 auto 36px;
+    background:#fff;
+    border:1.5px solid var(--accent);
+    border-radius:14px;
+    padding:24px 28px;
+    position:relative;overflow:hidden;
+    box-shadow:0 8px 24px rgba(160,122,56,0.15);
+  }
+  .next-due::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at top right, rgba(160,122,56,0.06), transparent 50%);
+    pointer-events:none;
+  }
+  .next-due-label{
+    font-family:'Noto Serif TC',serif;
+    font-size:10px;letter-spacing:0.32em;
+    color:var(--accent);text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .next-due-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:17px;color:var(--ink);
+    margin-bottom:14px;font-weight:500;letter-spacing:0.03em;
+  }
+  .next-due-row{
+    display:grid;
+    grid-template-columns:1fr 1fr auto;
+    gap:18px;align-items:flex-end;
+  }
+  .next-due-amt{
+    font-family:'Noto Serif TC',serif;
+    font-size:28px;color:var(--accent-2);
+    font-weight:500;line-height:1;letter-spacing:0.02em;
+  }
+  .next-due-date{
+    font-size:13px;color:var(--ink-3);line-height:1.4;
+  }
+  .next-due-date .d{font-size:11px;color:var(--ink-4);letter-spacing:0.16em;text-transform:uppercase;display:block;margin-bottom:2px;}
+  .next-due-btn{
+    background:var(--ink);color:var(--paper);
+    text-decoration:none;
+    padding:11px 22px;
+    font-size:12px;
+    font-family:'Noto Serif TC',serif;
+    letter-spacing:0.16em;
+    border-radius:999px;
+    transition:background .2s;
+    white-space:nowrap;
+    cursor:pointer;border:none;
+  }
+  .next-due-btn:hover{background:var(--accent-2);}
+
+  /* ========= 旅程節點清單 ========= */
+  .chapter{
+    max-width:780px;margin:0 auto 28px;
+  }
+  .chapter-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    margin-bottom:18px;padding-bottom:10px;
+    border-bottom:0.5px solid var(--line-soft);
+  }
+  .chapter-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:18px;color:var(--ink);
+    letter-spacing:0.06em;font-weight:500;
+  }
+  .chapter-summary{
+    font-size:12px;color:var(--ink-4);
+    letter-spacing:0.04em;
+  }
+
+  /* 旅程節點（垂直時間軸） */
+  .timeline{
+    position:relative;
+    padding-left:28px;
+  }
+  .timeline::before{
+    content:'';
+    position:absolute;
+    left:8px;top:8px;bottom:8px;
+    width:0.5px;background:var(--line);
+  }
+  .node{
+    position:relative;
+    padding:0 0 22px 16px;
+  }
+  .node:last-child{padding-bottom:0;}
+  .node::before{
+    content:'';
+    position:absolute;
+    left:-22px;top:5px;
+    width:14px;height:14px;border-radius:50%;
+    background:var(--bg);
+    border:1.5px solid var(--upcoming);
+  }
+  /* 三種狀態樣式 */
+  .node.paid::before{
+    background:var(--sage);
+    border-color:var(--sage);
+  }
+  .node.current::before{
+    background:var(--accent);
+    border-color:var(--accent);
+    box-shadow:0 0 0 4px rgba(160,122,56,0.18);
+    animation:pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 4px rgba(160,122,56,0.18);}
+    50%{box-shadow:0 0 0 8px rgba(160,122,56,0.08);}
+  }
+  .node-row{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  }
+  .node-name{
+    font-family:'Noto Serif TC',serif;
+    font-size:14px;color:var(--ink);
+    font-weight:500;letter-spacing:0.04em;
+  }
+  .node.paid .node-name{color:var(--ink-3);}
+  .node.upcoming .node-name{color:var(--ink-3);}
+  .node-amount{
+    font-family:'Noto Serif TC',serif;
+    font-size:15px;color:var(--ink);
+    font-weight:500;letter-spacing:0.02em;
+  }
+  .node.paid .node-amount{color:var(--ink-4);}
+  .node.current .node-amount{color:var(--accent-2);font-size:17px;}
+  .node-meta{
+    font-size:11.5px;color:var(--ink-4);
+    margin-top:4px;letter-spacing:0.04em;
+  }
+  .node.paid .node-meta::before{
+    content:'✓ ';color:var(--sage);font-weight:500;
+  }
+  .node.current .node-meta{color:var(--accent);}
+  .node-chip{
+    display:inline-block;
+    font-size:10px;letter-spacing:0.16em;
+    padding:2px 9px;border-radius:2px;
+    font-family:'Noto Serif TC',serif;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+  .node.current .node-chip{background:var(--accent);color:#fff;}
+  .node.upcoming .node-chip{background:transparent;border:0.5px solid var(--line);color:var(--ink-4);}
+
+  /* ========= 收據區（保留但低調化）========= */
+  .receipts{
+    max-width:780px;margin:36px auto 0;
+    background:rgba(255,255,255,0.4);
+    border-radius:10px;padding:16px 22px;
+    border:0.5px solid var(--line-soft);
+  }
+  .receipts-head{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:10px;
+    font-family:'Noto Serif TC',serif;
+    font-size:13px;color:var(--ink-3);letter-spacing:0.06em;
+  }
+  .receipts-link{
+    font-size:11px;color:var(--accent);
+    text-decoration:none;letter-spacing:0.06em;
+    border-bottom:0.5px dashed rgba(160,122,56,0.4);
+    padding-bottom:1px;cursor:pointer;
+  }
+
+  /* 手機優化 */
+  @media (max-width:680px){
+    body{padding:20px 14px 60px;}
+    .hero{padding:26px 20px 22px;}
+    .hero-pct{font-size:38px;}
+    .hero-meta{flex-direction:column;gap:10px;}
+    .next-due{padding:20px 18px;}
+    .next-due-row{grid-template-columns:1fr;gap:14px;align-items:flex-start;}
+    .next-due-btn{align-self:flex-start;}
+    .next-due-amt{font-size:24px;}
+    .chapter-head{flex-direction:column;align-items:flex-start;gap:4px;}
+    .timeline{padding-left:22px;}
+    .node::before{left:-19px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-note">
+  📐 預覽模式 · 假資料示意 · 取代「合約 / 已收 / 待收」會計式介面，改成旅程進度感
+</div>
+
+<!-- ════════ HERO：總進度感 ════════ -->
+<section class="hero">
+  <div class="hero-label">FINANCIAL JOURNEY · 裝修財務旅程</div>
+  <h1 class="hero-title">您的裝修費用進度</h1>
+  <div class="hero-pct">35<span class="unit">%</span></div>
+  <div class="hero-bar"><div class="hero-bar-fill" style="width:35%;"></div></div>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="k">已完成支付</div>
+      <span class="v">NT$ 227,500</span>
+    </div>
+    <div class="hero-meta-item">
+      <div class="k">總費用</div>
+      <span class="v">NT$ 650,000</span>
+    </div>
+    <div class="hero-meta-item">
+      <div class="k">距離完工</div>
+      <span class="v">約 4 個月</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 下一筆款項（CTA）════════ -->
+<section class="next-due">
+  <div class="next-due-label">NEXT STEP · 下一步</div>
+  <h2 class="next-due-title">第 2 期工程款</h2>
+  <div class="next-due-row">
+    <div>
+      <div class="next-due-amt">NT$ 162,500</div>
+    </div>
+    <div class="next-due-date">
+      <span class="d">PAY BY</span>
+      2026/06/15<br>
+      <span style="font-size:11px;color:var(--ink-4);">距今約 33 天</span>
+    </div>
+    <button class="next-due-btn">查看匯款資訊</button>
+  </div>
+</section>
+
+<!-- ════════ 章節 1：設計階段 ════════ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <h3 class="chapter-title">CHAPTER 1 · 設計階段</h3>
+    <span class="chapter-summary">$80,000 共 2 期 · 已完成</span>
+  </div>
+  <div class="timeline">
+    <div class="node paid">
+      <div class="node-row">
+        <span class="node-name">第 1 期 · 設計訂金</span>
+        <span class="node-amount">$40,000</span>
+      </div>
+      <div class="node-meta">2026/02/08 · 簽約當日</div>
+    </div>
+    <div class="node paid">
+      <div class="node-row">
+        <span class="node-name">第 2 期 · 設計完稿</span>
+        <span class="node-amount">$40,000</span>
+      </div>
+      <div class="node-meta">2026/03/22 · 設計圖面確認完成</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 章節 2：工程階段 ════════ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <h3 class="chapter-title">CHAPTER 2 · 工程階段</h3>
+    <span class="chapter-summary">$570,000 共 4 期 · 進行中</span>
+  </div>
+  <div class="timeline">
+    <div class="node paid">
+      <div class="node-row">
+        <span class="node-name">第 1 期 · 工程訂金</span>
+        <span class="node-amount">$147,500</span>
+      </div>
+      <div class="node-meta">2026/05/02 · 開工典禮日</div>
+    </div>
+    <div class="node current">
+      <div class="node-row">
+        <span class="node-name">第 2 期 · 拆除水電完成
+          <span class="node-chip">準備中</span>
+        </span>
+        <span class="node-amount">$162,500</span>
+      </div>
+      <div class="node-meta">下一步 · 預計 2026/06/15 支付</div>
+    </div>
+    <div class="node upcoming">
+      <div class="node-row">
+        <span class="node-name">第 3 期 · 木作系統櫃完成
+          <span class="node-chip">將於 7 月</span>
+        </span>
+        <span class="node-amount">$170,000</span>
+      </div>
+      <div class="node-meta">預計 2026/07/20</div>
+    </div>
+    <div class="node upcoming">
+      <div class="node-row">
+        <span class="node-name">第 4 期 · 完工驗收
+          <span class="node-chip">將於 9 月</span>
+        </span>
+        <span class="node-amount">$90,000</span>
+      </div>
+      <div class="node-meta">預計 2026/09/30</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 收據區（低調保留）════════ -->
+<section class="receipts">
+  <div class="receipts-head">
+    <span>📄 已開立的收據</span>
+    <a class="receipts-link">查看全部 3 張 →</a>
+  </div>
+  <div style="font-size:11.5px;color:var(--ink-4);line-height:2;">
+    設計訂金 · 2026/02/08 · $40,000<br>
+    設計完稿 · 2026/03/22 · $40,000<br>
+    工程訂金 · 2026/05/02 · $147,500
+  </div>
+</section>
+
+</body>
+</html>
