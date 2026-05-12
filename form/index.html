@@ -446,62 +446,53 @@
     line-height:2.1;
   }
 
-  /* 右下角浮動公告卡片 */
-  .float-announce{
-    position:fixed;
-    right:24px;bottom:24px;
-    z-index:9000;
-    max-width:340px;
+  /* 頂部公告 banner（從上滑入，不能關閉、永遠顯示）*/
+  .top-announce{
+    position:relative;
     background:#F4EBD9;
-    border:0.5px solid rgba(160,122,56,0.35);
-    border-radius:8px;
-    box-shadow:0 12px 32px rgba(45,36,24,0.15), 0 4px 10px rgba(45,36,24,0.08);
-    padding:16px 18px 14px 18px;
-    color:#5C4A2A;
-    font-size:13px;
-    letter-spacing:0.03em;
+    border-bottom:1px solid rgba(160,122,56,0.4);
+    color:#3D2F1A;
+    padding:14px 24px;
+    font-size:14px;
+    font-weight:400;
+    letter-spacing:0.04em;
     line-height:1.7;
-    opacity:0;
-    transform:translateY(20px);
-    transition:opacity .45s ease, transform .45s ease;
-    pointer-events:none;
+    text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    box-shadow:0 2px 8px rgba(45,36,24,0.06);
+    z-index:1000;
+    transform:translateY(-100%);
+    animation:slideDown .55s cubic-bezier(.22,.9,.37,1) .25s forwards;
   }
-  .float-announce.show{opacity:1;transform:translateY(0);pointer-events:auto;}
-  .float-announce[hidden]{display:none;}
-  .float-announce-label{
-    display:inline-block;
+  .top-announce[hidden]{display:none;}
+  @keyframes slideDown{
+    to{transform:translateY(0);}
+  }
+  .top-announce-label{
+    flex-shrink:0;
     font-family:'Noto Serif TC',serif;
-    font-size:10px;
+    font-size:11px;
+    font-weight:600;
     letter-spacing:0.22em;
     background:var(--accent,#A07A38);
     color:#fff;
-    padding:2px 9px;
+    padding:4px 12px;
     border-radius:2px;
-    font-weight:500;
-    margin-bottom:8px;
   }
-  .float-announce strong{color:#A07A38;font-weight:600;}
-  .float-announce-close{
-    position:absolute;
-    top:6px;right:8px;
-    width:24px;height:24px;
-    border:none;background:none;cursor:pointer;
-    color:#A07A38;
-    font-size:18px;line-height:1;
-    opacity:0.55;transition:opacity .2s;
-    border-radius:4px;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .float-announce-close:hover{opacity:1;background:rgba(160,122,56,0.08);}
+  .top-announce strong{color:#8C5E1F;font-weight:700;}
 
   @media (max-width:480px){
-    .float-announce{
-      left:12px;right:12px;bottom:12px;
-      max-width:none;
-      padding:14px 16px 12px;
+    .top-announce{
+      padding:12px 16px;
       font-size:12.5px;
+      gap:10px;
+      line-height:1.65;
     }
-    .float-announce-label{font-size:9.5px;padding:2px 8px;}
+    .top-announce-label{
+      font-size:10px;
+      padding:3px 10px;
+      letter-spacing:0.18em;
+    }
     .fee-wrap{padding:24px 18px 12px;}
     .fee-grid{grid-template-columns:1fr;gap:10px;}
     .fee-card{padding:16px;}
@@ -520,13 +511,12 @@
 </head>
 <body>
 
-<!-- 右下角浮動公告卡片（從 Supabase site_settings 載入；fetch 失敗時保留下方寫死的預設文字）-->
-<div id="top-announce" class="float-announce" role="status" aria-live="polite">
-  <button class="float-announce-close" type="button" aria-label="關閉公告" onclick="closeAnnounce()">×</button>
-  <div class="float-announce-label">公告</div>
-  <div id="top-announce-text">
+<!-- 頂部公告 banner（從上滑入；從 Supabase site_settings 載入，fetch 失敗時保留 HTML 寫死的預設文字）-->
+<div id="top-announce" class="top-announce" role="status" aria-live="polite">
+  <span class="top-announce-label">公告</span>
+  <span id="top-announce-text">
     目前 2026 裝修預約已滿，可預約 <strong>2027 開場</strong> 之專案（實際開始規劃時間為 2026 年 9-10 月）
-  </div>
+  </span>
 </div>
 
 <section class="hero">
@@ -829,21 +819,12 @@ function updateDistricts(){
 const SB_URL = 'https://kwtozldimwidbkemrdgg.supabase.co';
 const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dG96bGRpbXdpZGJrZW1yZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDcyNTcsImV4cCI6MjA5MTcyMzI1N30.OK8qXUNSDEeCakMHyV9_fJZBGMtpE_wANNCzWvkBYuc';
 
-// 右下角公告浮卡：從 site_settings 載入；fetch 失敗時保留 HTML 寫死的預設文字
-function closeAnnounce(){
-  const box = document.getElementById('top-announce');
-  if(!box) return;
-  box.classList.remove('show');
-  setTimeout(()=>{ box.hidden = true; }, 450);
-  try{ sessionStorage.setItem('ys_announce_dismissed','1'); }catch(e){}
-}
+// 頂部公告 banner：每次都顯示（不記住關閉狀態）
+// 從 site_settings 載入文字；fetch 失敗時保留 HTML 寫死的預設文字
+// 只有在 ERP 後台明確設成 enabled=false 才隱藏
 (async function loadAnnounce(){
   const box = document.getElementById('top-announce');
   if(!box) return;
-  // 本次瀏覽已關掉就不顯示（重新整理會再出現）
-  let dismissed = false;
-  try{ dismissed = sessionStorage.getItem('ys_announce_dismissed') === '1'; }catch(e){}
-  let shouldShow = true;
   try{
     const res = await fetch(`${SB_URL}/rest/v1/site_settings?key=in.(public_consultation_banner,public_consultation_banner_enabled)&select=key,value`, {
       headers:{ 'apikey':SB_ANON_KEY, 'Authorization':`Bearer ${SB_ANON_KEY}` }
@@ -855,19 +836,15 @@ function closeAnnounce(){
       const enabled = (map.public_consultation_banner_enabled||'').trim();
       const text = (map.public_consultation_banner||'').trim();
       if(enabled === 'false' || enabled === '0' || enabled === 'off'){
-        shouldShow = false;
-      } else if(text){
+        box.hidden = true;
+        return;
+      }
+      if(text){
         const span = document.getElementById('top-announce-text');
         if(span) span.innerHTML = text;
       }
     }
-  }catch(e){ /* 靜默 fallback */ }
-  if(!shouldShow || dismissed){
-    box.hidden = true;
-    return;
-  }
-  // 延遲 600ms 淡入（讓主畫面先呈現再彈通知，比較不突兀）
-  setTimeout(()=>{ box.classList.add('show'); }, 600);
+  }catch(e){ /* 靜默 fallback：保留 HTML 預設文字 */ }
 })();
 
 const formData = {};
