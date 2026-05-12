@@ -3328,6 +3328,8 @@ async function _enterAdmin(){
 }
 
 function _enterClient(c){
+  // ★ 先把上個客戶的 state 完全清掉，再設新 id（避免 await 期間任何 render 讀到舊資料）
+  _resetClientState();
   currentClientId=c.id;
   const proj=projects.find(q=>Number(q.id)===Number(c.projectId));
   document.getElementById('tb-client-name').textContent=c.name;
@@ -3374,11 +3376,39 @@ function _enterClient(c){
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('l-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('l-pass').focus();});
+// 清掉所有「綁特定客戶」的記憶體 state，避免登出 A → 登入 B 時看到 A 的殘留資料
+function _resetClientState(){
+  // 全部 client 的文件/圖紙/合約/報價/待辦
+  docsData = {};
+  // 施工日誌（by date）
+  try{ calLogs = {}; }catch(e){}
+  // checklist（電器/家具/電力）
+  try{ appData = []; furData = []; powData = []; }catch(e){}
+  // 客戶簽名
+  try{ _clientSignatures = {}; }catch(e){}
+  // 驚喜禮物 + 圖紙紅點 cache
+  window._surprises = [];
+  window._drawingViewsCache = {};
+  // 重置畫面：把客戶端主要容器清空（下次 render 會重畫）
+  ['p-line-list','p-formal-list','p-clientnotes-list','p-pending-list',
+   'p-drawing-list','p-acknowledge-list','p-quote-list','p-contract-list',
+   'p-payment-list','c-knowledge-list'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='';
+  });
+  // 客戶名稱/專案名稱也歸零
+  const tbName=document.getElementById('tb-client-name'); if(tbName) tbName.textContent='';
+  const mcn=document.getElementById('mobile-client-name'); if(mcn) mcn.textContent='';
+  const proj=document.getElementById('p-proj-title'); if(proj) proj.textContent='';
+}
+
 function doLogout(){
   localStorage.removeItem('ys_session');
   sessionStorage.removeItem('ys_session');
   // Phase B：若有 Supabase Auth session 一併清掉
   try{ sbClient.auth.signOut(); }catch(e){}
+  // ★ 清掉所有 client-scoped state，防外洩到下個登入帳號
+  _resetClientState();
   showScreen('s-login');
   document.getElementById('l-user').value='';
   document.getElementById('l-pass').value='';
