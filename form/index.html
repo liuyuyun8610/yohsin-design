@@ -446,7 +446,35 @@
     line-height:2.1;
   }
 
+  /* 頂部公告 banner */
+  .top-announce{
+    background:#F4EBD9;
+    border-bottom:0.5px solid rgba(160,122,56,0.25);
+    color:#5C4A2A;
+    padding:12px 24px;
+    font-size:13px;
+    letter-spacing:0.04em;
+    line-height:1.75;
+    text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  }
+  .top-announce[hidden]{display:none;}
+  .top-announce-label{
+    flex-shrink:0;
+    font-family:'Noto Serif TC',serif;
+    font-size:11px;
+    letter-spacing:0.2em;
+    background:var(--accent,#A07A38);
+    color:#fff;
+    padding:3px 10px;
+    border-radius:2px;
+    font-weight:500;
+  }
+  .top-announce strong{color:#A07A38;font-weight:600;}
+
   @media (max-width:480px){
+    .top-announce{padding:10px 16px;font-size:12px;gap:8px;}
+    .top-announce-label{font-size:10px;padding:2px 8px;letter-spacing:0.15em;}
     .fee-wrap{padding:24px 18px 12px;}
     .fee-grid{grid-template-columns:1fr;gap:10px;}
     .fee-card{padding:16px;}
@@ -464,6 +492,14 @@
 </style>
 </head>
 <body>
+
+<!-- 公告 banner（從 Supabase site_settings 載入；fetch 失敗時保留下方寫死的預設文字）-->
+<div id="top-announce" class="top-announce">
+  <span class="top-announce-label">公告</span>
+  <span id="top-announce-text">
+    目前 2026 裝修預約已滿，可預約 <strong>2027 開場</strong> 之專案（實際開始規劃時間為 2026 年 9-10 月）
+  </span>
+</div>
 
 <section class="hero">
   <div class="brand-mark">YOSHIN DESIGN</div>
@@ -764,6 +800,30 @@ function updateDistricts(){
 
 const SB_URL = 'https://kwtozldimwidbkemrdgg.supabase.co';
 const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dG96bGRpbXdpZGJrZW1yZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDcyNTcsImV4cCI6MjA5MTcyMzI1N30.OK8qXUNSDEeCakMHyV9_fJZBGMtpE_wANNCzWvkBYuc';
+
+// 公告 banner：從 site_settings 載入 public_consultation_banner / public_consultation_banner_enabled
+// 載入失敗（網路斷/RLS 未開）時保留 HTML 寫死的預設文字
+(async function loadAnnounce(){
+  try{
+    const res = await fetch(`${SB_URL}/rest/v1/site_settings?key=in.(public_consultation_banner,public_consultation_banner_enabled)&select=key,value`, {
+      headers:{ 'apikey':SB_ANON_KEY, 'Authorization':`Bearer ${SB_ANON_KEY}` }
+    });
+    if(!res.ok) return; // 安全 fallback：用 HTML 預設文字
+    const rows = await res.json();
+    const map = {};
+    (rows||[]).forEach(r=>map[r.key]=r.value);
+    const enabled = (map.public_consultation_banner_enabled||'').trim();
+    const text = (map.public_consultation_banner||'').trim();
+    const box = document.getElementById('top-announce');
+    if(!box) return;
+    if(enabled === 'false' || enabled === '0' || enabled === 'off'){
+      box.hidden = true;
+    } else if(text){
+      const span = document.getElementById('top-announce-text');
+      if(span) span.innerHTML = text; // 允許用 <strong> 等基本 markup
+    }
+  }catch(e){ /* 靜默 fallback */ }
+})();
 
 const formData = {};
 
