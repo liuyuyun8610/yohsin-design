@@ -3704,9 +3704,11 @@ function openSurpriseListModal(){
     modal.addEventListener('click', e=>{ if(e.target===modal) closeSurpriseListModal(); });
     document.body.appendChild(modal);
   }
+  // 排序：未拆 → 已拆未實現 → 已實現
   const sorted = [...list].sort((a,b)=>{
-    const ua = a.acknowledged_at?1:0, ub = b.acknowledged_at?1:0;
-    if(ua !== ub) return ua - ub; // 未拆優先
+    const stage = (s) => s.redeemed_at ? 2 : (s.acknowledged_at ? 1 : 0);
+    const sa = stage(a), sb = stage(b);
+    if(sa !== sb) return sa - sb;
     return new Date(b.visible_at) - new Date(a.visible_at);
   });
   modal.innerHTML = `
@@ -3718,15 +3720,23 @@ function openSurpriseListModal(){
       </div>
       <div style="flex:1;overflow-y:auto;padding:1rem 1.2rem;">
         ${sorted.map(s=>{
+          const redeemed = !!s.redeemed_at;
           const ackd = !!s.acknowledged_at;
           const dateStr = new Date(s.visible_at).toLocaleDateString('zh-TW');
-          return `<div onclick="openSurpriseModalById('${s.id}')" style="padding:14px 16px;margin-bottom:8px;background:#fff;border:1px solid ${ackd?'rgba(0,0,0,0.06)':'#D9C9A8'};border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:transform .12s,box-shadow .12s;${ackd?'opacity:0.7;':''}" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(160,122,56,0.15)'" onmouseout="this.style.transform='';this.style.boxShadow='none'">
-            <span style="font-size:16px;color:${ackd?'var(--ink-light)':'#A07A38'};line-height:1;flex-shrink:0;">✶</span>
+          const statusText = redeemed
+            ? `已實現 · ${new Date(s.redeemed_at).toLocaleDateString('zh-TW')}`
+            : (ackd ? '待使用' : '待拆');
+          // 三段樣式：未拆鮮明、待使用柔和、已實現低調
+          const dotColor = redeemed ? '#B0A28C' : (ackd ? '#C9A45E' : '#A07A38');
+          const opacity = redeemed ? '0.55' : (ackd ? '0.92' : '1');
+          const borderColor = redeemed ? 'rgba(0,0,0,0.05)' : (ackd ? 'rgba(201,164,94,0.4)' : '#D9C9A8');
+          return `<div onclick="openSurpriseModalById('${s.id}')" style="padding:14px 16px;margin-bottom:8px;background:#fff;border:1px solid ${borderColor};border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:transform .12s,box-shadow .12s;opacity:${opacity};" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(160,122,56,0.15)'" onmouseout="this.style.transform='';this.style.boxShadow='none'">
+            <span style="font-size:16px;color:${dotColor};line-height:1;flex-shrink:0;">${redeemed?'✓':'✶'}</span>
             <div style="flex:1;min-width:0;">
-              <p style="font-family:'Noto Serif TC',serif;font-size:14px;color:#3A2E18;margin:0;font-weight:500;">${escapeHtml(s.title||'')}</p>
-              <p style="font-size:10px;color:var(--ink-light);margin:3px 0 0;letter-spacing:0.05em;">${dateStr}${ackd?' · 已收下':' · 待拆'}</p>
+              <p style="font-family:'Noto Serif TC',serif;font-size:14px;color:${redeemed?'#7A6240':'#3A2E18'};margin:0;font-weight:500;${redeemed?'text-decoration:line-through;text-decoration-color:rgba(122,98,64,0.3);':''}">${escapeHtml(s.title||'')}</p>
+              <p style="font-size:10px;color:var(--ink-light);margin:3px 0 0;letter-spacing:0.05em;">${dateStr} · ${statusText}</p>
             </div>
-            ${ackd?'':'<span style="width:8px;height:8px;border-radius:50%;background:#A07A38;flex-shrink:0;"></span>'}
+            ${redeemed||ackd?'':'<span style="width:8px;height:8px;border-radius:50%;background:#A07A38;flex-shrink:0;"></span>'}
           </div>`;
         }).join('')}
       </div>
@@ -3749,6 +3759,8 @@ function openSurpriseModalById(id){
 }
 function openSurpriseModal(s){
   if(!s) return;
+  // 開啟 modal 即自動標「已拆」（靜默，不打擾客戶）
+  if(!s.acknowledged_at) acknowledgeSurprise(s.id);
   let modal = document.getElementById('surprise-modal');
   if(!modal){
     modal = document.createElement('div');
@@ -3767,10 +3779,14 @@ function openSurpriseModal(s){
       <h2 style="font-family:'Noto Serif TC',serif;font-size:20px;color:#3A2E18;text-align:center;margin:0 0 1rem;font-weight:500;letter-spacing:0.04em;line-height:1.4;">${escapeHtml(s.title||'')}</h2>
       <div style="font-size:13px;color:#5A4528;line-height:2;text-align:center;white-space:pre-wrap;font-family:'Noto Serif TC',serif;letter-spacing:0.02em;">${escapeHtml(s.message||'')}</div>
       <p style="font-size:12px;color:#7A6240;text-align:right;font-style:italic;margin-top:1.2rem;font-family:'Noto Serif TC',serif;">${escapeHtml(sig)}</p>
-      <div style="margin-top:1.4rem;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        ${s.acknowledged_at
-          ? `<button onclick="closeSurpriseModal()" style="padding:9px 24px;background:transparent;border:1px solid rgba(122,82,24,0.35);color:#7A5218;border-radius:999px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.1em;">已收下，謝謝</button>`
-          : `<button onclick="acknowledgeSurprise('${s.id}')" style="padding:9px 28px;background:#3A2E18;color:#F5EBD8;border:none;border-radius:999px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.18em;">我收到了 ✿</button>`}
+      <div style="margin-top:1.4rem;display:flex;flex-direction:column;gap:10px;align-items:center;">
+        ${s.redeemed_at
+          ? `<div style="padding:8px 20px;background:rgba(122,82,24,0.08);border:1px solid rgba(122,82,24,0.2);color:#7A5218;border-radius:999px;font-size:11px;letter-spacing:0.08em;">
+              ✓ 已實現於 ${new Date(s.redeemed_at).toLocaleDateString('zh-TW')}
+            </div>
+            <button onclick="closeSurpriseModal()" style="padding:8px 24px;background:transparent;border:1px solid rgba(122,82,24,0.35);color:#7A5218;border-radius:999px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.1em;">關閉</button>`
+          : `<button onclick="redeemSurprise('${s.id}')" style="padding:11px 32px;background:#3A2E18;color:#F5EBD8;border:none;border-radius:999px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:0.18em;box-shadow:0 4px 14px rgba(60,40,20,0.25);">✨ 使用這份禮物</button>
+            <p style="font-size:10px;color:#A07A38;letter-spacing:0.08em;margin:0;text-align:center;">確認使用後將永久留在「已實現的禮物」</p>`}
       </div>
       ${(window._surprises||[]).length > 1 ? `
         <div style="margin-top:1rem;text-align:center;">
@@ -3787,14 +3803,43 @@ function closeSurpriseModal(){
   if(m) m.style.display='none';
   document.body.style.overflow='';
 }
+// 靜默標記「已拆」（客戶打開 modal 時 auto call，不打擾）
 async function acknowledgeSurprise(id){
+  const found = (window._surprises||[]).find(s=>s.id===id);
+  if(!found || found.acknowledged_at) return;
   try{
-    await sbClient.from('journey_surprises').update({ acknowledged_at: new Date().toISOString() }).eq('id', id);
-    const found = (window._surprises||[]).find(s=>s.id===id);
-    if(found) found.acknowledged_at = new Date().toISOString();
+    const now = new Date().toISOString();
+    await sbClient.from('journey_surprises').update({ acknowledged_at: now }).eq('id', id);
+    found.acknowledged_at = now;
     refreshSurpriseMarker();
+  }catch(e){ console.warn('[acknowledge] 失敗（不影響操作）', e); }
+}
+
+// 確認使用禮物（永久狀態，不可復原）
+async function redeemSurprise(id){
+  const found = (window._surprises||[]).find(s=>s.id===id);
+  if(!found) return;
+  if(found.redeemed_at){ alert('這份禮物已經實現過了'); return; }
+  const confirmed = confirm(
+    `確定要使用「${found.title}」這份禮物嗎？\n\n` +
+    '使用後將永久留在「已實現的禮物」回顧區，不可復原。\n' +
+    '如有任何疑問，請先與設計師確認後再操作。'
+  );
+  if(!confirmed) return;
+  try{
+    const now = new Date().toISOString();
+    const { error } = await sbClient.from('journey_surprises').update({
+      redeemed_at: now,
+      acknowledged_at: found.acknowledged_at || now,
+    }).eq('id', id);
+    if(error) throw error;
+    found.redeemed_at = now;
+    if(!found.acknowledged_at) found.acknowledged_at = now;
+    refreshSurpriseMarker();
+    // 重開 modal 顯示「已實現」狀態
     closeSurpriseModal();
-  }catch(e){ alert('儲存失敗：'+e.message); }
+    setTimeout(()=>openSurpriseModal(found), 80);
+  }catch(e){ alert('使用失敗：'+e.message); }
 }
 function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
