@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>預售屋客變服務 · 有心制作</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#DDD9D2;
+    --bg-2:#D2CDC4;
+    --paper:#F4F1EB;
+    --paper-2:#EEE9DF;
+    --ink:#2D2418;
+    --ink-2:#473A26;
+    --ink-3:#6B5F4B;
+    --ink-4:#8E8474;
+    --line:rgba(45,36,24,0.12);
+    --line-soft:rgba(45,36,24,0.07);
+    --accent:#8C6E3F;
+    --accent-2:#A07A38;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-weight:300;
+    line-height:1.85;
+    letter-spacing:0.03em;
+  }
+
+  /* ── HERO ─────────────────────────── */
+  .hero{
+    padding:80px 32px 56px;
+    text-align:center;
+    border-bottom:0.5px solid var(--line-soft);
+  }
+  .brand-mark{
+    font-family:'Noto Serif TC',serif;
+    font-size:11px;
+    letter-spacing:0.4em;
+    color:var(--accent);
+    margin-bottom:32px;
+  }
+  .hero h1{
+    font-family:'Noto Serif TC',serif;
+    font-size:32px;
+    font-weight:500;
+    letter-spacing:0.08em;
+    color:var(--ink);
+    margin-bottom:20px;
+    line-height:1.5;
+  }
+  .hero .subtitle{
+    font-size:13px;
+    color:var(--ink-3);
+    max-width:520px;
+    margin:0 auto;
+    line-height:2.1;
+  }
+  .hero .small-line{
+    display:inline-block;
+    width:30px;height:1px;
+    background:var(--accent);
+    margin:24px 0 12px;
+    opacity:0.6;
+  }
+  .hero .meta{
+    font-family:'Noto Serif TC',serif;
+    font-size:10px;
+    letter-spacing:0.32em;
+    color:var(--ink-4);
+    text-transform:uppercase;
+  }
+
+  main{
+    max-width:880px;
+    margin:0 auto;
+    padding:64px 32px 80px;
+  }
+
+  /* ── SECTION ────────────────────────── */
+  .section{
+    margin-bottom:72px;
+  }
+  .section-num{
+    font-family:'Noto Serif TC',serif;
+    font-size:11px;
+    letter-spacing:0.32em;
+    color:var(--accent);
+    margin-bottom:14px;
+    text-transform:uppercase;
+  }
+  .section-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:22px;
+    font-weight:500;
+    color:var(--ink);
+    letter-spacing:0.06em;
+    margin-bottom:8px;
+  }
+  .section-sub{
+    font-size:13px;
+    color:var(--ink-3);
+    line-height:1.95;
+    margin-bottom:32px;
+  }
+
+  /* ── 流程 5 步驟（時間軸式） ───────────── */
+  .steps{
+    position:relative;
+    padding-left:34px;
+  }
+  .steps::before{
+    content:'';
+    position:absolute;
+    left:14px;top:8px;bottom:8px;
+    width:0.5px;
+    background:var(--line);
+  }
+  .step{
+    position:relative;
+    padding:0 0 32px 16px;
+  }
+  .step:last-child{padding-bottom:0;}
+  .step::before{
+    content:'';
+    position:absolute;
+    left:-26px;top:6px;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--bg);
+    border:1.5px solid var(--accent);
+  }
+  .step-num{
+    font-family:'Noto Serif TC',serif;
+    font-size:10px;
+    letter-spacing:0.3em;
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  .step-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:16px;
+    font-weight:500;
+    color:var(--ink);
+    margin-bottom:8px;
+    letter-spacing:0.04em;
+  }
+  .step-body{
+    font-size:13px;
+    color:var(--ink-3);
+    line-height:2;
+  }
+
+  /* ── 價目卡片 ──────────────────────── */
+  .pricing-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+  .price-card{
+    background:var(--paper);
+    border:0.5px solid var(--line);
+    border-radius:10px;
+    padding:28px 24px 24px;
+    box-shadow:0 4px 14px rgba(45,36,24,0.06), 0 1px 3px rgba(45,36,24,0.04);
+    transition:transform .25s, box-shadow .25s;
+  }
+  .price-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 28px rgba(45,36,24,0.10), 0 2px 6px rgba(45,36,24,0.06);
+  }
+  .price-size{
+    font-family:'Noto Serif TC',serif;
+    font-size:18px;
+    font-weight:500;
+    color:var(--ink);
+    letter-spacing:0.06em;
+    margin-bottom:6px;
+  }
+  .price-amount{
+    font-family:'Noto Serif TC',serif;
+    font-size:22px;
+    color:var(--accent-2);
+    font-weight:500;
+    margin-bottom:4px;
+    letter-spacing:0.02em;
+  }
+  .price-unit{
+    font-size:11px;
+    color:var(--ink-4);
+    margin-bottom:18px;
+    letter-spacing:0.08em;
+  }
+  .price-divider{
+    height:0.5px;
+    background:var(--line-soft);
+    margin:14px 0;
+  }
+  .price-card ul{
+    list-style:none;
+    margin:0;padding:0;
+  }
+  .price-card ul li{
+    font-size:12px;
+    color:var(--ink-3);
+    line-height:2;
+    padding-left:14px;
+    position:relative;
+    letter-spacing:0.03em;
+  }
+  .price-card ul li::before{
+    content:'·';
+    position:absolute;
+    left:4px;top:0;
+    color:var(--accent);
+  }
+  .price-card .highlight{
+    margin-top:16px;
+    padding:8px 12px;
+    background:var(--paper-2);
+    border-radius:4px;
+    font-size:11px;
+    color:var(--ink-2);
+    letter-spacing:0.04em;
+    text-align:center;
+  }
+
+  /* ── CTA 區 ────────────────────────── */
+  .cta{
+    margin-top:64px;
+    text-align:center;
+    padding:48px 32px;
+    background:var(--paper);
+    border-radius:12px;
+    border:0.5px solid var(--line-soft);
+  }
+  .cta-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:20px;
+    color:var(--ink);
+    letter-spacing:0.08em;
+    margin-bottom:12px;
+    font-weight:500;
+  }
+  .cta-sub{
+    font-size:13px;
+    color:var(--ink-3);
+    margin-bottom:24px;
+    line-height:2;
+  }
+  .cta-btn{
+    display:inline-block;
+    background:var(--ink);
+    color:#fff;
+    text-decoration:none;
+    padding:14px 36px;
+    font-size:13px;
+    font-family:'Noto Serif TC',serif;
+    letter-spacing:0.16em;
+    border-radius:2px;
+    transition:background .25s;
+  }
+  .cta-btn:hover{
+    background:var(--accent-2);
+  }
+
+  footer{
+    text-align:center;
+    padding:32px 24px 48px;
+    font-size:11px;
+    color:var(--ink-4);
+    letter-spacing:0.16em;
+    font-family:'Noto Serif TC',serif;
+  }
+
+  /* ── 手機版 ─────────────────────────── */
+  @media (max-width:680px){
+    .hero{padding:56px 24px 40px;}
+    .hero h1{font-size:24px;letter-spacing:0.06em;}
+    .hero .subtitle{font-size:12.5px;}
+    main{padding:40px 24px 60px;}
+    .section{margin-bottom:52px;}
+    .section-title{font-size:18px;}
+    .section-sub{font-size:12.5px;}
+    .pricing-grid{grid-template-columns:1fr;gap:12px;}
+    .price-card{padding:22px 20px 20px;}
+    .price-amount{font-size:20px;}
+    .cta{padding:36px 24px;}
+    .cta-title{font-size:17px;}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="brand-mark">YOHSIN DESIGN</div>
+  <h1>預售屋客變服務</h1>
+  <p class="subtitle">
+    在房屋還未完工的階段，先把空間思考一次，<br>
+    讓未來的家更貼近生活，也少走幾年的彎路。
+  </p>
+  <div>
+    <span class="small-line"></span>
+  </div>
+  <div class="meta">PRE-SELL · CHANGE ORDER</div>
+</section>
+
+<main>
+
+  <!-- 流程 5 步 -->
+  <div class="section">
+    <div class="section-num">01 · PROCESS</div>
+    <div class="section-title">合作流程</div>
+    <p class="section-sub">
+      預售屋客變最理想的時間是建商「客變期」開始前 1 個月就開始與設計師討論，<br>
+      時間若太緊就會錯過很多可調整的細節。
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">STEP 01</div>
+        <div class="step-title">索取圖紙，瞭解規則</div>
+        <div class="step-body">
+          先向建商索取建築圖、給排水圖、電路圖、平面圖以及客變規則。<br>
+          確認可變更與不可變更項目，這會決定後面能做的範圍。
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP 02</div>
+        <div class="step-title">聯繫有心，初步諮詢</div>
+        <div class="step-body">
+          約一次見面或線上諮詢，我們會提供一次免費的平面配置提案。<br>
+          若覺得方向合適，再進入正式服務流程。
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP 03</div>
+        <div class="step-title">確認合作，支付訂金</div>
+        <div class="step-body">
+          請預留至少一個月作業時間，讓設計師與您完整討論平面、機能與工法，<br>
+          再進入製圖階段。
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP 04</div>
+        <div class="step-title">出具客變圖紙</div>
+        <div class="step-body">
+          根據確認的平面配置，繪製隔間尺寸圖、給排水圖、開關插座圖、燈具迴路圖等等。<br>
+          完成後我們會與建商約好時間，陪同您一起前往客變。
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP 05</div>
+        <div class="step-title">客變後續確認</div>
+        <div class="step-body">
+          客變完成後，協助核對追加減明細與圖面是否正確。<br>
+          確認無誤後支付尾款，這個階段就完成了。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 價目卡片 -->
+  <div class="section">
+    <div class="section-num">02 · FEE</div>
+    <div class="section-title">服務費用</div>
+    <p class="section-sub">
+      費用依坪數計算，包含完整客變圖說、陪同前往建商處客變、隨時諮詢設計師。<br>
+      <strong style="color:var(--accent-2);font-weight:500;">日後若委託有心做完整室內設計，本費用全額折抵設計服務費。</strong>
+    </p>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-size">10–20 坪</div>
+        <div class="price-amount">NT$ 20,000</div>
+        <div class="price-unit">/ 次</div>
+        <div class="price-divider"></div>
+        <ul>
+          <li>平面配置方案</li>
+          <li>客變圖說</li>
+          <li>陪同前往建商客變</li>
+          <li>隨時諮詢設計師</li>
+        </ul>
+        <div class="highlight">全額折抵未來設計費</div>
+      </div>
+
+      <div class="price-card">
+        <div class="price-size">21–30 坪</div>
+        <div class="price-amount">NT$ 25,000</div>
+        <div class="price-unit">/ 次</div>
+        <div class="price-divider"></div>
+        <ul>
+          <li>平面配置方案</li>
+          <li>客變圖說</li>
+          <li>陪同前往建商客變</li>
+          <li>隨時諮詢設計師</li>
+        </ul>
+        <div class="highlight">全額折抵未來設計費</div>
+      </div>
+
+      <div class="price-card">
+        <div class="price-size">31–45 坪</div>
+        <div class="price-amount">NT$ 30,000</div>
+        <div class="price-unit">/ 次</div>
+        <div class="price-divider"></div>
+        <ul>
+          <li>平面配置方案</li>
+          <li>客變圖說</li>
+          <li>陪同前往建商客變</li>
+          <li>隨時諮詢設計師</li>
+        </ul>
+        <div class="highlight">全額折抵未來設計費</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div class="cta-title">想了解您家的客變可能？</div>
+    <p class="cta-sub">
+      請先填一份簡單的諮詢單，我們收到後會與您聯繫安排見面或線上初聊。
+    </p>
+    <a href="/form/" class="cta-btn">前往預約諮詢</a>
+  </div>
+
+</main>
+
+<footer>YOHSIN DESIGN · 有心制作</footer>
+
+</body>
+</html>
