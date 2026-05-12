@@ -116,6 +116,27 @@
     padding-bottom:8px;
     border-bottom:0.5px solid var(--line-soft);
   }
+  /* 可收折的提案卡 */
+  .fee-card.collapsible{cursor:pointer;}
+  .fee-card.collapsible h4{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    margin-bottom:0;padding-bottom:8px;
+  }
+  .fee-card.collapsible h4::after{
+    content:'+';
+    font-size:18px;color:var(--accent);font-weight:300;
+    transition:transform .25s ease;
+    line-height:1;display:inline-block;
+  }
+  .fee-card.collapsible.open h4::after{transform:rotate(45deg);}
+  .fee-card.collapsible .fee-body{
+    max-height:0;overflow:hidden;
+    transition:max-height .3s ease, margin-top .25s ease, padding-top .25s ease;
+    margin-top:0;
+  }
+  .fee-card.collapsible.open .fee-body{
+    max-height:600px;margin-top:10px;padding-top:2px;
+  }
   .fee-price{
     font-family:'Noto Serif TC',serif;
     font-size:18px;
@@ -459,36 +480,42 @@
   </div>
 
   <div class="fee-grid">
-    <div class="fee-card">
+    <div class="fee-card collapsible" onclick="this.classList.toggle('open')">
       <h4>新成屋提案</h4>
-      <div class="fee-price">$6,000 / 單次</div>
-      <ul>
-        <li>提案後三日內確認另有優惠</li>
-        <li>平面配置方案至少兩版</li>
-        <li>初步估價單一份</li>
-        <li>提案簡報一次</li>
-      </ul>
+      <div class="fee-body">
+        <div class="fee-price">$6,000 / 單次</div>
+        <ul>
+          <li>提案後三日內確認另有優惠</li>
+          <li>平面配置方案至少兩版</li>
+          <li>初步估價單一份</li>
+          <li>提案簡報一次</li>
+        </ul>
+      </div>
     </div>
-    <div class="fee-card">
+    <div class="fee-card collapsible" onclick="this.classList.toggle('open')">
       <h4>中古屋提案</h4>
-      <div class="fee-price">$8,000 / 單次</div>
-      <ul>
-        <li>包含乙次丈量服務</li>
-        <li>提案後五日內確認合作另有優惠</li>
-        <li>平面配置方案至少兩版</li>
-        <li>初步估價單一份</li>
-        <li>提案簡報一次</li>
-      </ul>
+      <div class="fee-body">
+        <div class="fee-price">$8,000 / 單次</div>
+        <ul>
+          <li>包含乙次丈量服務</li>
+          <li>提案後五日內確認合作另有優惠</li>
+          <li>平面配置方案至少兩版</li>
+          <li>初步估價單一份</li>
+          <li>提案簡報一次</li>
+        </ul>
+      </div>
     </div>
-    <div class="fee-card">
+    <div class="fee-card collapsible" onclick="this.classList.toggle('open')">
       <h4>預售屋客變</h4>
-      <div class="fee-price">$20,000 起</div>
-      <ul>
-        <li>10-20 坪 $20,000 / 次</li>
-        <li>21-30 坪 $25,000 / 次</li>
-        <li>31-45 坪 $30,000 / 次</li>
-        <li>客變費用未來可全額折抵設計費</li>
-      </ul>
+      <div class="fee-body">
+        <div class="fee-price">$20,000 起</div>
+        <ul>
+          <li>10-20 坪 $20,000 / 次</li>
+          <li>21-30 坪 $25,000 / 次</li>
+          <li>31-45 坪 $30,000 / 次</li>
+          <li>客變費用未來可全額折抵設計費</li>
+        </ul>
+      </div>
     </div>
     <div class="fee-card">
       <h4>設計服務費</h4>
@@ -538,7 +565,7 @@
 
   <div class="section">
     <div class="section-num">01 · ABOUT YOU</div>
-    <div class="section-title">先讓我們認識你 <span class="light">／ 之後好聯繫</span></div>
+    <div class="section-title">先讓我們認識你</div>
 
     <div class="field">
       <label class="field-label">怎麼稱呼你</label>
@@ -573,7 +600,7 @@
 
   <div class="section">
     <div class="section-num">02 · YOUR SPACE</div>
-    <div class="section-title">關於你的家</div>
+    <div class="section-title">關於您想改造的空間</div>
 
     <div class="field">
       <label class="field-label">空間類型</label>
