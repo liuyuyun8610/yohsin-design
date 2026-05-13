@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>下一步行動卡 · 預覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:#DDD9D2;
+    font-family:'Noto Sans TC',sans-serif;
+    font-weight:300;
+    padding:32px 24px 80px;
+    color:#2C2218;
+  }
+  .container{max-width:680px;margin:0 auto;}
+  .preview-note{
+    background:rgba(160,122,56,0.08);
+    border:0.5px solid rgba(160,122,56,0.25);
+    border-radius:6px;
+    padding:10px 16px;
+    font-size:11px;
+    color:#A07A38;
+    letter-spacing:0.08em;
+    margin-bottom:24px;
+    text-align:center;
+  }
+
+  /* 模擬客戶首頁專案標題 */
+  .proj-header{margin-bottom:14px;}
+  .proj-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:24px;font-weight:500;
+    margin-bottom:4px;letter-spacing:0.04em;
+  }
+  .proj-status{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#fff;color:#3A5E32;
+    padding:4px 12px 4px 10px;border-radius:999px;
+    font-size:11px;font-weight:500;letter-spacing:0.06em;
+    box-shadow:0 1px 3px rgba(70,60,50,0.10);
+    border:0.5px solid rgba(70,60,50,0.06);
+    margin-left:8px;
+  }
+  .proj-status .dot{width:7px;height:7px;border-radius:50%;background:#7FA876;}
+  .proj-meta{font-size:12px;color:#9A8F84;margin-top:8px;}
+
+  /* 下一步行動卡（重點）*/
+  .next-action{
+    margin:14px 0;
+    padding:18px 20px;
+    background:linear-gradient(135deg,#FBF6EC 0%,#F5EBD8 100%);
+    border:1px solid #D9C9A8;
+    border-radius:14px;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(120,90,40,0.12);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .next-action:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(120,90,40,0.18);
+  }
+  .na-label{
+    font-family:'Noto Serif TC',serif;
+    font-size:10px;letter-spacing:0.32em;
+    color:#A07A38;text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .na-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:16px;color:#3A2E18;line-height:1.5;font-weight:500;
+    margin-bottom:4px;
+  }
+  .na-desc{
+    font-size:12.5px;color:#7A6240;line-height:1.7;
+  }
+  .na-cta{
+    margin-top:10px;
+    font-size:11.5px;color:#A07A38;letter-spacing:0.06em;
+    font-family:'Noto Serif TC',serif;
+  }
+
+  /* 模擬下方裝修旅程卡 */
+  .mock-journey{
+    margin-top:14px;
+    padding:14px 18px;
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 1px 3px rgba(70,60,50,0.06);
+  }
+  .mock-journey-title{
+    font-family:'Noto Serif TC',serif;
+    font-size:14px;font-weight:500;
+    color:#2C2218;letter-spacing:0.04em;
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:10px;
+  }
+  .mock-journey-progress{
+    font-size:11px;color:#9A8F84;font-weight:400;
+  }
+  .mock-tiles{
+    display:flex;gap:8px;overflow-x:auto;
+  }
+  .mock-tile{
+    flex-shrink:0;width:60px;
+    text-align:center;font-size:10px;
+    color:#9A8F84;
+  }
+  .mock-tile-dot{
+    width:24px;height:24px;
+    border-radius:50%;
+    margin:0 auto 4px;
+    background:#EAE3D2;
+    border:1px solid #D9C9A8;
+  }
+  .mock-tile.done .mock-tile-dot{background:#7FA876;border-color:#7FA876;}
+  .mock-tile.current .mock-tile-dot{background:#A07A38;border-color:#A07A38;animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(160,122,56,.5);}50%{box-shadow:0 0 0 6px rgba(160,122,56,0);}}
+
+  /* 切換器 */
+  .switcher{
+    display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;
+  }
+  .sw-btn{
+    background:#fff;border:0.5px solid rgba(70,60,50,0.15);
+    border-radius:999px;padding:6px 14px;
+    font-size:12px;color:#7A6240;cursor:pointer;
+    font-family:inherit;
+    transition:all .15s;
+  }
+  .sw-btn.active{background:#3A2E18;color:#F5EBD8;border-color:#3A2E18;}
+  .sw-btn:hover:not(.active){background:rgba(120,90,40,0.08);}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="preview-note">📐 預覽：客戶一登入看到的「下一步行動」卡片，按下方按鈕看 5 種狀態的視覺</div>
+
+  <div class="switcher">
+    <button class="sw-btn active" onclick="show(0,this)">禮物</button>
+    <button class="sw-btn" onclick="show(1,this)">圖紙確認</button>
+    <button class="sw-btn" onclick="show(2,this)">待回覆</button>
+    <button class="sw-btn" onclick="show(3,this)">3D 漫遊</button>
+    <button class="sw-btn" onclick="show(4,this)">進度</button>
+  </div>
+
+  <!-- 模擬實際 layout -->
+  <div class="proj-header">
+    <span class="proj-title">漾時光</span>
+    <span class="proj-status"><span class="dot"></span>進行中</span>
+    <div class="proj-meta">合約起始：2026/02/08 ｜ 預計完工：2026/10/30</div>
+  </div>
+
+  <!-- 下一步行動卡（會動態切換內容）-->
+  <div class="next-action">
+    <div class="na-label" id="na-label">NEXT STEP · 接下來</div>
+    <div class="na-title" id="na-title">—</div>
+    <div class="na-desc" id="na-desc">—</div>
+    <div class="na-cta" id="na-cta">▸ 點擊前往</div>
+  </div>
+
+  <!-- 模擬下方裝修旅程卡 -->
+  <div class="mock-journey">
+    <div class="mock-journey-title">
+      <span>裝修旅程</span>
+      <span class="mock-journey-progress">您的空間旅程已完成 41%</span>
+    </div>
+    <div class="mock-tiles">
+      <div class="mock-tile done"><div class="mock-tile-dot"></div>文書</div>
+      <div class="mock-tile done"><div class="mock-tile-dot"></div>平面</div>
+      <div class="mock-tile done"><div class="mock-tile-dot"></div>定案</div>
+      <div class="mock-tile done"><div class="mock-tile-dot"></div>簽約</div>
+      <div class="mock-tile current"><div class="mock-tile-dot"></div>拆除</div>
+      <div class="mock-tile"><div class="mock-tile-dot"></div>水電</div>
+      <div class="mock-tile"><div class="mock-tile-dot"></div>木作</div>
+      <div class="mock-tile"><div class="mock-tile-dot"></div>水漆</div>
+      <div class="mock-tile"><div class="mock-tile-dot"></div>系統櫃</div>
+      <div class="mock-tile"><div class="mock-tile-dot"></div>清潔</div>
+      <div class="mock-tile"><div class="mock-tile-dot"></div>入住</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STATES = [
+  { label: '✶ 旅程禮物',  title: '您有 1 份來自設計師的小禮物',         desc: '為您旅程中的小驚喜，點開看看裡面是什麼',                        cta: '▸ 收下禮物' },
+  { label: '請您確認',     title: '空間與家具尺寸圖 已完成，等您看一眼', desc: '設計師完成了這份圖面，請您過目並回覆是否需要調整',              cta: '▸ 前往查看' },
+  { label: '待您確認',     title: '有 2 件事項需要您回覆',               desc: '設計師留了一些選擇給您決定，越早回覆我們越能幫您安排',          cta: '▸ 查看待確認事項' },
+  { label: '空間漫遊上線', title: '家的 3D 漫遊已準備好',                desc: '在家就能 360° 環看每個空間，建議用電腦看視野更廣',              cta: '▸ 進入空間漫遊' },
+  { label: '目前進度',     title: '家的旅程進行到「拆除工程」',          desc: '我們會持續更新，有任何問題歡迎隨時聯繫',                        cta: '▸ 看看裝修旅程' },
+];
+function show(i, btn){
+  const s = STATES[i];
+  document.getElementById('na-label').textContent = s.label;
+  document.getElementById('na-title').textContent = s.title;
+  document.getElementById('na-desc').textContent = s.desc;
+  document.getElementById('na-cta').textContent = s.cta;
+  document.querySelectorAll('.sw-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+show(0, document.querySelector('.sw-btn'));
+</script>
+
+</body>
+</html>
