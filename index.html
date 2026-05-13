@@ -8825,9 +8825,14 @@ async function renderClientPhaseTimeline(proj) {
 }
 
 // 下一步行動：依優先序判斷客戶現在最該關注什麼，放在首頁最上方 CTA
-function renderClientNextAction(proj){
+window.renderClientNextAction = function(proj){
   const card = document.getElementById('dash-next-action-card');
   if(!card) return;
+  // proj 沒傳就自取（給 module script 外部觸發用）
+  if(!proj){
+    const c = (clients||[]).find(x=>x.id===currentClientId);
+    if(c?.projectId) proj = projects.find(p=>Number(p.id)===Number(c.projectId));
+  }
   const cid = currentClientId;
   const docs = docsData[cid] || {};
   const drawings = docs.drawings || {};
@@ -8931,7 +8936,8 @@ function renderClientNextAction(proj){
 
   // 沒任何近期更新 → 不顯示卡片（避免假訊息打擾）
   card.style.display = 'none';
-}
+};
+function renderClientNextAction(proj){ return window.renderClientNextAction(proj); }
 
 function setNextAction(card, label, title, desc, cta, onClick){
   card.style.display = 'block';
@@ -11705,6 +11711,13 @@ window.renderClientVRTour = async function(){
         initialScene: initialSceneId,
       };
     }).filter(t => Object.keys(t.scenes).length > 0); // 沒場景的 tour 不顯示
+
+    // 暴露給「下一步行動」彙整邏輯讀取
+    window._vrTours = _vrTours;
+    // VR fetch 完才能參與「最新更新」判斷 — 觸發重 render（如果 next-action 函式已存在）
+    if(typeof window.renderClientNextAction === 'function'){
+      try{ window.renderClientNextAction(); }catch(e){}
+    }
 
     if(!_vrTours.length){ section.style.display = 'none'; return; }
 
