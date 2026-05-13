@@ -1037,6 +1037,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：—</div>
       </div>
 
+      <!-- 下一步行動卡（客戶一登入就知道要做什麼）-->
+      <div id="dash-next-action-card" style="display:none;margin-bottom:14px;padding:18px 20px;background:linear-gradient(135deg,#FBF6EC 0%,#F5EBD8 100%);border:1px solid #D9C9A8;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(120,90,40,0.12);transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(120,90,40,0.18)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(120,90,40,0.12)'">
+        <div style="font-family:'Noto Serif TC',serif;font-size:10px;letter-spacing:0.32em;color:#A07A38;margin-bottom:6px;text-transform:uppercase;" id="dash-next-action-label">NEXT STEP · 接下來</div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:16px;color:#3A2E18;line-height:1.5;font-weight:500;margin-bottom:4px;" id="dash-next-action-title">—</div>
+        <div style="font-size:12.5px;color:#7A6240;line-height:1.7;" id="dash-next-action-desc">—</div>
+        <div style="margin-top:10px;font-size:11.5px;color:#A07A38;letter-spacing:0.06em;font-family:'Noto Serif TC',serif;" id="dash-next-action-cta">▸ 點擊前往</div>
+      </div>
+
       <!-- 裝修旅程時間軸（Monopoly 風） -->
       <div class="card" id="dash-phase-card" style="margin-bottom:12px;display:none;position:relative;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
@@ -8816,6 +8824,100 @@ async function renderClientPhaseTimeline(proj) {
   }, 50);
 }
 
+// 下一步行動：依優先序判斷客戶現在最該關注什麼，放在首頁最上方 CTA
+function renderClientNextAction(proj){
+  const card = document.getElementById('dash-next-action-card');
+  if(!card) return;
+  const cid = currentClientId;
+  const docs = docsData[cid] || {};
+  const drawings = docs.drawings || {};
+  const pendingItems = docs.pendingItems || [];
+
+  // ── 優先序 1：未拆禮物 ──
+  const unwrapped = (window._surprises||[]).filter(s => !s.acknowledged_at);
+  if(unwrapped.length){
+    setNextAction(card, '✶ 旅程禮物',
+      `您有 ${unwrapped.length} 份來自設計師的小禮物`,
+      '為您旅程中的小驚喜，點開看看裡面是什麼',
+      '▸ 收下禮物',
+      () => openSurpriseInbox());
+    return;
+  }
+
+  // ── 優先序 2：圖紙最終版未確認 ──
+  const drawingTypes = ['空間與家具尺寸圖','平面系統圖','立面系統圖','效果圖'];
+  let unconfirmedFinal = null;
+  for(const t of drawingTypes){
+    const list = drawings[t] || [];
+    const unconfirmed = list.find(v => v.isFinal && !v.customerConfirmedAt);
+    if(unconfirmed){ unconfirmedFinal = { type: t, item: unconfirmed }; break; }
+  }
+  if(unconfirmedFinal){
+    setNextAction(card, '請您確認',
+      `${unconfirmedFinal.type} 已完成，等您看一眼`,
+      '設計師完成了這份圖面，請您過目並回覆是否需要調整',
+      '▸ 前往查看',
+      () => goToDrawingType(unconfirmedFinal.type));
+    return;
+  }
+
+  // ── 優先序 3：待確認事項（pending_items）──
+  const pendingOpen = pendingItems.filter(p => p.status === 'pending');
+  if(pendingOpen.length){
+    setNextAction(card, '待您確認',
+      `有 ${pendingOpen.length} 件事項需要您回覆`,
+      '設計師留了一些選擇給您決定，越早回覆我們越能幫您安排',
+      '▸ 查看待確認事項',
+      () => goPage('p-checklist', document.querySelector('#s-client .tnav[onclick*="p-checklist"]')));
+    return;
+  }
+
+  // ── 優先序 4：3D 漫遊已上線（且還沒去看過）──
+  if((window._vrTours||[]).length > 0){
+    setNextAction(card, '空間漫遊上線',
+      '家的 3D 漫遊已準備好',
+      '在家就能 360° 環看每個空間，建議用電腦看視野更廣',
+      '▸ 進入空間漫遊',
+      () => goToDrawingType('vr-tour'));
+    return;
+  }
+
+  // ── 優先序 5：fallback 顯示目前進度 ──
+  if(proj && proj.currentPhase){
+    const phaseName = (PHASE_LIST_FALLBACK?.find(p => p.sort_order === proj.currentPhase)?.name) || '';
+    setNextAction(card, '目前進度',
+      `家的旅程進行到「${phaseName || '第 ' + proj.currentPhase + ' 站'}」`,
+      '我們會持續更新，有任何問題歡迎隨時聯繫',
+      '▸ 看看裝修旅程',
+      () => { document.getElementById('dash-phase-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    return;
+  }
+
+  card.style.display = 'none';
+}
+
+function setNextAction(card, label, title, desc, cta, onClick){
+  card.style.display = 'block';
+  document.getElementById('dash-next-action-label').textContent = label;
+  document.getElementById('dash-next-action-title').textContent = title;
+  document.getElementById('dash-next-action-desc').textContent = desc;
+  document.getElementById('dash-next-action-cta').textContent = cta;
+  card.onclick = onClick;
+}
+
+// goToDrawingType 接 'vr-tour' 特殊參數 → 滾到 VR section
+const _origGoToDrawingType = window.goToDrawingType;
+if(_origGoToDrawingType){
+  window.goToDrawingType = function(type){
+    if(type === 'vr-tour'){
+      goPage('p-docs', document.querySelector('#s-client .tnav[onclick*="p-docs"]'));
+      setTimeout(() => document.getElementById('client-vr-tour-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+      return;
+    }
+    return _origGoToDrawingType(type);
+  };
+}
+
 async function renderClientDashboard(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
   const pid=Number(c.projectId);
@@ -8851,6 +8953,8 @@ async function renderClientDashboard(){
   refreshDrawingBadges();
   // --- 旅程心意未讀星點（裝修旅程卡片右上角）---
   refreshSurpriseMarker();
+  // --- 下一步行動（依優先序顯示）---
+  renderClientNextAction(proj);
 
   // --- 裝修旅程 Monopoly 風時間軸 ---
   renderClientPhaseTimeline(proj);
