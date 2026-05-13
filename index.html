@@ -9547,7 +9547,7 @@ function openMaterialDetail(matId){
             it.status==='已確認'||it.status==='已下單'?'pill-green':
             it.status==='客戶確認中'||it.status==='變更中'?'pill-amber':
             it.status==='設計師提案'?'pill-blue':'pill-gray'
-          }" style="font-size:11px;">${it.status||'未選擇'}</span>
+          }" style="display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:500;letter-spacing:0.04em;">${it.status||'未選擇'}</span>
         </div>
 
         ${lines?`<div style="font-size:13px;color:var(--ink-muted);margin-bottom:6px;line-height:1.6;">${lines}</div>`:''}
@@ -9961,7 +9961,8 @@ async function renderClientMaterials(){
     const cls=s==='已確認'||s==='已下單'?'pill-green':
               s==='客戶確認中'||s==='變更中'?'pill-amber':
               s==='設計師提案'?'pill-blue':'pill-gray';
-    return `<span class="pill ${cls}" style="font-size:10px;">${s||'未選擇'}</span>`;
+    // inline style 強制套用 pill 樣式，避免 mobile Safari 快取舊 .pill CSS
+    return `<span class="pill ${cls}" style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:999px;font-weight:500;letter-spacing:0.04em;">${s||'未選擇'}</span>`;
   };
 
   const html=spaces.map(space=>{
