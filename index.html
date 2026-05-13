@@ -8899,7 +8899,7 @@ window.renderClientNextAction = function(proj){
 
   // 4b. 3D 漫遊（如果有）
   if((window._vrTours||[]).length > 0){
-    newItems.push({ kind: 'vr', label: '3D 空間漫遊', ts: Date.now(), navigate: () => goToDrawingType('vr-tour') });
+    newItems.push({ kind: 'vr', label: '3D 空間漫遊體驗', ts: Date.now(), navigate: () => goToDrawingType('vr-tour') });
   }
 
   // 4c. 施工照片：近 7 天有 log 帶 photos
@@ -8921,16 +8921,16 @@ window.renderClientNextAction = function(proj){
     const labels = newItems.map(i => i.label);
     let titleText, descText;
     if(labels.length === 1){
-      titleText = `${labels[0]} 上新了`;
+      titleText = `已為您新增${labels[0]}`;
       descText = '剛準備好的內容，有空可以點進去看看～';
     } else if(labels.length === 2){
-      titleText = `${labels[0]} 跟 ${labels[1]} 都上新了`;
+      titleText = `已為您新增${labels[0]}與${labels[1]}`;
       descText = `先從 ${labels[0]} 開始最直觀，看完再去 ${labels[1]} 感受空間的變化。`;
     } else {
-      titleText = `這幾天有不少新東西`;
-      descText = `${labels.slice(0, 3).join('、')} 等 ${labels.length} 項陸續到位，從 ${labels[0]} 先看起最直觀。`;
+      titleText = `已為您新增${labels.slice(0, 2).join('、')}等 ${labels.length} 項內容`;
+      descText = `這幾天陸續到位，從 ${labels[0]} 先看起最直觀。`;
     }
-    setNextAction(card, '最新更新', titleText, descText, '查看最新內容 →', newItems[0].navigate);
+    setNextAction(card, '最新更新', titleText, descText, '前往看看 →', newItems[0].navigate);
     return;
   }
 
