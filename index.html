@@ -3241,7 +3241,69 @@ function toggleMobileMenu(type){
 function closeMobileMenu(type){
   document.getElementById('mobile-menu-'+type).classList.remove('open');
 }
+// ════════════════════════════════════════════════════════════
+// 客戶焦慮雷達：page tracking + event tracking
+// 上報到 ys-interior RPC（record_page_view / record_client_event）
+// ════════════════════════════════════════════════════════════
+let _pageEnterTime = 0;
+let _currentTrackedPage = null;
+const PAGE_KEY_MAP = {
+  'p-overview': 'overview',
+  'p-docs': 'drawings',
+  'p-contracts': 'contracts',
+  'p-meetings': 'meetings',
+  'p-knowledge': 'knowledge',
+  'p-checklist': 'checklist',
+  'p-materials': 'materials',
+  'p-construction': 'construction',
+  'p-payment': 'payment',
+  'p-changes': 'change_orders',
+};
+function trackPageEnter(pageId){
+  if(!currentClientId) return;
+  _pageEnterTime = Date.now();
+  _currentTrackedPage = PAGE_KEY_MAP[pageId] || pageId;
+}
+function trackPageLeave(){
+  if(!currentClientId || !_currentTrackedPage || !_pageEnterTime) return;
+  const duration = Math.floor((Date.now() - _pageEnterTime) / 1000);
+  // 太短的不算（< 2 秒，可能是誤點）
+  if(duration < 2){ return; }
+  const c = (clients||[]).find(x => x.id === currentClientId);
+  const projId = c?.projectId || null;
+  // 非阻塞：fire-and-forget
+  try{
+    sbClient.rpc('record_page_view', {
+      p_client_id: currentClientId,
+      p_project_id: projId,
+      p_page_key: _currentTrackedPage,
+      p_duration: duration,
+    }).then(()=>{}).catch(e=>console.warn('[anxiety] page_view failed', e));
+  }catch(e){}
+}
+// 通用事件上報
+function trackEvent(eventType, pageKey, metadata){
+  if(!currentClientId) return;
+  const c = (clients||[]).find(x => x.id === currentClientId);
+  const projId = c?.projectId || null;
+  try{
+    sbClient.rpc('record_client_event', {
+      p_client_id: currentClientId,
+      p_event_type: eventType,
+      p_project_id: projId,
+      p_page_key: pageKey || _currentTrackedPage,
+      p_metadata: metadata || {},
+    }).then(()=>{}).catch(e=>console.warn('[anxiety] event failed', e));
+  }catch(e){}
+}
+// 離開頁面/關閉視窗時上報最後一次停留
+window.addEventListener('beforeunload', trackPageLeave);
+window.addEventListener('pagehide', trackPageLeave);
+// 暴露給其他地方手動 call（例如打開 modal、下載檔案）
+window.trackEvent = trackEvent;
+
 function goPageMobile(id,el,type){
+  trackPageLeave();
   const desktopBtns=document.querySelectorAll('#s-client .tnav');
   const pages=['p-overview','p-docs','p-contracts','p-knowledge','p-checklist','p-materials','p-construction','p-payment','p-changes'];
   const idx=pages.indexOf(id);
@@ -3257,6 +3319,7 @@ function goPageMobile(id,el,type){
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
   if(id==='p-materials') renderClientMaterials();
+  trackPageEnter(id);
 }
 function goAdminPageMobile(id,el){
   goAdminPage(id,document.querySelector('#s-admin .tb-nav .tnav[onclick*="'+id+'"]')||document.querySelector('#s-admin .tnav'));
@@ -3982,6 +4045,8 @@ function goBackToOverview(){
 }
 
 function goPage(id,el){
+  // 焦慮雷達：上報切換前的頁面停留時間
+  trackPageLeave();
   document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
@@ -3992,6 +4057,8 @@ function goPage(id,el){
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
   if(id==='p-materials') renderClientMaterials();
+  // 焦慮雷達：開始計時新頁面
+  trackPageEnter(id);
 }
 async function goAdminPage(id,el){
   document.querySelectorAll('#s-admin .tnav').forEach(t=>t.classList.remove('active'));
