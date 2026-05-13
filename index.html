@@ -10099,10 +10099,17 @@ async function renderClientPayment(){
       // ── Desktop table row ──
       const tr=document.createElement('tr');
       if(displayStatus==='逾期') tr.style.background='#FFF5F5';
+      // 折抵類（負數金額）：底色淡奶綠 + 名稱前加 ✦
+      const isOffset = (r.amount||0) < 0;
+      if(isOffset){ tr.style.background='#F1F5EE'; }
+      const amtText = isOffset
+        ? `<span style="color:#3A7A4A;">折抵 -$${fmtN(Math.abs(r.amount))}</span>`
+        : `$${fmtN(r.amount||0)}`;
+      const nameText = isOffset ? `✦ ${r.name||'折抵'}` : (r.name||'—');
       tr.innerHTML=`
-        <td style="padding:9px 14px;">${r.name||'—'}</td>
+        <td style="padding:9px 14px;">${nameText}</td>
         <td style="padding:9px 14px;color:${displayStatus==='逾期'?'var(--red)':'var(--ink-muted)'}">${r.due||'—'}${displayStatus==='逾期'?' ⚠️':''}</td>
-        <td style="padding:9px 14px;text-align:right;font-weight:500;">$${fmtN(r.amount||0)}</td>
+        <td style="padding:9px 14px;text-align:right;font-weight:500;">${amtText}</td>
         <td style="padding:9px 14px;"><span class="pill ${statusPill[displayStatus]||'pill-gray'}">${displayStatus}</span></td>
         <td style="padding:9px 14px;color:var(--ink-muted)">${r.received||'—'}</td>`;
       const tdReceipt=document.createElement('td');
@@ -10135,8 +10142,8 @@ async function renderClientPayment(){
           : `<span style="font-size:11px;color:var(--ink-light);">—</span>`;
         card.innerHTML=`
           <div class="pc-row">
-            <span class="pc-name">${r.name||'—'}</span>
-            <span class="pc-amt">$${fmtN(r.amount||0)}</span>
+            <span class="pc-name">${isOffset ? '✦ ' + (r.name||'折抵') : (r.name||'—')}</span>
+            <span class="pc-amt" ${isOffset ? 'style="color:#3A7A4A;"' : ''}>${isOffset ? '折抵 -$'+fmtN(Math.abs(r.amount)) : '$'+fmtN(r.amount||0)}</span>
           </div>
           <div class="pc-row">
             <span class="pc-status ${statusClass}">${displayStatus}</span>
