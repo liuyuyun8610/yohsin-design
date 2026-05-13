@@ -9958,11 +9958,19 @@ async function renderClientMaterials(){
   });
 
   const statusPill=(s)=>{
-    const cls=s==='已確認'||s==='已下單'?'pill-green':
-              s==='客戶確認中'||s==='變更中'?'pill-amber':
-              s==='設計師提案'?'pill-blue':'pill-gray';
-    // inline style 強制套用 pill 樣式，避免 mobile Safari 快取舊 .pill CSS
-    return `<span class="pill ${cls}" style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:999px;font-weight:500;letter-spacing:0.04em;">${s||'未選擇'}</span>`;
+    // 完全 inline 樣式（連 background/color 都 inline，徹底繞過 CSS class）
+    const palette = {
+      green: { bg:'#E8F0E2', fg:'#3D5C24' },
+      amber: { bg:'#FBF4E8', fg:'#7A5E1A' },
+      blue:  { bg:'#E8EFF6', fg:'#2D5A87' },
+      gray:  { bg:'#EAE3D2', fg:'#8B7E6A' },
+    };
+    const k = s==='已確認'||s==='已下單' ? 'green'
+            : s==='客戶確認中'||s==='變更中' ? 'amber'
+            : s==='設計師提案' ? 'blue'
+            : 'gray';
+    const c = palette[k];
+    return `<span style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:999px;font-weight:500;letter-spacing:0.04em;background:${c.bg};color:${c.fg};">${s||'未選擇'}</span>`;
   };
 
   const html=spaces.map(space=>{
