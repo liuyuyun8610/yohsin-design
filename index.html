@@ -7,6 +7,9 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>有心制作・空間設計 — 客戶專案入口</title>
+<!-- VR 漫遊（Photo Sphere Viewer）CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5/index.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5/index.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap');
 /* Quicksand for digits only — defined with narrow unicode-range so it
@@ -1214,6 +1217,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="doc-section" id="client-renders-section" style="display:none;">
           <div class="doc-section-title">3D 空間效果圖</div>
           <div id="client-renders-gallery"></div>
+        </div>
+        <!-- 3D 漫遊區塊（VR Tour）-->
+        <div class="doc-section" id="client-vr-tour-section" style="display:none;">
+          <div class="doc-section-title">🪟 3D 漫遊</div>
+          <div id="client-vr-tour-list" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
       </div>
 
@@ -6064,6 +6072,8 @@ function renderClientDocs(){
   renderClientElevationGallery(d);
   // 3D 效果圖 gallery（獨立區塊，依日期分組）
   renderClient3DGallery(d);
+  // 3D 漫遊（VR Tour）
+  renderClientVRTour();
 
   renderClientLineScreenshots(d);renderClientFormalMeetings(d);
   // 兩種合約分別渲染
@@ -11286,5 +11296,271 @@ document.addEventListener('DOMContentLoaded', function() {
   <div style="font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;color:#8B6F4E;">連接資料庫中…</div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- ════════════════════════════════════════════════════════════
+     VR 漫遊（Photo Sphere Viewer）
+     Phase A：客戶端整合，先用 demo 公開全景圖示意
+     之後 Phase D 改 fetch ys-interior vr_tours / vr_scenes / vr_hotspots
+     ════════════════════════════════════════════════════════════ -->
+<style>
+  /* VR tour 卡片 */
+  .vr-tour-card{
+    background:#fff;border:0.5px solid rgba(45,36,24,0.1);
+    border-radius:12px;padding:0;overflow:hidden;cursor:pointer;
+    transition:transform .2s, box-shadow .2s;
+    display:flex;align-items:stretch;
+    box-shadow:0 2px 8px rgba(45,36,24,0.04);
+  }
+  .vr-tour-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(45,36,24,0.1);}
+  .vr-tour-thumb{
+    width:120px;flex-shrink:0;
+    background:#1a1614 center/cover no-repeat;
+    position:relative;
+  }
+  .vr-tour-thumb::after{
+    content:'⟳';
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:rgba(255,255,255,0.92);font-size:24px;
+    background:linear-gradient(160deg, rgba(0,0,0,0.05), rgba(0,0,0,0.35));
+  }
+  .vr-tour-info{padding:14px 16px;flex:1;min-width:0;}
+  .vr-tour-title{font-family:'Noto Serif TC',serif;font-size:14px;color:#2C2218;font-weight:500;margin-bottom:4px;letter-spacing:0.04em;}
+  .vr-tour-meta{font-size:11.5px;color:#8E8474;letter-spacing:0.04em;line-height:1.6;}
+  .vr-tour-cta{font-size:10.5px;color:#8B6F4E;letter-spacing:0.12em;margin-top:6px;font-family:'Noto Serif TC',serif;}
+
+  /* 全螢幕 viewer overlay */
+  #vr-viewer-modal{
+    position:fixed;inset:0;z-index:10000;background:#0a0807;
+    display:none;flex-direction:column;
+  }
+  #vr-viewer-modal.active{display:flex;}
+  .vr-modal-top{
+    flex-shrink:0;padding:12px 16px;display:flex;align-items:center;gap:12px;
+    background:rgba(20,16,12,0.85);backdrop-filter:blur(10px);
+    border-bottom:0.5px solid rgba(255,255,255,0.08);
+    z-index:10;
+  }
+  .vr-modal-close{
+    background:rgba(255,255,255,0.1);border:none;color:#fff;
+    padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;
+    font-family:inherit;letter-spacing:0.06em;
+  }
+  .vr-modal-title{
+    flex:1;color:#fff;font-family:'Noto Serif TC',serif;
+    font-size:14px;letter-spacing:0.06em;
+  }
+  #vr-viewer-stage{flex:1;position:relative;background:#1a1614;}
+  .vr-scene-overlay{
+    position:absolute;top:14px;left:14px;z-index:10;
+    background:rgba(20,16,12,0.7);backdrop-filter:blur(10px);
+    color:#fff;padding:7px 14px;border-radius:999px;
+    font-family:'Noto Serif TC',serif;font-size:13px;letter-spacing:0.12em;
+    display:flex;align-items:center;gap:8px;pointer-events:none;
+  }
+  .vr-scene-overlay .dot{width:5px;height:5px;border-radius:50%;background:#D4AF7A;animation:vrPulse 2s ease-in-out infinite;}
+  @keyframes vrPulse{0%,100%{opacity:0.6;transform:scale(1);}50%{opacity:1;transform:scale(1.4);}}
+  .vr-picker{
+    flex-shrink:0;padding:12px 14px;display:flex;gap:8px;
+    overflow-x:auto;background:rgba(20,16,12,0.92);
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .vr-picker::-webkit-scrollbar{display:none;}
+  .vr-chip{
+    flex:0 0 auto;background:transparent;border:1.5px solid transparent;
+    border-radius:8px;padding:6px 7px 7px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    font-family:inherit;color:rgba(255,255,255,0.7);
+  }
+  .vr-chip.active{border-color:#D4AF7A;background:rgba(212,175,122,0.12);color:#fff;}
+  .vr-chip-thumb{width:64px;height:42px;border-radius:5px;background:#666 center/cover;}
+  .vr-chip-label{font-family:'Noto Serif TC',serif;font-size:11px;letter-spacing:0.06em;}
+
+  /* PSV hotspot 樣式 */
+  .vr-hotspot{display:flex;flex-direction:column;align-items:center;cursor:pointer;}
+  .vr-hotspot-ring{
+    width:48px;height:48px;border-radius:50%;
+    border:2px solid rgba(255,255,255,0.95);
+    background:rgba(212,175,122,0.3);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    animation:vrHotspotPulse 2.4s ease-in-out infinite;
+    box-shadow:0 4px 16px rgba(0,0,0,0.35);
+  }
+  @keyframes vrHotspotPulse{
+    0%,100%{transform:scale(1);box-shadow:0 4px 16px rgba(0,0,0,0.35), 0 0 0 0 rgba(212,175,122,0.5);}
+    50%{transform:scale(1.06);box-shadow:0 4px 16px rgba(0,0,0,0.35), 0 0 0 14px rgba(212,175,122,0);}
+  }
+  .vr-hotspot-arrow{width:9px;height:9px;border-top:2px solid #fff;border-right:2px solid #fff;transform:rotate(45deg);margin-left:-3px;}
+  .vr-hotspot-label{
+    margin-top:8px;background:rgba(20,16,12,0.85);color:#fff;
+    padding:3px 10px;border-radius:999px;font-size:11px;
+    font-family:'Noto Serif TC',serif;letter-spacing:0.1em;
+    backdrop-filter:blur(8px);
+  }
+</style>
+
+<!-- viewer modal placeholder -->
+<div id="vr-viewer-modal">
+  <div class="vr-modal-top">
+    <button class="vr-modal-close" onclick="closeVRViewer()">‹ 返回</button>
+    <div class="vr-modal-title" id="vr-modal-title">3D 漫遊</div>
+  </div>
+  <div id="vr-viewer-stage">
+    <div class="vr-scene-overlay" id="vr-scene-overlay">
+      <span class="dot"></span><span id="vr-scene-name">場景</span>
+    </div>
+  </div>
+  <div class="vr-picker" id="vr-picker"></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three/build/three.module.js",
+    "@photo-sphere-viewer/core": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5/index.module.js",
+    "@photo-sphere-viewer/markers-plugin": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5/index.module.js"
+  }
+}
+</script>
+<script type="module">
+import { Viewer } from '@photo-sphere-viewer/core';
+import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
+
+// Phase A demo data：硬寫一份漾時光的 VR tour
+const VR_DEMO_TOURS = [
+  {
+    id: 'demo-tour-1',
+    title: '完工實景漫遊',
+    description: '走一趟完成後的家，從玄關開始。',
+    tour_date: '2026-05-11',
+    scenes: {
+      entry: {
+        name: '玄關',
+        panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/tour/key-biscayne-1.jpg',
+        thumbPos: '0% 50%',
+        links: [{ yaw: '120deg', pitch: '-5deg', target: 'living', label: '客廳' }],
+      },
+      living: {
+        name: '客廳',
+        panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/tour/key-biscayne-2.jpg',
+        thumbPos: '50% 50%',
+        links: [
+          { yaw: '-60deg', pitch: '-5deg', target: 'entry', label: '玄關' },
+          { yaw: '140deg', pitch: '-5deg', target: 'bedroom', label: '主臥' },
+        ],
+      },
+      bedroom: {
+        name: '主臥',
+        panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/tour/key-biscayne-3.jpg',
+        thumbPos: '100% 50%',
+        links: [{ yaw: '-90deg', pitch: '-5deg', target: 'living', label: '客廳' }],
+      },
+    },
+    initialScene: 'entry',
+  },
+];
+
+let _vrViewer = null, _vrMarkers = null, _vrCurrentTour = null, _vrCurrentScene = null;
+
+window.renderClientVRTour = function(){
+  const section = document.getElementById('client-vr-tour-section');
+  const list = document.getElementById('client-vr-tour-list');
+  if(!section || !list) return;
+  // Phase D 後改 fetch DB；目前用 demo data
+  const tours = VR_DEMO_TOURS;
+  if(!tours.length){ section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = tours.map(tour => {
+    const firstScene = tour.scenes[tour.initialScene];
+    const dateStr = tour.tour_date ? new Date(tour.tour_date).toLocaleDateString('zh-TW') : '';
+    const sceneCount = Object.keys(tour.scenes).length;
+    return `<div class="vr-tour-card" onclick="openVRViewer('${tour.id}')">
+      <div class="vr-tour-thumb" style="background-image:url('${firstScene.panorama}');background-position:${firstScene.thumbPos};"></div>
+      <div class="vr-tour-info">
+        <div class="vr-tour-title">${escapeHtml(tour.title)}</div>
+        <div class="vr-tour-meta">${dateStr} · 共 ${sceneCount} 個空間</div>
+        <div class="vr-tour-cta">▸ 點擊開始漫遊</div>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.openVRViewer = function(tourId){
+  const tour = VR_DEMO_TOURS.find(t=>t.id===tourId);
+  if(!tour) return;
+  _vrCurrentTour = tour;
+  _vrCurrentScene = tour.initialScene;
+  const modal = document.getElementById('vr-viewer-modal');
+  document.getElementById('vr-modal-title').textContent = tour.title;
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  // 建 picker
+  const picker = document.getElementById('vr-picker');
+  picker.innerHTML = Object.entries(tour.scenes).map(([sid, s]) => `
+    <button class="vr-chip ${sid===_vrCurrentScene?'active':''}" data-scene="${sid}" onclick="vrGoScene('${sid}')">
+      <div class="vr-chip-thumb" style="background-image:url('${s.panorama}');background-position:${s.thumbPos||'50% 50%'};"></div>
+      <div class="vr-chip-label">${s.name}</div>
+    </button>
+  `).join('');
+
+  document.getElementById('vr-scene-name').textContent = tour.scenes[_vrCurrentScene].name;
+
+  // 建 viewer（延遲確保 modal 已 layout）
+  setTimeout(() => {
+    if(_vrViewer){ try{_vrViewer.destroy();}catch(e){} _vrViewer = null; }
+    _vrViewer = new Viewer({
+      container: document.getElementById('vr-viewer-stage'),
+      panorama: tour.scenes[_vrCurrentScene].panorama,
+      caption: '',
+      loadingTxt: '載入中…',
+      navbar: ['zoom', 'fullscreen'],
+      defaultZoomLvl: 5,
+      mousewheel: true,
+      touchmoveTwoFingers: false,
+      plugins: [[MarkersPlugin, {}]],
+    });
+    _vrMarkers = _vrViewer.getPlugin(MarkersPlugin);
+    _vrViewer.addEventListener('ready', () => setVRMarkers(_vrCurrentScene), { once: true });
+    _vrMarkers.addEventListener('select-marker', ({ marker }) => {
+      if(marker.data?.target) vrGoScene(marker.data.target);
+    });
+  }, 60);
+};
+
+function setVRMarkers(sceneId){
+  if(!_vrMarkers || !_vrCurrentTour) return;
+  _vrMarkers.clearMarkers();
+  (_vrCurrentTour.scenes[sceneId].links || []).forEach((link, i) => {
+    _vrMarkers.addMarker({
+      id: `link-${sceneId}-${i}`,
+      position: { yaw: link.yaw, pitch: link.pitch },
+      html: `<div class="vr-hotspot"><div class="vr-hotspot-ring"><div class="vr-hotspot-arrow"></div></div><div class="vr-hotspot-label">${link.label}</div></div>`,
+      anchor: 'center center',
+      data: { target: link.target },
+    });
+  });
+}
+
+window.vrGoScene = function(sceneId){
+  if(!_vrCurrentTour || !_vrViewer) return;
+  if(sceneId === _vrCurrentScene) return;
+  const scene = _vrCurrentTour.scenes[sceneId];
+  if(!scene) return;
+  _vrCurrentScene = sceneId;
+  document.getElementById('vr-scene-name').textContent = scene.name;
+  document.querySelectorAll('.vr-chip').forEach(c => c.classList.toggle('active', c.dataset.scene===sceneId));
+  _vrMarkers.clearMarkers();
+  _vrViewer.setPanorama(scene.panorama, { transition: 1000, showLoader: true })
+    .then(() => setVRMarkers(sceneId));
+};
+
+window.closeVRViewer = function(){
+  const modal = document.getElementById('vr-viewer-modal');
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+  if(_vrViewer){ try{_vrViewer.destroy();}catch(e){} _vrViewer = null; _vrMarkers = null; }
+};
+</script>
+
 </body>
 </html>
