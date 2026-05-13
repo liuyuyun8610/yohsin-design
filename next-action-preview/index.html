@@ -145,8 +145,9 @@
     <button class="sw-btn active" onclick="show(0,this)">禮物</button>
     <button class="sw-btn" onclick="show(1,this)">圖紙確認</button>
     <button class="sw-btn" onclick="show(2,this)">待回覆</button>
-    <button class="sw-btn" onclick="show(3,this)">3D 漫遊</button>
-    <button class="sw-btn" onclick="show(4,this)">進度</button>
+    <button class="sw-btn" onclick="show(3,this)">最新更新（多項）</button>
+    <button class="sw-btn" onclick="show(4,this)">最新更新（單項）</button>
+    <button class="sw-btn" onclick="show(5,this)">無更新</button>
   </div>
 
   <!-- 模擬實際 layout -->
@@ -189,14 +190,47 @@
 
 <script>
 const STATES = [
-  { label: '✶ 旅程禮物',  title: '您有 1 份來自設計師的小禮物',         desc: '為您旅程中的小驚喜，點開看看裡面是什麼',                        cta: '▸ 收下禮物' },
-  { label: '請您確認',     title: '空間與家具尺寸圖 已完成，等您看一眼', desc: '設計師完成了這份圖面，請您過目並回覆是否需要調整',              cta: '▸ 前往查看' },
-  { label: '待您確認',     title: '有 2 件事項需要您回覆',               desc: '設計師留了一些選擇給您決定，越早回覆我們越能幫您安排',          cta: '▸ 查看待確認事項' },
-  { label: '空間漫遊上線', title: '家的 3D 漫遊已準備好',                desc: '在家就能 360° 環看每個空間，建議用電腦看視野更廣',              cta: '▸ 進入空間漫遊' },
-  { label: '目前進度',     title: '家的旅程進行到「拆除工程」',          desc: '我們會持續更新，有任何問題歡迎隨時聯繫',                        cta: '▸ 看看裝修旅程' },
+  { label: '✶ 旅程禮物',
+    title: '您有 1 份來自設計師的小禮物',
+    desc:  '為您旅程中的小驚喜，點開看看裡面是什麼',
+    cta:   '收下禮物 →',
+    hide:  false },
+  { label: '請您確認',
+    title: '空間與家具尺寸圖 已完成，等您看一眼',
+    desc:  '設計師完成了這份圖面，請您過目並回覆是否需要調整',
+    cta:   '前往查看 →',
+    hide:  false },
+  { label: '待您確認',
+    title: '有 2 件事項需要您回覆',
+    desc:  '設計師留了一些選擇給您決定，越早回覆我們越能幫您安排',
+    cta:   '查看待確認事項 →',
+    hide:  false },
+  { label: '最新更新',
+    title: '已為你新增 3D 空間效果圖與施工圖面',
+    desc:  '可以先從最新的 3D 空間效果圖開始看，再進入施工圖面感受變化。',
+    cta:   '查看最新內容 →',
+    hide:  false },
+  { label: '最新更新',
+    title: '已為你新增立面系統圖',
+    desc:  '設計師最近更新了這份內容，點開看看吧～',
+    cta:   '查看最新內容 →',
+    hide:  false },
+  { label: '',
+    title: '（不顯示卡片）',
+    desc:  '若沒有任何近期更新，整張卡片隱藏，不打擾客戶',
+    cta:   '',
+    hide:  true },
 ];
 function show(i, btn){
   const s = STATES[i];
+  const card = document.querySelector('.next-action');
+  if(s.hide){
+    card.style.display = 'none';
+    document.querySelectorAll('.sw-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    return;
+  }
+  card.style.display = 'block';
   document.getElementById('na-label').textContent = s.label;
   document.getElementById('na-title').textContent = s.title;
   document.getElementById('na-desc').textContent = s.desc;

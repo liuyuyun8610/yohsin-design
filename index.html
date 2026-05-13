@@ -8872,27 +8872,63 @@ function renderClientNextAction(proj){
     return;
   }
 
-  // ── 優先序 4：3D 漫遊已上線（且還沒去看過）──
+  // ── 優先序 4：彙整最近所有新東西（核心問題：「最近有什麼新的？」）──
+  const sevenDaysAgo = Date.now() - 7 * 86400000;
+  const newItems = [];  // { kind, label, ts, navigate }
+
+  // 4a. 圖紙：每 type 最新一張在 7 天內就算
+  for(const t of drawingTypes){
+    const list = drawings[t] || [];
+    let latest = null;
+    for(const v of list){
+      if(!v.date) continue;
+      const d = new Date(v.date.replace(/\//g, '-')).getTime();
+      if(isNaN(d) || d < sevenDaysAgo) continue;
+      if(!latest || d > latest) latest = d;
+    }
+    if(latest){
+      newItems.push({ kind: 'drawing', label: t, ts: latest, navigate: () => goToDrawingType(t) });
+    }
+  }
+
+  // 4b. 3D 漫遊（如果有）
   if((window._vrTours||[]).length > 0){
-    setNextAction(card, '空間漫遊上線',
-      '家的 3D 漫遊已準備好',
-      '在家就能 360° 環看每個空間，建議用電腦看視野更廣',
-      '▸ 進入空間漫遊',
-      () => goToDrawingType('vr-tour'));
+    newItems.push({ kind: 'vr', label: '3D 空間漫遊', ts: Date.now(), navigate: () => goToDrawingType('vr-tour') });
+  }
+
+  // 4c. 施工照片：近 7 天有 log 帶 photos
+  const calKeys = (typeof calLogs !== 'undefined' && calLogs) ? Object.keys(calLogs).sort().reverse() : [];
+  for(const k of calKeys){
+    const d = new Date(k.replace(/\//g, '-')).getTime();
+    if(isNaN(d) || d < sevenDaysAgo) continue;
+    const log = calLogs[k];
+    if(log && log.photos?.length){
+      newItems.push({ kind: 'construction', label: '施工進度照片', ts: d,
+        navigate: () => goPage('p-construction', document.querySelector('#s-client .tnav[onclick*="p-construction"]')) });
+      break;  // 只取最新一筆
+    }
+  }
+
+  if(newItems.length){
+    // 排序：最新的在前
+    newItems.sort((a,b) => b.ts - a.ts);
+    const labels = newItems.map(i => i.label);
+    let titleText, descText;
+    if(labels.length === 1){
+      titleText = `已為你新增${labels[0]}`;
+      descText = '設計師最近更新了這份內容，點開看看吧～';
+    } else if(labels.length === 2){
+      titleText = `已為你新增${labels[0]}與${labels[1]}`;
+      descText = `可以先從最新的${labels[0]}開始看，再進入${labels[1]}感受變化。`;
+    } else {
+      titleText = `已為你新增${labels.slice(0, 2).join('、')}等${labels.length}項內容`;
+      descText = `這幾天設計師為你的家準備了不少更新，從${labels[0]}先看起最直觀。`;
+    }
+    setNextAction(card, '最新更新', titleText, descText, '查看最新內容 →', newItems[0].navigate);
     return;
   }
 
-  // ── 優先序 5：fallback 顯示目前進度 ──
-  if(proj && proj.currentPhase){
-    const phaseName = (PHASE_LIST_FALLBACK?.find(p => p.sort_order === proj.currentPhase)?.name) || '';
-    setNextAction(card, '目前進度',
-      `家的旅程進行到「${phaseName || '第 ' + proj.currentPhase + ' 站'}」`,
-      '我們會持續更新，有任何問題歡迎隨時聯繫',
-      '▸ 看看裝修旅程',
-      () => { document.getElementById('dash-phase-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    return;
-  }
-
+  // 沒任何近期更新 → 不顯示卡片（避免假訊息打擾）
   card.style.display = 'none';
 }
 
