@@ -1560,7 +1560,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
       <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
-      <button class="tnav" onclick="goAdminPage('a-vr-tours',this)">3D 漫遊</button>
       <button class="tnav" onclick="goAdminPage('a-survey',this)">需求表單</button>
       <button class="tnav" onclick="goAdminPage('a-settings',this)">設定</button>
     </div>
@@ -1579,7 +1578,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
-      <button class="mobile-tnav" onclick="goAdminPageMobile('a-vr-tours',this)">3D 漫遊</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-survey',this)">需求表單</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-settings',this)">設定</button>
@@ -2448,48 +2446,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <!-- 連結列表 -->
       <div id="survey-links-list"></div>
-    </div>
-
-    <!-- 3D 漫遊管理（VR Tours）-->
-    <div class="page" id="a-vr-tours">
-      <div class="sec-head">
-        <div class="sec-ttl">3D 漫遊管理</div>
-        <button class="btn-ink" onclick="openVRTourCreateForm()">＋ 新增漫遊</button>
-      </div>
-      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.4rem;padding:10px 14px;background:var(--sand);border-radius:10px;border-left:3px solid var(--accent-light);">
-        為每個專案建立一個 3D 漫遊（例：完工實景 / 設計階段預覽）。<br>
-        全景圖規格：4K equirectangular JPG（2:1 比例），Enscape Output → Resolution → 4K Mono Panorama。
-      </div>
-
-      <!-- 新增 tour 表單 -->
-      <div class="card" id="vr-tour-create-form" style="margin-bottom:1.2rem;display:none;">
-        <div class="card-title">新增 3D 漫遊</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <div>
-            <label class="form-label">所屬專案</label>
-            <select class="form-input" id="vr-new-project" style="margin-bottom:0;"></select>
-          </div>
-          <div>
-            <label class="form-label">標題</label>
-            <input class="form-input" id="vr-new-title" placeholder="例：2026/05/11 完工實景漫遊" style="margin-bottom:0;">
-          </div>
-          <div>
-            <label class="form-label">日期</label>
-            <input class="form-input" type="date" id="vr-new-date" style="margin-bottom:0;">
-          </div>
-          <div>
-            <label class="form-label">描述（選填）</label>
-            <input class="form-input" id="vr-new-desc" placeholder="走一趟完成後的家" style="margin-bottom:0;">
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-ink" onclick="createVRTour()">建立</button>
-          <button class="btn-ghost" onclick="closeVRTourCreateForm()">取消</button>
-        </div>
-      </div>
-
-      <!-- tours 列表 -->
-      <div id="admin-vr-tours-list"></div>
     </div>
 
     <div class="page" id="a-settings">
@@ -4051,7 +4007,6 @@ async function goAdminPage(id,el){
   if(id==='a-clients') renderAdminClients();
   if(id==='a-projects') renderProjects();
   if(id==='a-settings') initSettings();
-  if(id==='a-vr-tours') loadAdminVRTours();
 }
 
 function syncAllData(){
@@ -7089,207 +7044,6 @@ async function uploadToStorage(file, folder){
   return u.publicUrl;
 }
 function fmtFileSize(b){if(!b)return '—';if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(1)+'MB';}
-
-// ════════════════════════════════════════════════════════════
-// VR Tours admin (Phase B)
-// ════════════════════════════════════════════════════════════
-let _adminVRTours = [];
-
-async function uploadPanorama(file, projectId, tourId){
-  // 全景圖直接上 vr-panoramas bucket（不壓縮，因為 4K 很關鍵）
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  if(!['jpg','jpeg','png'].includes(ext)) throw new Error('全景圖只支援 JPG / PNG');
-  if(file.size > 30 * 1024 * 1024) throw new Error('檔案超過 30MB 上限');
-  const path = `${projectId}/${tourId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await sbClient.storage.from('vr-panoramas').upload(path, file, { cacheControl: '3600', upsert: false });
-  if(error){
-    if(/Bucket not found/i.test(error.message)) throw new Error('Storage bucket "vr-panoramas" 還沒建。請到 Supabase > Storage 新增。');
-    throw new Error('上傳失敗：' + error.message);
-  }
-  const { data } = sbClient.storage.from('vr-panoramas').getPublicUrl(path);
-  return data.publicUrl;
-}
-
-async function loadAdminVRTours(){
-  const list = document.getElementById('admin-vr-tours-list');
-  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink-light);font-size:13px;">載入中…</div>';
-  try{
-    // tours + scenes 一起抓
-    const { data: tours, error: e1 } = await sbClient.from('vr_tours').select('*').order('created_at', { ascending: false });
-    if(e1) throw e1;
-    const tourIds = (tours||[]).map(t=>t.id);
-    let scenesByTour = {};
-    let hotspotsByScene = {};
-    if(tourIds.length){
-      const { data: scenes } = await sbClient.from('vr_scenes').select('*').in('tour_id', tourIds).order('sort_order', { ascending: true });
-      (scenes||[]).forEach(s => {
-        if(!scenesByTour[s.tour_id]) scenesByTour[s.tour_id] = [];
-        scenesByTour[s.tour_id].push(s);
-      });
-      const sceneIds = (scenes||[]).map(s=>s.id);
-      if(sceneIds.length){
-        const { data: hotspots } = await sbClient.from('vr_hotspots').select('*').in('scene_id', sceneIds);
-        (hotspots||[]).forEach(h => {
-          if(!hotspotsByScene[h.scene_id]) hotspotsByScene[h.scene_id] = [];
-          hotspotsByScene[h.scene_id].push(h);
-        });
-      }
-    }
-    _adminVRTours = (tours||[]).map(t => ({ ...t, scenes: scenesByTour[t.id] || [], hotspotsByScene }));
-    populateVRProjectSelect();
-    renderAdminVRTours();
-  }catch(e){
-    list.innerHTML = `<div style="padding:1rem;color:var(--red);background:#FFF5F5;border-radius:8px;font-size:13px;">⚠️ 載入失敗：${escapeHtml(e.message||String(e))}<br>請確認 ys-interior SQL migrations/2026-05-13_vr_tours.sql 已執行。</div>`;
-  }
-}
-
-function populateVRProjectSelect(){
-  const sel = document.getElementById('vr-new-project');
-  if(!sel) return;
-  sel.innerHTML = '<option value="">請選擇專案</option>' + (projects||[]).map(p => `<option value="${p.id}">${escapeHtml(p.name||'')}</option>`).join('');
-}
-
-function renderAdminVRTours(){
-  const list = document.getElementById('admin-vr-tours-list');
-  if(!_adminVRTours.length){
-    list.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:var(--ink-light);font-size:13px;">尚未建立任何漫遊。點上方「＋ 新增漫遊」開始。</div>';
-    return;
-  }
-  list.innerHTML = _adminVRTours.map(t => {
-    const proj = (projects||[]).find(p => Number(p.id)===Number(t.project_id));
-    const projName = proj ? proj.name : `專案 #${t.project_id}`;
-    const dateStr = t.tour_date ? new Date(t.tour_date).toLocaleDateString('zh-TW') : '—';
-    const isPublished = t.status === 'published';
-    return `<div class="card" style="margin-bottom:1rem;padding:1rem 1.2rem;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
-        <div style="flex:1;min-width:0;">
-          <div style="font-family:'Noto Serif TC',serif;font-size:15px;color:var(--ink);font-weight:500;margin-bottom:3px;">${escapeHtml(t.title)}</div>
-          <div style="font-size:11.5px;color:var(--ink-muted);">📁 ${escapeHtml(projName)} · 📅 ${dateStr} · 共 ${t.scenes.length} 個場景</div>
-          ${t.description ? `<div style="font-size:11.5px;color:var(--ink-light);margin-top:4px;font-style:italic;">${escapeHtml(t.description)}</div>` : ''}
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn-ghost" style="font-size:11px;padding:5px 12px;" onclick="toggleVRTourStatus('${t.id}', '${isPublished?'draft':'published'}')">${isPublished?'設為草稿':'發布'}</button>
-          <button class="btn-ghost" style="font-size:11px;padding:5px 12px;color:var(--red);" onclick="deleteVRTour('${t.id}', '${escapeHtml(t.title).replace(/'/g,"\\'")}')">刪除</button>
-        </div>
-      </div>
-      <div style="font-size:10px;letter-spacing:0.18em;color:${isPublished?'#3A7A4A':'var(--ink-light)'};margin-bottom:10px;">${isPublished?'● 已發布（客戶可看到）':'○ 草稿（僅後台可見）'}</div>
-
-      <!-- 場景列表 -->
-      <div style="background:var(--sand);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
-        <div style="font-size:11.5px;color:var(--ink-muted);margin-bottom:8px;font-weight:500;">場景</div>
-        ${t.scenes.length ? t.scenes.map((s, idx) => {
-          const hotspotCount = (t.hotspotsByScene[s.id] || []).length;
-          return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(45,36,24,0.05);">
-            <div style="width:60px;height:36px;border-radius:4px;background:#1a1614 url('${s.panorama_url}') center/cover;flex-shrink:0;"></div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:12.5px;color:var(--ink);font-family:'Noto Serif TC',serif;">${escapeHtml(s.name)} <span style="font-size:10px;color:var(--ink-light);">${hotspotCount > 0 ? `· ${hotspotCount} 個熱點` : ''}</span></div>
-              <div style="font-size:10px;color:var(--ink-light);">場景 ${idx+1}</div>
-            </div>
-            <button class="btn-ghost" style="font-size:10px;padding:3px 9px;color:var(--red);" onclick="deleteVRScene('${s.id}', '${escapeHtml(s.name).replace(/'/g,"\\'")}')">×</button>
-          </div>`;
-        }).join('') : '<div style="text-align:center;padding:14px;font-size:11.5px;color:var(--ink-light);">還沒有場景，請新增</div>'}
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-ghost" style="font-size:11px;padding:6px 14px;" onclick="openVRSceneAdd('${t.id}')">＋ 新增場景（上傳全景圖）</button>
-        ${t.scenes.length >= 2 ? `<span style="font-size:10.5px;color:var(--ink-light);align-self:center;">熱點編輯功能即將推出（Phase C）</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function openVRTourCreateForm(){
-  populateVRProjectSelect();
-  document.getElementById('vr-new-title').value = '';
-  document.getElementById('vr-new-desc').value = '';
-  document.getElementById('vr-new-date').value = new Date().toISOString().slice(0,10);
-  document.getElementById('vr-tour-create-form').style.display = 'block';
-}
-
-function closeVRTourCreateForm(){
-  document.getElementById('vr-tour-create-form').style.display = 'none';
-}
-
-async function createVRTour(){
-  const projectId = document.getElementById('vr-new-project').value;
-  const title = document.getElementById('vr-new-title').value.trim();
-  const desc = document.getElementById('vr-new-desc').value.trim();
-  const date = document.getElementById('vr-new-date').value;
-  if(!projectId){ alert('請選擇專案'); return; }
-  if(!title){ alert('請填寫標題'); return; }
-  const proj = (projects||[]).find(p => Number(p.id)===Number(projectId));
-  const clientId = (clients||[]).find(c => Number(c.projectId)===Number(projectId))?.id || null;
-  try{
-    const { error } = await sbClient.from('vr_tours').insert({
-      project_id: Number(projectId),
-      client_id: clientId,
-      title, description: desc || null,
-      tour_date: date || null,
-      status: 'draft',
-    });
-    if(error) throw error;
-    closeVRTourCreateForm();
-    loadAdminVRTours();
-  }catch(e){ alert('建立失敗：' + e.message); }
-}
-
-async function toggleVRTourStatus(id, newStatus){
-  try{
-    const { error } = await sbClient.from('vr_tours').update({ status: newStatus }).eq('id', id);
-    if(error) throw error;
-    loadAdminVRTours();
-  }catch(e){ alert('更新失敗：' + e.message); }
-}
-
-async function deleteVRTour(id, title){
-  if(!confirm(`確定刪除漫遊「${title}」？\n包含的場景跟熱點都會一起刪除（不可復原）。`)) return;
-  try{
-    const { error } = await sbClient.from('vr_tours').delete().eq('id', id);
-    if(error) throw error;
-    loadAdminVRTours();
-  }catch(e){ alert('刪除失敗：' + e.message); }
-}
-
-function openVRSceneAdd(tourId){
-  const tour = _adminVRTours.find(t => t.id === tourId);
-  if(!tour) return;
-  // 用 input file 開檔案選擇
-  const sceneName = prompt('場景名稱（例：玄關 / 客廳 / 主臥）');
-  if(!sceneName || !sceneName.trim()) return;
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/jpeg,image/png';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const btn = event?.target;
-    try{
-      const url = await uploadPanorama(file, tour.project_id, tour.id);
-      const sortOrder = tour.scenes.length;
-      const { data: scene, error } = await sbClient.from('vr_scenes').insert({
-        tour_id: tour.id,
-        name: sceneName.trim(),
-        panorama_url: url,
-        sort_order: sortOrder,
-      }).select().single();
-      if(error) throw error;
-      // 第一個場景 → 設為 initial_scene_id
-      if(sortOrder === 0){
-        await sbClient.from('vr_tours').update({ initial_scene_id: scene.id }).eq('id', tour.id);
-      }
-      loadAdminVRTours();
-    }catch(err){ alert('上傳失敗：' + err.message); }
-  };
-  input.click();
-}
-
-async function deleteVRScene(id, name){
-  if(!confirm(`確定刪除場景「${name}」？相關熱點也會一起刪除。`)) return;
-  try{
-    const { error } = await sbClient.from('vr_scenes').delete().eq('id', id);
-    if(error) throw error;
-    loadAdminVRTours();
-  }catch(e){ alert('刪除失敗：' + e.message); }
-}
 
 
 function handleDrawingDrop(e){
