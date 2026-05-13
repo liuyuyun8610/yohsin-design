@@ -8778,7 +8778,11 @@ async function renderClientPhaseTimeline(proj) {
   const cp = Number(proj.currentPhase) || 1;
 
   const list = await getPhaseList();
-  if (progEl) progEl.textContent = `第 ${cp} 站 · 共 ${list.length} 站`;
+  // 用「第 cp 站完成 / 全部 list.length 站」算 % — cp 是「正在進行的站」，
+  // 表示前面 cp-1 站已完成 + 當前站進行中（算半完成 0.5 比較貼近實際）
+  const completedFraction = ((cp - 1) + 0.5) / list.length;
+  const pct = Math.min(100, Math.max(0, Math.round(completedFraction * 100)));
+  if (progEl) progEl.textContent = `您的空間旅程已完成 ${pct}%`;
 
   const tiles = list.map(p => {
     const n = p.sort_order;
