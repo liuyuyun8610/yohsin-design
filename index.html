@@ -8841,10 +8841,10 @@ window.renderClientNextAction = function(proj){
   // ── 優先序 1：未拆禮物 ──
   const unwrapped = (window._surprises||[]).filter(s => !s.acknowledged_at);
   if(unwrapped.length){
-    setNextAction(card, '✶ 旅程禮物',
-      `我們為您準備了 ${unwrapped.length} 份小禮物`,
-      '為您旅程中的小驚喜，點開看看裡面是什麼',
-      '收下禮物 →',
+    setNextAction(card, '✶ 給您的小心意',
+      `有 ${unwrapped.length} 份禮物在等您拆`,
+      '裝修旅程中的一點點驚喜，希望您喜歡。',
+      '看看是什麼 →',
       () => openSurpriseInbox());
     return;
   }
@@ -8858,10 +8858,10 @@ window.renderClientNextAction = function(proj){
     if(unconfirmed){ unconfirmedFinal = { type: t, item: unconfirmed }; break; }
   }
   if(unconfirmedFinal){
-    setNextAction(card, '請您確認',
-      `${unconfirmedFinal.type} 已完成，等您看一眼`,
-      '我們完成了這份圖面，請您過目並回覆是否需要調整',
-      '前往查看 →',
+    setNextAction(card, '等您看看',
+      `${unconfirmedFinal.type} 差不多到位了`,
+      '看看有沒有想再調整的細節，跟我們說一聲就好。',
+      '看看圖面 →',
       () => goToDrawingType(unconfirmedFinal.type));
     return;
   }
@@ -8869,10 +8869,10 @@ window.renderClientNextAction = function(proj){
   // ── 優先序 3：待確認事項（pending_items）──
   const pendingOpen = pendingItems.filter(p => p.status === 'pending');
   if(pendingOpen.length){
-    setNextAction(card, '待您確認',
-      `有 ${pendingOpen.length} 件事項需要您回覆`,
-      '我們留了一些選擇給您決定，越早回覆越能幫您安排接下來的進度',
-      '查看待確認事項 →',
+    setNextAction(card, '想聽您的想法',
+      `有 ${pendingOpen.length} 件事想跟您確認一下`,
+      '有些選擇我們先準備好了，方便時點進去看看您喜歡哪種～',
+      '看看有什麼 →',
       () => goPage('p-checklist', document.querySelector('#s-client .tnav[onclick*="p-checklist"]')));
     return;
   }
@@ -8921,14 +8921,14 @@ window.renderClientNextAction = function(proj){
     const labels = newItems.map(i => i.label);
     let titleText, descText;
     if(labels.length === 1){
-      titleText = `已為你新增${labels[0]}`;
-      descText = '我們最近更新了這份內容，點開看看吧～';
+      titleText = `${labels[0]} 上新了`;
+      descText = '剛準備好的內容，有空可以點進去看看～';
     } else if(labels.length === 2){
-      titleText = `已為你新增${labels[0]}與${labels[1]}`;
-      descText = `可以先從最新的${labels[0]}開始看，再進入${labels[1]}感受變化。`;
+      titleText = `${labels[0]} 跟 ${labels[1]} 都上新了`;
+      descText = `先從 ${labels[0]} 開始最直觀，看完再去 ${labels[1]} 感受空間的變化。`;
     } else {
-      titleText = `已為你新增${labels.slice(0, 2).join('、')}等${labels.length}項內容`;
-      descText = `這幾天我們為你的家準備了不少更新，從${labels[0]}先看起最直觀。`;
+      titleText = `這幾天有不少新東西`;
+      descText = `${labels.slice(0, 3).join('、')} 等 ${labels.length} 項陸續到位，從 ${labels[0]} 先看起最直觀。`;
     }
     setNextAction(card, '最新更新', titleText, descText, '查看最新內容 →', newItems[0].navigate);
     return;
