@@ -8873,7 +8873,8 @@ function renderClientNextAction(proj){
   }
 
   // ── 優先序 4：彙整最近所有新東西（核心問題：「最近有什麼新的？」）──
-  const sevenDaysAgo = Date.now() - 7 * 86400000;
+  // 時間窗：近 3 天（更聚焦最新動態）
+  const sevenDaysAgo = Date.now() - 3 * 86400000;
   const newItems = [];  // { kind, label, ts, navigate }
 
   // 4a. 圖紙：每 type 最新一張在 7 天內就算
