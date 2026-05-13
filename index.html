@@ -8842,9 +8842,9 @@ window.renderClientNextAction = function(proj){
   const unwrapped = (window._surprises||[]).filter(s => !s.acknowledged_at);
   if(unwrapped.length){
     setNextAction(card, '✶ 旅程禮物',
-      `您有 ${unwrapped.length} 份來自設計師的小禮物`,
+      `我們為您準備了 ${unwrapped.length} 份小禮物`,
       '為您旅程中的小驚喜，點開看看裡面是什麼',
-      '▸ 收下禮物',
+      '收下禮物 →',
       () => openSurpriseInbox());
     return;
   }
@@ -8860,8 +8860,8 @@ window.renderClientNextAction = function(proj){
   if(unconfirmedFinal){
     setNextAction(card, '請您確認',
       `${unconfirmedFinal.type} 已完成，等您看一眼`,
-      '設計師完成了這份圖面，請您過目並回覆是否需要調整',
-      '▸ 前往查看',
+      '我們完成了這份圖面，請您過目並回覆是否需要調整',
+      '前往查看 →',
       () => goToDrawingType(unconfirmedFinal.type));
     return;
   }
@@ -8871,8 +8871,8 @@ window.renderClientNextAction = function(proj){
   if(pendingOpen.length){
     setNextAction(card, '待您確認',
       `有 ${pendingOpen.length} 件事項需要您回覆`,
-      '設計師留了一些選擇給您決定，越早回覆我們越能幫您安排',
-      '▸ 查看待確認事項',
+      '我們留了一些選擇給您決定，越早回覆越能幫您安排接下來的進度',
+      '查看待確認事項 →',
       () => goPage('p-checklist', document.querySelector('#s-client .tnav[onclick*="p-checklist"]')));
     return;
   }
@@ -8922,13 +8922,13 @@ window.renderClientNextAction = function(proj){
     let titleText, descText;
     if(labels.length === 1){
       titleText = `已為你新增${labels[0]}`;
-      descText = '設計師最近更新了這份內容，點開看看吧～';
+      descText = '我們最近更新了這份內容，點開看看吧～';
     } else if(labels.length === 2){
       titleText = `已為你新增${labels[0]}與${labels[1]}`;
       descText = `可以先從最新的${labels[0]}開始看，再進入${labels[1]}感受變化。`;
     } else {
       titleText = `已為你新增${labels.slice(0, 2).join('、')}等${labels.length}項內容`;
-      descText = `這幾天設計師為你的家準備了不少更新，從${labels[0]}先看起最直觀。`;
+      descText = `這幾天我們為你的家準備了不少更新，從${labels[0]}先看起最直觀。`;
     }
     setNextAction(card, '最新更新', titleText, descText, '查看最新內容 →', newItems[0].navigate);
     return;
