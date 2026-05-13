@@ -11671,67 +11671,99 @@ document.addEventListener('DOMContentLoaded', function() {
 import { Viewer } from '@photo-sphere-viewer/core';
 import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
 
-// Phase A demo data：硬寫一份漾時光的 VR tour
-const VR_DEMO_TOURS = [
-  {
-    id: 'demo-tour-1',
-    title: '完工實景漫遊',
-    description: '走一趟完成後的家，從玄關開始。',
-    tour_date: '2026-05-11',
-    scenes: {
-      entry: {
-        name: '玄關',
-        panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/tour/key-biscayne-1.jpg',
-        thumbPos: '0% 50%',
-        links: [{ yaw: '120deg', pitch: '-5deg', target: 'living', label: '客廳' }],
-      },
-      living: {
-        name: '客廳',
-        panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/tour/key-biscayne-2.jpg',
-        thumbPos: '50% 50%',
-        links: [
-          { yaw: '-60deg', pitch: '-5deg', target: 'entry', label: '玄關' },
-          { yaw: '140deg', pitch: '-5deg', target: 'bedroom', label: '主臥' },
-        ],
-      },
-      bedroom: {
-        name: '主臥',
-        panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/tour/key-biscayne-3.jpg',
-        thumbPos: '100% 50%',
-        links: [{ yaw: '-90deg', pitch: '-5deg', target: 'living', label: '客廳' }],
-      },
-    },
-    initialScene: 'entry',
-  },
-];
-
+// VR tours fetched from ys-interior DB (vr_tours / vr_scenes / vr_hotspots)
 let _vrViewer = null, _vrMarkers = null, _vrCurrentTour = null, _vrCurrentScene = null;
+let _vrTours = []; // 客戶當前 project 的 published tours（含 scenes + hotspots）
 
-window.renderClientVRTour = function(){
+window.renderClientVRTour = async function(){
   const section = document.getElementById('client-vr-tour-section');
   const list = document.getElementById('client-vr-tour-list');
   if(!section || !list) return;
-  // Phase D 後改 fetch DB；目前用 demo data
-  const tours = VR_DEMO_TOURS;
-  if(!tours.length){ section.style.display = 'none'; return; }
+
+  // 拿目前 client 對應的 project
+  const c = (clients||[]).find(x => x.id === currentClientId);
+  const projectId = c?.projectId;
+  if(!projectId){ section.style.display = 'none'; return; }
+
+  list.innerHTML = '<div style="font-size:12px;color:var(--ink-light);text-align:center;padding:1rem;">載入中…</div>';
   section.style.display = 'block';
-  list.innerHTML = tours.map(tour => {
-    const firstScene = tour.scenes[tour.initialScene];
-    const dateStr = tour.tour_date ? new Date(tour.tour_date).toLocaleDateString('zh-TW') : '';
-    const sceneCount = Object.keys(tour.scenes).length;
-    return `<div class="vr-tour-card" onclick="openVRViewer('${tour.id}')">
-      <div class="vr-tour-thumb" style="background-image:url('${firstScene.panorama}');background-position:${firstScene.thumbPos};"></div>
-      <div class="vr-tour-info">
-        <div class="vr-tour-title">${escapeHtml(tour.title)}</div>
-        <div class="vr-tour-meta">${dateStr} · 共 ${sceneCount} 個空間</div>
-        <div class="vr-tour-cta">▸ 點擊開始漫遊</div>
-      </div>
-    </div>`;
-  }).join('');
+
+  try{
+    // 抓該 project 的 published tours
+    const { data: toursRaw, error: e1 } = await sbClient
+      .from('vr_tours')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('status', 'published')
+      .order('tour_date', { ascending: false });
+    if(e1) throw e1;
+    if(!toursRaw || !toursRaw.length){ section.style.display = 'none'; return; }
+
+    const tourIds = toursRaw.map(t => t.id);
+    const { data: scenesRaw } = await sbClient
+      .from('vr_scenes').select('*').in('tour_id', tourIds).order('sort_order', { ascending: true });
+    const sceneIds = (scenesRaw||[]).map(s => s.id);
+    let hotspotsRaw = [];
+    if(sceneIds.length){
+      const { data } = await sbClient.from('vr_hotspots').select('*').in('scene_id', sceneIds);
+      hotspotsRaw = data || [];
+    }
+
+    // 組裝資料：tour → scenes (by id) → links (hotspots)
+    _vrTours = toursRaw.map(t => {
+      const sceneList = (scenesRaw||[]).filter(s => s.tour_id === t.id);
+      const scenesMap = {};
+      sceneList.forEach(s => {
+        const links = hotspotsRaw.filter(h => h.scene_id === s.id).map(h => ({
+          yaw: h.yaw + 'deg',
+          pitch: h.pitch + 'deg',
+          target: h.target_scene_id,
+          label: h.label || '',
+        }));
+        scenesMap[s.id] = {
+          name: s.name,
+          panorama: s.panorama_url,
+          thumbPos: '50% 50%',
+          defaultYaw: s.default_yaw,
+          defaultPitch: s.default_pitch,
+          links,
+        };
+      });
+      const initialSceneId = t.initial_scene_id || sceneList[0]?.id;
+      return {
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        tour_date: t.tour_date,
+        scenes: scenesMap,
+        initialScene: initialSceneId,
+      };
+    }).filter(t => Object.keys(t.scenes).length > 0); // 沒場景的 tour 不顯示
+
+    if(!_vrTours.length){ section.style.display = 'none'; return; }
+
+    list.innerHTML = _vrTours.map(tour => {
+      const firstScene = tour.scenes[tour.initialScene];
+      if(!firstScene) return '';
+      const dateStr = tour.tour_date ? new Date(tour.tour_date).toLocaleDateString('zh-TW') : '';
+      const sceneCount = Object.keys(tour.scenes).length;
+      return `<div class="vr-tour-card" onclick="openVRViewer('${tour.id}')">
+        <div class="vr-tour-thumb" style="background-image:url('${firstScene.panorama}');background-position:${firstScene.thumbPos};"></div>
+        <div class="vr-tour-info">
+          <div class="vr-tour-title">${escapeHtml(tour.title)}</div>
+          <div class="vr-tour-meta">${dateStr} · 共 ${sceneCount} 個空間</div>
+          <div class="vr-tour-cta">▸ 點擊開始漫遊</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(err){
+    console.warn('[vr tour] load failed', err);
+    section.style.display = 'none';
+  }
 };
 
 window.openVRViewer = function(tourId){
-  const tour = VR_DEMO_TOURS.find(t=>t.id===tourId);
+  const tour = _vrTours.find(t=>t.id===tourId);
   if(!tour) return;
   _vrCurrentTour = tour;
   _vrCurrentScene = tour.initialScene;
