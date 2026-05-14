@@ -1056,6 +1056,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="margin-top:10px;font-size:11.5px;color:#A07A38;letter-spacing:0.06em;font-family:'Noto Serif TC',serif;" id="dash-next-action-cta">▸ 點擊前往</div>
       </div>
 
+      <!-- 最近更新 5 類清單卡 -->
+      <div id="dash-recent-updates-card" class="card" style="display:none;margin-bottom:14px;padding:14px 18px;">
+        <div style="font-family:'Noto Serif TC',serif;font-size:11px;letter-spacing:0.28em;color:#8A8478;margin-bottom:6px;text-transform:uppercase;">最近更新</div>
+        <div id="dash-recent-updates-list" style="display:flex;flex-direction:column;"></div>
+      </div>
+
       <!-- 裝修旅程時間軸（Monopoly 風） -->
       <div class="card" id="dash-phase-card" style="margin-bottom:12px;display:none;position:relative;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
@@ -8927,65 +8933,145 @@ window.renderClientNextAction = function(proj){
     return;
   }
 
-  // ── 優先序 4：彙整最近所有新東西（核心問題：「最近有什麼新的？」）──
-  // 時間窗：近 3 天（更聚焦最新動態）
-  const sevenDaysAgo = Date.now() - 3 * 86400000;
-  const newItems = [];  // { kind, label, ts, navigate }
-
-  // 4a. 圖紙：每 type 最新一張在 7 天內就算
-  for(const t of drawingTypes){
-    const list = drawings[t] || [];
-    let latest = null;
-    for(const v of list){
-      if(!v.date) continue;
-      const d = new Date(v.date.replace(/\//g, '-')).getTime();
-      if(isNaN(d) || d < sevenDaysAgo) continue;
-      if(!latest || d > latest) latest = d;
-    }
-    if(latest){
-      newItems.push({ kind: 'drawing', label: t, ts: latest, navigate: () => goToDrawingType(t) });
-    }
-  }
-
-  // 4b. 3D 漫遊（如果有）
-  if((window._vrTours||[]).length > 0){
-    newItems.push({ kind: 'vr', label: '3D 空間漫遊體驗', ts: Date.now(), navigate: () => goToDrawingType('vr-tour') });
-  }
-
-  // 4c. 施工照片：近 7 天有 log 帶 photos
-  const calKeys = (typeof calLogs !== 'undefined' && calLogs) ? Object.keys(calLogs).sort().reverse() : [];
-  for(const k of calKeys){
-    const d = new Date(k.replace(/\//g, '-')).getTime();
-    if(isNaN(d) || d < sevenDaysAgo) continue;
-    const log = calLogs[k];
-    if(log && log.photos?.length){
-      newItems.push({ kind: 'construction', label: '施工進度照片', ts: d,
-        navigate: () => goPage('p-construction', document.querySelector('#s-client .tnav[onclick*="p-construction"]')) });
-      break;  // 只取最新一筆
-    }
-  }
-
-  if(newItems.length){
-    // 排序：最新的在前
-    newItems.sort((a,b) => b.ts - a.ts);
-    const labels = newItems.map(i => i.label);
-    let titleText, descText;
-    if(labels.length === 1){
-      titleText = `已為您新增${labels[0]}`;
-      descText = '剛準備好的內容，有空可以點進去看看～';
-    } else if(labels.length === 2){
-      titleText = `已為您新增${labels[0]}與${labels[1]}`;
-      descText = `先從 ${labels[0]} 開始最直觀，看完再去 ${labels[1]} 感受空間的變化。`;
-    } else {
-      titleText = `已為您新增${labels.slice(0, 2).join('、')}等 ${labels.length} 項內容`;
-      descText = `這幾天陸續到位，從 ${labels[0]} 先看起最直觀。`;
-    }
-    setNextAction(card, '最新更新', titleText, descText, '前往看看 →', newItems[0].navigate);
-    return;
-  }
-
-  // 沒任何近期更新 → 不顯示卡片（避免假訊息打擾）
+  // 沒任何「待客戶處理」事項 → CTA 卡隱藏（最近更新改由 dash-recent-updates-card 處理）
   card.style.display = 'none';
+};
+
+// 最近更新卡：5 類更新（圖面 / 材料等確認 / 施工照 / 收款 / 會議），有資料才列一行
+window.renderClientRecentUpdates = async function(proj){
+  const card = document.getElementById('dash-recent-updates-card');
+  const listEl = document.getElementById('dash-recent-updates-list');
+  if(!card || !listEl) return;
+  if(!proj){
+    const c = (clients||[]).find(x=>x.id===currentClientId);
+    if(c?.projectId) proj = projects.find(p=>Number(p.id)===Number(c.projectId));
+  }
+  if(!proj){ card.style.display='none'; return; }
+
+  const cid = currentClientId;
+  const pid = Number(proj.id);
+  const ysPid = proj.ys_project_id ?? pid;
+  const docs = docsData[cid] || {};
+  const drawings = docs.drawings || {};
+  const rows = [];
+
+  const WINDOW_DAYS = 14;
+  const since = Date.now() - WINDOW_DAYS * 86400000;
+  const toTs = s => { if(!s) return NaN; return new Date(String(s).replace(/\//g,'-')).getTime(); };
+  const shortDate = s => { const d=new Date(String(s||'').replace(/\//g,'-')); return isNaN(d)?String(s||''):`${d.getMonth()+1}/${String(d.getDate()).padStart(2,'0')}`; };
+  const trunc = (s,n) => { s=String(s||''); return s.length>n?s.slice(0,n)+'…':s; };
+
+  // 1. 圖面更新（跨四種圖類取最新一筆）
+  const drawingTypes = ['空間與家具尺寸圖','平面系統圖','立面系統圖','效果圖'];
+  let latestDraw = null;
+  for(const t of drawingTypes){
+    for(const v of (drawings[t]||[])){
+      const ts = toTs(v.date);
+      if(!isFinite(ts) || ts < since) continue;
+      if(!latestDraw || ts > latestDraw.ts) latestDraw = {type:t, ts, dateStr:v.date};
+    }
+  }
+  if(latestDraw){
+    rows.push({
+      label: '圖面更新',
+      sub: `${latestDraw.type} · ${shortDate(latestDraw.dateStr)}`,
+      navigate: () => goToDrawingType(latestDraw.type)
+    });
+  }
+
+  // 2. 材料等您確認（material_selections status='等待確認' count，跨工作系統 supabase）
+  let pendingMatCount = 0;
+  try{
+    if(typeof wsClient !== 'undefined' && wsClient){
+      const { count } = await wsClient.from('material_selections')
+        .select('id', { count:'exact', head:true })
+        .eq('ys_project_id', ysPid)
+        .eq('status', '等待確認')
+        .is('deleted_at', null);
+      pendingMatCount = count || 0;
+    }
+  }catch(e){ /* 失敗就不顯示這列 */ }
+  if(pendingMatCount > 0){
+    rows.push({
+      label: '材料等您確認',
+      sub: `${pendingMatCount} 件等您看看`,
+      navigate: () => goPage('p-materials', document.querySelector('#s-client .tnav[onclick*="p-materials"]'))
+    });
+  }
+
+  // 3. 施工照片更新（calLogs 近期含 photos 的最新一筆）
+  const calKeys = (typeof calLogs !== 'undefined' && calLogs) ? Object.keys(calLogs).sort().reverse() : [];
+  let latestPhoto = null;
+  for(const k of calKeys){
+    const ts = toTs(k);
+    if(!isFinite(ts) || ts < since) continue;
+    const log = calLogs[k];
+    if(log?.photos?.length){ latestPhoto = { ts, dateStr:k }; break; }
+  }
+  if(latestPhoto){
+    rows.push({
+      label: '施工照片更新',
+      sub: shortDate(latestPhoto.dateStr),
+      navigate: () => goPage('p-construction', document.querySelector('#s-client .tnav[onclick*="p-construction"]'))
+    });
+  }
+
+  // 4. 收款進度更新（scheduleData[pid] 已收期最新一筆）
+  const schedule = (typeof scheduleData !== 'undefined' && scheduleData[pid]) ? scheduleData[pid] : [];
+  let latestPay = null;
+  for(const r of schedule){
+    const ts = toTs(r.received);
+    if(!isFinite(ts) || ts < since) continue;
+    if(!latestPay || ts > latestPay.ts) latestPay = { ts, dateStr:r.received, name:r.name||'' };
+  }
+  if(latestPay){
+    rows.push({
+      label: '收款進度更新',
+      sub: `${latestPay.name ? trunc(latestPay.name,10) + ' · ' : ''}${shortDate(latestPay.dateStr)}`,
+      navigate: () => goPage('p-payment', document.querySelector('#s-client .tnav[onclick*="p-payment"]'))
+    });
+  }
+
+  // 5. 會議記錄更新
+  const meetings = docs.formalMeetings || [];
+  let latestMeet = null;
+  for(const m of meetings){
+    const ts = toTs(m.date);
+    if(!isFinite(ts) || ts < since) continue;
+    if(!latestMeet || ts > latestMeet.ts) latestMeet = { ts, dateStr:m.date, title:m.title||'' };
+  }
+  if(latestMeet){
+    rows.push({
+      label: '會議記錄更新',
+      sub: `${latestMeet.title ? trunc(latestMeet.title,12) + ' · ' : ''}${shortDate(latestMeet.dateStr)}`,
+      navigate: () => goPage('p-meetings', document.querySelector('#s-client .tnav[onclick*="p-meetings"]'))
+    });
+  }
+
+  if(!rows.length){ card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+  listEl.innerHTML = rows.map((r,i) => `
+    <div data-idx="${i}" class="recent-update-row"
+         style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:0.5px solid #ECE5DC;cursor:pointer;transition:background .12s;"
+         onmouseover="this.style.background='#FBF6EC'" onmouseout="this.style.background=''">
+      <div style="width:7px;height:7px;border-radius:50%;background:#C4A882;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13.5px;color:#3A2E18;font-weight:500;line-height:1.4;">${escapeHtml(r.label)}</div>
+        <div style="font-size:11.5px;color:#8A8478;line-height:1.4;margin-top:2px;">${escapeHtml(r.sub)}</div>
+      </div>
+      <div style="font-size:14px;color:#A07A38;flex-shrink:0;">→</div>
+    </div>
+  `).join('');
+  const last = listEl.lastElementChild;
+  if(last) last.style.borderBottom = 'none';
+  listEl.querySelectorAll('.recent-update-row').forEach(el => {
+    el.onclick = () => {
+      const idx = Number(el.dataset.idx);
+      const fn = rows[idx]?.navigate;
+      if(typeof fn === 'function') fn();
+    };
+  });
 };
 function renderClientNextAction(proj){ return window.renderClientNextAction(proj); }
 
@@ -9048,6 +9134,8 @@ async function renderClientDashboard(){
   refreshSurpriseMarker();
   // --- 下一步行動（依優先序顯示）---
   renderClientNextAction(proj);
+  // --- 最近更新 5 類清單 ---
+  renderClientRecentUpdates(proj);
   // --- 本週進度（設計師每週填）---
   renderClientWeeklyProgress(proj);
 
@@ -11791,9 +11879,12 @@ window.renderClientVRTour = async function(){
 
     // 暴露給「下一步行動」彙整邏輯讀取
     window._vrTours = _vrTours;
-    // VR fetch 完才能參與「最新更新」判斷 — 觸發重 render（如果 next-action 函式已存在）
+    // VR fetch 完才能參與「最近更新」判斷 — 觸發重 render
     if(typeof window.renderClientNextAction === 'function'){
       try{ window.renderClientNextAction(); }catch(e){}
+    }
+    if(typeof window.renderClientRecentUpdates === 'function'){
+      try{ window.renderClientRecentUpdates(); }catch(e){}
     }
 
     if(!_vrTours.length){ section.style.display = 'none'; return; }
