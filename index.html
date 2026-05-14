@@ -8958,6 +8958,23 @@ window.renderClientNextAction = async function(proj){
     });
   }
 
+  // 1b. 3D 漫遊更新（近一週有 tour_date 的最新一筆）
+  const tours = (window._vrTours || []);
+  let latestTour = null;
+  for(const t of tours){
+    const ts = toTs(t.tour_date);
+    if(!isFinite(ts) || ts < since) continue;
+    if(!latestTour || ts > latestTour.ts) latestTour = { ts, dateStr:t.tour_date, title:t.title||'' };
+  }
+  if(latestTour){
+    rows.push({
+      kind:'update',
+      label:'3D 漫遊更新',
+      sub:`${latestTour.title ? trunc(latestTour.title,12) + ' · ' : ''}${shortDate(latestTour.dateStr)}`,
+      navigate: () => goToDrawingType('vr-tour')
+    });
+  }
+
   // 2. 材料等您確認（material_selections status='等待確認'，async query）
   let pendingMatCount = 0;
   try{
