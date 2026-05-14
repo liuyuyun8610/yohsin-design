@@ -1048,18 +1048,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="dash-weekly-body" style="display:flex;flex-direction:column;gap:14px;font-size:13px;color:#5A4A36;line-height:1.85;"></div>
       </div>
 
-      <!-- 下一步行動卡（客戶一登入就知道要做什麼）-->
-      <div id="dash-next-action-card" style="display:none;margin-bottom:14px;padding:18px 20px;background:linear-gradient(135deg,#FBF6EC 0%,#F5EBD8 100%);border:1px solid #D9C9A8;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(120,90,40,0.12);transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(120,90,40,0.18)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(120,90,40,0.12)'">
-        <div style="font-family:'Noto Serif TC',serif;font-size:10px;letter-spacing:0.32em;color:#A07A38;margin-bottom:6px;text-transform:uppercase;" id="dash-next-action-label">NEXT STEP · 接下來</div>
-        <div style="font-family:'Noto Serif TC',serif;font-size:16px;color:#3A2E18;line-height:1.5;font-weight:500;margin-bottom:4px;" id="dash-next-action-title">—</div>
-        <div style="font-size:12.5px;color:#7A6240;line-height:1.7;" id="dash-next-action-desc">—</div>
-        <div style="margin-top:10px;font-size:11.5px;color:#A07A38;letter-spacing:0.06em;font-family:'Noto Serif TC',serif;" id="dash-next-action-cta">▸ 點擊前往</div>
-      </div>
-
-      <!-- 最近更新 5 類清單卡 -->
-      <div id="dash-recent-updates-card" class="card" style="display:none;margin-bottom:14px;padding:14px 18px;">
-        <div style="font-family:'Noto Serif TC',serif;font-size:11px;letter-spacing:0.28em;color:#8A8478;margin-bottom:6px;text-transform:uppercase;">最近更新</div>
-        <div id="dash-recent-updates-list" style="display:flex;flex-direction:column;"></div>
+      <!-- 下一步行動卡（漸層大卡片，內容為「進行中 + 最近一週更新」清單）-->
+      <div id="dash-next-action-card" style="display:none;margin-bottom:14px;padding:18px 20px;background:linear-gradient(135deg,#FBF6EC 0%,#F5EBD8 100%);border:1px solid #D9C9A8;border-radius:14px;box-shadow:0 4px 16px rgba(120,90,40,0.12);">
+        <div style="font-family:'Noto Serif TC',serif;font-size:10px;letter-spacing:0.32em;color:#A07A38;margin-bottom:10px;text-transform:uppercase;">NEXT STEP · 為您準備</div>
+        <div id="dash-next-action-list" style="display:flex;flex-direction:column;"></div>
       </div>
 
       <!-- 裝修旅程時間軸（Monopoly 風） -->
@@ -8880,67 +8872,10 @@ function renderClientWeeklyProgress(proj){
   bodyEl.innerHTML = sections.join('');
 }
 
-// 下一步行動：依優先序判斷客戶現在最該關注什麼，放在首頁最上方 CTA
-window.renderClientNextAction = function(proj){
+// 下一步行動卡：把「進行中要處理的事」+「最近一週的更新」一起列在漸層金邊大卡片內
+window.renderClientNextAction = async function(proj){
   const card = document.getElementById('dash-next-action-card');
-  if(!card) return;
-  // proj 沒傳就自取（給 module script 外部觸發用）
-  if(!proj){
-    const c = (clients||[]).find(x=>x.id===currentClientId);
-    if(c?.projectId) proj = projects.find(p=>Number(p.id)===Number(c.projectId));
-  }
-  const cid = currentClientId;
-  const docs = docsData[cid] || {};
-  const drawings = docs.drawings || {};
-  const pendingItems = docs.pendingItems || [];
-
-  // ── 優先序 1：未拆禮物 ──
-  const unwrapped = (window._surprises||[]).filter(s => !s.acknowledged_at);
-  if(unwrapped.length){
-    setNextAction(card, '✶ 給您的小心意',
-      `有 ${unwrapped.length} 份禮物在等您拆`,
-      '裝修旅程中的一點點驚喜，希望您喜歡。',
-      '看看是什麼 →',
-      () => openSurpriseInbox());
-    return;
-  }
-
-  // ── 優先序 2：圖紙最終版未確認 ──
-  const drawingTypes = ['空間與家具尺寸圖','平面系統圖','立面系統圖','效果圖'];
-  let unconfirmedFinal = null;
-  for(const t of drawingTypes){
-    const list = drawings[t] || [];
-    const unconfirmed = list.find(v => v.isFinal && !v.customerConfirmedAt);
-    if(unconfirmed){ unconfirmedFinal = { type: t, item: unconfirmed }; break; }
-  }
-  if(unconfirmedFinal){
-    setNextAction(card, '等您看看',
-      `${unconfirmedFinal.type} 差不多到位了`,
-      '看看有沒有想再調整的細節，跟我們說一聲就好。',
-      '看看圖面 →',
-      () => goToDrawingType(unconfirmedFinal.type));
-    return;
-  }
-
-  // ── 優先序 3：待確認事項（pending_items）──
-  const pendingOpen = pendingItems.filter(p => p.status === 'pending');
-  if(pendingOpen.length){
-    setNextAction(card, '想聽您的想法',
-      `有 ${pendingOpen.length} 件事想跟您確認一下`,
-      '有些選擇我們先準備好了，方便時點進去看看您喜歡哪種～',
-      '看看有什麼 →',
-      () => goPage('p-checklist', document.querySelector('#s-client .tnav[onclick*="p-checklist"]')));
-    return;
-  }
-
-  // 沒任何「待客戶處理」事項 → CTA 卡隱藏（最近更新改由 dash-recent-updates-card 處理）
-  card.style.display = 'none';
-};
-
-// 最近更新卡：5 類更新（圖面 / 材料等確認 / 施工照 / 收款 / 會議），有資料才列一行
-window.renderClientRecentUpdates = async function(proj){
-  const card = document.getElementById('dash-recent-updates-card');
-  const listEl = document.getElementById('dash-recent-updates-list');
+  const listEl = document.getElementById('dash-next-action-list');
   if(!card || !listEl) return;
   if(!proj){
     const c = (clients||[]).find(x=>x.id===currentClientId);
@@ -8953,16 +8888,59 @@ window.renderClientRecentUpdates = async function(proj){
   const ysPid = proj.ys_project_id ?? pid;
   const docs = docsData[cid] || {};
   const drawings = docs.drawings || {};
+  const pendingItems = docs.pendingItems || [];
   const rows = [];
 
-  const WINDOW_DAYS = 14;
+  const WINDOW_DAYS = 7;
   const since = Date.now() - WINDOW_DAYS * 86400000;
   const toTs = s => { if(!s) return NaN; return new Date(String(s).replace(/\//g,'-')).getTime(); };
   const shortDate = s => { const d=new Date(String(s||'').replace(/\//g,'-')); return isNaN(d)?String(s||''):`${d.getMonth()+1}/${String(d.getDate()).padStart(2,'0')}`; };
   const trunc = (s,n) => { s=String(s||''); return s.length>n?s.slice(0,n)+'…':s; };
 
-  // 1. 圖面更新（跨四種圖類取最新一筆）
+  // ── 進行中（待您處理）— 用較搶眼的點色 ──
+
+  // 未拆禮物
+  const unwrapped = (window._surprises||[]).filter(s => !s.acknowledged_at);
+  if(unwrapped.length){
+    rows.push({
+      kind:'action',
+      label:'✶ 給您的小心意',
+      sub:`${unwrapped.length} 份禮物在等您拆`,
+      navigate: () => openSurpriseInbox()
+    });
+  }
+
+  // 圖紙最終版未確認
   const drawingTypes = ['空間與家具尺寸圖','平面系統圖','立面系統圖','效果圖'];
+  let unconfirmedFinal = null;
+  for(const t of drawingTypes){
+    const list = drawings[t] || [];
+    const u = list.find(v => v.isFinal && !v.customerConfirmedAt);
+    if(u){ unconfirmedFinal = { type:t }; break; }
+  }
+  if(unconfirmedFinal){
+    rows.push({
+      kind:'action',
+      label:'圖面等您確認',
+      sub:`${unconfirmedFinal.type} 最終版差不多到位了`,
+      navigate: () => goToDrawingType(unconfirmedFinal.type)
+    });
+  }
+
+  // pending_items 待確認事項
+  const pendingOpen = pendingItems.filter(p => p.status === 'pending');
+  if(pendingOpen.length){
+    rows.push({
+      kind:'action',
+      label:'想聽您的想法',
+      sub:`${pendingOpen.length} 件事想跟您確認一下`,
+      navigate: () => goPage('p-checklist', document.querySelector('#s-client .tnav[onclick*="p-checklist"]'))
+    });
+  }
+
+  // ── 最近一週內的更新 — 用較柔和的點色 ──
+
+  // 1. 圖面更新（跨四種圖類取近一週最新一筆）
   let latestDraw = null;
   for(const t of drawingTypes){
     for(const v of (drawings[t]||[])){
@@ -8973,13 +8951,14 @@ window.renderClientRecentUpdates = async function(proj){
   }
   if(latestDraw){
     rows.push({
-      label: '圖面更新',
-      sub: `${latestDraw.type} · ${shortDate(latestDraw.dateStr)}`,
+      kind:'update',
+      label:'圖面更新',
+      sub:`${latestDraw.type} · ${shortDate(latestDraw.dateStr)}`,
       navigate: () => goToDrawingType(latestDraw.type)
     });
   }
 
-  // 2. 材料等您確認（material_selections status='等待確認' count，跨工作系統 supabase）
+  // 2. 材料等您確認（material_selections status='等待確認'，async query）
   let pendingMatCount = 0;
   try{
     if(typeof wsClient !== 'undefined' && wsClient){
@@ -8990,16 +8969,17 @@ window.renderClientRecentUpdates = async function(proj){
         .is('deleted_at', null);
       pendingMatCount = count || 0;
     }
-  }catch(e){ /* 失敗就不顯示這列 */ }
+  }catch(e){}
   if(pendingMatCount > 0){
     rows.push({
-      label: '材料等您確認',
-      sub: `${pendingMatCount} 件等您看看`,
+      kind:'action',
+      label:'材料等您確認',
+      sub:`${pendingMatCount} 件等您看看`,
       navigate: () => goPage('p-materials', document.querySelector('#s-client .tnav[onclick*="p-materials"]'))
     });
   }
 
-  // 3. 施工照片更新（calLogs 近期含 photos 的最新一筆）
+  // 3. 施工照片更新
   const calKeys = (typeof calLogs !== 'undefined' && calLogs) ? Object.keys(calLogs).sort().reverse() : [];
   let latestPhoto = null;
   for(const k of calKeys){
@@ -9010,13 +8990,14 @@ window.renderClientRecentUpdates = async function(proj){
   }
   if(latestPhoto){
     rows.push({
-      label: '施工照片更新',
-      sub: shortDate(latestPhoto.dateStr),
+      kind:'update',
+      label:'施工照片更新',
+      sub:shortDate(latestPhoto.dateStr),
       navigate: () => goPage('p-construction', document.querySelector('#s-client .tnav[onclick*="p-construction"]'))
     });
   }
 
-  // 4. 收款進度更新（scheduleData[pid] 已收期最新一筆）
+  // 4. 收款進度更新
   const schedule = (typeof scheduleData !== 'undefined' && scheduleData[pid]) ? scheduleData[pid] : [];
   let latestPay = null;
   for(const r of schedule){
@@ -9026,8 +9007,9 @@ window.renderClientRecentUpdates = async function(proj){
   }
   if(latestPay){
     rows.push({
-      label: '收款進度更新',
-      sub: `${latestPay.name ? trunc(latestPay.name,10) + ' · ' : ''}${shortDate(latestPay.dateStr)}`,
+      kind:'update',
+      label:'收款進度更新',
+      sub:`${latestPay.name ? trunc(latestPay.name,10) + ' · ' : ''}${shortDate(latestPay.dateStr)}`,
       navigate: () => goPage('p-payment', document.querySelector('#s-client .tnav[onclick*="p-payment"]'))
     });
   }
@@ -9042,8 +9024,9 @@ window.renderClientRecentUpdates = async function(proj){
   }
   if(latestMeet){
     rows.push({
-      label: '會議記錄更新',
-      sub: `${latestMeet.title ? trunc(latestMeet.title,12) + ' · ' : ''}${shortDate(latestMeet.dateStr)}`,
+      kind:'update',
+      label:'會議記錄更新',
+      sub:`${latestMeet.title ? trunc(latestMeet.title,12) + ' · ' : ''}${shortDate(latestMeet.dateStr)}`,
       navigate: () => goPage('p-meetings', document.querySelector('#s-client .tnav[onclick*="p-meetings"]'))
     });
   }
@@ -9051,21 +9034,24 @@ window.renderClientRecentUpdates = async function(proj){
   if(!rows.length){ card.style.display = 'none'; return; }
 
   card.style.display = 'block';
-  listEl.innerHTML = rows.map((r,i) => `
-    <div data-idx="${i}" class="recent-update-row"
-         style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:0.5px solid #ECE5DC;cursor:pointer;transition:background .12s;"
-         onmouseover="this.style.background='#FBF6EC'" onmouseout="this.style.background=''">
-      <div style="width:7px;height:7px;border-radius:50%;background:#C4A882;flex-shrink:0;"></div>
+  listEl.innerHTML = rows.map((r,i) => {
+    const dotColor = r.kind === 'action' ? '#C4A882' : '#D9C9A8';
+    const labelColor = r.kind === 'action' ? '#3A2E18' : '#5A4632';
+    return `
+    <div data-idx="${i}" class="next-action-row"
+         style="display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:0.5px solid rgba(217,201,168,0.45);cursor:pointer;transition:background .12s;border-radius:6px;"
+         onmouseover="this.style.background='rgba(255,255,255,0.45)'" onmouseout="this.style.background=''">
+      <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13.5px;color:#3A2E18;font-weight:500;line-height:1.4;">${escapeHtml(r.label)}</div>
-        <div style="font-size:11.5px;color:#8A8478;line-height:1.4;margin-top:2px;">${escapeHtml(r.sub)}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:14px;color:${labelColor};font-weight:500;line-height:1.45;">${escapeHtml(r.label)}</div>
+        <div style="font-size:12px;color:#7A6240;line-height:1.5;margin-top:2px;">${escapeHtml(r.sub)}</div>
       </div>
       <div style="font-size:14px;color:#A07A38;flex-shrink:0;">→</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
   const last = listEl.lastElementChild;
   if(last) last.style.borderBottom = 'none';
-  listEl.querySelectorAll('.recent-update-row').forEach(el => {
+  listEl.querySelectorAll('.next-action-row').forEach(el => {
     el.onclick = () => {
       const idx = Number(el.dataset.idx);
       const fn = rows[idx]?.navigate;
@@ -9074,15 +9060,6 @@ window.renderClientRecentUpdates = async function(proj){
   });
 };
 function renderClientNextAction(proj){ return window.renderClientNextAction(proj); }
-
-function setNextAction(card, label, title, desc, cta, onClick){
-  card.style.display = 'block';
-  document.getElementById('dash-next-action-label').textContent = label;
-  document.getElementById('dash-next-action-title').textContent = title;
-  document.getElementById('dash-next-action-desc').textContent = desc;
-  document.getElementById('dash-next-action-cta').textContent = cta;
-  card.onclick = onClick;
-}
 
 // goToDrawingType 接 'vr-tour' 特殊參數 → 滾到 VR section
 const _origGoToDrawingType = window.goToDrawingType;
@@ -9134,8 +9111,6 @@ async function renderClientDashboard(){
   refreshSurpriseMarker();
   // --- 下一步行動（依優先序顯示）---
   renderClientNextAction(proj);
-  // --- 最近更新 5 類清單 ---
-  renderClientRecentUpdates(proj);
   // --- 本週進度（設計師每週填）---
   renderClientWeeklyProgress(proj);
 
@@ -11882,9 +11857,6 @@ window.renderClientVRTour = async function(){
     // VR fetch 完才能參與「最近更新」判斷 — 觸發重 render
     if(typeof window.renderClientNextAction === 'function'){
       try{ window.renderClientNextAction(); }catch(e){}
-    }
-    if(typeof window.renderClientRecentUpdates === 'function'){
-      try{ window.renderClientRecentUpdates(); }catch(e){}
     }
 
     if(!_vrTours.length){ section.style.display = 'none'; return; }
