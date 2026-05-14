@@ -9062,7 +9062,8 @@ window.renderClientNextAction = async function(proj){
   if(!rows.length){ card.style.display = 'none'; return; }
 
   card.style.display = 'block';
-  listEl.innerHTML = rows.map((r,i) => {
+  const MAX_VISIBLE = 3;
+  const renderRow = (r, i, isHidden) => {
     const dotColor = r.kind === 'action' ? '#C4A882'
                    : r.kind === 'progress' ? '#9DB59D'
                    : '#D9C9A8';
@@ -9071,7 +9072,7 @@ window.renderClientNextAction = async function(proj){
                      : '#5A4632';
     return `
     <div data-idx="${i}" class="next-action-row"
-         style="display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:0.5px solid rgba(217,201,168,0.45);cursor:pointer;transition:background .12s;border-radius:6px;"
+         style="display:${isHidden?'none':'flex'};align-items:center;gap:11px;padding:11px 4px;border-bottom:0.5px solid rgba(217,201,168,0.45);cursor:pointer;transition:background .12s;border-radius:6px;"
          onmouseover="this.style.background='rgba(255,255,255,0.45)'" onmouseout="this.style.background=''">
       <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
@@ -9080,16 +9081,62 @@ window.renderClientNextAction = async function(proj){
       </div>
       <div style="font-size:14px;color:#A07A38;flex-shrink:0;">→</div>
     </div>`;
-  }).join('');
-  const last = listEl.lastElementChild;
-  if(last) last.style.borderBottom = 'none';
-  listEl.querySelectorAll('.next-action-row').forEach(el => {
-    el.onclick = () => {
+  };
+  const visibleRows = rows.map((r,i) => renderRow(r, i, i >= MAX_VISIBLE)).join('');
+  const hiddenCount = Math.max(0, rows.length - MAX_VISIBLE);
+  const toggleHtml = hiddenCount > 0 ? `
+    <div id="next-action-toggle" data-expanded="0"
+         style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 4px;margin-top:2px;cursor:pointer;font-size:12px;color:#A07A38;letter-spacing:0.05em;font-family:'Noto Serif TC',serif;border-top:0.5px solid rgba(217,201,168,0.45);transition:background .12s;border-radius:6px;"
+         onmouseover="this.style.background='rgba(255,255,255,0.45)'" onmouseout="this.style.background=''">
+      <span class="next-action-toggle-text">還有 ${hiddenCount} 項，點開查看</span>
+      <span class="next-action-toggle-arrow" style="transition:transform .2s;">▾</span>
+    </div>` : '';
+  listEl.innerHTML = visibleRows + toggleHtml;
+
+  // 第 MAX_VISIBLE 列要拿掉下底線（折疊狀態下它是最後一個可見項）
+  const visibleEls = listEl.querySelectorAll('.next-action-row');
+  visibleEls.forEach((el, idx) => {
+    if(idx === MAX_VISIBLE - 1 && hiddenCount > 0){
+      el.style.borderBottom = 'none';
+    } else if(idx === visibleEls.length - 1){
+      el.style.borderBottom = 'none';
+    } else {
+      el.style.borderBottom = '0.5px solid rgba(217,201,168,0.45)';
+    }
+  });
+
+  // 列點擊 → 導頁
+  visibleEls.forEach(el => {
+    el.onclick = (ev) => {
+      ev.stopPropagation();
       const idx = Number(el.dataset.idx);
       const fn = rows[idx]?.navigate;
       if(typeof fn === 'function') fn();
     };
   });
+
+  // 展開/收合
+  const toggleEl = document.getElementById('next-action-toggle');
+  if(toggleEl){
+    toggleEl.onclick = (ev) => {
+      ev.stopPropagation();
+      const expanded = toggleEl.dataset.expanded === '1';
+      const next = !expanded;
+      toggleEl.dataset.expanded = next ? '1' : '0';
+      visibleEls.forEach((el, idx) => {
+        if(idx >= MAX_VISIBLE){
+          el.style.display = next ? 'flex' : 'none';
+        }
+      });
+      // 重排底線
+      visibleEls.forEach((el, idx) => {
+        const isLastShown = next ? idx === visibleEls.length - 1 : idx === MAX_VISIBLE - 1;
+        el.style.borderBottom = isLastShown ? 'none' : '0.5px solid rgba(217,201,168,0.45)';
+      });
+      toggleEl.querySelector('.next-action-toggle-text').textContent = next ? '收合' : `還有 ${hiddenCount} 項，點開查看`;
+      toggleEl.querySelector('.next-action-toggle-arrow').style.transform = next ? 'rotate(180deg)' : '';
+    };
+  }
 };
 function renderClientNextAction(proj){ return window.renderClientNextAction(proj); }
 
