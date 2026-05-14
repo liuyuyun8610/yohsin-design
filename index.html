@@ -8975,24 +8975,35 @@ window.renderClientNextAction = async function(proj){
     });
   }
 
-  // 2. 材料等您確認（material_selections status='等待確認'，async query）
-  let pendingMatCount = 0;
+  // 2. 材料狀態（客戶確認中 = action / 變更中 = 設計師正在做，給客戶安心）
+  let matAwaitClient = 0, matChanging = 0;
   try{
     if(typeof wsClient !== 'undefined' && wsClient){
-      const { count } = await wsClient.from('material_selections')
-        .select('id', { count:'exact', head:true })
-        .eq('ys_project_id', ysPid)
-        .eq('status', '等待確認')
-        .is('deleted_at', null);
-      pendingMatCount = count || 0;
+      const [r1, r2] = await Promise.all([
+        wsClient.from('material_selections').select('id', { count:'exact', head:true })
+          .eq('ys_project_id', ysPid).eq('status', '客戶確認中').is('deleted_at', null),
+        wsClient.from('material_selections').select('id', { count:'exact', head:true })
+          .eq('ys_project_id', ysPid).eq('status', '變更中').is('deleted_at', null),
+      ]);
+      matAwaitClient = r1.count || 0;
+      matChanging = r2.count || 0;
     }
   }catch(e){}
-  if(pendingMatCount > 0){
+  const goMaterials = () => goPage('p-materials', document.querySelector('#s-client .tnav[onclick*="p-materials"]'));
+  if(matAwaitClient > 0){
     rows.push({
       kind:'action',
       label:'材料等您確認',
-      sub:`${pendingMatCount} 件等您看看`,
-      navigate: () => goPage('p-materials', document.querySelector('#s-client .tnav[onclick*="p-materials"]'))
+      sub:`${matAwaitClient} 件等您看看`,
+      navigate: goMaterials
+    });
+  }
+  if(matChanging > 0){
+    rows.push({
+      kind:'progress',
+      label:'材料調整中',
+      sub:`設計師正在為您調整 ${matChanging} 件材料`,
+      navigate: goMaterials
     });
   }
 
@@ -9052,8 +9063,12 @@ window.renderClientNextAction = async function(proj){
 
   card.style.display = 'block';
   listEl.innerHTML = rows.map((r,i) => {
-    const dotColor = r.kind === 'action' ? '#C4A882' : '#D9C9A8';
-    const labelColor = r.kind === 'action' ? '#3A2E18' : '#5A4632';
+    const dotColor = r.kind === 'action' ? '#C4A882'
+                   : r.kind === 'progress' ? '#9DB59D'
+                   : '#D9C9A8';
+    const labelColor = r.kind === 'action' ? '#3A2E18'
+                     : r.kind === 'progress' ? '#3D5A3D'
+                     : '#5A4632';
     return `
     <div data-idx="${i}" class="next-action-row"
          style="display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:0.5px solid rgba(217,201,168,0.45);cursor:pointer;transition:background .12s;border-radius:6px;"
