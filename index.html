@@ -2483,7 +2483,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <input type="password" class="form-input" id="settings-new-pw2" style="max-width:200px;margin-bottom:0;" placeholder="再次確認">
             <button class="btn-ink" onclick="applyPassword()">更新密碼</button>
           </div>
-          <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin　｜　目前密碼：<span id="settings-cur-pw" style="font-family:'NumQuicksand',monospace;font-size:12px;background:var(--sand);border-radius:5px;padding:1px 6px;cursor:pointer;" onclick="toggleSettingsPw(this)" title="點擊顯示/隱藏">••••••••</span></div>
+          <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin　｜　密碼已加密儲存（bcrypt），無法顯示明碼。如需更改請輸入新密碼後按「更新密碼」。</div>
         </div>
 
         <div class="card">
@@ -3014,9 +3014,8 @@ async function loadAllData() {
     }));
     nextAId = articles.length ? Math.max(...articles.map(a=>a.id))+1 : 1;
 
-    // Load system settings
+    // Load system settings — admin_password (bcrypt hash) 已不再前端讀取（Phase B RLS 鎖）
     if(settingsData) settingsData.forEach(s=>{
-      if(s.key==='admin_password') adminPassword=s.value;
       if(s.key==='site_title'){siteTitle=s.value;const el=document.getElementById('login-site-title');if(el)el.textContent=s.value;}
       if(s.key==='gallery_icon_url'&&s.value) applyGalleryIcon(s.value);
       if(s.key==='plan_icon_url'&&s.value) applyPlanIcon(s.value);
@@ -4107,7 +4106,6 @@ function syncAllData(){
 
 // ========== SETTINGS ==========
 let pendingLogoSrc='';
-let adminPassword='admin123';
 let siteTitle='有心制作專案區';
 let anthropicApiKey='';
 
@@ -4276,10 +4274,7 @@ function applyNewLogo(){
   alert('Logo 已更新！');
 }
 function cancelNewLogo(){pendingLogoSrc='';document.getElementById('new-logo-preview').style.display='none';document.getElementById('logo-file-input').value='';}
-function toggleSettingsPw(el){
-  if(el.dataset.show==='1'){el.textContent='••••••••';el.dataset.show='0';}
-  else{el.textContent=adminPassword;el.dataset.show='1';}
-}
+// Phase B：admin_password 改 bcrypt hash 後，明碼已無法復原，UI 不再提供「顯示密碼」
 async function applyTitle(){
   const t=document.getElementById('settings-title').value.trim();if(!t){alert('請輸入標題');return;}
   showLoader(true);
@@ -4300,17 +4295,13 @@ async function applyPassword(){
   if(!pw1){alert('請輸入新密碼');return;}if(pw1!==pw2){alert('兩次密碼不一致');return;}
   showLoader(true);
   try{
+    // upsert 後 trigger 會自動 bcrypt hash；同時更新 Supabase Auth user 密碼，admin 下次登入要用新密碼
     await sbClient.from('system_settings').upsert({key:'admin_password',value:pw1},{onConflict:'key'});
-    adminPassword=pw1;
-    // Update stored session so admin stays logged in
-    try{const s=JSON.parse(sessionStorage.getItem('ys_session')||'{}');if(s.mode==='admin'){s.p=pw1;sessionStorage.setItem('ys_session',JSON.stringify(s));}}catch(e){}
+    try{ await sbClient.auth.updateUser({ password: pw1 }); }catch(e){ console.warn('auth updateUser failed', e); }
     document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
-    alert('密碼已更新並儲存！');
+    alert('密碼已更新並儲存！下次登入請使用新密碼。');
   }catch(e){
-    // Fallback: update in memory only
-    adminPassword=pw1;
-    document.getElementById('settings-new-pw').value='';document.getElementById('settings-new-pw2').value='';
-    alert('密碼已更新（記憶體模式，重新整理後失效）');
+    alert('密碼更新失敗：'+e.message);
   }
   showLoader(false);
 }
