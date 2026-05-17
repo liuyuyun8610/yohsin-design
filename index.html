@@ -9050,6 +9050,27 @@ window.renderClientNextAction = async function(proj){
     });
   }
 
+  // 6. 報價單更新（從 ERP 上傳的客戶報價 PDF）
+  const quotes = docs.quotes || [];
+  let latestQuote = null;
+  for(const q of quotes){
+    const ts = toTs(q.date);
+    if(!isFinite(ts) || ts < since) continue;
+    if(!latestQuote || ts > latestQuote.ts) latestQuote = { ts, dateStr:q.date, name:q.name||'' };
+  }
+  if(latestQuote){
+    rows.push({
+      kind:'update',
+      label:'報價單更新',
+      sub:`${latestQuote.name ? trunc(latestQuote.name,14) + ' · ' : ''}${shortDate(latestQuote.dateStr)}`,
+      navigate: () => {
+        // 報價資料區塊在 p-overview 頁內，直接捲到該位置
+        const el = document.getElementById('client-quotes');
+        if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
   if(!rows.length){ card.style.display = 'none'; return; }
 
   card.style.display = 'block';
