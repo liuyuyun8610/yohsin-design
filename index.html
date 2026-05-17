@@ -3124,13 +3124,13 @@ async function dbLoadChecklist(projectId) {
   ]);
   const dbApp = (appData2||[]).map(r=>{
     const [model,dims]=(r.model||'').split('||');
-    return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status};
+    return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status,filledBy:r.filled_by||'client'};
   });
   furData = (furData2||[]).map(r=>{
     const [model,dims]=(r.model||'').split('||');
-    return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status};
+    return {dbId:r.id,name:r.name,brand:r.brand,loc:r.location,model:model||'',dims:dims||'',status:r.status,filledBy:r.filled_by||'client'};
   });
-  powData = (powData2||[]).map(r=>({dbId:r.id,name:r.name,loc:r.location,w:String(r.watt||''),v:String(r.voltage||110),qty:String(r.quantity||1),note:r.note}));
+  powData = (powData2||[]).map(r=>({dbId:r.id,name:r.name,loc:r.location,w:String(r.watt||''),v:String(r.voltage||110),qty:String(r.quantity||1),note:r.note,filledBy:r.filled_by||'client'}));
 
   // ── 合併預設清單：不論是新舊專案，預設項目永遠顯示 ──
   // DB 有對應名稱 → 用 DB 版本（保留客戶填的資料）
@@ -11144,11 +11144,22 @@ function renderAppTable(type,data){
   data.forEach((r,i)=>{
     const tr=document.createElement('tr');
     ['name','brand'].forEach(k=>{
-      const td=document.createElement('td');const inp=document.createElement('input');
-      inp.className='ci';inp.value=r[k];inp.placeholder=k==='name'?'名稱':'品牌';
+      const td=document.createElement('td');
+      const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:center;gap:6px;';
+      const inp=document.createElement('input');
+      inp.className='ci';inp.value=r[k];inp.placeholder=k==='name'?'名稱':'品牌';inp.style.flex='1';
       inp.oninput=e=>r[k]=e.target.value;
       inp.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
-      td.appendChild(inp);tr.appendChild(td);
+      wrap.appendChild(inp);
+      // 設計師代填 tag — 只在名稱欄顯示
+      if(k==='name' && r.filledBy==='designer'){
+        const tag=document.createElement('span');
+        tag.textContent='設計師代填';
+        tag.title='這筆是設計師從 ERP 端代您填入的，可直接編輯修改';
+        tag.style.cssText='flex-shrink:0;font-size:9px;padding:2px 6px;border-radius:10px;background:#E8EEF8;color:#5C7794;border:0.5px solid #B8C5D8;letter-spacing:0.05em;white-space:nowrap;';
+        wrap.appendChild(tag);
+      }
+      td.appendChild(wrap);tr.appendChild(td);
     });
     const tdL=document.createElement('td');
     const sel=mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));});
@@ -11276,9 +11287,18 @@ function renderPowTable(){
   const pid=getClientProjId();
   powData.forEach((r,i)=>{
     const tr=document.createElement('tr');
-    const n=document.createElement('td');const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';
+    const n=document.createElement('td');
+    const nWrap=document.createElement('div');nWrap.style.cssText='display:flex;align-items:center;gap:6px;';
+    const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';ni.style.flex='1';
     ni.oninput=e=>r.name=e.target.value;ni.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
-    n.appendChild(ni);tr.appendChild(n);
+    nWrap.appendChild(ni);
+    if(r.filledBy==='designer'){
+      const tag=document.createElement('span');tag.textContent='設計師代填';
+      tag.title='這筆是設計師從 ERP 端代您填入的，可直接編輯修改';
+      tag.style.cssText='flex-shrink:0;font-size:9px;padding:2px 6px;border-radius:10px;background:#E8EEF8;color:#5C7794;border:0.5px solid #B8C5D8;letter-spacing:0.05em;white-space:nowrap;';
+      nWrap.appendChild(tag);
+    }
+    n.appendChild(nWrap);tr.appendChild(n);
     const tl=document.createElement('td');
     tl.appendChild(mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));}));
     tr.appendChild(tl);
