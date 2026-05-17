@@ -3161,6 +3161,31 @@ async function dbDeleteChecklistItem(id) {
   await sb.from('checklist_items').delete('id=eq.'+id);
 }
 
+// 用電需求專用：power_items 欄位結構與 checklist_items 不同（watt/voltage/quantity/note）
+// 不可共用 dbSaveChecklistItem（會寫到 checklist_items 並用錯欄位）
+async function dbSavePowerItem(projectId, item) {
+  const wattNum = item.w !== '' && item.w != null ? Number(item.w) : null;
+  const voltNum = item.v !== '' && item.v != null ? Number(item.v) : null;
+  const qtyNum  = item.qty !== '' && item.qty != null ? Number(item.qty) : null;
+  const row = {
+    name: item.name || '',
+    location: item.loc || null,
+    watt: Number.isFinite(wattNum) ? wattNum : null,
+    voltage: Number.isFinite(voltNum) ? voltNum : null,
+    quantity: Number.isFinite(qtyNum) ? qtyNum : null,
+    note: item.note || null,
+  };
+  if (item.dbId) {
+    await sb.from('power_items').update(row, 'id=eq.'+item.dbId);
+  } else {
+    const res = await sb.from('power_items').insert({ project_id: projectId, ...row });
+    if (res && res[0]) item.dbId = res[0].id;
+  }
+}
+async function dbDeletePowerItem(id) {
+  await sb.from('power_items').delete('id=eq.'+id);
+}
+
 async function dbLoadProfit(projectId) {
   const [profitRows, payRow] = await Promise.all([
     ws.from('profit_items').selectWhere('*','ys_project_id=eq.'+projectId),
@@ -11290,7 +11315,7 @@ function renderPowTable(){
     const n=document.createElement('td');
     const nWrap=document.createElement('div');nWrap.style.cssText='display:flex;align-items:center;gap:6px;';
     const ni=document.createElement('input');ni.className='ci';ni.value=r.name;ni.placeholder='電器名稱';ni.style.flex='1';
-    ni.oninput=e=>r.name=e.target.value;ni.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
+    ni.oninput=e=>r.name=e.target.value;ni.onblur=()=>{if(pid)dbSavePowerItem(pid,r).catch(e=>console.warn(e));};
     nWrap.appendChild(ni);
     if(r.filledBy==='designer'){
       const tag=document.createElement('span');tag.textContent='設計師代填';
@@ -11300,21 +11325,21 @@ function renderPowTable(){
     }
     n.appendChild(nWrap);tr.appendChild(n);
     const tl=document.createElement('td');
-    tl.appendChild(mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));}));
+    tl.appendChild(mkSel(LOC,r.loc,e=>{r.loc=e.target.value;if(pid)dbSavePowerItem(pid,r).catch(e=>console.warn(e));}));
     tr.appendChild(tl);
     ['w','v','qty'].forEach(k=>{
       const td=document.createElement('td');const inp=document.createElement('input');inp.className='ci';inp.value=r[k];inp.style.width='65px';
       inp.oninput=e=>{r[k]=e.target.value;refreshPow(tr,r);};
-      inp.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
+      inp.onblur=()=>{if(pid)dbSavePowerItem(pid,r).catch(e=>console.warn(e));};
       td.appendChild(inp);tr.appendChild(td);
     });
     const ta=document.createElement('td');ta.className='av';tr.appendChild(ta);
     const tc=document.createElement('td');tr.appendChild(tc);
     const tn=document.createElement('td');const ni2=document.createElement('input');ni2.className='ci';ni2.value=r.note;ni2.placeholder='備註';
-    ni2.oninput=e=>r.note=e.target.value;ni2.onblur=()=>{if(pid)dbSaveChecklistItem(pid,'power',r).catch(e=>console.warn(e));};
+    ni2.oninput=e=>r.note=e.target.value;ni2.onblur=()=>{if(pid)dbSavePowerItem(pid,r).catch(e=>console.warn(e));};
     tn.appendChild(ni2);tr.appendChild(tn);
     const td2=document.createElement('td');const db=document.createElement('button');db.className='db';db.textContent='×';
-    db.onclick=()=>{if(r.dbId&&pid)dbDeleteChecklistItem(r.dbId).catch(e=>console.warn(e));powData.splice(i,1);renderPowTable();};
+    db.onclick=()=>{if(r.dbId&&pid)dbDeletePowerItem(r.dbId).catch(e=>console.warn(e));powData.splice(i,1);renderPowTable();};
     td2.appendChild(db);tr.appendChild(td2);
     tb.appendChild(tr);refreshPow(tr,r);
   });
