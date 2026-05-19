@@ -631,8 +631,8 @@
         <input type="tel" id="phone" placeholder="09__-___-___">
       </div>
       <div class="field">
-        <label class="field-label">LINE ID <span class="opt">(選填)</span></label>
-        <input type="text" id="line_id" placeholder="若方便用 LINE 聯繫">
+        <label class="field-label">LINE ID</label>
+        <input type="text" id="line_id" placeholder="方便我們聯繫你">
       </div>
     </div>
     <div class="field">
@@ -641,7 +641,7 @@
     </div>
 
     <div class="field" style="margin-top:18px;">
-      <label class="field-label">想預約的服務 <span class="opt">(單選)</span></label>
+      <label class="field-label">想預約的服務</label>
       <div class="chips" data-group="service_type">
         <div class="chip" data-val="電話或線上諮詢">電話或線上諮詢</div>
         <div class="chip" data-val="見面諮詢（林口辦公室）">見面諮詢</div>
@@ -900,7 +900,8 @@ async function submit(){
   formData.style_note = document.getElementById('style_note').value.trim();
 
   if(!formData.name){ showToast('再幫我們補一下「怎麼稱呼你」'); return; }
-  if(!formData.phone && !formData.line_id){ showToast('留個電話或 LINE，方便我們聯繫你'); return; }
+  if(!formData.line_id){ showToast('留個 LINE ID，方便我們聯繫你'); return; }
+  if(!formData.service_type){ showToast('選一下想預約的服務'); return; }
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
@@ -912,6 +913,7 @@ async function submit(){
     phone: formData.phone || null,
     email: formData.email || null,
     source: formData.source || null,
+    service_type: formData.service_type || null,
     space_type: formData.space_type || null,
     region: formData.region || null,
     area_ping: formData.area_ping || null,
