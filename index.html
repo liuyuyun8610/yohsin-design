@@ -2673,6 +2673,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <span>本人已逐項閱讀並完整理解上述合約之全部條款內容，並知悉本合約經雙方簽署後即發生法律效力。本人於下方所為之線上簽名，等同親自簽署，作為同意本合約全部約定之憑證。</span>
         </label>
         <!-- 甲方填寫欄位 -->
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11px;color:var(--ink-muted);margin-bottom:4px;">立契約書人全名 <span style="color:var(--accent);">*</span></label>
+          <input type="text" id="contract-fullname-input" placeholder="請填寫法定全名（將呈現於合約甲方欄位）"
+            oninput="onContractFieldChange()"
+            style="width:100%;padding:8px 10px;font-family:inherit;font-size:13px;border:0.5px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);outline:none;box-sizing:border-box;">
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
           <div>
             <label style="display:block;font-size:11px;color:var(--ink-muted);margin-bottom:4px;">合約寄送地址 <span style="color:var(--accent);">*</span></label>
@@ -10579,9 +10585,10 @@ function findContractDocByDbId(dbId){
 }
 function _contractCanSubmit(){
   const ack=document.getElementById('contract-ack-check');
+  const name=document.getElementById('contract-fullname-input');
   const addr=document.getElementById('contract-addr-input');
   const phone=document.getElementById('contract-phone-input');
-  return !!(ack&&ack.checked && addr && addr.value.trim() && phone && phone.value.trim());
+  return !!(ack&&ack.checked && name && name.value.trim() && addr && addr.value.trim() && phone && phone.value.trim());
 }
 function _contractRefreshSubmitBtn(){
   const btn=document.getElementById('contract-confirm-btn');
@@ -10604,8 +10611,10 @@ function _contractInjectIframe(){
     if(el) el.textContent=val||'____________';
   };
   const c=findContractDocByDbId(_contractState.dbId);
+  const fullname=document.getElementById('contract-fullname-input')?.value?.trim() || c?.customerSignatureName || '';
   const addr=document.getElementById('contract-addr-input')?.value?.trim() || c?.clientAddress || '';
   const phone=document.getElementById('contract-phone-input')?.value?.trim() || c?.clientPhone || '';
+  if(fullname) setText('partyA-name', fullname);
   if(addr) setText('partyA-address', addr);
   if(phone) setText('partyA-phone', phone);
   // 簽名圖：c.signatureUrl 已存或本次 canvas 已畫
@@ -10625,6 +10634,7 @@ function openContractViewer(dbId){
   iframe.onload=()=>{ _contractInjectIframe(); };
   // 重置 ack + 表單欄位（已簽署時帶入既有值）
   const ack=document.getElementById('contract-ack-check');if(ack){ack.checked=false;}
+  const nameInput=document.getElementById('contract-fullname-input');if(nameInput) nameInput.value=c.customerSignatureName||'';
   const addrInput=document.getElementById('contract-addr-input');if(addrInput) addrInput.value=c.clientAddress||'';
   const phoneInput=document.getElementById('contract-phone-input');if(phoneInput) phoneInput.value=c.clientPhone||'';
   _contractRefreshSubmitBtn();
@@ -10659,15 +10669,16 @@ function printContractForClient(){
   const w=window.open('', '_blank');
   if(!w){alert('請允許瀏覽器彈出視窗以列印 / 下載 PDF');return;}
   // 拿即時填寫值或既有資料
+  const fullname=document.getElementById('contract-fullname-input')?.value?.trim() || c?.customerSignatureName || '';
   const addr=document.getElementById('contract-addr-input')?.value?.trim() || c?.clientAddress || '';
   const phone=document.getElementById('contract-phone-input')?.value?.trim() || c?.clientPhone || '';
   // 寫入合約 HTML（不在這裡掛 auto-print；等注入完才印，否則簽名圖可能還沒載完）
   w.document.open();w.document.write(c.contractHtml);w.document.close();
   const doc=w.document;
   const setText=(field,val)=>{
-    const el=doc.querySelector(`[data-field="${field}"]`);
-    if(el) el.textContent=val||'____________';
+    doc.querySelectorAll(`[data-field="${field}"]`).forEach(el=>{ el.textContent=val||'____________'; });
   };
+  if(fullname) setText('partyA-name', fullname);
   if(addr) setText('partyA-address', addr);
   if(phone) setText('partyA-phone', phone);
   const triggerPrint=()=>{ try{w.focus();}catch(e){} setTimeout(()=>{ try{w.print();}catch(e){} }, 200); };
@@ -10761,8 +10772,10 @@ async function autoFillDesignFeeScheduleAfterSign(c){
 async function submitContractSignature(){
   const ack=document.getElementById('contract-ack-check');
   if(!ack||!ack.checked){alert('請先勾選「本人已逐項閱讀並完整理解上述合約」同意聲明');return;}
+  const fullname=document.getElementById('contract-fullname-input').value.trim();
   const addr=document.getElementById('contract-addr-input').value.trim();
   const phone=document.getElementById('contract-phone-input').value.trim();
+  if(!fullname){alert('請填寫立契約書人全名');return;}
   if(!addr){alert('請填寫合約寄送地址');return;}
   if(!phone){alert('請填寫聯絡電話');return;}
   if(!_contractState.hasInk){alert('請先簽名');return;}
@@ -10776,11 +10789,11 @@ async function submitContractSignature(){
     const url=await uploadToStorage(file,'meeting-photos');
     const signedAt=new Date().toISOString();
     const {error}=await sbClient.from('project_docs')
-      .update({signature_url:url,signed_at:signedAt,client_address:addr,client_phone:phone})
+      .update({signature_url:url,signed_at:signedAt,client_address:addr,client_phone:phone,customer_signature_name:fullname})
       .eq('id',dbId);
     if(error) throw error;
     // 更新本地資料
-    c.signatureUrl=url;c.signedAt=signedAt;c.clientAddress=addr;c.clientPhone=phone;
+    c.signatureUrl=url;c.signedAt=signedAt;c.clientAddress=addr;c.clientPhone=phone;c.customerSignatureName=fullname;
     // 自動把設計費分期寫到付款排程（只有設計合約 + 沒有現有設計費 entry 時生效）
     try{ await autoFillDesignFeeScheduleAfterSign(c); }catch(e){console.warn(e);}
     closeContractViewer();
