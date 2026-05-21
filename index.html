@@ -1391,8 +1391,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 選材 -->
     <div class="page" id="p-materials">
-      <div class="page-title">選材紀錄</div>
-      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.4rem;line-height:1.7;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div class="page-title" style="margin-bottom:0;">選材紀錄</div>
+        <button onclick="exportMaterialsPdf()" id="btn-export-mat-pdf" style="font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;padding:7px 14px;background:#8B6B48;color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">⬇ 匯出物料表 PDF</button>
+      </div>
+      <div style="font-size:12px;color:var(--ink-muted);margin:0.8rem 0 1.4rem;line-height:1.7;">
         這裡整理了各空間目前選定的材質、色號與使用位置。若有調整中的項目，我們會標示狀態，方便一起確認最新版本。
       </div>
       <div id="client-materials-list"></div>
@@ -9616,6 +9619,157 @@ async function loadClientChangeOrders(pid){
 }
 
 // 匯出追加減明細為可列印／存成 PDF 的新視窗
+// ========== 選材物料表 PDF 匯出 ==========
+async function exportMaterialsPdf(){
+  const c=clients.find(x=>x.id===currentClientId);
+  if(!c||!c.projectId){alert('找不到專案資訊');return;}
+  const ysPid=Number(c.projectId);
+  const proj=projects.find(p=>Number(p.id)===ysPid);
+  const projName=(proj&&proj.name)||'—';
+  const projAddr=((proj&&proj.address)||'')+((proj&&proj.unit)?(' '+proj.unit):'');
+  const clientName=c.name||'—';
+
+  if(!wsClient){alert('wsClient 未初始化');return;}
+
+  let rows=[];
+  let spaceOrder=[];
+  try{
+    const [msRes, catRes] = await Promise.all([
+      wsClient.from('material_selections').select('*').eq('ys_project_id',ysPid).is('deleted_at',null).order('space').order('item').order('created_at'),
+      wsClient.from('material_space_catalog').select('name, sort_order').order('sort_order'),
+    ]);
+    if(msRes.error) throw msRes.error;
+    rows = msRes.data || [];
+    spaceOrder = (catRes.data||[]).map(c=>c.name);
+  }catch(e){alert('讀取選材資料失敗：'+e.message);return;}
+
+  if(!rows.length){alert('目前尚無選材資料可匯出');return;}
+
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // 依空間分組
+  const bySpace=new Map();
+  rows.forEach(r=>{ if(!bySpace.has(r.space)) bySpace.set(r.space,[]); bySpace.get(r.space).push(r); });
+  const spaces=Array.from(bySpace.keys()).sort((a,b)=>{
+    const ia=spaceOrder.indexOf(a), ib=spaceOrder.indexOf(b);
+    if(ia===-1 && ib===-1) return a.localeCompare(b);
+    if(ia===-1) return 1;
+    if(ib===-1) return -1;
+    return ia-ib;
+  });
+
+  const today=new Date();
+  const dateStr=today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
+
+  // 狀態樣式
+  const statusStyle=(s)=>{
+    const m={
+      '已確認':{bg:'#E8F0E2',fg:'#3D5C24'},
+      '已下單':{bg:'#E8F0E2',fg:'#3D5C24'},
+      '客戶確認中':{bg:'#FBF4E8',fg:'#7A5E1A'},
+      '變更中':{bg:'#FBF4E8',fg:'#7A5E1A'},
+      '設計師提案':{bg:'#E8EFF6',fg:'#2D5A87'},
+    };
+    const c=m[s]||{bg:'#EAE3D2',fg:'#8B7E6A'};
+    return `display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:${c.bg};color:${c.fg};letter-spacing:0.04em;`;
+  };
+
+  let rowsHtml='';
+  let totalCount=0;
+  let confirmedCount=0;
+  spaces.forEach(space=>{
+    const items=bySpace.get(space);
+    totalCount += items.length;
+    items.forEach(r=>{ if(r.customer_confirmed_at) confirmedCount++; });
+    // 分組標題列
+    rowsHtml += `<tr class="grp"><td colspan="8" style="background:#F5EFE7;padding:8px 12px;color:#8B6B48;font-weight:600;font-size:12px;letter-spacing:0.06em;border-top:1px solid #8B6B48;">${esc(space)} <span style="font-weight:400;color:#A89478;font-size:10px;margin-left:8px;">共 ${items.length} 項</span></td></tr>`;
+    items.forEach((r,idx)=>{
+      const nameModel = [r.name, r.model].filter(Boolean).join(' / ') || '—';
+      const remarks = [
+        r.designer_advice ? '建議：'+r.designer_advice : '',
+        r.caveats ? '提醒：'+r.caveats : '',
+        r.notes || '',
+      ].filter(Boolean).join('；');
+      const isConfirmed = !!r.customer_confirmed_at;
+      const sigBadge = isConfirmed
+        ? `<div style="font-size:9px;color:#3D5C24;margin-top:3px;">✓ ${esc(r.customer_signature_name||'客戶')} 已確認</div>`
+        : '';
+      rowsHtml += `<tr>
+        <td style="text-align:center;padding:8px 6px;color:#6E5E4E;font-size:11px;">${idx+1}</td>
+        <td style="padding:8px 10px;font-weight:500;">${esc(r.item||'—')}${sigBadge}</td>
+        <td style="padding:8px 10px;color:#3F362C;">${esc(r.brand||'—')}</td>
+        <td style="padding:8px 10px;color:#3F362C;">${esc(nameModel)}</td>
+        <td style="padding:8px 10px;color:#6E5E4E;font-size:11px;">${esc(r.spec||'—')}</td>
+        <td style="padding:8px 10px;color:#6E5E4E;font-size:11px;">${esc(r.location||'—')}</td>
+        <td style="padding:8px 6px;text-align:center;"><span style="${statusStyle(r.status)}">${esc(r.status||'未選擇')}</span></td>
+        <td style="padding:8px 10px;color:#6E5E4E;font-size:10.5px;line-height:1.5;">${esc(remarks)||'—'}</td>
+      </tr>`;
+    });
+  });
+
+  const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(projName)+' 物料表</title>'
+    +'<style>'
+    +'@page{size:A4 landscape;margin:14mm 12mm;}'
+    +'*{box-sizing:border-box;}'
+    +'body{font-family:"NumQuicksand","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#2C2218;font-size:11px;line-height:1.5;margin:0;background:#fff;}'
+    +'h1{font-family:"NumQuicksand","Noto Serif TC",serif;font-size:22px;font-weight:500;margin:0 0 4px;letter-spacing:0.04em;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #8B6B48;padding-bottom:10px;margin-bottom:14px;gap:20px;}'
+    +'.brand{font-family:"NumQuicksand","Noto Serif TC",serif;font-size:13px;letter-spacing:0.18em;color:#8B6B48;margin-bottom:4px;}'
+    +'.meta{font-size:11px;color:#6E5E4E;margin-top:2px;line-height:1.7;}'
+    +'.meta b{color:#2C2218;}'
+    +'.right{text-align:right;font-size:11px;color:#6E5E4E;line-height:1.8;}'
+    +'.note{font-size:10.5px;color:#8B7E6A;background:#FAF7F2;border-left:3px solid #C4A882;padding:7px 12px;margin-bottom:10px;line-height:1.6;}'
+    +'table{width:100%;border-collapse:collapse;margin-top:4px;table-layout:fixed;}'
+    +'thead th{font-size:10.5px;color:#6E5E4E;font-weight:500;padding:8px 8px;border-bottom:1px solid #8B6B48;text-align:left;background:#F5EFE7;letter-spacing:0.04em;}'
+    +'thead th.c{text-align:center;}'
+    +'tbody tr{border-bottom:0.5px solid #D9CFC1;page-break-inside:avoid;}'
+    +'tbody tr.grp{border-bottom:none;page-break-after:avoid;}'
+    +'tbody td{font-size:11px;vertical-align:top;word-break:break-word;}'
+    +'.sig{margin-top:36px;display:flex;justify-content:space-between;gap:60px;page-break-inside:avoid;}'
+    +'.sig .col{flex:1;font-size:11.5px;color:#2C2218;border-top:0.5px solid #2C2218;padding-top:6px;min-height:54px;line-height:1.8;}'
+    +'.sig .col .lbl{color:#6E5E4E;font-size:10px;letter-spacing:0.08em;}'
+    +'.foot{margin-top:18px;font-size:10px;color:#A89478;text-align:center;letter-spacing:0.08em;border-top:0.5px solid #EAE3D2;padding-top:8px;}'
+    +'.noprint{position:fixed;top:10px;right:10px;z-index:10;}'
+    +'@media print{.noprint{display:none;}body{margin:0;}}'
+    +'</style></head><body>'
+    +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;letter-spacing:0.04em;">列印 / 儲存為 PDF</button></div>'
+    +'<div class="hd"><div><div class="brand">有心制作 · 空間設計</div><h1>裝修物料表</h1>'
+    +'<div class="meta">業主：<b>'+esc(clientName)+'</b>　｜　工程名稱：<b>'+esc(projName)+'</b>'
+    +(projAddr?'<br>工程地址：'+esc(projAddr):'')+'</div></div>'
+    +'<div class="right"><div>製表日期：'+dateStr+'</div>'
+    +'<div>項目總數：'+totalCount+' 項</div>'
+    +'<div>客戶已確認：'+confirmedCount+' / '+totalCount+' 項</div></div></div>'
+    +'<div class="note">本表彙整各空間目前選定之品項與規格。狀態欄顯示「已確認 / 已下單」者已完成決策；「客戶確認中 / 變更中」需待業主確認；如需調整，請聯絡有心制作設計團隊。</div>'
+    +'<table><colgroup>'
+    +'<col style="width:34px;"><col style="width:11%;"><col style="width:11%;"><col style="width:18%;">'
+    +'<col style="width:10%;"><col style="width:13%;"><col style="width:70px;"><col style="width:auto;">'
+    +'</colgroup>'
+    +'<thead><tr>'
+    +'<th class="c">序</th>'
+    +'<th>品項</th>'
+    +'<th>品牌</th>'
+    +'<th>名稱／型號</th>'
+    +'<th>規格／色號</th>'
+    +'<th>使用位置</th>'
+    +'<th class="c">狀態</th>'
+    +'<th>備註</th>'
+    +'</tr></thead><tbody>'+rowsHtml+'</tbody></table>'
+    +'<div class="sig">'
+    +'<div class="col"><span class="lbl">業主簽名／日期</span></div>'
+    +'<div class="col"><span class="lbl">設計師簽名／日期</span></div>'
+    +'<div class="col"><span class="lbl">工程負責人簽名／日期</span></div>'
+    +'</div>'
+    +'<div class="foot">YOHSIN INTERIOR ｜ 有心制作 · 空間設計</div>'
+    +'<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>'
+    +'</body></html>';
+
+  const w=window.open('','_blank');
+  if(!w){alert('請先在瀏覽器允許此網站彈出視窗，再點一次匯出 PDF');return;}
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
 async function exportChangeOrdersPdf(){
   const c=clients.find(x=>x.id===currentClientId);
   if(!c||!c.projectId){alert('找不到專案資訊');return;}
