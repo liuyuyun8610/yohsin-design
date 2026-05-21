@@ -1445,6 +1445,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <tr>
               <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;">序</th>
               <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);">內容</th>
+              <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:82px;">日期</th>
               <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:80px;">單價</th>
               <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:48px;">數量</th>
               <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:90px;">小計</th>
@@ -9092,6 +9093,29 @@ window.renderClientNextAction = async function(proj){
     });
   }
 
+  // 6b. 追加減更新（ERP 端有改 change_orders.change_date 在近一週內）
+  try {
+    if (typeof wsClient !== 'undefined' && wsClient){
+      const { data: cos } = await wsClient.from('change_orders')
+        .select('content, type, change_date')
+        .eq('ys_project_id', ysPid)
+        .not('change_date', 'is', null)
+        .order('change_date', { ascending: false })
+        .limit(1)
+      if (cos && cos.length > 0 && cos[0].change_date){
+        const ts = toTs(cos[0].change_date)
+        if (isFinite(ts) && ts >= since){
+          rows.push({
+            kind: 'update',
+            label: '追加減更新',
+            sub: `${trunc(cos[0].content || '', 12)} · ${shortDate(cos[0].change_date)}`,
+            navigate: () => goPage('p-changes', document.querySelector('#s-client .tnav[onclick*="p-changes"]')),
+          })
+        }
+      }
+    }
+  } catch(e) {}
+
   // 6. 報價單更新（從 ERP 上傳的客戶報價 PDF）
   const quotes = docs.quotes || [];
   let latestQuote = null;
@@ -9518,6 +9542,7 @@ async function loadClientChangeOrders(pid){
         tr.innerHTML=`
           <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${r.seq_no}</td>
           <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}</td>
+          <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
           <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
           <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
           <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
