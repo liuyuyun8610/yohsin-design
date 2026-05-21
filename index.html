@@ -9486,12 +9486,15 @@ function goToMeetingTab(tab){
 
 async function loadClientChangeOrders(pid){
   try{
-    const [coRes, psRes] = await Promise.all([
+    const [coRes, psRes, tcRes] = await Promise.all([
       wsClient.from('change_orders').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
       wsClient.from('payment_settings').select('co_supervision_pct').eq('ys_project_id',pid).maybeSingle(),
+      wsClient.from('trade_categories').select('key, label, sort_order').eq('is_active', true).order('sort_order'),
     ]);
     if(coRes.error) throw coRes.error;
     const items=coRes.data||[];
+    const tradeMap = {};
+    (tcRes.data||[]).forEach(c=>{ tradeMap[c.key] = c.label; });
     const pct=Number(psRes?.data?.co_supervision_pct)||0;
     let addTotal=0,subTotal=0;
     items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addTotal+=amt;else subTotal+=amt;});
@@ -9534,20 +9537,46 @@ async function loadClientChangeOrders(pid){
       tb.innerHTML='';
       if(empty) empty.style.display='none';
       if(summary) summary.style.display='block';
+
+      // 依工種分組（保留每組內 seq_no 順序）
+      const groups = {}; // key -> { label, items }
+      const groupOrder = []; // 出現順序
       items.forEach(r=>{
-        const amt=Number(r.unit_price)*Number(r.quantity);
-        const isAdd=r.type==='追加';
-        const tr=document.createElement('tr');
-        tr.style.borderBottom='0.5px solid var(--border)';
-        tr.innerHTML=`
-          <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${r.seq_no}</td>
-          <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}</td>
-          <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
-          <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
-          <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
-          <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
-        tb.appendChild(tr);
+        const k = r.category_key || '__uncat__';
+        if(!groups[k]){
+          groups[k] = {
+            label: r.category_key ? (tradeMap[r.category_key] || r.category_key) : '其他',
+            items: [],
+          };
+          groupOrder.push(k);
+        }
+        groups[k].items.push(r);
       });
+
+      const totalCols = 6;
+      groupOrder.forEach(k=>{
+        const g = groups[k];
+        // 分組標題列
+        const headTr = document.createElement('tr');
+        headTr.innerHTML = `<td colspan="${totalCols}" style="padding:10px 12px;background:var(--sand);font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;border-top:1px solid var(--border);border-bottom:0.5px solid var(--border);">${g.label}</td>`;
+        tb.appendChild(headTr);
+        // 各項目
+        g.items.forEach(r=>{
+          const amt=Number(r.unit_price)*Number(r.quantity);
+          const isAdd=r.type==='追加';
+          const tr=document.createElement('tr');
+          tr.style.borderBottom='0.5px solid var(--border)';
+          tr.innerHTML=`
+            <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${r.seq_no}</td>
+            <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}</td>
+            <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
+            <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
+            <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
+            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
+          tb.appendChild(tr);
+        });
+      });
+
       setT('cli-sum-add','+$'+fmtN(addTotal));
       setT('cli-sum-sub','-$'+fmtN(subTotal));
       setT('cli-sum-fee',fmtS(fee));
