@@ -9,8 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#DDD9D2;          /* 暖灰底（對齊原網站） */
-    --bg-2:#D2CDC4;
+    --bg:#E6DFDF;          /* 暖灰底（對齊原網站） */
+    --bg-2:#D9D0D0;
     --paper:#F4F1EB;       /* 接近白的奶灰（卡片底色，比 bg 亮 2-3 階） */
     --paper-2:#EEE9DF;
     --ink:#2D2418;
@@ -953,7 +953,7 @@ async function submit(){
     // 加全螢幕成功畫面
     const overlay = document.createElement('div');
     overlay.id = 'success-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#DDD9D2 0%,#E2DBCF 100%);display:flex;align-items:center;justify-content:center;padding:2rem;animation:fadeInUp .8s cubic-bezier(0.2,0.8,0.2,1);';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#E6DFDF 0%,#ECE5E1 100%);display:flex;align-items:center;justify-content:center;padding:2rem;animation:fadeInUp .8s cubic-bezier(0.2,0.8,0.2,1);';
     overlay.innerHTML = `
       <style>
         @keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
