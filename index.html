@@ -9682,7 +9682,7 @@ async function exportMaterialsPdf(){
     totalCount += items.length;
     items.forEach(r=>{ if(r.customer_confirmed_at) confirmedCount++; });
     // 分組標題列
-    rowsHtml += `<tr class="grp"><td colspan="8" style="background:#F5EFE7;padding:8px 12px;color:#8B6B48;font-weight:600;font-size:12px;letter-spacing:0.06em;border-top:1px solid #8B6B48;">${esc(space)} <span style="font-weight:400;color:#A89478;font-size:10px;margin-left:8px;">共 ${items.length} 項</span></td></tr>`;
+    rowsHtml += `<tr class="grp"><td colspan="9" style="background:#F5EFE7;padding:8px 12px;color:#8B6B48;font-weight:600;font-size:12px;letter-spacing:0.06em;border-top:1px solid #8B6B48;">${esc(space)} <span style="font-weight:400;color:#A89478;font-size:10px;margin-left:8px;">共 ${items.length} 項</span></td></tr>`;
     items.forEach((r,idx)=>{
       const nameModel = [r.name, r.model].filter(Boolean).join(' / ') || '—';
       const remarks = [
@@ -9694,15 +9694,20 @@ async function exportMaterialsPdf(){
       const sigBadge = isConfirmed
         ? `<div style="font-size:9px;color:#3D5C24;margin-top:3px;">✓ ${esc(r.customer_signature_name||'客戶')} 已確認</div>`
         : '';
+      const photoUrl = Array.isArray(r.photos) && r.photos[0]?.url;
+      const photoCell = photoUrl
+        ? `<img src="${esc(photoUrl)}" crossorigin="anonymous" onerror="this.style.display='none';this.parentNode.innerHTML='<div style=&quot;width:74px;height:74px;background:linear-gradient(135deg,#F4F1EB,#EAE3D2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#A09080;font-size:9px;letter-spacing:0.08em;&quot;>無樣板</div>';" style="width:74px;height:74px;object-fit:cover;border-radius:4px;display:block;border:0.5px solid #D9CFC1;">`
+        : `<div style="width:74px;height:74px;background:linear-gradient(135deg,#F4F1EB,#EAE3D2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#A09080;font-size:9px;letter-spacing:0.08em;">無樣板</div>`;
       rowsHtml += `<tr>
-        <td style="text-align:center;padding:8px 6px;color:#6E5E4E;font-size:11px;">${idx+1}</td>
-        <td style="padding:8px 10px;font-weight:500;">${esc(r.item||'—')}${sigBadge}</td>
-        <td style="padding:8px 10px;color:#3F362C;">${esc(r.brand||'—')}</td>
-        <td style="padding:8px 10px;color:#3F362C;">${esc(nameModel)}</td>
-        <td style="padding:8px 10px;color:#6E5E4E;font-size:11px;">${esc(r.spec||'—')}</td>
-        <td style="padding:8px 10px;color:#6E5E4E;font-size:11px;">${esc(r.location||'—')}</td>
-        <td style="padding:8px 6px;text-align:center;"><span style="${statusStyle(r.status)}">${esc(r.status||'未選擇')}</span></td>
-        <td style="padding:8px 10px;color:#6E5E4E;font-size:10.5px;line-height:1.5;">${esc(remarks)||'—'}</td>
+        <td style="text-align:center;padding:8px 4px;color:#6E5E4E;font-size:11px;vertical-align:middle;">${idx+1}</td>
+        <td style="padding:6px;vertical-align:middle;">${photoCell}</td>
+        <td style="padding:8px 8px;font-weight:500;vertical-align:middle;">${esc(r.item||'—')}${sigBadge}</td>
+        <td style="padding:8px 8px;color:#3F362C;vertical-align:middle;">${esc(r.brand||'—')}</td>
+        <td style="padding:8px 8px;color:#3F362C;vertical-align:middle;">${esc(nameModel)}</td>
+        <td style="padding:8px 8px;color:#6E5E4E;font-size:11px;vertical-align:middle;">${esc(r.spec||'—')}</td>
+        <td style="padding:8px 8px;color:#6E5E4E;font-size:11px;vertical-align:middle;">${esc(r.location||'—')}</td>
+        <td style="padding:8px 4px;text-align:center;vertical-align:middle;"><span style="${statusStyle(r.status)}">${esc(r.status||'未選擇')}</span></td>
+        <td style="padding:8px 8px;color:#6E5E4E;font-size:10.5px;line-height:1.5;vertical-align:middle;">${esc(remarks)||'—'}</td>
       </tr>`;
     });
   });
@@ -9741,11 +9746,12 @@ async function exportMaterialsPdf(){
     +'<div>客戶已確認：'+confirmedCount+' / '+totalCount+' 項</div></div></div>'
     +'<div class="note">本表彙整各空間目前選定之品項與規格。狀態欄顯示「已確認 / 已下單」者已完成決策；「客戶確認中 / 變更中」需待業主確認；如需調整，請聯絡有心制作設計團隊。</div>'
     +'<table><colgroup>'
-    +'<col style="width:34px;"><col style="width:11%;"><col style="width:11%;"><col style="width:18%;">'
-    +'<col style="width:10%;"><col style="width:13%;"><col style="width:70px;"><col style="width:auto;">'
+    +'<col style="width:30px;"><col style="width:84px;"><col style="width:10%;"><col style="width:10%;"><col style="width:16%;">'
+    +'<col style="width:10%;"><col style="width:12%;"><col style="width:68px;"><col style="width:auto;">'
     +'</colgroup>'
     +'<thead><tr>'
     +'<th class="c">序</th>'
+    +'<th class="c">樣板</th>'
     +'<th>品項</th>'
     +'<th>品牌</th>'
     +'<th>名稱／型號</th>'
@@ -9760,7 +9766,20 @@ async function exportMaterialsPdf(){
     +'<div class="col"><span class="lbl">工程負責人簽名／日期</span></div>'
     +'</div>'
     +'<div class="foot">YOHSIN INTERIOR ｜ 有心制作 · 空間設計</div>'
-    +'<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>'
+    +'<script>'
+    +'window.addEventListener("load",function(){'
+    +'  var imgs=Array.prototype.slice.call(document.images).filter(function(i){return !i.complete;});'
+    +'  var done=false;'
+    +'  function go(){ if(done) return; done=true; setTimeout(function(){window.print();}, 200); }'
+    +'  if(!imgs.length){ go(); return; }'
+    +'  var left=imgs.length;'
+    +'  imgs.forEach(function(i){'
+    +'    var fin=function(){ left--; if(left<=0) go(); };'
+    +'    i.addEventListener("load",fin); i.addEventListener("error",fin);'
+    +'  });'
+    +'  setTimeout(go, 8000);'  // fallback：8 秒沒載完也強制印
+    +'});'
+    +'<\/script>'
     +'</body></html>';
 
   const w=window.open('','_blank');
