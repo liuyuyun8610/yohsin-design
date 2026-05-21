@@ -9493,8 +9493,24 @@ async function loadClientChangeOrders(pid){
     ]);
     if(coRes.error) throw coRes.error;
     const items=coRes.data||[];
+    // 英文 key → 中文 fallback（trade_categories.label 若還是英文時用）
+    const EN_TO_ZH = {
+      demolition:'拆除工程', protection:'保護工程', plaster:'泥作工程',
+      electrical:'水電工程', plumbing:'水電工程', wood:'木作工程', carpentry:'木作工程',
+      paint:'油漆工程', cabinet:'系統櫃工程', system:'系統櫃工程',
+      window:'鋁窗工程', aluminum:'鋁窗工程', metal:'鐵件工程', iron:'鐵件工程',
+      cleaning:'清潔工程', glass:'玻璃工程', hvac:'空調工程', ac:'空調工程',
+      floor:'地板工程', tile:'磁磚工程', kitchen:'廚具工程', bathroom:'衛浴工程',
+      lighting:'燈具工程', curtain:'窗簾工程', furniture:'家具', other:'其他工程',
+    };
+    const isEnglishLike = s => /^[a-z][a-z0-9 _-]*$/i.test(String(s||''));
+    const zhLabel = (key, rawLabel) => {
+      if (rawLabel && !isEnglishLike(rawLabel)) return rawLabel; // 已是中文 → 直接用
+      const k = String(key||'').toLowerCase();
+      return EN_TO_ZH[k] || rawLabel || key || '其他工程';
+    };
     const tradeMap = {};
-    (tcRes.data||[]).forEach(c=>{ tradeMap[c.key] = c.label; });
+    (tcRes.data||[]).forEach(c=>{ tradeMap[c.key] = zhLabel(c.key, c.label); });
     const pct=Number(psRes?.data?.co_supervision_pct)||0;
     let addTotal=0,subTotal=0;
     items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);if(r.type==='追加')addTotal+=amt;else subTotal+=amt;});
@@ -9545,7 +9561,7 @@ async function loadClientChangeOrders(pid){
         const k = r.category_key || '__uncat__';
         if(!groups[k]){
           groups[k] = {
-            label: r.category_key ? (tradeMap[r.category_key] || r.category_key) : '其他',
+            label: r.category_key ? (tradeMap[r.category_key] || zhLabel(r.category_key, null)) : '其他工程',
             items: [],
           };
           groupOrder.push(k);
@@ -9556,18 +9572,24 @@ async function loadClientChangeOrders(pid){
       const totalCols = 6;
       groupOrder.forEach(k=>{
         const g = groups[k];
+        // 計算組內小計（追加正、減項負）
+        let gNet = 0;
+        g.items.forEach(r=>{
+          const amt = Number(r.unit_price) * Number(r.quantity);
+          gNet += (r.type === '追加' ? amt : -amt);
+        });
         // 分組標題列
         const headTr = document.createElement('tr');
         headTr.innerHTML = `<td colspan="${totalCols}" style="padding:10px 12px;background:var(--sand);font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;border-top:1px solid var(--border);border-bottom:0.5px solid var(--border);">${g.label}</td>`;
         tb.appendChild(headTr);
-        // 各項目
-        g.items.forEach(r=>{
+        // 各項目 — 組內重新從 1 編號
+        g.items.forEach((r, idxInGroup)=>{
           const amt=Number(r.unit_price)*Number(r.quantity);
           const isAdd=r.type==='追加';
           const tr=document.createElement('tr');
           tr.style.borderBottom='0.5px solid var(--border)';
           tr.innerHTML=`
-            <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${r.seq_no}</td>
+            <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${idxInGroup + 1}</td>
             <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}</td>
             <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
             <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
@@ -9575,6 +9597,14 @@ async function loadClientChangeOrders(pid){
             <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
           tb.appendChild(tr);
         });
+        // 組小計列
+        const sumSign = gNet >= 0 ? '+' : '-';
+        const sumColor = gNet >= 0 ? 'var(--red)' : 'var(--green)';
+        const subTr = document.createElement('tr');
+        subTr.innerHTML = `
+          <td colspan="5" style="text-align:right;padding:8px 12px;font-size:12px;color:var(--ink-muted);background:rgba(0,0,0,0.015);">${g.label} 小計</td>
+          <td style="text-align:right;padding:8px 12px;font-size:13px;font-weight:600;color:${sumColor};background:rgba(0,0,0,0.015);">${sumSign}$${fmtN(Math.abs(gNet))}</td>`;
+        tb.appendChild(subTr);
       });
 
       setT('cli-sum-add','+$'+fmtN(addTotal));
@@ -9596,14 +9626,17 @@ async function exportChangeOrdersPdf(){
 
   let items=[];
   let pct=0;
+  let tradeRows=[];
   try{
-    const [coRes, psRes] = await Promise.all([
+    const [coRes, psRes, tcRes] = await Promise.all([
       wsClient.from('change_orders').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
       wsClient.from('payment_settings').select('co_supervision_pct').eq('ys_project_id',pid).maybeSingle(),
+      wsClient.from('trade_categories').select('key, label').eq('is_active', true),
     ]);
     if(coRes.error) throw coRes.error;
     items=coRes.data||[];
     pct=Number(psRes?.data?.co_supervision_pct)||0;
+    tradeRows=tcRes.data||[];
   }catch(e){alert('讀取追加減資料失敗：'+e.message);return;}
 
   if(!items.length){alert('目前尚無追加減記錄可匯出');return;}
@@ -9615,22 +9648,76 @@ async function exportChangeOrdersPdf(){
   const fmtS=n=>n>=0?'+$'+fmtN(n):'-$'+fmtN(Math.abs(n));
   const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+  // 工種中文 fallback（共用 ys-interior 表內已存在的 trade_categories）
+  const EN_TO_ZH = {
+    demolition:'拆除工程', protection:'保護工程', plaster:'泥作工程',
+    electrical:'水電工程', plumbing:'水電工程', wood:'木作工程', carpentry:'木作工程',
+    paint:'油漆工程', cabinet:'系統櫃工程', system:'系統櫃工程',
+    window:'鋁窗工程', aluminum:'鋁窗工程', metal:'鐵件工程', iron:'鐵件工程',
+    cleaning:'清潔工程', glass:'玻璃工程', hvac:'空調工程', ac:'空調工程',
+    floor:'地板工程', tile:'磁磚工程', kitchen:'廚具工程', bathroom:'衛浴工程',
+    lighting:'燈具工程', curtain:'窗簾工程', furniture:'家具', other:'其他工程',
+  };
+  const isEng = s => /^[a-z][a-z0-9 _-]*$/i.test(String(s||''));
+  const zhLabel = (key, raw) => {
+    if (raw && !isEng(raw)) return raw;
+    const k = String(key||'').toLowerCase();
+    return EN_TO_ZH[k] || raw || key || '其他工程';
+  };
+  const tradeMap = {};
+  tradeRows.forEach(c=>{ tradeMap[c.key] = zhLabel(c.key, c.label); });
+
+  // 依工種分組
+  const groups = {};
+  const groupOrder = [];
+  items.forEach(r=>{
+    const k = r.category_key || '__uncat__';
+    if(!groups[k]){
+      groups[k] = {
+        label: r.category_key ? (tradeMap[r.category_key] || zhLabel(r.category_key, null)) : '其他工程',
+        items: [],
+      };
+      groupOrder.push(k);
+    }
+    groups[k].items.push(r);
+  });
+
   const today=new Date();
   const dateStr=today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
 
-  const rowsHtml=items.map(r=>{
-    const amt=Number(r.unit_price)*Number(r.quantity);
-    const isAdd=r.type==='追加';
-    const color=isAdd?'#A32D2D':'#3B6D11';
-    return `<tr>
-      <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${esc(r.seq_no)}</td>
-      <td style="padding:9px 12px;">${esc(r.content||'—')}</td>
-      <td style="text-align:center;padding:9px 8px;color:${color};font-weight:500;">${esc(r.type||'')}</td>
-      <td style="text-align:right;padding:9px 12px;">$${fmtN(Number(r.unit_price))}</td>
-      <td style="text-align:right;padding:9px 8px;color:#6E5E4E;">${esc(r.quantity)}</td>
-      <td style="text-align:right;padding:9px 12px;font-weight:500;color:${color};">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>
+  let rowsHtml = '';
+  groupOrder.forEach(k => {
+    const g = groups[k];
+    let gNet = 0;
+    g.items.forEach(r => {
+      const amt = Number(r.unit_price) * Number(r.quantity);
+      gNet += (r.type === '追加' ? amt : -amt);
+    });
+    // 分組標題列
+    rowsHtml += `<tr><td colspan="7" style="background:#F5EFE7;padding:8px 12px;color:#8B6B48;font-weight:600;font-size:12px;letter-spacing:0.06em;border-top:1px solid #8B6B48;">${esc(g.label)}</td></tr>`;
+    // 各項目（組內重新編號）
+    g.items.forEach((r, idxInGroup) => {
+      const amt = Number(r.unit_price) * Number(r.quantity);
+      const isAdd = r.type === '追加';
+      const color = isAdd ? '#A32D2D' : '#3B6D11';
+      rowsHtml += `<tr>
+        <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${idxInGroup + 1}</td>
+        <td style="padding:9px 12px;">${esc(r.content||'—')}</td>
+        <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${r.change_date ? esc(r.change_date.replace(/-/g,'/')) : '—'}</td>
+        <td style="text-align:center;padding:9px 8px;color:${color};font-weight:500;">${esc(r.type||'')}</td>
+        <td style="text-align:right;padding:9px 12px;">$${fmtN(Number(r.unit_price))}</td>
+        <td style="text-align:right;padding:9px 8px;color:#6E5E4E;">${esc(r.quantity)}</td>
+        <td style="text-align:right;padding:9px 12px;font-weight:500;color:${color};">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>
+      </tr>`;
+    });
+    // 組小計列
+    const sumSign = gNet >= 0 ? '+' : '-';
+    const sumColor = gNet >= 0 ? '#A32D2D' : '#3B6D11';
+    rowsHtml += `<tr>
+      <td colspan="6" style="text-align:right;padding:7px 12px;font-size:11px;color:#6E5E4E;background:#FAF7F2;">${esc(g.label)} 小計</td>
+      <td style="text-align:right;padding:7px 12px;font-size:12px;font-weight:600;color:${sumColor};background:#FAF7F2;">${sumSign}$${fmtN(Math.abs(gNet))}</td>
     </tr>`;
-  }).join('');
+  });
 
   const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(projName)+' 追加減明細</title>'
     +'<style>'
@@ -9662,10 +9749,11 @@ async function exportChangeOrdersPdf(){
     +'<table><thead><tr>'
     +'<th class="c" style="width:36px;">序</th>'
     +'<th>項目內容</th>'
+    +'<th class="c" style="width:74px;">日期</th>'
     +'<th class="c" style="width:58px;">類別</th>'
-    +'<th class="r" style="width:96px;">單價</th>'
-    +'<th class="r" style="width:54px;">數量</th>'
-    +'<th class="r" style="width:112px;">小計</th>'
+    +'<th class="r" style="width:92px;">單價</th>'
+    +'<th class="r" style="width:48px;">數量</th>'
+    +'<th class="r" style="width:108px;">小計</th>'
     +'</tr></thead><tbody>'+rowsHtml+'</tbody></table>'
     +'<div class="totals">'
     +'<div class="row"><span>追加小計</span><span>+$'+fmtN(addTotal)+'</span></div>'
