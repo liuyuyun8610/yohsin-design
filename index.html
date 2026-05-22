@@ -1332,6 +1332,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="p-knowledge">
       <div class="page-title">裝修知識</div>
       <div class="notice-desc">以下為設計師為您整理的重要說明，請點擊展開閱讀。</div>
+      <div id="know-tools"></div>
       <div id="know-list"></div>
     </div>
 
@@ -10769,7 +10770,49 @@ async function loadClientSignatures(){
   }catch(e){console.warn('load signatures',e);}
 }
 
+// 客戶端模塊 toggle（從 work-system DB 跨讀）
+let clientModules = {};
+async function loadClientModules(){
+  try{
+    if(!wsClient) return;
+    const {data} = await wsClient.from('client_modules').select('*');
+    clientModules = {};
+    (data||[]).forEach(m => { clientModules[m.key] = m; });
+  }catch(e){ console.warn('loadClientModules failed', e); }
+}
+function renderKnowledgeTools(){
+  const el = document.getElementById('know-tools');
+  if(!el) return;
+  el.innerHTML = '';
+  const tools = [];
+  const outlet = clientModules['outlet_planner'];
+  if(outlet && outlet.is_enabled){
+    tools.push({
+      key: 'outlet_planner',
+      emoji: '⚡',
+      name: outlet.name,
+      desc: outlet.description || '',
+      onClick: 'openOutletPlanner()',
+    });
+  }
+  if(tools.length === 0) return;
+  el.innerHTML = `
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;color:var(--ink-muted);letter-spacing:0.08em;margin-bottom:10px;">小工具 · TOOLS</div>
+      ${tools.map(t => `
+        <div class="know-tool-card" onclick="${t.onClick}" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fff;border:0.5px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:all 0.2s;">
+          <div style="font-size:24px;width:44px;height:44px;background:var(--cli-card-alt);border-radius:10px;display:flex;align-items:center;justify-content:center;">${t.emoji}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:500;color:var(--cli-ink);">${t.name}</div>
+            <div style="font-size:11px;color:var(--cli-muted);margin-top:3px;line-height:1.7;">${t.desc}</div>
+          </div>
+          <div style="font-size:18px;color:var(--cli-accent);">›</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
 async function renderKnowledge(){
+  renderKnowledgeTools();
   await loadClientSignatures();
   renderClientAcknowledgements();
   const c=clients.find(x=>x.id===currentClientId);
@@ -12018,6 +12061,8 @@ document.addEventListener('DOMContentLoaded', function() {
     sbClient = window.supabase.createClient(SB_URL, SB_KEY);
     wsClient = window.supabase.createClient(WS_URL, WS_KEY);
     console.log('✅ Supabase ready (sb + ws)');
+    // 客戶端模塊 toggle（不阻塞 boot）
+    loadClientModules().catch(e=>console.warn('client modules load failed',e));
   } catch(e){ console.error('Supabase init failed:',e); }
   // Apply logo to all instances (stored once in JS to avoid 3× duplication in HTML)
   document.querySelectorAll('.site-logo-img').forEach(img=>{ if(!img.src||img.src===window.location.href) img.src=SITE_LOGO_B64; });
@@ -12433,6 +12478,255 @@ window.closeVRViewer = function(){
   document.body.style.overflow = '';
   if(_vrViewer){ try{_vrViewer.destroy();}catch(e){} _vrViewer = null; _vrMarkers = null; }
 };
+</script>
+
+<!-- ===== 插座評估工具 ===== -->
+<div id="outlet-planner-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:#FBF8F4;font-family:inherit;flex-direction:column;">
+  <header style="padding:14px 20px;border-bottom:1px solid #E8E3D8;background:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div>
+      <div style="font-size:11px;color:#8E8474;letter-spacing:0.3em;">OUTLET PLANNER</div>
+      <h2 style="font-size:18px;margin:2px 0 0;letter-spacing:0.08em;color:#2D2418;font-weight:500;">插座評估工具</h2>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button onclick="opPrint()" style="padding:8px 18px;border:1px solid #DDD3C2;background:#fff;border-radius:999px;font-size:13px;cursor:pointer;color:#5C4A2F;">📄 列印 / 匯出 PDF</button>
+      <button onclick="opClear()" style="padding:8px 14px;border:1px solid #DDD3C2;background:#fff;border-radius:999px;font-size:13px;cursor:pointer;color:#8E8474;">清空</button>
+      <button onclick="closeOutletPlanner()" style="width:36px;height:36px;border:1px solid #DDD3C2;background:#fff;border-radius:50%;font-size:18px;cursor:pointer;color:#6B5F4B;">×</button>
+    </div>
+  </header>
+  <main style="flex:1;display:flex;overflow:hidden;">
+    <section style="flex:1;display:flex;flex-direction:column;background:#F4EFE7;padding:20px;overflow:auto;">
+      <div id="op-empty" style="margin:auto;text-align:center;color:#8E8474;">
+        <div style="font-size:48px;margin-bottom:14px;">📐</div>
+        <div style="font-size:14px;margin-bottom:6px;">上傳家裡平面圖開始規劃</div>
+        <div style="font-size:12px;color:#aaa;margin-bottom:20px;">建議用建商提供的格局圖、或室內設計師畫的平面圖</div>
+        <label style="padding:12px 28px;background:#2D2418;color:#FBF8F4;border-radius:999px;font-size:13px;cursor:pointer;letter-spacing:0.15em;display:inline-block;">
+          選擇圖片
+          <input type="file" accept="image/*" style="display:none;" onchange="opHandleUpload(event)">
+        </label>
+      </div>
+      <div id="op-canvas-wrap" style="display:none;background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 24px rgba(45,36,24,0.1);">
+        <canvas id="op-canvas" style="display:block;max-width:100%;height:auto;cursor:crosshair;border-radius:8px;"></canvas>
+        <div style="font-size:11px;color:#8E8474;margin-top:10px;text-align:center;">在圖上點任何地方加標記，右側可改類型</div>
+        <div style="text-align:center;margin-top:10px;">
+          <label style="font-size:12px;color:#5C4A2F;cursor:pointer;text-decoration:underline;">換一張平面圖
+            <input type="file" accept="image/*" style="display:none;" onchange="opHandleUpload(event)">
+          </label>
+        </div>
+      </div>
+    </section>
+    <aside style="width:340px;border-left:1px solid #E8E3D8;background:#fff;display:flex;flex-direction:column;flex-shrink:0;">
+      <div style="padding:18px 20px;border-bottom:1px solid #E8E3D8;">
+        <div style="font-size:11px;color:#8E8474;letter-spacing:0.2em;">標記</div>
+        <div id="op-counter" style="font-size:20px;color:#2D2418;margin-top:4px;letter-spacing:0.05em;">共 0 個插座</div>
+      </div>
+      <ul id="op-markers-list" style="flex:1;overflow:auto;list-style:none;padding:0;margin:0;"></ul>
+      <div id="op-summary" style="padding:14px 20px;border-top:1px solid #E8E3D8;font-size:12px;color:#5C4A2F;background:#FBF8F4;"></div>
+    </aside>
+  </main>
+</div>
+
+<script>
+const OP_TYPES = ['一般','床頭','電視牆','廚房家電','浴室','冷氣','洗衣機','網路','USB','吸塵器','除濕機','其他'];
+let opState = { image: null, markers: [] };
+let opCanvas = null, opCtx = null, opImg = null;
+
+function opStorageKey(){ return 'outlet_planner_' + (currentClientId || 'guest'); }
+function opSave(){ try{ localStorage.setItem(opStorageKey(), JSON.stringify(opState)); }catch(e){} }
+function opLoad(){
+  try{
+    const raw = localStorage.getItem(opStorageKey());
+    if(raw) opState = JSON.parse(raw);
+    else opState = { image: null, markers: [] };
+  }catch(e){ opState = { image: null, markers: [] }; }
+}
+
+function openOutletPlanner(){
+  opLoad();
+  document.getElementById('outlet-planner-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  opRefresh();
+}
+function closeOutletPlanner(){
+  document.getElementById('outlet-planner-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+window.openOutletPlanner = openOutletPlanner;
+window.closeOutletPlanner = closeOutletPlanner;
+
+function opRefresh(){
+  const hasImg = !!opState.image;
+  document.getElementById('op-empty').style.display = hasImg ? 'none' : 'block';
+  document.getElementById('op-canvas-wrap').style.display = hasImg ? 'block' : 'none';
+  if(hasImg) opLoadImage();
+  opRenderList();
+  opRenderSummary();
+}
+
+function opLoadImage(){
+  opImg = new Image();
+  opImg.onload = () => {
+    opCanvas = document.getElementById('op-canvas');
+    opCtx = opCanvas.getContext('2d');
+    opCanvas.width = opImg.width;
+    opCanvas.height = opImg.height;
+    opCanvas.onclick = opCanvasClick;
+    opDraw();
+  };
+  opImg.src = opState.image;
+}
+
+function opDraw(){
+  if(!opCtx) return;
+  opCtx.clearRect(0, 0, opCanvas.width, opCanvas.height);
+  if(opImg) opCtx.drawImage(opImg, 0, 0);
+  opState.markers.forEach((m, i) => {
+    opCtx.beginPath();
+    opCtx.arc(m.x, m.y, 22, 0, Math.PI*2);
+    opCtx.fillStyle = '#D4925C';
+    opCtx.fill();
+    opCtx.lineWidth = 3;
+    opCtx.strokeStyle = '#fff';
+    opCtx.stroke();
+    opCtx.fillStyle = '#fff';
+    opCtx.font = '600 18px system-ui, sans-serif';
+    opCtx.textAlign = 'center';
+    opCtx.textBaseline = 'middle';
+    opCtx.fillText(String(i+1), m.x, m.y);
+  });
+}
+
+function opCanvasClick(e){
+  const rect = opCanvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width * opCanvas.width;
+  const y = (e.clientY - rect.top) / rect.height * opCanvas.height;
+  opState.markers.push({ id: Date.now() + Math.random(), x, y, type: '一般', note: '' });
+  opSave(); opDraw(); opRenderList(); opRenderSummary();
+}
+
+function opRenderList(){
+  const ul = document.getElementById('op-markers-list');
+  document.getElementById('op-counter').textContent = '共 ' + opState.markers.length + ' 個插座';
+  if(opState.markers.length === 0){
+    ul.innerHTML = '<li style="padding:40px 20px;text-align:center;color:#aaa;font-size:12px;">點圖上任何地方加標記</li>';
+    return;
+  }
+  ul.innerHTML = opState.markers.map((m, i) => `
+    <li style="padding:12px 16px;border-bottom:1px solid #F0EAE0;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+        <span style="display:inline-flex;width:26px;height:26px;background:#D4925C;color:#fff;border-radius:50%;font-size:12px;font-weight:600;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</span>
+        <select onchange="opUpdate('${m.id}','type',this.value)" style="flex:1;padding:5px 8px;border:1px solid #DDD3C2;border-radius:6px;font-size:12px;background:#fff;">
+          ${OP_TYPES.map(t => `<option value="${t}" ${m.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <button onclick="opRemove('${m.id}')" style="border:none;background:none;color:#aaa;font-size:18px;cursor:pointer;padding:2px 6px;">×</button>
+      </div>
+      <input type="text" placeholder="備註（例：床左側）" value="${(m.note||'').replace(/"/g,'&quot;')}"
+        onchange="opUpdate('${m.id}','note',this.value)"
+        style="width:100%;padding:5px 10px;border:1px solid #DDD3C2;border-radius:6px;font-size:11px;background:#fff;">
+    </li>
+  `).join('');
+}
+
+function opRenderSummary(){
+  const el = document.getElementById('op-summary');
+  if(opState.markers.length === 0){ el.innerHTML = ''; return; }
+  const counts = {};
+  opState.markers.forEach(m => { counts[m.type] = (counts[m.type]||0) + 1; });
+  el.innerHTML = '<div style="font-weight:500;margin-bottom:6px;">分類統計</div>' +
+    Object.entries(counts).map(([k,v]) => `<span style="display:inline-block;padding:3px 10px;background:#F4EFE7;border-radius:999px;font-size:11px;margin:2px 4px 2px 0;">${k} ${v}</span>`).join('');
+}
+
+function opUpdate(id, field, value){
+  const m = opState.markers.find(x => String(x.id) === String(id));
+  if(!m) return;
+  m[field] = value;
+  opSave(); opRenderSummary();
+}
+function opRemove(id){
+  opState.markers = opState.markers.filter(m => String(m.id) !== String(id));
+  opSave(); opDraw(); opRenderList(); opRenderSummary();
+}
+function opClear(){
+  if(!confirm('清空所有標記跟平面圖？此動作無法復原。')) return;
+  opState = { image: null, markers: [] };
+  opSave(); opRefresh();
+}
+
+function opHandleUpload(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // resize to max 1600px / quality 0.8 為了塞進 localStorage
+      const maxW = 1600;
+      let { width, height } = img;
+      if(width > maxW){ height = Math.round(height * maxW / width); width = maxW; }
+      const cv = document.createElement('canvas');
+      cv.width = width; cv.height = height;
+      const ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      opState.image = cv.toDataURL('image/jpeg', 0.85);
+      opState.markers = [];
+      try{ opSave(); }catch(err){ alert('圖片太大放不進儲存空間，請選小一點的圖'); return; }
+      opRefresh();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function opPrint(){
+  if(!opState.image){ alert('請先上傳平面圖'); return; }
+  const w = window.open('', '_blank');
+  if(!w){ alert('請允許彈出視窗'); return; }
+  const now = new Date().toLocaleString('zh-TW', { hour12: false });
+  const counts = {};
+  opState.markers.forEach(m => { counts[m.type] = (counts[m.type]||0) + 1; });
+  // 把 canvas 內容（圖+標記）轉成 dataURL
+  const tmp = document.createElement('canvas');
+  tmp.width = opCanvas.width; tmp.height = opCanvas.height;
+  const tctx = tmp.getContext('2d');
+  if(opImg) tctx.drawImage(opImg, 0, 0);
+  opState.markers.forEach((m, i) => {
+    tctx.beginPath();
+    tctx.arc(m.x, m.y, 22, 0, Math.PI*2);
+    tctx.fillStyle = '#D4925C';
+    tctx.fill();
+    tctx.lineWidth = 3; tctx.strokeStyle = '#fff'; tctx.stroke();
+    tctx.fillStyle = '#fff';
+    tctx.font = '600 18px sans-serif';
+    tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+    tctx.fillText(String(i+1), m.x, m.y);
+  });
+  const annotated = tmp.toDataURL('image/jpeg', 0.9);
+  const rows = opState.markers.map((m, i) => `<tr><td>${i+1}</td><td>${m.type}</td><td>${(m.note||'').replace(/[<>]/g,'')}</td></tr>`).join('');
+  const summary = Object.entries(counts).map(([k,v]) => `${k} ${v} 個`).join('・');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>插座規劃 - ${now}</title>
+  <style>
+    @page { margin: 18mm; size: A4; }
+    body { font-family: "Noto Serif TC", serif; padding: 0; margin: 0; color: #2D2418; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 20px; }
+    h1 { text-align: center; font-weight: 500; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .sub { text-align: center; color: #8E8474; font-size: 12px; letter-spacing: 0.2em; margin-bottom: 24px; }
+    img { max-width: 100%; border: 1px solid #ddd; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13px; }
+    th { background: #F4EFE7; padding: 8px; text-align: left; }
+    td { padding: 7px 8px; border-bottom: 1px solid #eee; }
+    .total { padding: 10px 14px; background: #F4EFE7; border-radius: 8px; margin-top: 16px; font-size: 13px; }
+  </style></head><body><div class="wrap">
+    <div class="sub">OUTLET PLANNER</div>
+    <h1>插座規劃</h1>
+    <div class="sub">匯出於 ${now}</div>
+    <img src="${annotated}">
+    <div class="total"><strong>共 ${opState.markers.length} 個插座</strong>${summary?'　|　'+summary:''}</div>
+    <table><thead><tr><th>編號</th><th>類型</th><th>備註</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="text-align:center;margin-top:30px;font-size:10px;color:#aaa;letter-spacing:0.4em;">YOSHIN DESIGN</div>
+  </div></body></html>`);
+  w.document.close();
+  setTimeout(() => { try{ w.print(); }catch(e){} }, 600);
+}
 </script>
 
 </body>
