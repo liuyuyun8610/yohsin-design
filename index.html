@@ -12531,9 +12531,8 @@ window.closeVRViewer = function(){
       <label class="op-tool-btn" style="display:inline-flex;align-items:center;gap:6px;">📷 換平面圖
         <input type="file" accept="image/*" style="display:none;" onchange="opHandleUpload(event)">
       </label>
-      <span style="font-size:11px;color:#8E8474;">比例尺：圖上 100px =</span>
-      <input id="op-scale" type="number" class="op-scale-input" placeholder="cm" min="0" step="0.1" oninput="opScaleChange(this.value)">
-      <span style="font-size:11px;color:#8E8474;">cm</span>
+      <button id="op-scale-btn" class="op-tool-btn" onclick="opToggleScale()" title="點圖上兩個已知距離的點來校準">📐 設比例尺</button>
+      <span id="op-scale-display" style="font-size:11px;color:#8E8474;"></span>
       <button id="op-measure-btn" class="op-tool-btn" onclick="opToggleMeasure()">📏 量距</button>
       <button class="op-tool-btn" onclick="opPrint()">📄 列印</button>
       <button class="op-tool-btn danger" onclick="opClear()">清空</button>
@@ -12599,7 +12598,7 @@ const OP_ITEMS = {
 };
 let opState = { image: null, objects: [], measureLines: [], scale: null }; // scale = cm per 100px
 let opSelectedId = null;
-let opMeasuring = false;
+let opMode = 'idle'; // 'idle' | 'measure' | 'scale'
 let opPendingPoint = null;
 let opActiveTab = 'appliance';
 
@@ -12656,7 +12655,7 @@ function opRefreshStage(){
     empty.style.display = 'none';
     wrap.classList.add('has-image');
     img.src = opState.image;
-    document.getElementById('op-scale').value = opState.scale ?? '';
+    opRenderScaleDisplay();
     img.onload = () => { opRenderObjects(); opRenderMeasure(); };
     if(img.complete) { opRenderObjects(); opRenderMeasure(); }
   } else {
@@ -12685,7 +12684,7 @@ function opRenderObjects(){
 }
 
 function opObjMouseDown(e, o){
-  if(opMeasuring) return;
+  if(opMode !== 'idle') return;
   e.preventDefault(); e.stopPropagation();
   opSelectedId = o.id;
   opRenderObjects();
@@ -12733,15 +12732,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   stage.addEventListener('click', e => {
     if(e.target.id === 'op-stage' || e.target.id === 'op-img'){
-      if(opMeasuring){
-        const rect = document.getElementById('op-img').getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
+      const rect = document.getElementById('op-img').getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      if(opMode === 'measure'){
         if(!opPendingPoint){ opPendingPoint = { x, y }; }
         else {
           opState.measureLines.push({ id: 'm' + Date.now(), a: opPendingPoint, b: { x, y } });
           opPendingPoint = null;
           opSave(); opRenderMeasure(); opRenderStats();
+        }
+      } else if(opMode === 'scale'){
+        if(!opPendingPoint){
+          opPendingPoint = { x, y };
+        } else {
+          const cm = prompt('這兩點之間的實際距離是幾公分？\n（例如門框 90 / 走道 120 / 房間長 380）');
+          if(cm && isFinite(parseFloat(cm)) && parseFloat(cm) > 0){
+            const realCm = parseFloat(cm);
+            const img = document.getElementById('op-img');
+            const w = img.clientWidth || img.naturalWidth;
+            const h = img.clientHeight || img.naturalHeight;
+            const dx = (x - opPendingPoint.x) * w;
+            const dy = (y - opPendingPoint.y) * h;
+            const distPx = Math.hypot(dx, dy);
+            if(distPx > 0) opState.scale = (realCm / distPx) * 100;
+            opSave(); opRenderScaleDisplay(); opRenderMeasure(); opRenderStats();
+          }
+          opPendingPoint = null;
+          opMode = 'idle';
+          opUpdateModeUI();
         }
       } else {
         opSelectedId = null;
@@ -12751,17 +12770,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function opToggleMeasure(){
-  opMeasuring = !opMeasuring;
+function opToggleScale(){
+  if(!opState.image){ alert('請先上傳平面圖'); return; }
+  opMode = opMode === 'scale' ? 'idle' : 'scale';
   opPendingPoint = null;
-  document.getElementById('op-measure-btn').classList.toggle('active', opMeasuring);
-  document.getElementById('op-stage').classList.toggle('measuring', opMeasuring);
+  opUpdateModeUI();
+  if(opMode === 'scale') alert('請在圖上點兩個你知道實際距離的點（例：門框兩端 = 90cm），點完會請你輸入。');
 }
+function opUpdateModeUI(){
+  const stage = document.getElementById('op-stage');
+  stage.classList.toggle('measuring', opMode !== 'idle');
+  document.getElementById('op-measure-btn').classList.toggle('active', opMode === 'measure');
+  document.getElementById('op-scale-btn').classList.toggle('active', opMode === 'scale');
+}
+function opRenderScaleDisplay(){
+  const el = document.getElementById('op-scale-display');
+  if(!el) return;
+  if(opState.scale && opState.scale > 0){
+    el.innerHTML = `已校準：100px ≈ <strong>${opState.scale.toFixed(1)}</strong> cm <a href="#" onclick="event.preventDefault();opState.scale=null;opSave();opRenderScaleDisplay();opRenderMeasure();opRenderStats();" style="margin-left:6px;color:#c2533c;">重設</a>`;
+  } else {
+    el.innerHTML = '<span style="color:#aaa;">尚未校準</span>';
+  }
+}
+window.opToggleScale = opToggleScale;
+window.opRenderScaleDisplay = opRenderScaleDisplay;
 
-function opScaleChange(v){
-  const n = parseFloat(v);
-  opState.scale = (isFinite(n) && n > 0) ? n : null;
-  opSave(); opRenderMeasure(); opRenderStats();
+function opToggleMeasure(){
+  opMode = opMode === 'measure' ? 'idle' : 'measure';
+  opPendingPoint = null;
+  opUpdateModeUI();
 }
 
 function opPxToCm(distPx, imgPxWidth){
