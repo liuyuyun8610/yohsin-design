@@ -667,6 +667,19 @@
     </div>
 
     <div class="field">
+      <label class="field-label">建案名稱 <span class="opt">(選填，預售屋客變請填)</span></label>
+      <input type="text" id="building_name" placeholder="例：合雄新站、漾時光…">
+    </div>
+
+    <div class="field">
+      <label class="field-label">手上有 .dwg 電子圖檔嗎？ <span class="opt">(預售屋客變通常會有)</span></label>
+      <div class="chips" data-group="has_dwg">
+        <div class="chip" data-val="我有！">我有！</div>
+        <div class="chip" data-val="我沒有">我沒有</div>
+      </div>
+    </div>
+
+    <div class="field">
       <label class="field-label">所在地區 <span class="opt">(我們服務範圍：北北桃)</span></label>
       <div class="row-2">
         <select id="region-city" class="region-select" onchange="updateDistricts()">
@@ -907,6 +920,8 @@ async function submit(){
   btn.disabled = true;
   btn.textContent = '正 在 送 出';
 
+  formData.building_name = document.getElementById('building_name').value.trim();
+
   const payload = {
     name: formData.name,
     line_id: formData.line_id || null,
@@ -915,6 +930,8 @@ async function submit(){
     source: formData.source || null,
     service_type: formData.service_type || null,
     space_type: formData.space_type || null,
+    building_name: formData.building_name || null,
+    has_dwg: formData.has_dwg || null,
     region: formData.region || null,
     area_ping: formData.area_ping || null,
     reno_timing: formData.reno_timing || null,
