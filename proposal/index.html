@@ -262,7 +262,47 @@
   .fee-row .price { color: var(--ink); font-weight: 500; font-family: 'Noto Serif TC', serif; }
   .fee-row .price small { font-size: 11px; color: var(--ink-muted); margin-left: 6px; font-weight: 300; }
 
-  /* ==== Bank info ==== */
+  /* ==== Bank info (collapsible) ==== */
+  details.bank-toggle {
+    margin: 18px 0;
+  }
+  details.bank-toggle summary {
+    list-style: none;
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 0.5px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    transition: all 0.25s ease;
+  }
+  details.bank-toggle summary::-webkit-details-marker { display: none; }
+  details.bank-toggle summary:hover {
+    background: var(--bg-soft);
+    box-shadow: var(--shadow-hover);
+  }
+  details.bank-toggle summary .chevron {
+    transition: transform 0.3s;
+    color: var(--accent);
+    font-size: 11px;
+  }
+  details.bank-toggle[open] summary .chevron { transform: rotate(180deg); }
+  details.bank-toggle[open] summary {
+    border-radius: 12px 12px 0 0;
+    border-bottom: 0;
+  }
+  details.bank-toggle .bank-card {
+    margin: 0;
+    border-radius: 0 0 12px 12px;
+    border-top: 0;
+  }
   .bank-card {
     background: var(--bg-card);
     border: 0.5px solid var(--line);
@@ -597,27 +637,33 @@
       <li>付款方式：確認提案後請<strong>全額至公司帳號匯款</strong>。</li>
       <li>提案後若確認合作，則提案費可<em>全額折抵設計費用內</em>。</li>
     </ol>
-    <div class="bank-card">
-      <div class="bank-row">
-        <div class="k">戶名</div>
-        <div class="v">有心制作室內裝修設計有限公司</div>
+    <details class="bank-toggle">
+      <summary>
+        <span>💳 查看付款帳戶</span>
+        <span class="chevron">▼</span>
+      </summary>
+      <div class="bank-card">
+        <div class="bank-row">
+          <div class="k">戶名</div>
+          <div class="v">有心制作室內裝修設計有限公司</div>
+        </div>
+        <div class="bank-row">
+          <div class="k">銀行</div>
+          <div class="v">第一銀行 (007)</div>
+        </div>
+        <div class="bank-row">
+          <div class="k">帳號</div>
+          <div class="v">29010-013031</div>
+        </div>
       </div>
-      <div class="bank-row">
-        <div class="k">銀行</div>
-        <div class="v">第一銀行 (007)</div>
-      </div>
-      <div class="bank-row">
-        <div class="k">帳號</div>
-        <div class="v">29010-013031</div>
-      </div>
-    </div>
+    </details>
   </section>
 
   <!-- 06 設計費用 -->
   <section class="reveal">
     <div class="sec-head">
       <span class="num">06</span>
-      <h2>設計費用</h2>
+      <h2>設計服務費用</h2>
     </div>
     <div class="fee-table">
       <div class="fee-row">
