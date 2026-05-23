@@ -342,7 +342,7 @@
     margin-bottom: 6px;
   }
 
-  /* ==== Top Announce Banner ==== */
+  /* ==== Top Announce Banner（對齊諮詢單） ==== */
   .top-announce {
     position: relative;
     background: #F4EBD9;
@@ -360,18 +360,23 @@
     gap: 14px;
     flex-wrap: wrap;
     box-shadow: 0 2px 8px rgba(45,36,24,0.06);
+    z-index: 1000;
+    transform: translateY(-100%);
+    animation: announceSlideDown 0.55s cubic-bezier(0.22,0.9,0.37,1) 0.25s forwards;
   }
+  @keyframes announceSlideDown { to { transform: translateY(0); } }
   .top-announce-label {
-    display: inline-block;
-    padding: 2px 10px;
-    background: #8C6E3F;
-    color: #FBF8F4;
+    flex-shrink: 0;
+    font-family: 'Noto Serif TC', serif;
     font-size: 11px;
-    letter-spacing: 0.2em;
-    border-radius: 999px;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    background: #9E8A83;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 2px;
   }
-  .top-announce strong { font-weight: 500; color: #2D2418; }
+  .top-announce strong { color: #8C5E1F; font-weight: 700; }
 
   /* mobile */
   @media (max-width: 640px) {
