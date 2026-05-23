@@ -262,6 +262,38 @@
   .fee-row .price { color: var(--ink); font-weight: 500; font-family: 'Noto Serif TC', serif; }
   .fee-row .price small { font-size: 11px; color: var(--ink-muted); margin-left: 6px; font-weight: 300; }
 
+  /* ==== Sub list collapsible ==== */
+  details.sub-toggle {
+    display: inline-block;
+    width: 100%;
+  }
+  details.sub-toggle summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-soft);
+    user-select: none;
+  }
+  details.sub-toggle summary::-webkit-details-marker { display: none; }
+  details.sub-toggle summary:hover { color: var(--ink); }
+  details.sub-toggle summary .chev {
+    font-size: 10px;
+    color: var(--accent);
+    transition: transform 0.25s;
+    display: inline-block;
+  }
+  details.sub-toggle[open] summary .chev { transform: rotate(180deg); }
+  details.sub-toggle > ul.dot-list {
+    margin-top: 10px;
+    margin-left: 0;
+    padding-left: 6px;
+    border-left: 1px solid var(--line);
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
   /* ==== Bank info (collapsible) ==== */
   details.bank-toggle {
     margin: 18px 0;
@@ -694,18 +726,21 @@
       <li>第一次丈量以及第二次拆除後複量（如有）</li>
       <li>您的諮詢權，任何裝修問題都可以替您解答</li>
       <li><strong>全程使用「有心制作」客戶專屬陪伴跟進 App</strong></li>
-      <li>整組施工套圖（含以下尺寸圖）：
-        <ul class="dot-list" style="margin-top:6px;margin-left:6px;">
-          <li>現況圖（現場放樣後的尺寸圖）</li>
-          <li>拆除圖說</li>
-          <li>天花尺寸圖</li>
-          <li>地坪材質圖</li>
-          <li>強弱電配置圖</li>
-          <li>開關迴路配置圖</li>
-          <li>木作尺寸圖</li>
-          <li>隔間尺寸圖</li>
-          <li>立面施工套圖</li>
-        </ul>
+      <li>
+        <details class="sub-toggle">
+          <summary>整組施工套圖（含 9 張尺寸圖）<span class="chev">▼</span></summary>
+          <ul class="dot-list">
+            <li>現況圖（現場放樣後的尺寸圖）</li>
+            <li>拆除圖說</li>
+            <li>天花尺寸圖</li>
+            <li>地坪材質圖</li>
+            <li>強弱電配置圖</li>
+            <li>開關迴路配置圖</li>
+            <li>木作尺寸圖</li>
+            <li>隔間尺寸圖</li>
+            <li>立面施工套圖</li>
+          </ul>
+        </details>
       </li>
       <li>3D 效果圖</li>
       <li>材料配置規劃，輔助您選材的知識</li>
