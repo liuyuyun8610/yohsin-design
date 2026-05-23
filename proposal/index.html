@@ -294,17 +294,18 @@
     padding-bottom: 4px;
   }
 
-  /* ==== Bank info (collapsible) ==== */
-  details.bank-toggle {
+  /* ==== Bank info (collapsible with smooth animation) ==== */
+  .bank-toggle {
     margin: 18px 0;
   }
-  details.bank-toggle summary {
-    list-style: none;
+  .bank-trigger {
+    width: 100%;
     cursor: pointer;
     background: var(--bg-card);
     border: 0.5px solid var(--line);
     border-radius: 12px;
     padding: 14px 22px;
+    font-family: inherit;
     font-size: 13.5px;
     font-weight: 500;
     color: var(--ink);
@@ -313,27 +314,41 @@
     align-items: center;
     justify-content: space-between;
     box-shadow: var(--shadow);
-    transition: all 0.25s ease;
+    transition: background 0.3s, box-shadow 0.3s, border-radius 0.35s ease;
   }
-  details.bank-toggle summary::-webkit-details-marker { display: none; }
-  details.bank-toggle summary:hover {
+  .bank-trigger:hover {
     background: var(--bg-soft);
     box-shadow: var(--shadow-hover);
   }
-  details.bank-toggle summary .chevron {
-    transition: transform 0.3s;
+  .bank-trigger .chevron {
+    transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.37, 1);
     color: var(--accent);
     font-size: 11px;
   }
-  details.bank-toggle[open] summary .chevron { transform: rotate(180deg); }
-  details.bank-toggle[open] summary {
-    border-radius: 12px 12px 0 0;
-    border-bottom: 0;
+  .bank-toggle.open .bank-trigger { border-radius: 12px 12px 0 0; }
+  .bank-toggle.open .bank-trigger .chevron { transform: rotate(180deg); }
+
+  .bank-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.5s cubic-bezier(0.22, 0.9, 0.37, 1);
   }
-  details.bank-toggle .bank-card {
+  .bank-toggle.open .bank-content { grid-template-rows: 1fr; }
+  .bank-content > .inner {
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
+  }
+  .bank-toggle.open .bank-content > .inner {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .bank-toggle .bank-card {
     margin: 0;
     border-radius: 0 0 12px 12px;
     border-top: 0;
+    box-shadow: none;
   }
   .bank-card {
     background: var(--bg-card);
@@ -666,26 +681,30 @@
       <li>付款方式：確認提案後請<strong>全額至公司帳號匯款</strong>。</li>
       <li>提案後若確認合作，則提案費可<em>全額折抵設計費用內</em>。</li>
     </ol>
-    <details class="bank-toggle">
-      <summary>
+    <div class="bank-toggle" id="bank-toggle">
+      <button type="button" class="bank-trigger" onclick="document.getElementById('bank-toggle').classList.toggle('open')">
         <span>💳 查看付款帳戶</span>
         <span class="chevron">▼</span>
-      </summary>
-      <div class="bank-card">
-        <div class="bank-row">
-          <div class="k">戶名</div>
-          <div class="v">有心制作室內裝修設計有限公司</div>
-        </div>
-        <div class="bank-row">
-          <div class="k">銀行</div>
-          <div class="v">第一銀行 (007)</div>
-        </div>
-        <div class="bank-row">
-          <div class="k">帳號</div>
-          <div class="v">29010-013031</div>
+      </button>
+      <div class="bank-content">
+        <div class="inner">
+          <div class="bank-card">
+            <div class="bank-row">
+              <div class="k">戶名</div>
+              <div class="v">有心制作室內裝修設計有限公司</div>
+            </div>
+            <div class="bank-row">
+              <div class="k">銀行</div>
+              <div class="v">第一銀行 (007)</div>
+            </div>
+            <div class="bank-row">
+              <div class="k">帳號</div>
+              <div class="v">29010-013031</div>
+            </div>
+          </div>
         </div>
       </div>
-    </details>
+    </div>
   </section>
 
   <!-- 06 設計費用 -->
