@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提案制度說明 ｜ 有心制作 室內裝修設計</title>
+<meta name="description" content="有心制作的成屋裝修提案制度說明。為什麼採提案制度、流程、費用、付款方式、注意事項一次說明。">
+<meta property="og:title" content="提案制度說明 ｜ 有心制作">
+<meta property="og:description" content="提案是認識設計公司與空間的途徑。費用可全額折抵設計費用內。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index,follow">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF8F4;
+    --bg-card: #fff;
+    --bg-soft: #F4EFE7;
+    --ink: #2D2418;
+    --ink-soft: #5C4A2F;
+    --ink-muted: #8E8474;
+    --ink-faint: #B0A7A2;
+    --line: #ECE5DA;
+    --accent: #8C6E3F;
+    --accent-light: #D4925C;
+    --pink: #E6DFDF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
+    font-weight: 300;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.95;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ==== Header ==== */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(251, 248, 244, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 32px;
+  }
+  .nav {
+    max-width: 920px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .brand .mark {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: var(--ink);
+  }
+  .brand .en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+  .back-link {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-muted);
+    letter-spacing: 0.18em;
+  }
+  .back-link:hover { color: var(--ink); }
+
+  /* ==== Hero ==== */
+  .hero {
+    text-align: center;
+    padding: 90px 24px 70px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .hero .eyebrow {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.42em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+  .hero .divider {
+    width: 48px;
+    height: 1px;
+    background: var(--ink-faint);
+    margin: 24px auto 28px;
+  }
+  .hero p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    letter-spacing: 0.06em;
+    line-height: 2.1;
+  }
+
+  /* ==== Sections wrap ==== */
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px 100px;
+  }
+  section {
+    margin-bottom: 56px;
+  }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .sec-head .num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+  }
+  .sec-head h2 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+  }
+  .sec-body {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 2.1;
+  }
+  .sec-body p { margin-bottom: 14px; }
+  .sec-body strong { font-weight: 500; color: var(--ink); }
+  .sec-body em { font-style: normal; color: var(--accent); font-weight: 500; }
+
+  /* ==== Notice box ==== */
+  .notice-box {
+    background: var(--bg-soft);
+    border-left: 3px solid var(--accent);
+    padding: 18px 22px;
+    border-radius: 4px;
+    margin: 24px 0;
+    font-size: 13px;
+    line-height: 2.05;
+    color: var(--ink-soft);
+  }
+  .notice-box.highlight {
+    background: var(--pink);
+    border-left-color: var(--accent-light);
+  }
+
+  /* ==== List ==== */
+  ol.step-list {
+    list-style: none;
+    counter-reset: stepc;
+    margin: 18px 0;
+  }
+  ol.step-list li {
+    counter-increment: stepc;
+    position: relative;
+    padding-left: 44px;
+    margin-bottom: 14px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 2;
+  }
+  ol.step-list li::before {
+    content: counter(stepc);
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0;
+  }
+  ul.dot-list {
+    list-style: none;
+    margin: 12px 0;
+  }
+  ul.dot-list li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.95;
+  }
+  ul.dot-list li::before {
+    content: '·';
+    position: absolute;
+    left: 5px;
+    top: -2px;
+    color: var(--accent);
+    font-size: 16px;
+  }
+
+  /* ==== Fee table ==== */
+  .fee-table {
+    margin: 18px 0;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .fee-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+    align-items: center;
+  }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-row.head {
+    background: var(--bg-soft);
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+  }
+  .fee-row .label { color: var(--ink-soft); }
+  .fee-row .price { color: var(--ink); font-weight: 500; font-family: 'Noto Serif TC', serif; }
+  .fee-row .price small { font-size: 11px; color: var(--ink-muted); margin-left: 6px; font-weight: 300; }
+
+  /* ==== Bank info ==== */
+  .bank-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 18px 0;
+  }
+  .bank-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 14px;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .bank-row:last-child { border-bottom: none; }
+  .bank-row .k {
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+  }
+  .bank-row .v {
+    color: var(--ink);
+    font-family: 'Noto Sans TC', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  /* ==== CTA ==== */
+  .cta {
+    text-align: center;
+    padding: 60px 24px 30px;
+    border-top: 1px solid var(--line);
+    margin-top: 60px;
+  }
+  .cta p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 2.1;
+    margin-bottom: 30px;
+  }
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 38px;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    border-radius: 999px;
+    transition: all 0.3s ease;
+  }
+  .cta-btn:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(140,110,63,0.25);
+  }
+  .cta-btn .arrow { transition: transform 0.3s; }
+  .cta-btn:hover .arrow { transform: translateX(5px); }
+
+  /* ==== Footer ==== */
+  footer {
+    text-align: center;
+    padding: 32px 24px 48px;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.4em;
+    border-top: 1px solid var(--line);
+  }
+  footer .brand-mark {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    color: var(--ink-muted);
+    letter-spacing: 0.32em;
+    margin-bottom: 6px;
+  }
+
+  /* mobile */
+  @media (max-width: 640px) {
+    header { padding: 14px 18px; }
+    .hero { padding: 60px 18px 50px; }
+    main { padding: 0 18px 80px; }
+    .sec-head h2 { font-size: 19px; }
+    .fee-row { grid-template-columns: 1fr; gap: 4px; padding: 14px 18px; }
+    .bank-row { grid-template-columns: 70px 1fr; }
+    .brand .en { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="/" class="brand">
+      <span class="mark">有心制作</span>
+      <span class="en">Yoshin Design</span>
+    </a>
+    <a href="/" class="back-link">← Home</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Proposal Process</div>
+  <h1>成屋裝修流程<br>提案制度說明</h1>
+  <div class="divider"></div>
+  <p>
+    嗨，初次見面，謝謝你看這裡。<br>
+    目前可承接 <strong>2026 年 7 月工程開工</strong> 專案，<br>
+    請預留至少 <strong>3–3.5 個月規劃時間</strong>（中古屋可能到四個月）。
+  </p>
+</section>
+
+<main>
+
+  <!-- 01 提案目的 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">01</span>
+      <h2>為什麼我們採提案制度</h2>
+    </div>
+    <div class="sec-body">
+      <p>找設計師時，總會希望能快速得到報價對吧？</p>
+      <p>我懂，因為預算總是第一個考量，在我不理解的領域我們也常會如此。</p>
+      <p>但──裝修實在太繁瑣，導致我們有不少用戶因花費數十萬範圍而退卻。此時提案的目的就出現了。</p>
+      <p>設計師根據您的空間想出配置構想、簡報，以及初步預算。這聽起來就比概略地抓好很多對吧？這就是<em>提案主要能夠提供的價值</em>，也很感謝您願意對設計師的這一份價值付費。</p>
+    </div>
+  </section>
+
+  <!-- 02 提案流程 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">02</span>
+      <h2>提案流程</h2>
+    </div>
+    <ol class="step-list">
+      <li>填寫我們的需求單後，與您約提案時間。</li>
+      <li>根據現場、或電子檔案規劃空間 → <strong>平面配置規劃</strong>。</li>
+      <li>根據預算抓<strong>初步報價</strong>。</li>
+      <li>初次見面當天解答配置理念、使用材料、流程說明 → <strong>提案簡報</strong>。</li>
+    </ol>
+    <div class="notice-box highlight">
+      提案是很好的一個認識設計公司以及空間的途徑。<br>
+      建議務必，動工前一定要有這樣的規劃。<br>
+      <strong>最重要的是：提案費可以全額折抵到設計費用內。</strong>
+    </div>
+  </section>
+
+  <!-- 03 提案規劃費 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">03</span>
+      <h2>提案規劃費</h2>
+    </div>
+    <div class="fee-table">
+      <div class="fee-row head">
+        <div>類型</div>
+        <div>服務費用</div>
+      </div>
+      <div class="fee-row">
+        <div class="label">新成屋，有建商提供 CAD</div>
+        <div class="price">NT$ 6,000<small>/ 次（雙北桃園）</small></div>
+      </div>
+      <div class="fee-row">
+        <div class="label">新成屋無 CAD，但需要丈量</div>
+        <div class="price">NT$ 7,000<small>/ 次（雙北桃園）</small></div>
+      </div>
+      <div class="fee-row">
+        <div class="label">中古屋整體丈量 + CAD</div>
+        <div class="price">NT$ 7,000<small>/ 次（雙北桃園）</small></div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--ink-muted);margin-top:8px;letter-spacing:0.04em;">
+      提案費用包含以下內容：
+    </p>
+    <ul class="dot-list">
+      <li>平面配置方案（至少 2 套）</li>
+      <li>提案簡報（包含空間風格意象、動線、採光說明、配置方案理念說明）</li>
+      <li>初步報價（根據細項，效期兩週）</li>
+      <li>設計服務費用及工程流程說明</li>
+    </ul>
+  </section>
+
+  <!-- 04 提案地點 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">04</span>
+      <h2>提案地點</h2>
+    </div>
+    <div class="sec-body">
+      <p>有心制作 <strong>林口辦公室</strong>（一坨咖啡）</p>
+    </div>
+  </section>
+
+  <!-- 05 付款方式 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">05</span>
+      <h2>付款方式</h2>
+    </div>
+    <ol class="step-list">
+      <li>確認提案約定時間後，製作方案通常為付款後 <strong>12 個工作天</strong>（不含例假日）。</li>
+      <li>付款方式：確認提案後請<strong>全額至公司帳號匯款</strong>。</li>
+      <li>提案後若確認合作，則提案費可<em>全額折抵設計費用內</em>。</li>
+    </ol>
+    <div class="bank-card">
+      <div class="bank-row">
+        <div class="k">戶名</div>
+        <div class="v">有心制作室內裝修設計有限公司</div>
+      </div>
+      <div class="bank-row">
+        <div class="k">銀行</div>
+        <div class="v">第一銀行 (007)</div>
+      </div>
+      <div class="bank-row">
+        <div class="k">帳號</div>
+        <div class="v">29010-013031</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 設計費用 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">06</span>
+      <h2>設計費用</h2>
+    </div>
+    <div class="fee-table">
+      <div class="fee-row">
+        <div class="label">新成屋</div>
+        <div class="price">NT$ 5,500<small>/ 坪</small></div>
+      </div>
+      <div class="fee-row">
+        <div class="label">中古屋</div>
+        <div class="price">NT$ 6,500<small>/ 坪</small></div>
+      </div>
+      <div class="fee-row">
+        <div class="label">監工費用</div>
+        <div class="price">5 – 10%<small>視工程複雜及遠近決定</small></div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-muted);margin-top:10px;letter-spacing:0.04em;">
+      ※ 設計費無折抵至監工服務費。
+    </p>
+  </section>
+
+  <!-- 07 設計服務內容 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">07</span>
+      <h2>設計服務費用內容包含</h2>
+    </div>
+    <ul class="dot-list">
+      <li>第一次丈量以及第二次拆除後複量（如有）</li>
+      <li>您的諮詢權，任何裝修問題都可以替您解答</li>
+      <li>平面施工套圖（含以下尺寸圖）：
+        <ul class="dot-list" style="margin-top:6px;margin-left:6px;">
+          <li>現況圖（現場放樣後的尺寸圖）</li>
+          <li>拆除圖說</li>
+          <li>天花尺寸圖</li>
+          <li>地坪材質圖</li>
+          <li>強弱電配置圖</li>
+          <li>開關迴路配置圖</li>
+          <li>木作尺寸圖</li>
+          <li>隔間尺寸圖</li>
+          <li>立面施工套圖</li>
+        </ul>
+      </li>
+      <li>3D 效果圖</li>
+      <li>材料配置規劃，輔助您選材的知識</li>
+      <li>待施工團確認後提出詳細施工圖用估價單</li>
+      <li>平面配置定案後以 SketchUp 3D 模型實時討論</li>
+    </ul>
+  </section>
+
+  <!-- 08 注意事項 -->
+  <section>
+    <div class="sec-head">
+      <span class="num">08</span>
+      <h2>注意事項</h2>
+    </div>
+    <ol class="step-list">
+      <li>丈量時間盡量挑非雨天，讓設計師可以觀察四周採光照。</li>
+      <li>提案階段案件回饋期間，請務必詳實填寫資訊（慢慢寫沒關係 ☺）。</li>
+      <li>如需修稿及需求變更，兩次以後費用為 <strong>NT$ 4,000 / 次</strong>。</li>
+      <li>本公司無提供電子檔案（.dwg 檔案等）。</li>
+    </ol>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta">
+    <p>
+      非常感謝您與我們諮詢。<br>
+      若確認需要我們協助規劃提案，<br>
+      請與我們索取需求單填寫後再回給我們，<br>
+      並確認付款完成後即可預約提案。
+    </p>
+    <a href="/form/" class="cta-btn">
+      索取需求單
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <div class="brand-mark">有心制作</div>
+  YOSHIN DESIGN · 室內裝修設計
+</footer>
+
+</body>
+</html>
