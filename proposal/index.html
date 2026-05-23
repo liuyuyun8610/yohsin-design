@@ -342,6 +342,37 @@
     margin-bottom: 6px;
   }
 
+  /* ==== Top Announce Banner ==== */
+  .top-announce {
+    position: relative;
+    background: #F4EBD9;
+    border-bottom: 1px solid rgba(160,122,56,0.4);
+    color: #3D2F1A;
+    padding: 14px 24px;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 8px rgba(45,36,24,0.06);
+  }
+  .top-announce-label {
+    display: inline-block;
+    padding: 2px 10px;
+    background: #8C6E3F;
+    color: #FBF8F4;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .top-announce strong { font-weight: 500; color: #2D2418; }
+
   /* mobile */
   @media (max-width: 640px) {
     header { padding: 14px 18px; }
@@ -355,6 +386,11 @@
 </style>
 </head>
 <body>
+
+<div class="top-announce" role="status">
+  <span class="top-announce-label">公告</span>
+  <span>目前可承接 <strong>2026 年 7 月工程開工</strong> 專案，請預留至少 <strong>3–3.5 個月規劃時間</strong>（中古屋可能到四個月）</span>
+</div>
 
 <header>
   <div class="nav">
@@ -372,8 +408,7 @@
   <div class="divider"></div>
   <p>
     嗨，初次見面，謝謝你看這裡。<br>
-    目前可承接 <strong>2026 年 7 月工程開工</strong> 專案，<br>
-    請預留至少 <strong>3–3.5 個月規劃時間</strong>（中古屋可能到四個月）。
+    以下說明我們的提案制度與費用，方便你決定是否進一步合作。
   </p>
 </section>
 
