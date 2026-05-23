@@ -290,6 +290,86 @@
     letter-spacing: 0.04em;
   }
 
+  /* ==== App Highlight ==== */
+  .app-highlight {
+    margin: 80px -8px 60px;
+    background: linear-gradient(140deg, #F4F1EB 0%, #EEE9DF 100%);
+    border-radius: 24px;
+    padding: 48px 36px;
+    box-shadow: 0 10px 30px rgba(45,36,24,0.08), 0 2px 6px rgba(45,36,24,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .app-highlight::before {
+    content: 'EXCLUSIVE';
+    position: absolute;
+    top: 24px;
+    right: -42px;
+    transform: rotate(35deg);
+    background: var(--accent);
+    color: #FBF8F4;
+    padding: 4px 60px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    box-shadow: 0 2px 6px rgba(45,36,24,0.18);
+  }
+  .app-highlight-inner {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 36px;
+    align-items: center;
+  }
+  .app-highlight .tag {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    letter-spacing: 0.35em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .app-highlight h3 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(20px, 3.4vw, 26px);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.55;
+    color: var(--ink);
+    margin-bottom: 18px;
+  }
+  .app-highlight p.lead {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 2.1;
+    margin-bottom: 18px;
+  }
+  .app-highlight ul.features {
+    list-style: none;
+    margin-top: 12px;
+  }
+  .app-highlight ul.features li {
+    position: relative;
+    padding-left: 22px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 2.1;
+  }
+  .app-highlight ul.features li::before {
+    content: '▸';
+    position: absolute;
+    left: 2px;
+    color: var(--accent);
+    font-size: 11px;
+  }
+  .app-highlight-img img {
+    width: 100%;
+    border-radius: 18px;
+    box-shadow: 0 14px 36px rgba(45,36,24,0.22), 0 4px 12px rgba(45,36,24,0.1);
+    display: block;
+  }
+
   /* ==== CTA ==== */
   .cta {
     text-align: center;
@@ -376,6 +456,27 @@
     border-radius: 2px;
   }
   .top-announce strong { color: #8C5E1F; font-weight: 700; }
+
+  @media (max-width: 640px) {
+    .app-highlight {
+      padding: 36px 22px;
+      margin: 60px 0 50px;
+    }
+    .app-highlight-inner {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .app-highlight-img {
+      max-width: 200px;
+      margin: 0 auto;
+    }
+    .app-highlight::before {
+      top: 16px;
+      right: -50px;
+      font-size: 10px;
+      padding: 3px 56px;
+    }
+  }
 
   /* mobile */
   @media (max-width: 640px) {
@@ -565,6 +666,32 @@
       <li>待施工團確認後提出詳細施工圖用估價單</li>
       <li>平面配置定案後以 SketchUp 3D 模型實時討論</li>
     </ul>
+  </section>
+
+  <!-- App Highlight -->
+  <section class="app-highlight reveal">
+    <div class="app-highlight-inner">
+      <div class="app-highlight-text">
+        <div class="tag">Our Difference</div>
+        <h3>不只是設計，是一整段陪伴</h3>
+        <p class="lead">
+          我們是極少數提供<strong>客戶專屬 App</strong> 的室內設計公司。<br>
+          從丈量、提案、簽約、到工程每一週的進度，所有資訊集中在一處。<br>
+          你不用滑遍 LINE 訊息找哪一張施工照、哪一份報價，<br>
+          打開 App 就能看到整個裝修旅程的完整紀錄。
+        </p>
+        <ul class="features">
+          <li>每週施工照片同步更新，遠距也能看到工地進度</li>
+          <li>合約、付款進度、追加減項目即時透明可查</li>
+          <li>選材清單帶有實際完工照，看得到別人家也用過</li>
+          <li>會議記錄不會散失，事後找一秒找回</li>
+          <li>完工後仍可保留，做為居家保養 / 售後查詢手冊</li>
+        </ul>
+      </div>
+      <div class="app-highlight-img">
+        <img src="app.jpg" alt="有心制作客戶端 App">
+      </div>
+    </div>
   </section>
 
   <!-- 08 注意事項 -->
