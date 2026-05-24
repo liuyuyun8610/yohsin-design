@@ -181,18 +181,17 @@
   }
   ol.step-list li {
     counter-increment: stepc;
-    position: relative;
-    padding-left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
     margin-bottom: 16px;
     font-size: 14px;
     color: var(--ink-soft);
-    line-height: 2;
+    line-height: 1.7;
   }
   ol.step-list li::before {
     content: counter(stepc);
-    position: absolute;
-    left: 0;
-    top: 6px;
+    flex-shrink: 0;
     width: 26px;
     height: 26px;
     border-radius: 50%;
