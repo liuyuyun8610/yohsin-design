@@ -1573,8 +1573,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" id="nav-dashboard" onclick="goAdminPage('a-dashboard',this)" style="display:none;">總覽看板</button>
       <button class="tnav active" onclick="goAdminPage('a-projects',this)">專案管理</button>
       <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
-      <button class="tnav" onclick="goAdminPage('a-knowledge',this)">知識文章</button>
-      <button class="tnav" onclick="goAdminPage('a-assign',this)">文章指派</button>
+      <!-- 知識文章 / 文章指派 入口移至 work-system 中央管理 -->
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
       <button class="tnav" onclick="goAdminPage('a-survey',this)">需求表單</button>
       <button class="tnav" onclick="goAdminPage('a-settings',this)">設定</button>
@@ -1592,8 +1591,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" id="mobile-nav-dashboard" onclick="goAdminPageMobile('a-dashboard',this)" style="display:none;">總覽看板</button>
       <button class="mobile-tnav active" onclick="goAdminPageMobile('a-projects',this)">專案管理</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
-      <button class="mobile-tnav" onclick="goAdminPageMobile('a-knowledge',this)">知識文章</button>
-      <button class="mobile-tnav" onclick="goAdminPageMobile('a-assign',this)">文章指派</button>
+      <!-- 知識文章 / 文章指派 入口移至 work-system 中央管理 -->
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-survey',this)">需求表單</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-settings',this)">設定</button>
@@ -2371,24 +2369,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     </div>
 
 
-    <!-- 知識文章 -->
-    <div class="page" id="a-knowledge">
-      <div class="sec-head"><div class="sec-ttl">知識文章資料庫</div><button class="btn-ink" onclick="openAM()">＋ 新增文章</button></div>
-      <div class="art-grid" id="art-grid"></div>
-    </div>
-
-    <!-- 文章指派 -->
-    <div class="page" id="a-assign">
-      <div class="sec-head"><div class="sec-ttl">專案文章設定</div></div>
-      <p style="font-size:13px;color:var(--ink-muted);margin-bottom:1.2rem;">選擇左側客戶，開關右側文章，決定該客戶看到哪些裝修知識。</p>
-      <div class="assign-wrap">
-        <div class="clist-box" id="assign-clist"></div>
-        <div class="assign-right">
-          <div id="assign-ph" class="empty-state">← 請先選擇左側客戶</div>
-          <div id="assign-body" style="display:none;"></div>
-        </div>
-      </div>
-    </div>
+    <!-- 知識文章 / 文章指派：已移至 work-system /settings/knowledge-articles 中央管理 -->
 
     <!-- 施工日誌 -->
     <div class="page" id="a-logs">
@@ -2814,72 +2795,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   </div>
 </div>
 
-<!-- ARTICLE MODAL -->
-<div id="am-modal" style="display:none;">
-  <div class="modal-bd">
-    <div class="modal" style="max-width:700px;width:95vw;">
-      <div class="modal-ttl" id="am-ttl">新增文章</div>
-      <div class="fg-2" style="margin-bottom:0.8rem;">
-        <div class="fg" style="margin-bottom:0;"><label>文章標題</label><input id="am-t" placeholder="設計流程說明"></div>
-        <div class="fg" style="margin-bottom:0;"><label>分類標籤</label><select id="am-tag">
-          <option>施工注意</option><option>設計流程</option><option>材料知識</option><option>切結書</option>
-          <option>付款說明</option><option>售後保固</option><option>開工前準備</option><option>其他</option>
-        </select></div>
-      </div>
-      <div class="fg art-editor-wrap" style="margin-bottom:0.6rem;">
-        <label>文章內容
-          <button class="art-preview-toggle" onclick="toggleArtPreview()" id="art-preview-btn">▸ 顯示預覽</button>
-        </label>
-        <!-- 工具列 -->
-        <div class="art-toolbar">
-          <button class="art-tb-btn" onclick="artFmt('bold')" title="粗體"><b>B</b></button>
-          <button class="art-tb-btn" onclick="artFmt('muted')" style="color:var(--ink-muted);">淡灰</button>
-          <button class="art-tb-btn" onclick="artFmt('accent')" style="color:var(--accent);">奶茶色</button>
-          <div class="art-tb-sep"></div>
-          <button class="art-tb-btn" onclick="artFmt('section')" title="區塊大標（帶底線）">▬ 區塊標題</button>
-          <button class="art-tb-btn" onclick="artFmt('subtitle')" title="奶茶色副標">· 副標題</button>
-          <button class="art-tb-btn" onclick="artFmt('meeting')" title="Day 標籤 + 會議標題">會議標題</button>
-          <button class="art-tb-btn" onclick="artFmt('meetingbd')" title="會議說明文字">↳ 說明文字</button>
-          <div class="art-tb-sep"></div>
-          <button class="art-tb-btn" onclick="artFmt('note')" title="備註框">備註框</button>
-          <button class="art-tb-btn" onclick="artFmt('summary')" title="階段摘要行">─ 摘要行</button>
-          <button class="art-tb-btn" onclick="artFmt('sep')" title="分隔線">⋯ 分隔</button>
-          <div class="art-tb-sep"></div>
-          <button class="art-tb-btn" onclick="artInsertTemplate()" style="background:var(--accent-pale);color:var(--accent);border-color:var(--accent-light);">插入設計流程範本</button>
-        </div>
-        <textarea id="am-body" placeholder="輸入文章內容，或使用上方工具列插入格式…" style="min-height:220px;border-radius:0 0 10px 10px;font-family:'NumQuicksand',monospace;font-size:12px;resize:vertical;" oninput="artUpdatePreview()"></textarea>
-      </div>
-      <!-- 預覽 -->
-      <div id="art-preview-panel" style="display:none;margin-bottom:0.8rem;">
-        <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;letter-spacing:0.06em;">預覽效果：</div>
-        <div class="art-preview-box know-bd open" id="art-preview-content"></div>
-      </div>
-
-      <!-- 簽名要求 -->
-      <div style="margin:1rem 0;padding:12px 14px;background:var(--sand);border:0.5px solid var(--border);border-radius:8px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);font-weight:500;">
-          <input type="checkbox" id="am-req-sig" onchange="document.getElementById('am-sig-label-row').style.display=this.checked?'block':'none';">
-          <span>需要客戶簽名確認</span>
-        </label>
-        <div id="am-sig-label-row" style="display:none;margin-top:10px;">
-          <label class="fl" style="font-size:11px;color:var(--ink-muted);">聲明文字（顯示在文章下方）</label>
-          <input class="form-input" id="am-sig-label" placeholder="例：我已閱讀上方內容，並且要自行發包空調" style="margin-bottom:0;">
-        </div>
-      </div>
-
-      <!-- 已簽署客戶清單（編輯既有文章且要求簽名時顯示） -->
-      <div id="am-signers-block" style="display:none;margin:1rem 0;padding:14px 16px;background:#FAF7F2;border:0.5px solid var(--accent-light);border-radius:8px;">
-        <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.04em;margin-bottom:10px;">已簽署 <span id="am-signers-count">0</span> 位客戶</div>
-        <div id="am-signers-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-ghost" onclick="closeAM()">取消</button>
-        <button class="btn-ink" onclick="saveArticle()">儲存</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ARTICLE MODAL：已移至 work-system /settings/knowledge-articles 中央編輯，本檔不再保留編輯入口 -->
 
 <input type="file" id="file-input" style="display:none;" accept="image/*" multiple onchange="handleFiles(event)">
 
@@ -3446,7 +3362,7 @@ async function _enterAdmin(){
   showScreen('s-admin');
   showDashboardNav(true);
   await _ensureClientsLoaded();
-  renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
+  renderProjects();renderAdminClients();
   populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
 
@@ -4116,7 +4032,6 @@ async function goAdminPage(id,el){
   if(id==='a-settings') renderBossAccounts();
   if(id==='a-logs'){await populateLogClientSel();await renderAdminLogs();}
   if(id==='a-survey') renderSurveyLinksAdmin();
-  if(id==='a-assign') renderAssignClist();
   if(id==='a-clients') renderAdminClients();
   if(id==='a-projects') renderProjects();
   if(id==='a-settings') initSettings();
@@ -4126,7 +4041,7 @@ function syncAllData(){
   const btn=document.querySelector('.btn-sync');
   btn.textContent='↺ 同步中…';btn.classList.add('syncing');
   populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
-  renderProjects();renderAdminClients();renderArtGrid();renderAssignClist();
+  renderProjects();renderAdminClients();
   const activePage=document.querySelector('#s-admin .page.active');
   const finish=()=>{setTimeout(()=>{btn.textContent='↺ 同步資料';btn.classList.remove('syncing');},600);};
   if(activePage){
@@ -11812,7 +11727,7 @@ function goToday(){const t=new Date();curYear=t.getFullYear();curMonth=t.getMont
 
 // ========== ARTICLES ==========
 function renderArtGrid(){
-  const g=document.getElementById('art-grid');g.innerHTML='';
+  const g=document.getElementById('art-grid');if(!g)return;g.innerHTML='';
   if(!articles.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">尚無文章</div>';return;}
   articles.forEach(a=>{const cnt=clients.filter(c=>c.assigned.includes(a.id)).length;const d=document.createElement('div');d.className='art-card';d.innerHTML=`<div class="art-top"><div class="art-title">${a.title}</div><div class="art-tag">${a.tag}</div></div><div class="art-prev">${a.body}</div><div class="art-foot"><div class="art-cnt">已指派 ${cnt} 位客戶</div><div style="display:flex;gap:5px;"><button class="act-btn" onclick="openAM(${a.id})">編輯</button><button class="act-btn danger" onclick="deleteArt(${a.id})">刪除</button></div></div>`;g.appendChild(d);});
 }
@@ -12044,7 +11959,7 @@ async function deleteArt(id){if(!confirm('確定刪除？'))return;showLoader(tr
 
 // ========== ASSIGN ==========
 function renderAssignClist(){
-  const el=document.getElementById('assign-clist');el.innerHTML='';
+  const el=document.getElementById('assign-clist');if(!el)return;el.innerHTML='';
   clients.forEach(c=>{const proj=projects.find(p=>p.id===c.projectId);const d=document.createElement('div');d.className='cli-item'+(selectedAssignC===c.id?' sel':'');d.innerHTML=`<div class="cli-name">${c.name}<span class="cnt-badge">${c.assigned.length} 篇</span></div><div class="cli-proj">${proj?proj.name:'—'}</div>`;d.onclick=()=>{selectedAssignC=c.id;renderAssignClist();renderAssignBody();};el.appendChild(d);});
 }
 function renderAssignBody(){
