@@ -984,13 +984,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="tb-nav">
       <button class="tnav active" onclick="goPage('p-overview',this)">專案總覽</button>
       <button class="tnav" onclick="goPage('p-docs',this)">設計圖面</button>
-      <button class="tnav" onclick="goPage('p-contracts',this)">合約文件</button>
+      <button class="tnav" onclick="goPage('p-contracts',this)">合約與報價</button>
       <button class="tnav" onclick="goPage('p-meetings',this)">會議記錄</button>
-      <button class="tnav" onclick="goPage('p-knowledge',this)">裝修知識</button>
-      <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
-      <button class="tnav" onclick="goPage('p-materials',this)">選材</button>
+      <button class="tnav" onclick="goPage('p-materials',this)">選材紀錄</button>
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
-      <button class="tnav" onclick="goPage('p-payment',this)">付款明細</button>
+      <button class="tnav" onclick="goPage('p-payment',this)">財務紀錄</button>
+      <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
+      <button class="tnav" onclick="goPage('p-knowledge',this)">裝修知識</button>
       <button class="tnav" id="nav-changes" onclick="goPage('p-changes',this)" style="display:none;">追加減</button>
 
     </div>
@@ -1006,13 +1006,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="mobile-menu-inner" onclick="event.stopPropagation()">
       <button class="mobile-tnav active" onclick="goPageMobile('p-overview',this,'client')">專案總覽</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-docs',this,'client')">設計圖面</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-contracts',this,'client')">合約文件</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-contracts',this,'client')">合約與報價</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議記錄</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">裝修知識</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-materials',this,'client')">選材</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-materials',this,'client')">選材紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">付款明細</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">財務紀錄</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">裝修知識</button>
       <button class="mobile-tnav" id="mobile-nav-changes" onclick="goPageMobile('p-changes',this,'client')" style="display:none;">追加減</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
         <span id="mobile-client-name"></span>
@@ -1242,7 +1242,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 合約文件（獨立頁面）-->
     <div class="page" id="p-contracts">
-      <div class="page-title">合約文件</div>
+      <div class="page-title">合約與報價</div>
       <div id="docs-panel-contracts">
         <div class="doc-section">
           <div class="doc-section-title">設計合約</div>
@@ -1277,7 +1277,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="meeting-tabs">
           <button class="meeting-tab active" onclick="switchMeetingTab('line',this)">LINE 記錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議記錄</button>
-          <button class="meeting-tab" onclick="switchMeetingTab('client_note',this)">業主筆記</button>
+          <button class="meeting-tab" onclick="switchMeetingTab('client_note',this)">想法紀錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('pending',this)">待確認事項</button>
         </div>
         <div id="meeting-line-panel">
@@ -1292,7 +1292,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="meeting-client-note-panel" style="display:none;">
           <!-- 新增筆記表單 -->
           <div style="background:var(--sand);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1.1rem;">
-            <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;color:var(--accent);margin-bottom:0.9rem;">✏️ 新增業主筆記</div>
+            <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;color:var(--accent);margin-bottom:0.9rem;">✏️ 新增想法紀錄</div>
             <div class="cn-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
               <div>
                 <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">日期</div>
@@ -1470,7 +1470,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 付款明細 -->
     <div class="page" id="p-payment">
-      <div class="page-title">付款明細及收據</div>
+      <div class="page-title">財務紀錄</div>
 
       <!-- 設計費 總覽 -->
       <div class="card" id="pay-overview-design" style="margin-bottom:0.8rem;">
@@ -1894,7 +1894,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- 收款進度 -->
       <div id="proj-tab-schedule" style="display:none;">
-        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">合約總額來自「編輯專案」的合約金額欄位。每期金額由您自行填寫，百分比自動換算。儲存後客戶端「付款明細」自動同步。</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;padding:10px 14px;background:#fff;border-left:3px solid var(--accent-light);border-radius:0 10px 10px 0;">合約總額來自「編輯專案」的合約金額欄位。每期金額由您自行填寫，百分比自動換算。儲存後客戶端「財務紀錄」自動同步。</div>
 
         <!-- 統計卡 -->
         <div class="stats-row" style="margin-bottom:1.5rem;">
@@ -2002,7 +2002,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="stabs">
             <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
             <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
-            <button class="stab" onclick="switchAdminMeetingTab('client_note',this)">業主筆記</button>
+            <button class="stab" onclick="switchAdminMeetingTab('client_note',this)">想法紀錄</button>
             <button class="stab" onclick="switchAdminMeetingTab('pending',this)">待確認事項</button>
           </div>
 
@@ -2113,7 +2113,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議記錄</button></div>
           </div>
 
-          <!-- 業主筆記：唯讀 + 可刪除 -->
+          <!-- 想法紀錄：唯讀 + 可刪除 -->
           <div id="admin-client-note-panel" style="display:none;">
             <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;padding:8px 12px;background:#EAF0FB;border-radius:8px;">✏️ 業主自行新增的筆記記錄，於此只讀。如需刪除，請直接操作。</div>
             <div id="admin-client-notes-list"></div>
@@ -2540,8 +2540,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
 
         <div class="card" style="margin-bottom:1rem;">
-          <div class="card-title">付款明細頁 — 設計費 匯款帳戶</div>
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端付款明細頁，展開「設計費 匯款資訊」時顯示的內容。</div>
+          <div class="card-title">財務紀錄頁 — 設計費 匯款帳戶</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端財務紀錄頁，展開「設計費 匯款資訊」時顯示的內容。</div>
           <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;align-items:center;font-size:13px;">
             <label style="color:var(--ink-muted);">戶　　名</label><input class="form-input" id="bd-design-holder" style="margin:0;" placeholder="有心制作室內裝修設計有限公司">
             <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-design-code" style="margin:0;" placeholder="007">
@@ -2553,8 +2553,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
 
         <div class="card" style="margin-bottom:1rem;">
-          <div class="card-title">付款明細頁 — 工程款 匯款帳戶</div>
-          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端付款明細頁，展開「工程款 匯款資訊」時顯示的內容。</div>
+          <div class="card-title">財務紀錄頁 — 工程款 匯款帳戶</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端財務紀錄頁，展開「工程款 匯款資訊」時顯示的內容。</div>
           <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;align-items:center;font-size:13px;">
             <label style="color:var(--ink-muted);">戶　　名</label><input class="form-input" id="bd-construction-holder" style="margin:0;" placeholder="劉郁筠">
             <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-construction-code" style="margin:0;" placeholder="822">
@@ -6540,7 +6540,7 @@ function renderClientNotes(){
   if(!el) return;
   el.innerHTML='';
   if(!notes.length){
-    el.innerHTML='<div class="empty-state">尚無業主筆記，使用上方表單新增第一則！</div>';
+    el.innerHTML='<div class="empty-state">尚無想法紀錄，使用上方表單新增第一則！</div>';
     return;
   }
   notes.forEach(n=>{
@@ -6552,7 +6552,7 @@ function renderClientNotes(){
       <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
         <span class="meeting-record-date">${n.date}</span>
         <span class="meeting-record-title">${n.title||'（無標題）'}</span>
-        <span style="font-size:11px;background:#EAF0FB;color:#3A5FAD;padding:2px 8px;border-radius:6px;margin-right:4px;">業主筆記</span>
+        <span style="font-size:11px;background:#EAF0FB;color:#3A5FAD;padding:2px 8px;border-radius:6px;margin-right:4px;">想法紀錄</span>
         <span class="meeting-record-arr">›</span>
       </div>
       <div class="meeting-record-bd" style="padding-top:12px;">
@@ -7466,7 +7466,7 @@ function renderAdminClientNotesList(cid){
       <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
         <span class="meeting-record-date">${n.date}</span>
         <span class="meeting-record-title">${n.title||'（無標題）'}</span>
-        <span style="font-size:10px;background:#EAF0FB;color:#3A5FAD;padding:2px 7px;border-radius:5px;margin-right:4px;">業主筆記</span>
+        <span style="font-size:10px;background:#EAF0FB;color:#3A5FAD;padding:2px 7px;border-radius:5px;margin-right:4px;">想法紀錄</span>
         <span class="meeting-record-arr">›</span>
       </div>
       <div class="meeting-record-bd" style="padding-top:10px;">
@@ -7482,7 +7482,7 @@ function renderAdminClientNotesList(cid){
 }
 
 async function adminDeleteClientNote(dbId,cid){
-  if(!confirm('確定刪除此業主筆記？'))return;
+  if(!confirm('確定刪除此想法紀錄？'))return;
   showLoader(true);
   try{
     await dbDeleteMeeting(dbId);
@@ -11087,7 +11087,7 @@ async function submitContractSignature(){
     try{ await autoFillDesignFeeScheduleAfterSign(c); }catch(e){console.warn(e);}
     closeContractViewer();
     renderClientDocs();
-    alert('✓ 簽名已儲存，付款期程已自動帶入「付款明細」，感謝您！');
+    alert('✓ 簽名已儲存，付款期程已自動帶入「財務紀錄」，感謝您！');
   }catch(e){alert('儲存失敗：'+e.message);}
   showLoader(false);
 }
