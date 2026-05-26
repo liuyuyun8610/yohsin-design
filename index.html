@@ -991,7 +991,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goPage('p-payment',this)">財務紀錄</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
       <button class="tnav" onclick="goPage('p-knowledge',this)">裝修知識</button>
-      <button class="tnav" id="nav-changes" onclick="goPage('p-changes',this)" style="display:none;">追加減</button>
 
     </div>
     <div class="tb-spacer"></div>
@@ -1013,7 +1012,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">財務紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">裝修知識</button>
-      <button class="mobile-tnav" id="mobile-nav-changes" onclick="goPageMobile('p-changes',this,'client')" style="display:none;">追加減</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
         <span id="mobile-client-name"></span>
         <button onclick="doLogout()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">登出</button>
@@ -1126,7 +1124,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <!-- 3. 追加減摘要 -->      <div class="card" id="dash-co-card" style="margin-bottom:12px;display:none;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
           <span>追加減狀況</span>
-          <button onclick="goPage('p-changes',document.querySelector('#s-client .tnav:last-child'))" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;">明細 ›</button>
+          <button onclick="goPage('p-payment',document.querySelector('#s-client .tnav[onclick*=&quot;p-payment&quot;]'))" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;">明細 ›</button>
         </div>
         <div id="dash-co-list" style="margin-bottom:8px;"></div>
         <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);font-size:13px;">
@@ -1422,53 +1420,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     </div>
 
     <!-- 追加減明細 -->
-    <div class="page" id="p-changes">
-      <div class="page-title" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span>追加減明細</span>
-        <button onclick="exportChangeOrdersPdf()" id="btn-export-co-pdf" style="font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;padding:7px 14px;background:#8B6B48;color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">⬇ 匯出 PDF</button>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
-            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">追加合計</div>
-            <div id="cli-co-add" style="font-size:16px;font-weight:500;color:var(--red);">$0</div>
-          </div>
-          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
-            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">減項合計</div>
-            <div id="cli-co-sub" style="font-size:16px;font-weight:500;color:var(--green);">$0</div>
-          </div>
-          <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
-            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">含監工費</div>
-            <div id="cli-co-grand" style="font-size:16px;font-weight:500;">$0</div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="padding:0;">
-        <table style="width:100%;border-collapse:collapse;">
-          <thead>
-            <tr>
-              <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;">序</th>
-              <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);">內容</th>
-              <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:82px;">日期</th>
-              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:80px;">單價</th>
-              <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:48px;">數量</th>
-              <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:90px;">小計</th>
-            </tr>
-          </thead>
-          <tbody id="cli-co-tbody"></tbody>
-        </table>
-        <div id="cli-co-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);">尚無追加減記錄</div>
-        <!-- 合計區 -->
-        <div id="cli-co-summary" style="padding:12px 16px;border-top:0.5px solid var(--border);display:none;">
-          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>追加小計</span><span id="cli-sum-add"></span></div>
-          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>減項小計</span><span id="cli-sum-sub"></span></div>
-          <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>監工費</span><span id="cli-sum-fee"></span></div>
-          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;padding:8px 0;border-top:1.5px solid var(--border);margin-top:4px;"><span>含監工費總計</span><span id="cli-sum-grand"></span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 付款明細 -->
+    <!-- 財務紀錄（含付款明細 + 追加減）-->
     <div class="page" id="p-payment">
       <div class="page-title">財務紀錄</div>
 
@@ -1555,6 +1507,54 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
 
       <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
+
+      <!-- 追加減紀錄（併入財務紀錄，放在付款進度下方）-->
+      <div id="pay-section-changes" style="margin-top:1.4rem;margin-bottom:1rem;display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
+          <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 追加減紀錄</div>
+          <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
+          <button onclick="exportChangeOrdersPdf()" id="btn-export-co-pdf" style="font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:11px;padding:5px 13px;background:#8B6B48;color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;flex-shrink:0;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">⬇ 匯出 PDF</button>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">追加合計</div>
+              <div id="cli-co-add" style="font-size:16px;font-weight:500;color:var(--red);">$0</div>
+            </div>
+            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">減項合計</div>
+              <div id="cli-co-sub" style="font-size:16px;font-weight:500;color:var(--green);">$0</div>
+            </div>
+            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">含監工費</div>
+              <div id="cli-co-grand" style="font-size:16px;font-weight:500;">$0</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:0;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;">序</th>
+                <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);">內容</th>
+                <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:82px;">日期</th>
+                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:80px;">單價</th>
+                <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:48px;">數量</th>
+                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:90px;">小計</th>
+              </tr>
+            </thead>
+            <tbody id="cli-co-tbody"></tbody>
+          </table>
+          <div id="cli-co-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);">尚無追加減記錄</div>
+          <!-- 合計區 -->
+          <div id="cli-co-summary" style="padding:12px 16px;border-top:0.5px solid var(--border);display:none;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>追加小計</span><span id="cli-sum-add"></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>減項小計</span><span id="cli-sum-sub"></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>監工費</span><span id="cli-sum-fee"></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;padding:8px 0;border-top:1.5px solid var(--border);margin-top:4px;"><span>含監工費總計</span><span id="cli-sum-grand"></span></div>
+          </div>
+        </div>
+      </div>
     </div>
 
 
@@ -3266,10 +3266,11 @@ window.trackEvent = trackEvent;
 
 function goPageMobile(id,el,type){
   trackPageLeave();
-  const desktopBtns=document.querySelectorAll('#s-client .tnav');
-  const pages=['p-overview','p-docs','p-contracts','p-knowledge','p-checklist','p-materials','p-construction','p-payment','p-changes'];
-  const idx=pages.indexOf(id);
-  desktopBtns.forEach((t,i)=>{if(i===idx)t.classList.add('active');else t.classList.remove('active');});
+  // 同步桌機 nav 的 active 狀態（用 onclick 比對，不依賴按鈕順序）
+  document.querySelectorAll('#s-client .tnav').forEach(t=>{
+    const oc=t.getAttribute('onclick')||'';
+    if(oc.includes("'"+id+"'")) t.classList.add('active'); else t.classList.remove('active');
+  });
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('#mobile-menu-client .mobile-tnav').forEach(t=>t.classList.remove('active'));
@@ -9028,7 +9029,7 @@ window.renderClientNextAction = async function(proj){
             kind: 'update',
             label: '追加減更新',
             sub: `${trunc(cos[0].content || '', 12)} · ${shortDate(cos[0].change_date)}`,
-            navigate: () => goPage('p-changes', document.querySelector('#s-client .tnav[onclick*="p-changes"]')),
+            navigate: () => goPage('p-payment', document.querySelector('#s-client .tnav[onclick*="p-payment"]')),
           })
         }
       }
@@ -9321,12 +9322,6 @@ async function renderClientDashboard(){
     if(nameEl) nameEl.style.color=isOverdue?'var(--red)':'';
   } else if(nextEl){ nextEl.style.display='none'; }
 
-  // --- 顯示追加減 nav ---
-  const coNav=document.getElementById('nav-changes');
-  const coMobile=document.getElementById('mobile-nav-changes');
-  if(coNav) coNav.style.display='';
-  if(coMobile) coMobile.style.display='';
-
   // --- 最近會議記錄 ---
   renderDashMeetings();
 }
@@ -9437,8 +9432,10 @@ async function loadClientChangeOrders(pid){
     const fee=Math.round(net*pct/100);
     const grand=net+fee;
     const coCard=document.getElementById('dash-co-card');
-    if(!items.length){if(coCard)coCard.style.display='none';return;}
+    const coSection=document.getElementById('pay-section-changes');
+    if(!items.length){if(coCard)coCard.style.display='none';if(coSection)coSection.style.display='none';return;}
     if(coCard) coCard.style.display='block';
+    if(coSection) coSection.style.display='block';
     // Render summary list (max 3)
     const listEl=document.getElementById('dash-co-list');
     if(listEl){
@@ -10671,6 +10668,9 @@ async function renderClientPayment(){
   const secCon=document.getElementById('pay-section-construction');
   if(secDesign) secDesign.style.display=designItems.length?'block':'none';
   if(secCon) secCon.style.display=constructionItems.length?'block':'none';
+
+  // 追加減紀錄已併入本頁；確保資料載入（loadClientChangeOrders 會自行顯示/隱藏 pay-section-changes）
+  loadClientChangeOrders(Number(c.projectId)).catch(e=>console.warn('loadClientChangeOrders(payment):',e?.message));
 }
 
 // ========== KNOWLEDGE ==========
