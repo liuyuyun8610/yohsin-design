@@ -1424,6 +1424,36 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="p-payment">
       <div class="page-title">財務紀錄</div>
 
+      <!-- 金額總覽（全案：設計＋工程）-->
+      <div class="card" id="pay-overview-total" style="margin-bottom:1rem;">
+        <div style="font-size:11px;letter-spacing:0.16em;color:var(--ink-light);font-weight:500;margin-bottom:12px;">金額總覽</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">
+            <span style="font-size:13px;color:var(--ink-muted);flex-shrink:0;">原合約金額</span>
+            <span style="text-align:right;">
+              <span id="tot-orig" style="font-size:15px;font-weight:500;color:var(--ink);">$—</span>
+              <span id="tot-orig-breakdown" style="display:block;font-size:11px;color:var(--ink-light);margin-top:1px;"></span>
+            </span>
+          </div>
+          <div id="tot-co-row" style="display:none;justify-content:space-between;align-items:baseline;gap:12px;">
+            <span style="font-size:13px;color:var(--ink-muted);">追加減合計</span>
+            <span id="tot-co" style="font-size:15px;font-weight:500;">+$0</span>
+          </div>
+          <div id="tot-adjusted-row" style="display:none;justify-content:space-between;align-items:baseline;gap:12px;padding-top:9px;border-top:0.5px solid var(--border);">
+            <span style="font-size:13px;color:var(--ink);font-weight:500;">調整後總額</span>
+            <span id="tot-adjusted" style="font-size:17px;font-weight:600;color:var(--ink);">$—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:9px;border-top:0.5px solid var(--border);">
+            <span style="font-size:13px;color:var(--ink-muted);">已付款</span>
+            <span id="tot-received" style="font-size:15px;font-weight:500;color:#5E786E;">$—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">
+            <span style="font-size:13px;color:var(--ink-muted);">待付款</span>
+            <span id="tot-pending" style="font-size:15px;font-weight:600;color:var(--accent);">$—</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 設計費 總覽 -->
       <div class="card" id="pay-overview-design" style="margin-bottom:0.8rem;">
         <div style="font-size:11px;letter-spacing:0.16em;color:var(--blue);font-weight:500;margin-bottom:10px;">✏️ 設計費</div>
@@ -9433,7 +9463,7 @@ async function loadClientChangeOrders(pid){
     const grand=net+fee;
     const coCard=document.getElementById('dash-co-card');
     const coSection=document.getElementById('pay-section-changes');
-    if(!items.length){if(coCard)coCard.style.display='none';if(coSection)coSection.style.display='none';return;}
+    if(!items.length){if(coCard)coCard.style.display='none';if(coSection)coSection.style.display='none';return {addTotal:0,subTotal:0,net:0,fee:0,grand:0,count:0};}
     if(coCard) coCard.style.display='block';
     if(coSection) coSection.style.display='block';
     // Render summary list (max 3)
@@ -9528,7 +9558,8 @@ async function loadClientChangeOrders(pid){
       setT('cli-sum-fee',fmtS(fee));
       setT('cli-sum-grand',fmtS(grand));
     }
-  }catch(e){console.warn('loadClientChangeOrders:',e.message);}
+    return {addTotal,subTotal,net,fee,grand,count:items.length};
+  }catch(e){console.warn('loadClientChangeOrders:',e.message);return null;}
 }
 
 // 匯出追加減明細為可列印／存成 PDF 的新視窗
@@ -10570,6 +10601,33 @@ async function renderClientPayment(){
   if(ovDesign) ovDesign.style.display=(designItems.length||designFeeNum>0)?'block':'none';
   if(ovCon) ovCon.style.display=(constructionItems.length||contractAmt>0)?'block':'none';
 
+  // 追加減紀錄已併入本頁：載入並取回總計，餵給最上方「金額總覽」卡（全案：設計＋工程）
+  const coTotals = await loadClientChangeOrders(Number(c.projectId)).catch(e=>{console.warn('loadClientChangeOrders(payment):',e?.message);return null;});
+  const coGrand = Number(coTotals?.grand) || 0;            // 追加減合計（含監工費）
+  const origContract = designContract + conContract;       // 原合約金額（設計＋工程）
+  const adjustedTotal = origContract + coGrand;            // 調整後總額
+  const totalReceived = designReceived + conReceived;      // 已付款
+  const totalPending = adjustedTotal - totalReceived;      // 待付款
+  const ovTotal = document.getElementById('pay-overview-total');
+  if(ovTotal) ovTotal.style.display = (origContract>0 || totalReceived>0) ? 'block' : 'none';
+  setEl('tot-orig','$'+fmtN(origContract));
+  const bd=document.getElementById('tot-orig-breakdown');
+  if(bd) bd.textContent = (designContract>0 && conContract>0)
+    ? `設計 $${fmtN(designContract)} ＋ 工程 $${fmtN(conContract)}` : '';
+  const coRow=document.getElementById('tot-co-row');
+  const adjRow=document.getElementById('tot-adjusted-row');
+  if(coGrand!==0){
+    if(coRow) coRow.style.display='flex';
+    if(adjRow) adjRow.style.display='flex';
+    setEl('tot-co',(coGrand>=0?'+$':'-$')+fmtN(Math.abs(coGrand)));
+    setEl('tot-adjusted','$'+fmtN(adjustedTotal));
+  } else {
+    if(coRow) coRow.style.display='none';
+    if(adjRow) adjRow.style.display='none';
+  }
+  setEl('tot-received','$'+fmtN(totalReceived));
+  setEl('tot-pending','$'+fmtN(totalPending));
+
   const empty=document.getElementById('client-pay-empty');
   if(!allItems.length){if(empty)empty.style.display='block';return;}
   if(empty)empty.style.display='none';
@@ -10668,9 +10726,6 @@ async function renderClientPayment(){
   const secCon=document.getElementById('pay-section-construction');
   if(secDesign) secDesign.style.display=designItems.length?'block':'none';
   if(secCon) secCon.style.display=constructionItems.length?'block':'none';
-
-  // 追加減紀錄已併入本頁；確保資料載入（loadClientChangeOrders 會自行顯示/隱藏 pay-section-changes）
-  loadClientChangeOrders(Number(c.projectId)).catch(e=>console.warn('loadClientChangeOrders(payment):',e?.message));
 }
 
 // ========== KNOWLEDGE ==========
