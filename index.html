@@ -9438,14 +9438,23 @@ async function loadClientChangeOrders(pid){
     if(coRes.error) throw coRes.error;
     const items=coRes.data||[];
     // 英文 key → 中文 fallback（trade_categories.label 若還是英文時用）
+    // 權威清單對齊 work-system src/lib/item-keys.ts 的 ITEM_KEY_LABELS（用縮寫 key，如 demo/mep/protect）
     const EN_TO_ZH = {
-      demolition:'拆除工程', protection:'保護工程', plaster:'泥作工程',
-      electrical:'水電工程', plumbing:'水電工程', wood:'木作工程', carpentry:'木作工程',
-      paint:'油漆工程', cabinet:'系統櫃工程', system:'系統櫃工程',
-      window:'鋁窗工程', aluminum:'鋁窗工程', metal:'鐵件工程', iron:'鐵件工程',
-      cleaning:'清潔工程', glass:'玻璃工程', hvac:'空調工程', ac:'空調工程',
-      floor:'地板工程', tile:'磁磚工程', kitchen:'廚具工程', bathroom:'衛浴工程',
-      lighting:'燈具工程', curtain:'窗簾工程', furniture:'家具', other:'其他工程',
+      // canonical keys（work-system 實際使用）
+      ac:'空調工程', alum_d:'鋁門工程', alum_w:'鋁窗工程', cabinet:'系統櫃工程',
+      curtain:'窗簾工程', demo:'拆除工程', equip:'廚具設備', floor:'地板工程',
+      glass:'玻璃工程', iron:'鐵件工程', light:'燈具工程', main_d:'大門工程',
+      mep:'水電工程', paint:'油漆工程', plaster:'泥作工程', protect:'保護工程',
+      wood:'木作工程', fire:'消防工程', clean:'清潔工程', coating:'塗料',
+      tile:'磁磚工程', partition:'輕隔間工程', stone:'石材工程',
+      // 中文 key fallback
+      清潔:'清潔工程', 塗料:'塗料', 廚具:'廚具設備', 消防:'消防工程',
+      // 舊版英文單字別名（保留相容，避免舊資料漏接）
+      demolition:'拆除工程', protection:'保護工程', protect_work:'保護工程',
+      electrical:'水電工程', plumbing:'水電工程', carpentry:'木作工程',
+      system:'系統櫃工程', window:'鋁窗工程', aluminum:'鋁窗工程', metal:'鐵件工程',
+      cleaning:'清潔工程', hvac:'空調工程', lighting:'燈具工程', kitchen:'廚具設備',
+      other:'其他工程',
     };
     const isEnglishLike = s => /^[a-z][a-z0-9 _-]*$/i.test(String(s||''));
     const zhLabel = (key, rawLabel) => {
@@ -9766,15 +9775,20 @@ async function exportChangeOrdersPdf(){
   const fmtS=n=>n>=0?'+$'+fmtN(n):'-$'+fmtN(Math.abs(n));
   const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  // 工種中文 fallback（共用 ys-interior 表內已存在的 trade_categories）
+  // 工種中文 fallback（對齊 work-system src/lib/item-keys.ts，用縮寫 key 如 demo/mep/protect）
   const EN_TO_ZH = {
-    demolition:'拆除工程', protection:'保護工程', plaster:'泥作工程',
-    electrical:'水電工程', plumbing:'水電工程', wood:'木作工程', carpentry:'木作工程',
-    paint:'油漆工程', cabinet:'系統櫃工程', system:'系統櫃工程',
-    window:'鋁窗工程', aluminum:'鋁窗工程', metal:'鐵件工程', iron:'鐵件工程',
-    cleaning:'清潔工程', glass:'玻璃工程', hvac:'空調工程', ac:'空調工程',
-    floor:'地板工程', tile:'磁磚工程', kitchen:'廚具工程', bathroom:'衛浴工程',
-    lighting:'燈具工程', curtain:'窗簾工程', furniture:'家具', other:'其他工程',
+    ac:'空調工程', alum_d:'鋁門工程', alum_w:'鋁窗工程', cabinet:'系統櫃工程',
+    curtain:'窗簾工程', demo:'拆除工程', equip:'廚具設備', floor:'地板工程',
+    glass:'玻璃工程', iron:'鐵件工程', light:'燈具工程', main_d:'大門工程',
+    mep:'水電工程', paint:'油漆工程', plaster:'泥作工程', protect:'保護工程',
+    wood:'木作工程', fire:'消防工程', clean:'清潔工程', coating:'塗料',
+    tile:'磁磚工程', partition:'輕隔間工程', stone:'石材工程',
+    清潔:'清潔工程', 塗料:'塗料', 廚具:'廚具設備', 消防:'消防工程',
+    demolition:'拆除工程', protection:'保護工程', protect_work:'保護工程',
+    electrical:'水電工程', plumbing:'水電工程', carpentry:'木作工程',
+    system:'系統櫃工程', window:'鋁窗工程', aluminum:'鋁窗工程', metal:'鐵件工程',
+    cleaning:'清潔工程', hvac:'空調工程', lighting:'燈具工程', kitchen:'廚具設備',
+    other:'其他工程',
   };
   const isEng = s => /^[a-z][a-z0-9 _-]*$/i.test(String(s||''));
   const zhLabel = (key, raw) => {
