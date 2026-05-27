@@ -9545,7 +9545,7 @@ async function loadClientChangeOrders(pid){
           tr.style.borderBottom='0.5px solid var(--border)';
           tr.innerHTML=`
             <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${idxInGroup + 1}</td>
-            <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}</td>
+            <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}${r.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.45;">${escapeHtml(r.note)}</div>`:''}</td>
             <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
             <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
             <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
@@ -9834,7 +9834,7 @@ async function exportChangeOrdersPdf(){
       const color = isAdd ? '#A32D2D' : '#3B6D11';
       rowsHtml += `<tr>
         <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${idxInGroup + 1}</td>
-        <td style="padding:9px 12px;">${esc(r.content||'—')}</td>
+        <td style="padding:9px 12px;">${esc(r.content||'—')}${r.note?`<div style="font-size:11px;color:#8A7B6B;margin-top:2px;line-height:1.4;">${esc(r.note)}</div>`:''}</td>
         <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${r.change_date ? esc(r.change_date.replace(/-/g,'/')) : '—'}</td>
         <td style="text-align:center;padding:9px 8px;color:${color};font-weight:500;">${esc(r.type||'')}</td>
         <td style="text-align:right;padding:9px 12px;">$${fmtN(Number(r.unit_price))}</td>
