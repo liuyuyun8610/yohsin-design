@@ -1199,7 +1199,17 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- ─── 設計圖紙 Panel ─── -->
       <div id="docs-panel-drawings">
-        <!-- 空間與家具尺寸圖（置頂，買家具最常用）-->
+        <!-- 3D 漫遊區塊（VR Tour）— 置頂，客戶最常看 -->
+        <div class="doc-section" id="client-vr-tour-section" style="display:none;">
+          <div class="doc-section-title">🪟 進入您的空間漫遊</div>
+          <div id="client-vr-tour-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+        <!-- 3D 空間效果圖 — 次置頂 -->
+        <div class="doc-section" id="client-renders-section" style="display:none;">
+          <div class="doc-section-title">3D 空間效果圖</div>
+          <div id="client-renders-gallery"></div>
+        </div>
+        <!-- 空間與家具尺寸圖（買家具最常用）-->
         <div class="doc-section" id="client-furniture-section" style="display:none;">
           <div class="doc-section-title">📐 空間與家具尺寸圖</div>
           <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.7;">買家具量尺寸時直接看這份。包含整體空間尺寸與已預留的家具位置標註。</div>
@@ -1224,15 +1234,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
           <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳完成的立面圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
           <div id="client-elevation-gallery"></div>
-        </div>
-        <div class="doc-section" id="client-renders-section" style="display:none;">
-          <div class="doc-section-title">3D 空間效果圖</div>
-          <div id="client-renders-gallery"></div>
-        </div>
-        <!-- 3D 漫遊區塊（VR Tour）-->
-        <div class="doc-section" id="client-vr-tour-section" style="display:none;">
-          <div class="doc-section-title">🪟 進入您的空間漫遊</div>
-          <div id="client-vr-tour-list" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
       </div>
 
@@ -6188,7 +6189,9 @@ function renderClient3DGallery(d){
   // Group by date
   const grouped={};
   renders.forEach(v=>{grouped[v.date]=grouped[v.date]||[];grouped[v.date].push(v);});
-  const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+  // 依「上傳新舊」排序：每本相簿取組內最大 dbId（最新上傳的圖），由新到舊，最新相本在最上面
+  const albumMaxId=k=>Math.max(...grouped[k].map(v=>Number(v.dbId)||0));
+  const dates=Object.keys(grouped).sort((a,b)=>albumMaxId(b)-albumMaxId(a));
   // Build album list view + inside view (hidden by default)
   gallery.innerHTML=`
     <div id="album-list-view" class="album-list"></div>
