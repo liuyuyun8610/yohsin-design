@@ -275,6 +275,15 @@ table{max-width:100%;}
 .sg-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
 .sg-chip{font-family:inherit;font-size:11px;padding:5px 12px;border-radius:999px;border:0.5px solid var(--border);background:#fff;color:var(--ink-muted);cursor:pointer;}
 .sg-chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tool-group-ttl{font-size:11px;letter-spacing:0.14em;color:var(--accent2,#B8936A);font-weight:600;margin:0 0 0.7rem;text-transform:uppercase;}
+.sg-pick{font-family:inherit;font-size:12.5px;padding:8px 14px;border-radius:12px;border:0.5px solid var(--border);background:#fff;color:var(--ink);cursor:pointer;transition:all .12s;}
+.sg-pick.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.sg-q{margin-bottom:18px;}
+.sg-q-ttl{font-size:13.5px;color:var(--ink);font-weight:500;margin-bottom:8px;}
+.sg-result{margin-top:18px;padding:16px 18px;background:#FBF6EC;border:0.5px solid var(--accent-light,rgba(139,107,72,0.3));border-radius:12px;}
+.sg-result-ttl{font-size:11px;letter-spacing:0.1em;color:var(--accent);font-weight:600;margin-bottom:8px;}
+.sg-result-big{font-family:'Noto Serif TC',serif;font-size:20px;color:var(--ink);margin-bottom:8px;}
+.sg-result-body{font-size:13px;line-height:1.85;color:var(--ink);}
 .sg-empty{text-align:center;padding:1.8rem 1.2rem;background:#FBF8F4;border:1px dashed var(--accent-light,rgba(139,107,72,0.3));border-radius:14px;margin-bottom:0.6rem;}
 .sg-empty-text{font-size:13px;line-height:1.85;color:var(--ink-muted);margin-bottom:16px;}
 .sg-cta{font-family:inherit;font-size:14px;font-weight:500;padding:11px 26px;background:var(--accent);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;box-shadow:0 3px 12px rgba(139,107,72,0.22);transition:opacity .15s;}
@@ -1492,7 +1501,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- 工具首頁：卡片列表 -->
       <div id="tool-home">
-        <div class="notice-desc" style="margin-bottom:1.2rem;">這裡整理了一些裝修前可以協助思考的工具，幫助我們更了解您的生活物品、用電需求與搬家整理狀況。您不需要一次填完，可以想到再慢慢補充。</div>
+        <div class="notice-desc" style="margin-bottom:1.4rem;">這裡整理了一些裝修前可以協助思考的小工具，有些是實用填寫，有些是輕鬆小測驗。您不需要一次完成，想到再慢慢補充即可。</div>
+
+        <div class="tool-group-ttl">實用填寫工具</div>
         <div class="tool-card" onclick="openTool('storage')">
           <div class="tool-card-main">
             <div class="tool-card-ttl">收納需求盤點 <span class="sg-cnt" id="tcnt-storage">0</span></div>
@@ -1503,7 +1514,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="tool-card" onclick="openTool('outlet')">
           <div class="tool-card-main">
             <div class="tool-card-ttl">開關插座需求 <span class="sg-cnt" id="tcnt-outlet">0</span></div>
-            <div class="tool-card-desc">整理每個空間會用到的電器、充電與網路需求，避免完工後才發現插座位置不夠或不好用。</div>
+            <div class="tool-card-desc">整理每個空間會用到的用電情境，協助規劃插座位置，減少日後使用不便。</div>
           </div>
           <div class="tool-card-cta">進去瞧瞧 ›</div>
         </div>
@@ -1513,6 +1524,29 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <div class="tool-card-desc">搬家前分批整理保留、淘汰、捐贈與要帶進新家的物品，減少入住後的雜亂。</div>
           </div>
           <div class="tool-card-cta">進去瞧瞧 ›</div>
+        </div>
+
+        <div class="tool-group-ttl" style="margin-top:1.6rem;">趣味互動工具 <span style="font-size:11px;font-weight:400;color:var(--ink-light);">想到再玩即可，不用一次完成</span></div>
+        <div class="tool-card" onclick="openTool('mine')">
+          <div class="tool-card-main">
+            <div class="tool-card-ttl">新家地雷清單 <span class="sg-cnt" id="tcnt-mine">0</span></div>
+            <div class="tool-card-desc">勾選最不想在新家遇到的狀況，幫我們提前避開日後的遺憾。</div>
+          </div>
+          <div class="tool-card-cta">進去玩玩 ›</div>
+        </div>
+        <div class="tool-card" onclick="openTool('hotspot')">
+          <div class="tool-card-main">
+            <div class="tool-card-ttl">混亂熱點地圖 <span class="sg-cnt" id="tcnt-hotspot">0</span></div>
+            <div class="tool-card-desc">點出家裡最容易亂的地方與原因，幫我們找到真正要改善的痛點。</div>
+          </div>
+          <div class="tool-card-cta">進去玩玩 ›</div>
+        </div>
+        <div class="tool-card" onclick="openTool('persona')">
+          <div class="tool-card-main">
+            <div class="tool-card-ttl">收納人格小測驗 <span class="sg-cnt" id="tcnt-persona">0</span></div>
+            <div class="tool-card-desc">四題輕鬆小測驗，看看你是哪種收納人格，幫我們抓對櫃體形式。</div>
+          </div>
+          <div class="tool-card-cta">開始測驗 ›</div>
         </div>
       </div>
 
@@ -1565,6 +1599,35 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="sg-moving-filter" class="sg-chips"></div>
         <div id="sg-list-moving"></div>
         <button class="add-row-btn" onclick="openStorageModal('moving')">＋ 新增整理項目</button>
+      </div>
+
+      <!-- 趣味：新家地雷清單 -->
+      <div id="tool-mine" class="tool-view" style="display:none;">
+        <button class="tool-back" onclick="openTool('home')">‹ 返回工具</button>
+        <div class="tool-subtitle">新家地雷清單</div>
+        <div class="notice-desc" style="margin-bottom:1rem;">勾選你最不想在新家遇到的狀況（可複選，想到再來補）。比起「喜歡什麼」，這個更好回答，也幫我們避開日後的遺憾。</div>
+        <div id="sg-mine-opts" class="sg-chips"></div>
+        <div id="sg-mine-result"></div>
+      </div>
+
+      <!-- 趣味：混亂熱點地圖 -->
+      <div id="tool-hotspot" class="tool-view" style="display:none;">
+        <button class="tool-back" onclick="openTool('home')">‹ 返回工具</button>
+        <div class="tool-subtitle">混亂熱點地圖</div>
+        <div class="notice-desc" style="margin-bottom:0.8rem;">家裡最容易亂的地方是哪裡？（可複選）</div>
+        <div id="sg-hotspot-spots" class="sg-chips"></div>
+        <div class="notice-desc" style="margin:1rem 0 0.6rem;">為什麼容易亂？（可複選）</div>
+        <div id="sg-hotspot-reasons" class="sg-chips"></div>
+        <div id="sg-hotspot-result"></div>
+      </div>
+
+      <!-- 趣味：收納人格小測驗 -->
+      <div id="tool-persona" class="tool-view" style="display:none;">
+        <button class="tool-back" onclick="openTool('home')">‹ 返回工具</button>
+        <div class="tool-subtitle">收納人格小測驗</div>
+        <div class="notice-desc" style="margin-bottom:1rem;">四題輕鬆選擇，看看你是哪種收納人格。沒有對錯，憑直覺選就好。</div>
+        <div id="sg-persona-quiz"></div>
+        <div id="sg-persona-result"></div>
       </div>
     </div>
 
@@ -2676,6 +2739,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <option value="hide">我不想看到什麼</option>
           <option value="outlet">開關插座需求</option>
           <option value="moving">搬家前整理</option>
+          <option value="mine">新家地雷清單</option>
+          <option value="hotspot">混亂熱點地圖</option>
+          <option value="persona">收納人格小測驗</option>
         </select>
         <select class="admin-sel" id="sg-filter-space" onchange="renderAdminStorage()" style="min-width:120px;">
           <option value="">全部空間</option>
@@ -11115,7 +11181,23 @@ const SG_YESNO=['是','否','不確定'];
 const SG_DISPOSAL=['搬入新家','淘汰','捐贈','二手賣出','暫存'];
 const SG_MOVING_CATS=['衣物','鞋子','書籍文件','廚房用品','小孩用品','寵物用品','清潔用品','舊家具','收藏品','其他'];
 const SG_STATUS={new:'未處理',discuss:'需討論',included:'已納入設計',need_more:'需客戶補充'};
-const SG_KIND_LABEL={have:'我有哪些東西',large:'不好收的東西',hide:'我不想看到什麼',outlet:'開關插座需求',moving:'搬家前整理'};
+const SG_KIND_LABEL={have:'我有哪些東西',large:'不好收的東西',hide:'我不想看到什麼',outlet:'開關插座需求',moving:'搬家前整理',mine:'新家地雷清單',hotspot:'混亂熱點地圖',persona:'收納人格小測驗'};
+// 趣味互動工具
+const MINE_OPTS=['插座不夠','線露在外面','鞋子散在玄關','衣服堆在椅子上','餐桌被雜物佔滿','小孩玩具滿地','浴室瓶罐很多','廚房檯面很亂','垃圾桶很顯眼','掃把拖把沒地方放','櫃子太深拿不到','開放櫃很難清灰塵'];
+const HOTSPOT_SPOTS=['玄關','餐桌','沙發旁','廚房檯面','主臥衣櫃','浴室檯面','書桌'];
+const HOTSPOT_REASONS=['東西沒有固定位置','每天都會用','櫃子不好拿','家人不會一起維持','插座不夠','動線不順'];
+const PERSONA_Q=[
+  {key:'q1',ttl:'東西你比較喜歡…',opts:['全部藏起來','常用物看得到']},
+  {key:'q2',ttl:'整理東西時，你比較重視…',opts:['分類清楚','快速收起來']},
+  {key:'q3',ttl:'你能接受開放層板嗎？',opts:['可以','看情況','不行']},
+  {key:'q4',ttl:'你平常會用收納盒、標籤或分類籃嗎？',opts:['會','偶爾','不會']},
+];
+const PERSONA_RESULT={
+  hide:{name:'全隱藏派',desc:'喜歡乾淨俐落、東西收到看不見。建議多用門片櫃、抽屜與隱藏式收納，少做開放層板。'},
+  sorter:{name:'分類控派',desc:'喜歡分類清楚、每樣東西有家。建議多抽屜、可調層板與分隔／標籤系統。'},
+  quick:{name:'懶人快速派',desc:'重視快速收、不想花時間整理。建議大開口籃、丟入式收納、少分隔，降低收納步驟。'},
+  handy:{name:'順手派',desc:'重視拿取方便、常用物看得到。建議常用區用半開放收納，搭配部分門片藏雜物。'},
+};
 const SG_EMPTY_HINT={
   have:'還沒有填寫任何收納需求。可以先從一個空間開始，例如玄關、主臥或廚房。<br>不用填得很精準，用「很多、普通、少」或簡單備註即可。',
   large:'還沒有填寫。把家裡不好收、容易被忽略的生活物品列出來，例如行李箱、棉被、工具箱、露營用品。<br>家電尺寸不用填這裡，請到「必填清單」。',
@@ -11147,6 +11229,9 @@ function updateToolCounts(){
   sset('tcnt-storage',cnt('have')+cnt('large')+cnt('hide'));
   sset('tcnt-outlet',cnt('outlet'));
   sset('tcnt-moving',cnt('moving'));
+  sset('tcnt-mine',cnt('mine'));
+  sset('tcnt-hotspot',cnt('hotspot'));
+  sset('tcnt-persona',cnt('persona'));
 }
 function openTool(name){
   _toolView=name;
@@ -11159,7 +11244,89 @@ function openTool(name){
   if(name==='storage'){ ['have','large','hide'].forEach(renderStorageList); updateStorageProgress(); }
   else if(name==='outlet') renderStorageList('outlet');
   else if(name==='moving') renderMovingTool();
+  else if(name==='mine') renderMineTool();
+  else if(name==='hotspot') renderHotspotTool();
+  else if(name==='persona') renderPersonaTool();
   else if(name==='home') updateToolCounts();
+}
+// ── 趣味工具：單筆紀錄 helper（一個 client × 一個 kind 一筆）──
+function sgRecord(kind){ return _storageItems.find(x=>x.kind===kind)||null; }
+const _sgLock={};
+async function sgPersist(kind,data){
+  const existing=sgRecord(kind);
+  if(existing){
+    existing.data=data;
+    try{ await sbClient.from('storage_items').update({data,updated_at:new Date().toISOString()}).eq('id',existing.id);}catch(e){console.warn('persist',e);}
+    updateToolCounts(); return;
+  }
+  if(_sgLock[kind]){ _sgLock[kind].data=data; return; }
+  _sgLock[kind]={data};
+  try{
+    const {data:ins,error}=await sbClient.from('storage_items').insert({client_id:currentClientId,kind,data}).select();
+    if(!error && ins && ins[0]){
+      _storageItems.push(ins[0]);
+      const pend=_sgLock[kind].data; delete _sgLock[kind];
+      if(pend && pend!==data){ ins[0].data=pend; await sbClient.from('storage_items').update({data:pend,updated_at:new Date().toISOString()}).eq('id',ins[0].id); }
+    } else { delete _sgLock[kind]; }
+  }catch(e){ delete _sgLock[kind]; console.warn('persist insert',e); }
+  updateToolCounts();
+}
+function _chips(containerId,opts,selected,onclickName){
+  const el=document.getElementById(containerId); if(!el) return;
+  el.innerHTML=opts.map(o=>`<button class="sg-chip${selected.includes(o)?' on':''}" onclick="${onclickName}('${o.replace(/'/g,"\\'")}')">${escapeHtml(o)}</button>`).join('');
+}
+
+// 1. 新家地雷清單
+function renderMineTool(){
+  const rec=sgRecord('mine'); const picks=(rec&&rec.data&&rec.data.picks)||[];
+  _chips('sg-mine-opts',MINE_OPTS,picks,'toggleMine');
+  const res=document.getElementById('sg-mine-result');
+  res.innerHTML=picks.length?`<div class="sg-result"><div class="sg-result-ttl">本案應特別避免</div><div class="sg-result-body">${picks.map(escapeHtml).join('、')}。<br>我們會在設計時特別留意這些，盡量幫您避開。</div></div>`:'';
+}
+async function toggleMine(v){
+  const rec=sgRecord('mine'); const picks=((rec&&rec.data&&rec.data.picks)||[]).slice();
+  const i=picks.indexOf(v); if(i>=0)picks.splice(i,1); else picks.push(v);
+  await sgPersist('mine',{picks}); renderMineTool();
+}
+
+// 2. 混亂熱點地圖
+function renderHotspotTool(){
+  const rec=sgRecord('hotspot'); const d=(rec&&rec.data)||{}; const spots=d.spots||[]; const reasons=d.reasons||[];
+  _chips('sg-hotspot-spots',HOTSPOT_SPOTS,spots,'toggleHotspotSpot');
+  _chips('sg-hotspot-reasons',HOTSPOT_REASONS,reasons,'toggleHotspotReason');
+  const res=document.getElementById('sg-hotspot-result');
+  res.innerHTML=(spots.length||reasons.length)?`<div class="sg-result"><div class="sg-result-ttl">本案需要特別注意的混亂熱點</div><div class="sg-result-body">${spots.length?'熱點：'+spots.map(escapeHtml).join('、'):''}${spots.length&&reasons.length?'<br>':''}${reasons.length?'原因：'+reasons.map(escapeHtml).join('、'):''}</div></div>`:'';
+}
+async function toggleHotspotSpot(v){
+  const d=Object.assign({spots:[],reasons:[]},(sgRecord('hotspot')||{}).data||{}); const a=d.spots.slice();
+  const i=a.indexOf(v); if(i>=0)a.splice(i,1); else a.push(v); d.spots=a;
+  await sgPersist('hotspot',d); renderHotspotTool();
+}
+async function toggleHotspotReason(v){
+  const d=Object.assign({spots:[],reasons:[]},(sgRecord('hotspot')||{}).data||{}); const a=d.reasons.slice();
+  const i=a.indexOf(v); if(i>=0)a.splice(i,1); else a.push(v); d.reasons=a;
+  await sgPersist('hotspot',d); renderHotspotTool();
+}
+
+// 3. 收納人格小測驗
+function personaResult(d){
+  if(!(d.q1&&d.q2&&d.q3&&d.q4)) return null;
+  if(d.q2==='分類清楚'||d.q4==='會') return 'sorter';
+  if(d.q2==='快速收起來'||d.q4==='不會') return 'quick';
+  if(d.q1==='全部藏起來'&&d.q3==='不行') return 'hide';
+  return 'handy';
+}
+function renderPersonaTool(){
+  const d=((sgRecord('persona')||{}).data)||{};
+  const quiz=document.getElementById('sg-persona-quiz');
+  quiz.innerHTML=PERSONA_Q.map(q=>`<div class="sg-q"><div class="sg-q-ttl">${escapeHtml(q.ttl)}</div><div class="sg-chips">${q.opts.map(o=>`<button class="sg-pick${d[q.key]===o?' on':''}" onclick="setPersona('${q.key}','${o.replace(/'/g,"\\'")}')">${escapeHtml(o)}</button>`).join('')}</div></div>`).join('');
+  const r=personaResult(d); const res=document.getElementById('sg-persona-result');
+  if(r){ const t=PERSONA_RESULT[r]; res.innerHTML=`<div class="sg-result"><div class="sg-result-ttl">你的收納人格</div><div class="sg-result-big">${t.name}</div><div class="sg-result-body">${t.desc}</div></div>`; }
+  else { res.innerHTML='<div style="font-size:12px;color:var(--ink-light);margin-top:10px;">四題都選完就會出現你的收納人格 ✨</div>'; }
+}
+async function setPersona(key,val){
+  const d=Object.assign({},((sgRecord('persona')||{}).data)||{}); d[key]=val; d.result=personaResult(d);
+  await sgPersist('persona',d); renderPersonaTool();
 }
 function updateStorageProgress(){
   const n=_storageItems.filter(x=>['have','large','hide'].includes(x.kind)).length;
@@ -11400,6 +11567,12 @@ function sgAdminCardHtml(it){
   } else if(it.kind==='moving'){
     summary=`<span class="sg-tag">${escapeHtml(d.category||'—')}</span> <b>${escapeHtml(d.name||'')}</b>`
       +(d.disposal?` · ${escapeHtml(d.disposal)}`:'')+(d.quantity?` · 數量 ${escapeHtml(d.quantity)}`:'');
+  } else if(it.kind==='mine'){
+    summary=`<b>要避免：</b>${(d.picks||[]).map(escapeHtml).join('、')||'—'}`;
+  } else if(it.kind==='hotspot'){
+    summary=`<b>熱點：</b>${(d.spots||[]).map(escapeHtml).join('、')||'—'}`+((d.reasons||[]).length?`<div class="sg-field">原因：${d.reasons.map(escapeHtml).join('、')}</div>`:'');
+  } else if(it.kind==='persona'){
+    const t=PERSONA_RESULT[d.result]; summary=`<b>${t?t.name:'（未完成）'}</b>`+(d.q1?`<div class="sg-field">藏:${escapeHtml(d.q1||'-')}／整理:${escapeHtml(d.q2||'-')}／開放層板:${escapeHtml(d.q3||'-')}／收納用品:${escapeHtml(d.q4||'-')}</div>`:'');
   }
   const note=d.note?`<div class="sg-note">客戶備註：${escapeHtml(d.note)}</div>`:'';
   const stOpts=Object.keys(SG_STATUS).map(k=>`<option value="${k}"${k===st?' selected':''}>${SG_STATUS[k]}</option>`).join('');
@@ -11438,7 +11611,7 @@ function copyStorageSummary(){
   const cname=sel&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'';
   if(!_adminStorageItems.length){alert('目前沒有資料可複製');return;}
   let txt=`【工具填寫整理】${cname}\n\n`;
-  ['have','large','hide','outlet','moving'].forEach(k=>{
+  ['have','large','hide','outlet','moving','mine','hotspot','persona'].forEach(k=>{
     const items=_adminStorageItems.filter(x=>x.kind===k);
     if(!items.length) return;
     txt+=`■ ${SG_KIND_LABEL[k]}\n`;
@@ -11449,6 +11622,9 @@ function copyStorageSummary(){
       else if(k==='hide') line=`${d.item||''}（${d.importance||'-'}）${d.how?'希望:'+d.how:''}`;
       else if(k==='outlet') line=`${d.space||''} / ${d.scene||''}${d.place?'｜位置:'+d.place:''}`;
       else if(k==='moving') line=`${d.category||''}${d.name?' / '+d.name:''}｜${d.disposal||'-'}${d.quantity?'｜'+d.quantity:''}`;
+      else if(k==='mine') line=`要避免：${(d.picks||[]).join('、')||'-'}`;
+      else if(k==='hotspot') line=`熱點：${(d.spots||[]).join('、')||'-'}${(d.reasons||[]).length?'｜原因：'+d.reasons.join('、'):''}`;
+      else if(k==='persona'){ const t=PERSONA_RESULT[d.result]; line=`${t?t.name:'(未完成)'}｜藏:${d.q1||'-'}/整理:${d.q2||'-'}/開放層板:${d.q3||'-'}/收納用品:${d.q4||'-'}`; }
       line=line.replace(/\s+/g,' ').trim();
       const flags=[it.is_important?'★重要':'',SG_STATUS[it.status||'new']].filter(Boolean).join(' ');
       txt+=`  - ${line}${flags?'  ['+flags+']':''}${d.note?'  /備註:'+d.note:''}${it.designer_note?'  /內部:'+it.designer_note:''}\n`;
