@@ -1495,7 +1495,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="notice-desc" style="margin-bottom:1.2rem;">這裡整理了一些裝修前可以協助思考的工具，幫助我們更了解您的生活物品、用電需求與搬家整理狀況。您不需要一次填完，可以想到再慢慢補充。</div>
         <div class="tool-card" onclick="openTool('storage')">
           <div class="tool-card-main">
-            <div class="tool-card-ttl">收納需求盤點 <span class="sg-cnt" id="tcnt-storage">0</span></div>
+            <div class="tool-card-ttl">我的物品清單 <span class="sg-cnt" id="tcnt-storage">0</span></div>
             <div class="tool-card-desc">整理家中有哪些物品、哪些不好收、哪些不想露出來，讓後續櫃體與收納配置更貼近生活。</div>
           </div>
           <div class="tool-card-cta">進去瞧瞧 ›</div>
@@ -1516,15 +1516,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
-      <!-- 工具：收納需求盤點 -->
+      <!-- 工具：我的物品清單 -->
       <div id="tool-storage" class="tool-view" style="display:none;">
         <button class="tool-back" onclick="openTool('home')">‹ 返回工具</button>
-        <div class="tool-subtitle">收納需求盤點</div>
+        <div class="tool-subtitle">我的物品清單</div>
         <div class="card" style="margin-bottom:1.2rem;background:#FBF8F4;">
           <div style="font-size:13px;line-height:1.9;color:var(--ink);">真正好用的收納，不只是櫃子多，而是<strong style="color:var(--accent);">每一類物品都有適合的位置</strong>。這份盤點能幫我們了解您的生活習慣與物品數量，讓櫃體配置、層板高度、抽屜比例更貼近實際使用。</div>
           <div style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.8;">不需要填得很精準，用「很多、普通、少」或簡單備註即可，也可以分次慢慢填。</div>
         </div>
-        <div id="sg-progress" style="font-size:12px;color:var(--accent);margin-bottom:10px;letter-spacing:0.02em;">目前已填寫：0 筆收納需求</div>
+        <div id="sg-progress" style="font-size:12px;color:var(--accent);margin-bottom:10px;letter-spacing:0.02em;">目前已盤點：0 筆物品</div>
         <div class="stabs">
           <button class="stab active" onclick="switchStorageTab('have',this)">我有哪些東西 <span class="sg-cnt" id="sg-cnt-have">0</span></button>
           <button class="stab" onclick="switchStorageTab('large',this)">不好收的東西 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
@@ -1533,7 +1533,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="sg-pane-have" class="sg-pane">
           <div class="notice-desc" style="margin-bottom:1rem;">盤點各空間有哪些東西、大概多少、常不常用、希望放哪裡。<br><span style="color:var(--ink-light);">範例：主臥｜衣服｜很多｜每天｜希望放主臥衣櫃；　玄關｜鞋子｜約 40 雙｜每天｜希望有常穿鞋區。</span></div>
           <div id="sg-list-have"></div>
-          <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增一筆收納需求</button>
+          <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增一筆物品</button>
         </div>
         <div id="sg-pane-large" class="sg-pane" style="display:none;">
           <div class="notice-desc" style="margin-bottom:1rem;">列出體積較大、形狀特殊、季節性，或平常不知道該放哪裡的物品。<strong style="color:var(--accent);">這裡不用填家電尺寸——冰箱、洗衣機、電視這類家電請到「必填清單」填。</strong><br><span style="color:var(--ink-light);">例如：行李箱、棉被、換季衣物、露營用品、運動器材、工具箱、寵物用品、兒童推車、安全帽、大量備品、收藏品。</span></div>
@@ -1551,9 +1551,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div id="tool-outlet" class="tool-view" style="display:none;">
         <button class="tool-back" onclick="openTool('home')">‹ 返回工具</button>
         <div class="tool-subtitle">開關插座需求</div>
-        <div class="notice-desc" style="margin-bottom:1rem;">不用決定插座數量、也不用畫水電圖，只要描述「哪個空間會有什麼用電情境」就好，後續我們依您的生活方式協助規劃。<br><span style="color:var(--ink-light);">範例：主臥｜床頭手機充電｜床頭兩側｜希望藏線、不要露出。</span></div>
+        <div class="notice-desc" style="margin-bottom:1rem;">不用決定插座數量、也不用畫水電圖。您只需要告訴我們「哪個空間會使用什麼」，<strong style="color:var(--accent);">實際位置與數量會由設計師評估，填寫不代表施工定案</strong>。<br><span style="color:var(--ink-light);">範例：主臥｜床頭手機充電｜床頭兩側｜希望藏線、不要露出。</span></div>
         <div id="sg-list-outlet"></div>
         <button class="add-row-btn" onclick="openStorageModal('outlet')">＋ 新增一筆用電需求</button>
+        <div id="sg-outlet-summary" style="margin-top:16px;"></div>
+        <button id="sg-outlet-export" onclick="exportOutletPdf()" style="display:none;margin-top:12px;font-family:inherit;font-size:13px;padding:9px 20px;background:var(--accent);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;">⬇ 匯出用電需求 PDF（給客人比對）</button>
       </div>
 
       <!-- 工具：搬家前整理清單 -->
@@ -11117,7 +11119,7 @@ const SG_MOVING_CATS=['衣物','鞋子','書籍文件','廚房用品','小孩用
 const SG_STATUS={new:'未處理',discuss:'需討論',included:'已納入設計',need_more:'需客戶補充'};
 const SG_KIND_LABEL={have:'我有哪些東西',large:'不好收的東西',hide:'我不想看到什麼',outlet:'開關插座需求',moving:'搬家前整理'};
 const SG_EMPTY_HINT={
-  have:'還沒有填寫任何收納需求。可以先從一個空間開始，例如玄關、主臥或廚房。<br>不用填得很精準，用「很多、普通、少」或簡單備註即可。',
+  have:'還沒有列出任何物品。可以先從一個空間開始，例如玄關、主臥或廚房。<br>不用填得很精準，用「很多、普通、少」或簡單備註即可。',
   large:'還沒有填寫。把家裡不好收、容易被忽略的生活物品列出來，例如行李箱、棉被、工具箱、露營用品。<br>家電尺寸不用填這裡，請到「必填清單」。',
   hide:'還沒有填寫。把在意的凌亂來源列出來，例如電線、掃把拖把、玩具，我們幫您藏好。',
   outlet:'尚未填寫開關插座需求。可以先從最常使用的空間開始，例如床頭、沙發旁、書桌、廚房電器區、玄關櫃。',
@@ -11157,15 +11159,31 @@ function openTool(name){
   }
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='storage'){ ['have','large','hide'].forEach(renderStorageList); updateStorageProgress(); }
-  else if(name==='outlet') renderStorageList('outlet');
+  else if(name==='outlet') renderOutletTool();
   else if(name==='moving') renderMovingTool();
   else if(name==='home') updateToolCounts();
+}
+function renderOutletTool(){
+  renderStorageList('outlet');
+  const items=_storageItems.filter(x=>x.kind==='outlet');
+  const sumEl=document.getElementById('sg-outlet-summary');
+  const expBtn=document.getElementById('sg-outlet-export');
+  if(!items.length){ if(sumEl)sumEl.innerHTML=''; if(expBtn)expBtn.style.display='none'; return; }
+  const bySpace=new Map();
+  items.forEach(it=>{ const s=(it.data||{}).space||'其他'; bySpace.set(s,(bySpace.get(s)||0)+1); });
+  const chips=Array.from(bySpace.entries()).map(([s,n])=>`<span class="sg-tag" style="margin:0 4px 4px 0;">${escapeHtml(s)} <b>${n}</b></span>`).join('');
+  if(sumEl) sumEl.innerHTML=`<div style="padding:14px 16px;background:#FBF6EC;border:0.5px solid var(--accent-light,rgba(139,107,72,0.3));border-radius:12px;">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.08em;margin-bottom:8px;">用電需求彙整</div>
+      <div style="margin-bottom:6px;">${chips}</div>
+      <div style="font-size:13px;color:var(--ink);">共 <b>${items.length}</b> 筆用電需求，分布在 <b>${bySpace.size}</b> 個空間。</div>
+    </div>`;
+  if(expBtn) expBtn.style.display='inline-block';
 }
 function updateStorageProgress(){
   const n=_storageItems.filter(x=>['have','large','hide'].includes(x.kind)).length;
   ['have','large','hide'].forEach(k=>{const el=document.getElementById('sg-cnt-'+k);if(el)el.textContent=_storageItems.filter(x=>x.kind===k).length;});
   const prog=document.getElementById('sg-progress');
-  if(prog) prog.innerHTML=n?`已完成 ${n} 項盤點，您可以隨時回來補充。`:'目前已填寫：0 筆收納需求';
+  if(prog) prog.innerHTML=n?`已盤點 ${n} 項物品，您可以隨時回來補充。`:'目前已盤點：0 筆物品';
 }
 function renderMovingTool(){
   const items=_storageItems.filter(x=>x.kind==='moving');
@@ -11269,7 +11287,7 @@ function openStorageModal(kind,id){
       <div class="fg"><label>重要程度</label><select id="sm-importance">${_sgOpts(SG_IMPORTANCE,d.importance)}</select></div>`;
   } else if(kind==='outlet'){
     body=`
-      <div style="font-size:11px;color:var(--ink-light);background:#FBF6EC;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.6;">不用決定插座數量、也不用畫水電圖，只要描述「哪個空間會有什麼用電情境」就好。</div>
+      <div style="font-size:11px;color:var(--ink-light);background:#FBF6EC;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.6;">不用決定插座數量、也不用畫水電圖。您只需要告訴我們「哪個空間會使用什麼」，實際位置與數量會由設計師評估，填寫不代表施工定案。</div>
       <div class="fg"><label>空間 *</label><select id="sm-space">${_sgOpts(SG_SPACES_OUTLET,d.space)}</select></div>
       <div class="fg"><label>使用情境 *</label><input id="sm-scene" placeholder="例：手機充電、吹風機、掃地機、電腦、遊戲機、夜燈" value="${escapeHtml(d.scene||'')}"></div>
       <div class="fg"><label>希望位置（選填）</label><input id="sm-place" placeholder="例：沙發旁、床頭、書桌下、玄關櫃內、餐桌附近、鏡櫃旁" value="${escapeHtml(d.place||'')}"></div>
@@ -11328,8 +11346,65 @@ async function _reloadStorage(){
 function refreshToolView(){
   updateToolCounts();
   if(_toolView==='storage'){ updateStorageProgress(); ['have','large','hide'].forEach(renderStorageList); }
-  else if(_toolView==='outlet') renderStorageList('outlet');
+  else if(_toolView==='outlet') renderOutletTool();
   else if(_toolView==='moving') renderMovingTool();
+}
+function exportOutletPdf(){
+  const items=_storageItems.filter(x=>x.kind==='outlet');
+  if(!items.length){alert('目前沒有用電需求可匯出');return;}
+  const c=clients.find(x=>x.id===currentClientId);
+  const proj=c?projects.find(p=>Number(p.id)===Number(c.projectId)):null;
+  const projName=(proj&&proj.name)||'—';
+  const projAddr=((proj&&proj.address)||'')+((proj&&proj.unit)?(' '+proj.unit):'');
+  const clientName=(c&&c.name)||'—';
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const bySpace=new Map();
+  items.forEach(it=>{ const s=(it.data||{}).space||'其他'; if(!bySpace.has(s))bySpace.set(s,[]); bySpace.get(s).push(it); });
+  const order=SG_SPACES_OUTLET;
+  const spaces=Array.from(bySpace.keys()).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b); if(ia===-1&&ib===-1)return a.localeCompare(b); if(ia===-1)return 1; if(ib===-1)return -1; return ia-ib;});
+  const today=new Date(); const dateStr=today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
+  const sumHtml=spaces.map(s=>`<tr><td>${esc(s)}</td><td class="c">${bySpace.get(s).length}</td></tr>`).join('');
+  let detailHtml='';
+  spaces.forEach(s=>{
+    const arr=bySpace.get(s);
+    detailHtml+=`<tr class="grp"><td colspan="4">${esc(s)} <span style="font-weight:400;color:#A89478;font-size:10px;margin-left:8px;">共 ${arr.length} 筆</span></td></tr>`;
+    arr.forEach((it,i)=>{ const d=it.data||{}; detailHtml+=`<tr><td class="c">${i+1}</td><td>${esc(d.scene)||'—'}</td><td>${esc(d.place)||'—'}</td><td>${esc(d.note)||''}</td></tr>`; });
+  });
+  const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(projName)+' 用電需求</title>'
+    +'<style>@page{size:A4;margin:16mm 14mm;}*{box-sizing:border-box;}'
+    +'body{font-family:"NumQuicksand","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#2C2218;font-size:12px;line-height:1.5;margin:0;background:#fff;}'
+    +'h1{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:500;margin:0 0 4px;letter-spacing:0.04em;}'
+    +'.brand{font-family:"Noto Serif TC",serif;font-size:13px;letter-spacing:0.18em;color:#8B6B48;margin-bottom:4px;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #8B6B48;padding-bottom:10px;margin-bottom:14px;gap:20px;}'
+    +'.meta{font-size:11px;color:#6E5E4E;line-height:1.7;}.meta b{color:#2C2218;}'
+    +'.right{text-align:right;font-size:11px;color:#6E5E4E;line-height:1.8;}'
+    +'.note{font-size:10.5px;color:#8B7E6A;background:#FAF7F2;border-left:3px solid #C4A882;padding:7px 12px;margin-bottom:12px;line-height:1.6;}'
+    +'h2{font-size:13px;color:#8B6B48;letter-spacing:0.06em;margin:18px 0 6px;}'
+    +'table{width:100%;border-collapse:collapse;margin-top:4px;}'
+    +'thead th{font-size:10.5px;color:#6E5E4E;font-weight:500;padding:7px 8px;border-bottom:1px solid #8B6B48;text-align:left;background:#F5EFE7;letter-spacing:0.04em;}'
+    +'th.c,td.c{text-align:center;}'
+    +'tbody tr{border-bottom:0.5px solid #D9CFC1;page-break-inside:avoid;}'
+    +'tbody tr.grp{border-bottom:none;page-break-after:avoid;}'
+    +'tbody tr.grp td{background:#F5EFE7;padding:7px 10px;color:#8B6B48;font-weight:600;font-size:12px;border-top:1px solid #8B6B48;}'
+    +'tbody td{font-size:11.5px;vertical-align:top;word-break:break-word;padding:7px 8px;}'
+    +'.sumtab{width:auto;min-width:200px;}.sumtab td{padding:5px 14px 5px 8px;font-size:11.5px;border-bottom:0.5px solid #EAE3D2;}'
+    +'.foot{margin-top:20px;font-size:10px;color:#A89478;text-align:center;letter-spacing:0.08em;border-top:0.5px solid #EAE3D2;padding-top:8px;}'
+    +'.noprint{position:fixed;top:10px;right:10px;z-index:10;}@media print{.noprint{display:none;}body{margin:0;}}'
+    +'</style></head><body>'
+    +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;">列印 / 儲存為 PDF</button></div>'
+    +'<div class="hd"><div><div class="brand">有心制作 · 空間設計</div><h1>各空間用電需求</h1>'
+    +'<div class="meta">業主：<b>'+esc(clientName)+'</b>　｜　工程名稱：<b>'+esc(projName)+'</b>'+(projAddr?'<br>工程地址：'+esc(projAddr):'')+'</div></div>'
+    +'<div class="right"><div>製表日期：'+dateStr+'</div><div>用電需求：'+items.length+' 筆</div><div>涵蓋空間：'+spaces.length+' 區</div></div></div>'
+    +'<div class="note">本表彙整客戶填寫的各空間用電情境與希望位置，供設計師規劃插座、開關與線路位置時參考比對。實際施工點位以正式水電圖為準。</div>'
+    +'<h2>各區域數量彙整</h2><table class="sumtab"><thead><tr><th>空間</th><th class="c">需求筆數</th></tr></thead><tbody>'+sumHtml+'<tr><td style="font-weight:600;">合計</td><td class="c" style="font-weight:600;">'+items.length+'</td></tr></tbody></table>'
+    +'<h2>明細</h2><table><colgroup><col style="width:36px;"><col style="width:34%;"><col style="width:28%;"><col style="width:auto;"></colgroup>'
+    +'<thead><tr><th class="c">序</th><th>使用情境</th><th>希望位置</th><th>備註</th></tr></thead><tbody>'+detailHtml+'</tbody></table>'
+    +'<div class="foot">YOHSIN INTERIOR ｜ 有心制作 · 空間設計</div>'
+    +'<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},300);});<\/script>'
+    +'</body></html>';
+  const w=window.open('','_blank');
+  if(!w){alert('請先在瀏覽器允許此網站彈出視窗，再點一次匯出 PDF');return;}
+  w.document.open(); w.document.write(html); w.document.close();
 }
 async function deleteStorageItem(id){
   if(!confirm('確定刪除這筆？')) return;
