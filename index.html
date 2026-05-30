@@ -990,6 +990,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
       <button class="tnav" onclick="goPage('p-payment',this)">財務紀錄</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
+      <button class="tnav" onclick="goPage('p-usage',this)">使用說明</button>
       <button class="tnav" onclick="goPage('p-knowledge',this)">裝修知識</button>
 
     </div>
@@ -1011,6 +1012,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">財務紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-usage',this,'client')">使用說明</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">裝修知識</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
         <span id="mobile-client-name"></span>
@@ -1327,6 +1329,60 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div>
 
+    <!-- 使用說明 -->
+    <div class="page" id="p-usage">
+      <div class="page-title">使用說明</div>
+      <div class="notice-desc">這裡是您專屬的客戶頁。從簽約到驗收完工，所有跟您家有關的資料都會集中在這。以下是快速入門指南，看一次就上手。</div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">📍 您會在這裡看到什麼</div>
+        <div style="font-size:13px;line-height:1.85;color:var(--ink);">
+          <p style="margin:14px 0 4px;"><strong>裝修旅程（首頁最上方）</strong></p>
+          <p style="margin:0 0 14px;color:var(--ink-light);">顯示您目前的階段：簽約 → 設計 → 施工 → 驗收 → 保固。一眼就能知道專案走到哪、下一步是什麼。</p>
+
+          <p style="margin:14px 0 4px;"><strong>設計圖面</strong></p>
+          <ul style="margin:0 0 14px;padding-left:20px;color:var(--ink-light);">
+            <li><strong style="color:var(--ink);">🪟 3D 空間漫遊</strong>：戴上手機 VR 或直接點開，可以「走進」尚未完工的家。</li>
+            <li><strong style="color:var(--ink);">3D 空間效果圖</strong>：每次提案的效果圖都收在這，最新的相本固定在最上面。</li>
+            <li><strong style="color:var(--ink);">📐 空間與家具尺寸圖</strong>：之後選家具、量尺寸時直接看這份，省去重新丈量。</li>
+            <li><strong style="color:var(--ink);">施工圖紙、立面施工圖</strong>：工地實際施作的依據，您不一定要看細節，但隨時可查閱。</li>
+          </ul>
+
+          <p style="margin:14px 0 4px;"><strong>合約與報價</strong></p>
+          <p style="margin:0 0 14px;color:var(--ink-light);">您簽過的設計合約、工程合約、報價單、各項聲明文件都保存在這，需要時可重新下載。</p>
+
+          <p style="margin:14px 0 4px;"><strong>裝修知識</strong></p>
+          <p style="margin:0 0 14px;color:var(--ink-light);">材料知識、付款說明、施工注意、保固事項等由我們整理的小知識，可以慢慢看。</p>
+
+          <p style="margin:14px 0 4px;"><strong>會議記錄、選材紀錄、施工照片、財務紀錄</strong></p>
+          <p style="margin:0 0 4px;color:var(--ink-light);">從開會內容、材料選擇、現場照片到付款記錄，整個過程都留下記錄可回顧。</p>
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">📝 您需要做什麼</div>
+        <div style="font-size:13px;line-height:1.85;color:var(--ink);">
+          <p style="margin:14px 0 4px;"><strong>1. 確認重要決定</strong></p>
+          <p style="margin:0 0 14px;color:var(--ink-light);">需要您拍板的事項（材料選擇、變更⋯）會出現在<strong style="color:var(--ink);">專案總覽的「待您確認」區</strong>。請點進去確認後我們才會繼續下一步——這一步是避免施工偏離您的需求。</p>
+
+          <p style="margin:14px 0 4px;"><strong>2. 簽署聲明文件</strong></p>
+          <p style="margin:0 0 14px;color:var(--ink-light);">某些工項施工前需要您閱讀並簽名（例如水電配置、拆除範圍）。請在<strong style="color:var(--ink);">「合約與報價」最下方</strong>找到，閱讀後用手指直接簽名即可，等同正式同意書。</p>
+
+          <p style="margin:14px 0 4px;"><strong>3. 至少每週看一次進度</strong></p>
+          <p style="margin:0 0 4px;color:var(--ink-light);">我們會把每週進度、施工照片、會議紀錄都同步上來。建議您每週進站看一次，有疑問可立刻提出，比施工完才發現要好處理很多。</p>
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">💬 需要協助時</div>
+        <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
+          <p style="margin:14px 0 8px;">設計或工程相關問題，<strong style="color:var(--ink);">透過 LINE 直接找您的設計師最快</strong>。</p>
+          <p style="margin:0 0 14px;">網頁登入有任何困難，也請告訴我們。</p>
+          <p style="margin:0;font-size:11px;color:var(--ink-muted);border-top:0.5px solid var(--border);padding-top:12px;">本網頁的所有資料只有您本人和有心制作團隊看得到，您可以放心。</p>
+        </div>
+      </div>
+    </div>
+
     <!-- 裝修知識 -->
     <div class="page" id="p-knowledge">
       <div class="page-title">裝修知識</div>
@@ -1424,6 +1480,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <!-- 財務紀錄（含付款明細 + 追加減）-->
     <div class="page" id="p-payment">
       <div class="page-title">財務紀錄</div>
+
+      <!-- 資料更新提示 -->
+      <div style="margin-bottom:14px;padding:11px 14px;background:#FBF8F4;border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:10px;font-size:12px;line-height:1.7;color:var(--ink-light);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-size:11px;letter-spacing:0.12em;color:var(--ink-muted);">資料更新狀態</span>
+          <span style="font-size:12px;color:var(--ink);font-weight:500;">最後更新：<span id="pay-last-updated">—</span></span>
+        </div>
+        <div style="color:var(--ink-light);">如有款項已匯出但尚未顯示，可能為入帳時間差，歡迎透過 LINE 與我們確認。</div>
+      </div>
 
       <!-- 金額總覽（全案：設計＋工程）-->
       <div class="card" id="pay-overview-total" style="margin-bottom:1rem;">
@@ -3245,6 +3310,7 @@ const PAGE_KEY_MAP = {
   'p-docs': 'drawings',
   'p-contracts': 'contracts',
   'p-meetings': 'meetings',
+  'p-usage': 'usage',
   'p-knowledge': 'knowledge',
   'p-checklist': 'checklist',
   'p-materials': 'materials',
@@ -6112,9 +6178,11 @@ function renderClientDocs(){
       const hasImg=showVer.fileUrl&&/\.(jpg|jpeg|png|webp|gif)$/i.test(showVer.fileUrl);
       const FALLBACK_COVER='https://images.pexels.com/photos/4977406/pexels-photo-4977406.jpeg?auto=compress&cs=tinysrgb&w=800';
       const thumb=hasImg?`<img src="${showVer.fileUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<img src="${FALLBACK_COVER}" alt="施工圖紙" style="width:100%;height:100%;object-fit:cover;">`;
+      const latestBadge=`<span style="font-size:9px;font-weight:500;background:#F3EEE5;color:#7A5C3A;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:0.04em;">最新版</span>`;
       const finalBadge=showVer.isFinal?`<span class="pill pill-final" style="font-size:9px;">最終版</span>`:'';
+      const noteLine=showVer.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:4px;line-height:1.6;"><strong style="color:var(--ink);">主要調整：</strong>${showVer.note}</div>`:'';
       const confirmBlock=getDrawingConfirmBlock(showVer, t);
-      c.innerHTML=`<div class="drawing-thumb" style="padding:0;">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} ${finalBadge}</div><div class="drawing-meta">${showVer.note} ｜ ${showVer.date}</div>${confirmBlock}</div>`;
+      c.innerHTML=`<div class="drawing-thumb" style="padding:0;">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} ${latestBadge}${finalBadge}</div><div class="drawing-meta" style="color:var(--ink);font-weight:500;">版本日期：${showVer.date||'—'}</div>${noteLine}${confirmBlock}</div>`;
       const thumbEl=c.querySelector('.drawing-thumb');
       if(showVer.fileUrl && thumbEl) thumbEl.onclick=()=>window.open(showVer.fileUrl,'_blank');
       dg.appendChild(c);
@@ -6123,7 +6191,8 @@ function renderClientDocs(){
       const r=document.createElement('div');
       r.className='old-ver-item';
       r.style.cursor = v.fileUrl ? 'pointer' : 'default';
-      r.innerHTML=`<span style="font-size:16px;">${icons[t]||''}</span><span style="flex:1;">${t} — ${v.note}</span><span class="fdate">${v.date}</span>`;
+      const noteText=v.note?`主要調整：${v.note}`:'舊版本';
+      r.innerHTML=`<span style="font-size:16px;">${icons[t]||''}</span><span style="flex:1;">${t}｜<span style="color:var(--ink-light);">${noteText}</span></span><span class="fdate">${v.date||''}</span>`;
       if(v.fileUrl){
         r.onclick=()=>window.open(v.fileUrl,'_blank');
         r.title='點擊開啟';
@@ -10587,6 +10656,14 @@ async function renderClientPayment(){
   }catch(e){}
   const allItems=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
+
+  // 最後更新日期：取所有期程中最近一筆 received_date；若無則用今天
+  (function(){
+    const dates=allItems.map(r=>r.received_date).filter(Boolean).sort();
+    const lastStr=dates.length?dates[dates.length-1]:new Date().toISOString().slice(0,10);
+    const el=document.getElementById('pay-last-updated');
+    if(el) el.textContent=lastStr.replace(/-/g,'/');
+  })();
 
   // Split by category（default 工程款 for legacy data）
   const designItems=allItems.filter(r=>r.category==='設計費');
