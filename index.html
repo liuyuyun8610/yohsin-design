@@ -267,7 +267,9 @@ table{max-width:100%;}
 .btn-export-pdf{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;padding:7px 16px;background:rgb(171,158,147);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;flex-shrink:0;box-shadow:0 2px 8px rgba(90,60,30,0.18);transition:opacity .15s,box-shadow .15s;}
 .btn-export-pdf:hover{opacity:0.9;box-shadow:0 5px 16px rgba(90,60,30,0.28);}
 /* 保固卡（素面奶茶色底圖 + 動態文字層） */
-.warranty-card{position:relative;width:100%;max-width:540px;margin:0 auto;aspect-ratio:1.55/1;background:url('assets/warranty-card-light.png') center/cover no-repeat;border-radius:14px;box-shadow:0 8px 28px rgba(90,60,30,0.14);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:clamp(20px,5.5%,36px) clamp(22px,7%,48px);text-align:center;color:#5C4A38;}
+.warranty-card{position:relative;width:100%;max-width:540px;margin:0 auto;aspect-ratio:1.6/1;background:linear-gradient(135deg,#F0E9DD 0%,#E7DDCC 100%);border-radius:16px;box-shadow:0 10px 30px rgba(90,60,30,0.16);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:clamp(22px,7%,40px) clamp(26px,9%,52px);text-align:center;color:#5C4A38;overflow:hidden;}
+.warranty-card::before{content:'';position:absolute;inset:clamp(10px,3%,16px);border:0.5px solid rgba(150,128,98,0.4);border-radius:9px;pointer-events:none;}
+.warranty-card>*{position:relative;z-index:1;}
 .wc-brand{font-family:'Noto Serif TC',serif;font-size:14px;letter-spacing:0.12em;color:#6B5B47;}
 .wc-brand span{display:block;font-size:8.5px;letter-spacing:0.42em;color:#A8987F;margin-top:5px;}
 .wc-name{font-family:'Noto Serif TC',serif;font-size:clamp(16px,4.4vw,22px);color:#3F3424;letter-spacing:0.02em;line-height:1.35;padding:0 6px;}
@@ -1079,6 +1081,22 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 專案總覽 -->
     <div class="page active" id="p-overview">
+      <!-- 保固卡（已完工才顯示，置頂） -->
+      <div id="dash-warranty-card" style="margin-bottom:1.4rem;display:none;">
+        <div class="warranty-card">
+          <div class="wc-brand">有心制作<span>WARRANTY CARD</span></div>
+          <div class="wc-name" id="wc-name">—</div>
+          <div class="wc-foot">
+            <div class="wc-period"><span>WARRANTY PERIOD</span><b id="wc-period">—</b></div>
+            <div class="wc-status" id="wc-status">保固中</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;">
+          <div style="font-size:12px;color:var(--ink-muted);line-height:1.6;flex:1;min-width:180px;">完工後享一年保固，有任何問題可隨時聯繫設計師。</div>
+          <button onclick="goPage('p-warranty',null)" style="font-family:inherit;font-size:12px;padding:8px 18px;background:transparent;color:var(--accent);border:0.5px solid var(--accent);border-radius:999px;cursor:pointer;letter-spacing:0.04em;white-space:nowrap;">查看保固卡 ›</button>
+        </div>
+        <span id="warranty-end-date" style="display:none;"></span><span id="warranty-expire-date" style="display:none;"></span>
+      </div>
       <!-- 專案標題 -->
       <div style="margin-bottom:1.2rem;">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:0.4rem;">
@@ -1227,23 +1245,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
-      <!-- 保固卡（已完工才顯示） -->
-      <div id="dash-warranty-card" style="margin-bottom:12px;display:none;">
-        <div class="warranty-card">
-          <div class="wc-brand">有心制作<span>WARRANTY CARD</span></div>
-          <div class="wc-name" id="wc-name">—</div>
-          <div class="wc-foot">
-            <div class="wc-period"><span>WARRANTY PERIOD</span><b id="wc-period">—</b></div>
-            <div class="wc-status" id="wc-status">保固中</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;">
-          <div style="font-size:12px;color:var(--ink-muted);line-height:1.6;flex:1;min-width:180px;">完工後享一年保固，有任何問題可隨時聯繫設計師。</div>
-          <button onclick="goPage('p-warranty',null)" style="font-family:inherit;font-size:12px;padding:8px 18px;background:transparent;color:var(--accent);border:0.5px solid var(--accent);border-radius:999px;cursor:pointer;letter-spacing:0.04em;white-space:nowrap;">查看保固卡 ›</button>
-        </div>
-        <!-- 舊欄位保留隱藏，避免其他程式參照出錯 -->
-        <span id="warranty-end-date" style="display:none;"></span><span id="warranty-expire-date" style="display:none;"></span>
-      </div>
     </div>
 
     <!-- 保固服務（完整頁，從總覽「查看保固卡」進入） -->
