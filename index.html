@@ -9659,7 +9659,8 @@ async function renderClientDashboard(){
       }catch(e){}
     }
     const cli=clients.find(x=>x.id===currentClientId);
-    const nameLine=proj.name||(cli&&cli.name)||'—';
+    const baseName=proj.name||(cli&&cli.name)||'—';
+    const nameLine=(baseName!=='—'&&!/residence/i.test(baseName))?(baseName+' Residence'):baseName;
     const period=(warrantyEnd!=='—')?(warrantyEnd+'  –  '+expireDate):'—';
     const statusTxt=expired?'已過保 · Expired':'保固中 · Active';
     const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
