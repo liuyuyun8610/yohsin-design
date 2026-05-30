@@ -1488,7 +1488,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <div class="stabs">
         <button class="stab active" onclick="switchStorageTab('have',this)">我有哪些東西 <span class="sg-cnt" id="sg-cnt-have">0</span></button>
-        <button class="stab" onclick="switchStorageTab('large',this)">大型／特殊尺寸物品 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
+        <button class="stab" onclick="switchStorageTab('large',this)">不好收的東西 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
         <button class="stab" onclick="switchStorageTab('hide',this)">我不想看到什麼 <span class="sg-cnt" id="sg-cnt-hide">0</span></button>
       </div>
 
@@ -1498,9 +1498,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增一筆收納需求</button>
       </div>
       <div id="sg-pane-large" class="sg-pane" style="display:none;">
-        <div class="notice-desc" style="margin-bottom:1rem;">會影響櫃體尺寸、插座或動線的物品先列出來（冰箱、洗衣機、掃地機器人、咖啡機、除濕機、電鍋…都算）。<br><span style="color:var(--ink-light);">範例：掃地機器人｜約 35×35×10 cm｜1 台｜客廳｜需要插座；　咖啡機｜尺寸再補｜1 台｜中島或電器櫃｜需要插座。</span></div>
+        <div class="notice-desc" style="margin-bottom:1rem;">列出家裡比較不好收、容易被忽略，或需要特別安排位置的生活物品。<strong style="color:var(--accent);">這裡不用填家電尺寸——冰箱、洗衣機、電視這類家電請到「必填清單」填。</strong><br><span style="color:var(--ink-light);">例如：行李箱、棉被、換季衣物、工具箱、梯子、寵物用品、兒童推車、安全帽、露營用品、運動器材、清潔工具、大量備品、收藏品。</span></div>
         <div id="sg-list-large"></div>
-        <button class="add-row-btn" onclick="openStorageModal('large')">＋ 新增大型／特殊物品</button>
+        <button class="add-row-btn" onclick="openStorageModal('large')">＋ 新增一筆</button>
       </div>
       <div id="sg-pane-hide" class="sg-pane" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">把在意的凌亂來源列出來，我們幫您藏好或集中收納。<br><span style="color:var(--ink-light);">範例：電線｜目前客廳線很多｜希望盡量藏起來；　掃把拖把｜目前放陽台很亂｜希望有家事櫃集中收。</span></div>
@@ -11043,19 +11043,20 @@ async function loadClientSignatures(){
 // 資料表 storage_items：kind = have | large | hide
 // ════════════════════════════════════════════════════════════
 const SG_SPACES=['玄關','客廳','餐廳','廚房','主臥','小孩房','更衣室','浴室','洗衣區','儲藏室','陽台','其他'];
-const SG_CATS=['衣物','鞋子','包包','行李箱','清潔用品','小家電','鍋具','餐具','文件','玩具','寵物用品','收藏品','備品','其他'];
+const SG_CATS=['衣物','鞋子','包包','書籍','文件','清潔用品','小家電','鍋具','餐具','玩具','寵物用品','收藏品','備品','其他'];
 const SG_QTY=['很多','普通','少','不確定'];
 const SG_FREQ=['每天','每週','偶爾','很少'];
+const SG_FREQ2=['每天','每週','偶爾','換季','幾乎不用但要保留'];
 const SG_OUTLET=['需要','不需要','不確定'];
 const SG_IMPORTANCE=['很重要','普通','還好'];
 const SG_STATUS={new:'未處理',discuss:'需討論',included:'已納入設計',need_more:'需客戶補充'};
-const SG_KIND_LABEL={have:'我有哪些東西',large:'大型／特殊尺寸物品',hide:'我不想看到什麼'};
+const SG_KIND_LABEL={have:'我有哪些東西',large:'不好收的東西',hide:'我不想看到什麼'};
 const SG_EMPTY_HINT={
   have:'還沒有填寫任何收納需求。可以先從一個空間開始，例如玄關、主臥或廚房。<br>不用填得很精準，用「很多、普通、少」或簡單備註即可。',
-  large:'還沒有填寫大型／特殊物品。把會影響櫃體尺寸或要插座的東西列出來，例如冰箱、掃地機器人、咖啡機。',
+  large:'還沒有填寫。把家裡不好收、容易被忽略的生活物品列出來，例如行李箱、棉被、工具箱、露營用品。<br>家電尺寸不用填這裡，請到「必填清單」。',
   hide:'還沒有填寫。把在意的凌亂來源列出來，例如電線、掃把拖把、玩具，我們幫您藏好。'
 };
-const SG_CTA={have:'＋ 開始填寫第一筆',large:'＋ 新增第一個大型物品',hide:'＋ 新增第一筆'};
+const SG_CTA={have:'＋ 開始填寫第一筆',large:'＋ 新增第一筆',hide:'＋ 新增第一筆'};
 function _sgOpts(arr,sel){return arr.map(o=>`<option value="${escapeHtml(o)}"${o===sel?' selected':''}>${escapeHtml(o)}</option>`).join('');}
 
 // ── 客戶端 ──
@@ -11098,11 +11099,10 @@ function sgClientCardHtml(it){
       +(d.place?`<div class="sg-field">希望放：${escapeHtml(d.place)}</div>`:'');
   } else if(it.kind==='large'){
     rows=`<div class="sg-row"><span class="sg-field"><b>${escapeHtml(d.name||'')}</b></span>`
-      +(d.size?`<span class="sg-field">尺寸：${escapeHtml(d.size)}</span>`:'')
       +(d.qty?`<span class="sg-field">數量：${escapeHtml(String(d.qty))}</span>`:'')
-      +(d.outlet?`<span class="sg-field">插座：${escapeHtml(d.outlet)}</span>`:'')+`</div>`
-      +(d.place?`<div class="sg-field">預計位置：${escapeHtml(d.place)}</div>`:'')
-      +(d.link?`<div class="sg-field">連結：<a href="${escapeHtml(d.link)}" target="_blank" style="color:var(--accent);">商品頁 ›</a></div>`:'');
+      +(d.frequency?`<span class="sg-field">頻率：${escapeHtml(d.frequency)}</span>`:'')+`</div>`
+      +(d.place?`<div class="sg-field">希望放：${escapeHtml(d.place)}</div>`:'')
+      +(d.care?`<div class="sg-field">特別提醒：${escapeHtml(d.care)}</div>`:'');
   } else {
     rows=`<div class="sg-row"><span class="sg-field"><b>${escapeHtml(d.item||'')}</b></span>`
       +(d.importance?`<span class="sg-tag">${escapeHtml(d.importance)}</span>`:'')+`</div>`
@@ -11137,13 +11137,13 @@ function openStorageModal(kind,id){
       <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：長洋裝很多、需要好拿">${escapeHtml(d.note||'')}</textarea></div>`;
   } else if(kind==='large'){
     body=`
-      <div class="fg"><label>物品名稱 *</label><input id="sm-name" placeholder="例：冰箱、洗衣機、掃地機器人、咖啡機、除濕機、電鍋" value="${escapeHtml(d.name||'')}"></div>
-      <div class="fg"><label>尺寸（選填，可填大概）</label><input id="sm-size" placeholder="例：約 70×70×180 cm" value="${escapeHtml(d.size||'')}"></div>
-      <div class="fg"><label>數量</label><input id="sm-qty" type="number" min="1" value="${escapeHtml(String(d.qty||1))}"></div>
-      <div class="fg"><label>預計位置（選填）</label><input id="sm-place" placeholder="例：廚房電器櫃、家事櫃、儲藏室" value="${escapeHtml(d.place||'')}"></div>
-      <div class="fg"><label>是否需要插座</label><select id="sm-outlet">${_sgOpts(SG_OUTLET,d.outlet)}</select></div>
-      <div class="fg"><label>商品連結（選填，不會量尺寸可貼這）</label><input id="sm-link" placeholder="https://…" value="${escapeHtml(d.link||'')}"></div>
-      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：每天使用、希望藏起來">${escapeHtml(d.note||'')}</textarea></div>`;
+      <div style="font-size:11px;color:var(--ink-light);background:#FBF6EC;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.6;">家電（冰箱、洗衣機、電視…）請到「必填清單」填；這裡填行李箱、棉被、工具箱這類不好收的生活物品。</div>
+      <div class="fg"><label>物品名稱 *</label><input id="sm-name" placeholder="例：行李箱、棉被、工具箱、貓砂、露營用品" value="${escapeHtml(d.name||'')}"></div>
+      <div class="fg"><label>大概數量（不用精準）</label><input id="sm-qty" placeholder="例：1 個、很多、約 3 箱、換季才會用" value="${escapeHtml(d.qty||'')}"></div>
+      <div class="fg"><label>希望放哪裡（選填）</label><input id="sm-place" placeholder="例：玄關、儲藏室、主臥衣櫃、陽台" value="${escapeHtml(d.place||'')}"></div>
+      <div class="fg"><label>使用頻率</label><select id="sm-frequency">${_sgOpts(SG_FREQ2,d.frequency)}</select></div>
+      <div class="fg"><label>是否需要特別提醒（選填）</label><input id="sm-care" placeholder="例：很重、怕潮、需要好拿、希望藏起來、不能壓" value="${escapeHtml(d.care||'')}"></div>
+      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="可自由補充">${escapeHtml(d.note||'')}</textarea></div>`;
   } else {
     body=`
       <div class="fg"><label>不想看到的物品 *</label><input id="sm-item" placeholder="例：電線、掃把拖把、玩具、備品" value="${escapeHtml(d.item||'')}"></div>
@@ -11162,7 +11162,7 @@ async function saveStorageItem(){
     data={space:_sgVal('sm-space'),category:_sgVal('sm-category'),quantity:_sgVal('sm-quantity'),frequency:_sgVal('sm-frequency'),place:_sgVal('sm-place'),note:_sgVal('sm-note')};
     if(!data.category){alert('請至少填「物品分類 / 名稱」');return;}
   } else if(kind==='large'){
-    data={name:_sgVal('sm-name'),size:_sgVal('sm-size'),qty:Number(_sgVal('sm-qty'))||1,place:_sgVal('sm-place'),outlet:_sgVal('sm-outlet'),link:_sgVal('sm-link'),note:_sgVal('sm-note')};
+    data={name:_sgVal('sm-name'),qty:_sgVal('sm-qty'),place:_sgVal('sm-place'),frequency:_sgVal('sm-frequency'),care:_sgVal('sm-care'),note:_sgVal('sm-note')};
     if(!data.name){alert('請填「物品名稱」');return;}
   } else {
     data={item:_sgVal('sm-item'),trouble:_sgVal('sm-trouble'),how:_sgVal('sm-how'),importance:_sgVal('sm-importance')};
@@ -11238,10 +11238,9 @@ function sgAdminCardHtml(it){
       +(d.quantity?` · 數量 ${escapeHtml(d.quantity)}`:'')+(d.frequency?` · ${escapeHtml(d.frequency)}`:'')
       +(d.place?`<div class="sg-field">希望放：${escapeHtml(d.place)}</div>`:'');
   } else if(it.kind==='large'){
-    summary=`<b>${escapeHtml(d.name||'')}</b>`+(d.size?` · ${escapeHtml(d.size)}`:'')+(d.qty?` · ×${escapeHtml(String(d.qty))}`:'')
-      +(d.outlet?` · 插座：${escapeHtml(d.outlet)}`:'')
-      +(d.place?`<div class="sg-field">預計位置：${escapeHtml(d.place)}</div>`:'')
-      +(d.link?`<div class="sg-field"><a href="${escapeHtml(d.link)}" target="_blank" style="color:var(--accent);">商品連結 ›</a></div>`:'');
+    summary=`<b>${escapeHtml(d.name||'')}</b>`+(d.qty?` · ${escapeHtml(String(d.qty))}`:'')+(d.frequency?` · ${escapeHtml(d.frequency)}`:'')
+      +(d.place?`<div class="sg-field">希望放：${escapeHtml(d.place)}</div>`:'')
+      +(d.care?`<div class="sg-field">特別提醒：${escapeHtml(d.care)}</div>`:'');
   } else {
     summary=`<b>${escapeHtml(d.item||'')}</b>`+(d.importance?` · ${escapeHtml(d.importance)}`:'')
       +(d.trouble?`<div class="sg-field">困擾：${escapeHtml(d.trouble)}</div>`:'')
@@ -11291,7 +11290,7 @@ function copyStorageSummary(){
     items.forEach(it=>{
       const d=it.data||{}; let line='';
       if(k==='have') line=`${d.space||''} / ${d.category||''}（${d.quantity||'-'}・${d.frequency||'-'}）${d.place?'→ '+d.place:''}`;
-      else if(k==='large') line=`${d.name||''} ${d.size||''} ×${d.qty||1} ${d.outlet?'插座:'+d.outlet:''} ${d.place?'→ '+d.place:''}`;
+      else if(k==='large') line=`${d.name||''} ${d.qty||''} ${d.frequency?'('+d.frequency+')':''} ${d.place?'→ '+d.place:''} ${d.care?'/'+d.care:''}`.replace(/\s+/g,' ').trim();
       else line=`${d.item||''}（${d.importance||'-'}）${d.how?'希望:'+d.how:''}`;
       const flags=[it.is_important?'★重要':'',SG_STATUS[it.status||'new']].filter(Boolean).join(' ');
       txt+=`  - ${line}${flags?'  ['+flags+']':''}${d.note?'  /備註:'+d.note:''}${it.designer_note?'  /內部:'+it.designer_note:''}\n`;
