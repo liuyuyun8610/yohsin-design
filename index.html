@@ -263,6 +263,9 @@ table{max-width:100%;}
 .know-bd li{margin-bottom:4px;}
 /* 工具（收納/插座/搬家） */
 .sg-cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;font-size:10px;line-height:16px;text-align:center;border-radius:9px;background:var(--accent-pale,#EFE7DB);color:var(--accent);vertical-align:middle;}
+/* 全站「匯出 PDF」按鈕共用樣式（改一處＝全站匯出鈕一起變） */
+.btn-export-pdf{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;padding:7px 16px;background:rgb(171,158,147);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;flex-shrink:0;box-shadow:0 2px 8px rgba(90,60,30,0.18);transition:opacity .15s,box-shadow .15s;}
+.btn-export-pdf:hover{opacity:0.9;box-shadow:0 5px 16px rgba(90,60,30,0.28);}
 .tool-card{display:flex;align-items:center;gap:14px;background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
 .tool-card:hover{box-shadow:0 4px 18px rgba(90,60,30,0.1);border-color:var(--accent-light,rgba(139,107,72,0.3));}
 .tool-card-main{flex:1;min-width:0;}
@@ -1555,7 +1558,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="sg-list-outlet"></div>
         <button class="add-row-btn" onclick="openStorageModal('outlet')">＋ 新增一筆用電需求</button>
         <div id="sg-outlet-summary" style="margin-top:16px;"></div>
-        <button id="sg-outlet-export" onclick="exportOutletPdf()" style="display:none;margin-top:12px;font-family:inherit;font-size:13px;padding:9px 20px;background:var(--accent);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;">⬇ 匯出用電需求 PDF</button>
+        <button id="sg-outlet-export" onclick="exportOutletPdf()" class="btn-export-pdf" style="display:none;margin-top:12px;">⬇ 匯出用電需求 PDF</button>
       </div>
 
       <!-- 工具：搬家前整理清單 -->
@@ -1574,7 +1577,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="page" id="p-materials">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div class="page-title" style="margin-bottom:0;">選材紀錄</div>
-        <button onclick="exportMaterialsPdf()" id="btn-export-mat-pdf" style="font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;padding:7px 14px;background:#ab9e93;color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">⬇ 匯出物料表 PDF</button>
+        <button onclick="exportMaterialsPdf()" id="btn-export-mat-pdf" class="btn-export-pdf">⬇ 匯出物料表 PDF</button>
       </div>
       <div style="font-size:12px;color:var(--ink-muted);margin:0.8rem 0 1.4rem;line-height:1.7;">
         這裡整理了各空間目前選定的材質、色號與使用位置。若有調整中的項目，我們會標示狀態，方便一起確認最新版本。
@@ -1755,7 +1758,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
           <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 追加減紀錄</div>
           <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
-          <button onclick="exportChangeOrdersPdf()" id="btn-export-co-pdf" style="font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:11px;padding:5px 13px;background:#8B6B48;color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;flex-shrink:0;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">⬇ 匯出 PDF</button>
+          <button onclick="exportChangeOrdersPdf()" id="btn-export-co-pdf" class="btn-export-pdf">⬇ 匯出 PDF</button>
         </div>
         <div class="card" style="margin-bottom:12px;">
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
