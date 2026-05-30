@@ -1258,6 +1258,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="wc-status" id="wc-status-full">保固中</div>
         </div>
       </div></div>
+      <div style="text-align:right;margin-bottom:1.2rem;"><button class="btn-export-pdf" onclick="exportWarrantyPdf()">⬇ 下載保固書 PDF</button></div>
       <div class="doc-section">
         <div class="doc-section-title">🛡️ 保固範圍與責任</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
@@ -11280,6 +11281,86 @@ function updateStorageProgress(){
   if(prog) prog.innerHTML=n?`已盤點 ${n} 項物品，您可以隨時回來補充。`:'目前已盤點：0 筆物品';
   const expBtn=document.getElementById('sg-storage-export');
   if(expBtn) expBtn.style.display=n?'inline-block':'none';
+}
+function exportWarrantyPdf(){
+  const c=clients.find(x=>x.id===currentClientId);
+  const proj=c?projects.find(p=>Number(p.id)===Number(c.projectId)):null;
+  const projName=(proj&&proj.name)||'—';
+  const projAddr=(((proj&&proj.address)||'')+((proj&&proj.unit)?(' '+proj.unit):''))||'—';
+  const clientName=(c&&c.name)||'—';
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let acceptDate='—', startDate='—', endDate='—';
+  if(proj&&proj.endDate){ try{
+    acceptDate=proj.endDate; startDate=proj.endDate;
+    const d=new Date(proj.endDate.replace(/\//g,'-')); d.setFullYear(d.getFullYear()+1);
+    endDate=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+  }catch(e){} }
+  const today=new Date(); const dateStr=today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
+  const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>室內裝修工程保固書 - '+esc(projName)+'</title>'
+    +'<style>@page{size:A4;margin:20mm 18mm;}*{box-sizing:border-box;}'
+    +'body{font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC",sans-serif;color:#2C2218;font-size:12px;line-height:1.85;margin:0;background:#fff;}'
+    +'h1{font-size:21px;font-weight:700;margin:0 0 4px;text-align:center;letter-spacing:0.16em;}'
+    +'.sub{text-align:center;font-size:11px;color:#8B6B48;letter-spacing:0.3em;margin-bottom:18px;}'
+    +'.party{font-size:12.5px;margin:2px 0;}'
+    +'.lead{margin:12px 0 16px;font-size:12px;line-height:2;}'
+    +'h2{font-size:13.5px;font-weight:700;margin:20px 0 8px;padding-left:9px;border-left:3px solid #8B6B48;}'
+    +'table{width:100%;border-collapse:collapse;margin:6px 0 4px;}'
+    +'th,td{border:0.5px solid #999;padding:7px 10px;font-size:12px;vertical-align:middle;}'
+    +'th{background:#F5EFE7;width:130px;text-align:center;font-weight:600;color:#5C4A38;white-space:nowrap;}'
+    +'p{margin:0 0 8px;}ul{margin:4px 0 8px;padding-left:22px;}li{margin-bottom:5px;}'
+    +'.tag{font-weight:700;color:#2C2218;}'
+    +'.sig{margin-top:36px;display:flex;justify-content:space-between;gap:50px;page-break-inside:avoid;}'
+    +'.sig .col{flex:1;font-size:12px;line-height:2.4;}'
+    +'.sig .ln{border-bottom:0.5px solid #2C2218;display:inline-block;min-width:150px;}'
+    +'.foot{margin-top:26px;font-size:10px;color:#A89478;text-align:center;letter-spacing:0.1em;}'
+    +'.noprint{position:fixed;top:10px;right:10px;z-index:10;}@media print{.noprint{display:none;}body{margin:0;}}'
+    +'</style></head><body>'
+    +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;">列印 / 儲存為 PDF</button></div>'
+    +'<h1>室內裝修工程保固書</h1><div class="sub">YOHSIN INTERIOR ｜ 有心制作</div>'
+    +'<div class="party">甲方（業主）：'+esc(clientName)+'</div>'
+    +'<div class="party">乙方（承攬人）：有心制作室內裝修設計有限公司</div>'
+    +'<div class="lead">茲就乙方承攬甲方位於 <b>'+esc(projAddr)+'</b>（以下簡稱本案地址）之室內裝修工程（以下簡稱本工程），經雙方會同驗收完成。乙方同意依下列條款內容，對本工程負瑕疵擔保與保固責任：</div>'
+    +'<h2>一、工程保固資訊</h2><table>'
+    +'<tr><th>工程案名</th><td>'+esc(projName)+'</td></tr>'
+    +'<tr><th>本案地址</th><td>'+esc(projAddr)+'</td></tr>'
+    +'<tr><th>驗收合格日期</th><td>'+esc(acceptDate)+'</td></tr>'
+    +'<tr><th>保固期限</th><td>自驗收合格日起算一年</td></tr>'
+    +'<tr><th>保固起迄日期</th><td>'+esc(startDate)+' 起　至　'+esc(endDate)+' 止</td></tr>'
+    +'</table>'
+    +'<h2>二、保固範圍與責任</h2>'
+    +'<p><span class="tag">保固範圍：</span>於保固期間內，凡屬乙方實際施作之工程項目，若因施工不良、工法不當或材料本身瑕疵，導致功能失效或異常者，乙方應負無償修復責任。</p>'
+    +'<p><span class="tag">修繕義務：</span>甲方發現瑕疵時，應通知乙方。乙方應於接獲通知後 3 個工作日內派員勘查，並於雙方協議之合理期限內完成修復。</p>'
+    +'<h2>三、非保固範圍</h2>'
+    +'<p>下列情形非屬乙方施工瑕疵，不在保固及無償修繕範圍內：</p>'
+    +'<p class="tag">結構性與環境裂縫：</p><ul>'
+    +'<li><span class="tag">原始結構因素：</span>依據民法第 496 條，若裂縫係因原建物（建商）之牆體、剪力牆、地基沉陷或 RC 結構本身已有裂損，而導致後續表面塗料或飾材產生之反射性裂縫，結構體並非乙方施作範圍，乙方僅負責表面裝飾。</li>'
+    +'<li><span class="tag">不可抗力天災：</span>因地震、颱風等自然災害，或因鄰地施工、重型車輛震動所引起之結構位移、拉扯導致之牆面開裂。</li>'
+    +'<li><span class="tag">自然物理現象：</span>因環境溫濕度劇烈變化（熱漲冷縮）所產生之細微毛細裂縫（寬度小於 0.3mm 且無結構安全疑慮者），屬材質自然物理特性。</li>'
+    +'</ul><ul>'
+    +'<li><span class="tag">人為因素：</span>甲方未按正常方式使用、自行拆卸、改裝、超載使用或因疏於保養所致之損壞。</li>'
+    +'<li><span class="tag">消耗性物品：</span>燈泡、濾芯、電池等隨使用頻率自然損耗之零件。</li>'
+    +'<li><span class="tag">第三方干預：</span>經由非乙方指派之人員進行維修、改動或二次施工所造成之連帶損壞。</li>'
+    +'</ul>'
+    +'<h2>四、年度贈送服務：油漆修補特別說明</h2>'
+    +'<p>乙方額外贈送甲方完工後一年內乙次「年度油漆修補」服務，其施作標準與界限如下：</p><ul>'
+    +'<li><span class="tag">服務範圍：</span>僅限於同色漆料之「表面局部補色」（如家具搬動造成之輕微擦傷、髒污）。</li>'
+    +'<li><span class="tag">排除項目：</span>本服務不含任何形式之「批土」、「打磨」或「結構性裂縫修復」。</li>'
+    +'<li><span class="tag">收費標準：</span>若甲方要求針對第三條之裂縫進行批土及打磨修復，視為加價修繕項目，乙方將另行報價工資（含師傅出勤費用）及材料費，經甲方同意並支付款項後始進場施工。</li>'
+    +'<li><span class="tag">環境保護與清潔免責：</span>批土與打磨作業必然產生大量粉塵。若甲方堅持於入住後施作，須自行負擔粉塵對室內環境之影響；甲方同意不得以施工粉塵或清潔為由，向乙方索取任何形式之清潔費用或要求額外清潔服務。乙方僅提供基礎防護（如局部養生膠帶），若需專業級防護或細部清潔，費用由甲方負擔。</li>'
+    +'</ul>'
+    +'<h2>五、其他約定</h2><ul>'
+    +'<li>本保固書與原裝修承攬契約具有同等法律效力。</li>'
+    +'<li>保固期滿後，乙方仍得提供修繕服務，惟須另行酌收工料費用。</li>'
+    +'<li>本保固書一式兩份，由甲乙雙方各執一份存執。</li>'
+    +'</ul>'
+    +'<div class="sig"><div class="col">甲方（業主）：<span class="ln"></span><br>日期：<span class="ln"></span></div>'
+    +'<div class="col">乙方（承攬人）：有心制作室內裝修設計有限公司<br>日期：<span class="ln"></span></div></div>'
+    +'<div class="foot">製表日期：'+dateStr+'　｜　YOHSIN INTERIOR · 有心制作</div>'
+    +'<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},300);});<\/script>'
+    +'</body></html>';
+  const w=window.open('','_blank');
+  if(!w){alert('請先在瀏覽器允許此網站彈出視窗，再點一次下載保固書');return;}
+  w.document.open(); w.document.write(html); w.document.close();
 }
 function exportStoragePdf(){
   const items=_storageItems.filter(x=>['have','large','hide'].includes(x.kind));
