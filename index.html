@@ -263,6 +263,10 @@ table{max-width:100%;}
 .know-bd li{margin-bottom:4px;}
 /* 收納規劃工具 */
 .sg-cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;font-size:10px;line-height:16px;text-align:center;border-radius:9px;background:var(--accent-pale,#EFE7DB);color:var(--accent);vertical-align:middle;}
+.sg-empty{text-align:center;padding:1.8rem 1.2rem;background:#FBF8F4;border:1px dashed var(--accent-light,rgba(139,107,72,0.3));border-radius:14px;margin-bottom:0.6rem;}
+.sg-empty-text{font-size:13px;line-height:1.85;color:var(--ink-muted);margin-bottom:16px;}
+.sg-cta{font-family:inherit;font-size:14px;font-weight:500;padding:11px 26px;background:var(--accent);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;box-shadow:0 3px 12px rgba(139,107,72,0.22);transition:opacity .15s;}
+.sg-cta:hover{opacity:0.9;}
 .sg-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
 .sg-card .sg-row{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:6px;}
 .sg-field{font-size:12.5px;color:var(--ink-muted);}
@@ -1480,26 +1484,28 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.8;">不需要填得很精準，用「很多、普通、少」或簡單備註即可，也可以分次慢慢填。</div>
       </div>
 
+      <div id="sg-progress" style="font-size:12px;color:var(--accent);margin-bottom:10px;letter-spacing:0.02em;">目前已填寫：0 筆收納需求</div>
+
       <div class="stabs">
         <button class="stab active" onclick="switchStorageTab('have',this)">我有哪些東西 <span class="sg-cnt" id="sg-cnt-have">0</span></button>
-        <button class="stab" onclick="switchStorageTab('large',this)">大尺寸 / 特殊物品 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
+        <button class="stab" onclick="switchStorageTab('large',this)">大型／特殊尺寸物品 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
         <button class="stab" onclick="switchStorageTab('hide',this)">我不想看到什麼 <span class="sg-cnt" id="sg-cnt-hide">0</span></button>
       </div>
 
       <div id="sg-pane-have" class="sg-pane">
-        <div class="notice-desc" style="margin-bottom:1rem;">盤點各空間有哪些東西、大概多少、常不常用、希望放哪裡。<br><span style="color:var(--ink-light);">範例：主臥 · 衣物（很多）· 每天 · 希望放主臥衣櫃；玄關 · 鞋子（約 40 雙）· 需要好拿。</span></div>
+        <div class="notice-desc" style="margin-bottom:1rem;">盤點各空間有哪些東西、大概多少、常不常用、希望放哪裡。<br><span style="color:var(--ink-light);">範例：主臥｜衣服｜很多｜每天｜希望放主臥衣櫃；　玄關｜鞋子｜約 40 雙｜每天｜希望有常穿鞋區。</span></div>
         <div id="sg-list-have"></div>
-        <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增物品</button>
+        <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增一筆收納需求</button>
       </div>
       <div id="sg-pane-large" class="sg-pane" style="display:none;">
-        <div class="notice-desc" style="margin-bottom:1rem;">家電或大件物品先列出來，避免櫃子做好後放不下。<br><span style="color:var(--ink-light);">範例：冰箱 · 約 70×70×180 · 放廚房電器櫃 · 需要插座；掃地機器人 · 需要插座與回充位置。</span></div>
+        <div class="notice-desc" style="margin-bottom:1rem;">會影響櫃體尺寸、插座或動線的物品先列出來（冰箱、洗衣機、掃地機器人、咖啡機、除濕機、電鍋…都算）。<br><span style="color:var(--ink-light);">範例：掃地機器人｜約 35×35×10 cm｜1 台｜客廳｜需要插座；　咖啡機｜尺寸再補｜1 台｜中島或電器櫃｜需要插座。</span></div>
         <div id="sg-list-large"></div>
-        <button class="add-row-btn" onclick="openStorageModal('large')">＋ 新增大尺寸物品</button>
+        <button class="add-row-btn" onclick="openStorageModal('large')">＋ 新增大型／特殊物品</button>
       </div>
       <div id="sg-pane-hide" class="sg-pane" style="display:none;">
-        <div class="notice-desc" style="margin-bottom:1rem;">把不想被看到的雜物列出來，我們幫您藏好。<br><span style="color:var(--ink-light);">範例：電線（很重要，希望全藏起來）；小孩玩具（每天散落，希望集中收一櫃）。</span></div>
+        <div class="notice-desc" style="margin-bottom:1rem;">把在意的凌亂來源列出來，我們幫您藏好或集中收納。<br><span style="color:var(--ink-light);">範例：電線｜目前客廳線很多｜希望盡量藏起來；　掃把拖把｜目前放陽台很亂｜希望有家事櫃集中收。</span></div>
         <div id="sg-list-hide"></div>
-        <button class="add-row-btn" onclick="openStorageModal('hide')">＋ 新增項目</button>
+        <button class="add-row-btn" onclick="openStorageModal('hide')">＋ 新增一筆</button>
       </div>
     </div>
 
@@ -11043,7 +11049,13 @@ const SG_FREQ=['每天','每週','偶爾','很少'];
 const SG_OUTLET=['需要','不需要','不確定'];
 const SG_IMPORTANCE=['很重要','普通','還好'];
 const SG_STATUS={new:'未處理',discuss:'需討論',included:'已納入設計',need_more:'需客戶補充'};
-const SG_KIND_LABEL={have:'我有哪些東西',large:'大尺寸 / 特殊物品',hide:'我不想看到什麼'};
+const SG_KIND_LABEL={have:'我有哪些東西',large:'大型／特殊尺寸物品',hide:'我不想看到什麼'};
+const SG_EMPTY_HINT={
+  have:'還沒有填寫任何收納需求。可以先從一個空間開始，例如玄關、主臥或廚房。<br>不用填得很精準，用「很多、普通、少」或簡單備註即可。',
+  large:'還沒有填寫大型／特殊物品。把會影響櫃體尺寸或要插座的東西列出來，例如冰箱、掃地機器人、咖啡機。',
+  hide:'還沒有填寫。把在意的凌亂來源列出來，例如電線、掃把拖把、玩具，我們幫您藏好。'
+};
+const SG_CTA={have:'＋ 開始填寫第一筆',large:'＋ 新增第一個大型物品',hide:'＋ 新增第一筆'};
 function _sgOpts(arr,sel){return arr.map(o=>`<option value="${escapeHtml(o)}"${o===sel?' selected':''}>${escapeHtml(o)}</option>`).join('');}
 
 // ── 客戶端 ──
@@ -11059,11 +11071,20 @@ async function renderStoragePage(){
     const el=document.getElementById('sg-cnt-'+k); if(el) el.textContent=_storageItems.filter(x=>x.kind===k).length;
     renderStorageList(k);
   });
+  const total=_storageItems.length;
+  const prog=document.getElementById('sg-progress');
+  if(prog) prog.innerHTML=total?`已完成 ${total} 項盤點，您可以隨時回來補充。`:'目前已填寫：0 筆收納需求';
 }
 function renderStorageList(kind){
   const el=document.getElementById('sg-list-'+kind); if(!el) return;
   const items=_storageItems.filter(x=>x.kind===kind);
-  if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--ink-light);padding:0.4rem 0 0.8rem;">還沒有填寫，點下方按鈕新增即可（可以分次慢慢填）。</div>';return;}
+  if(!items.length){
+    el.innerHTML=`<div class="sg-empty">
+      <div class="sg-empty-text">${SG_EMPTY_HINT[kind]}</div>
+      <button class="sg-cta" onclick="openStorageModal('${kind}')">${SG_CTA[kind]}</button>
+    </div>`;
+    return;
+  }
   el.innerHTML=items.map(it=>sgClientCardHtml(it)).join('');
 }
 function sgClientCardHtml(it){
@@ -11116,7 +11137,7 @@ function openStorageModal(kind,id){
       <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：長洋裝很多、需要好拿">${escapeHtml(d.note||'')}</textarea></div>`;
   } else if(kind==='large'){
     body=`
-      <div class="fg"><label>物品名稱 *</label><input id="sm-name" placeholder="例：冰箱、洗衣機、掃地機器人" value="${escapeHtml(d.name||'')}"></div>
+      <div class="fg"><label>物品名稱 *</label><input id="sm-name" placeholder="例：冰箱、洗衣機、掃地機器人、咖啡機、除濕機、電鍋" value="${escapeHtml(d.name||'')}"></div>
       <div class="fg"><label>尺寸（選填，可填大概）</label><input id="sm-size" placeholder="例：約 70×70×180 cm" value="${escapeHtml(d.size||'')}"></div>
       <div class="fg"><label>數量</label><input id="sm-qty" type="number" min="1" value="${escapeHtml(String(d.qty||1))}"></div>
       <div class="fg"><label>預計位置（選填）</label><input id="sm-place" placeholder="例：廚房電器櫃、家事櫃、儲藏室" value="${escapeHtml(d.place||'')}"></div>
