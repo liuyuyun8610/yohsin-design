@@ -11223,6 +11223,7 @@ function sgClientCardHtml(it){
     rows=`<div class="sg-row"><span class="sg-tag">${escapeHtml(d.category||'—')}</span>`
       +(d.name?`<span class="sg-field"><b>${escapeHtml(d.name)}</b></span>`:'')
       +(d.disposal?`<span class="sg-tag" style="background:#EEE6DB;">${escapeHtml(d.disposal)}</span>`:'')+`</div>`
+      +(d.place?`<div class="sg-field">新家位置：${escapeHtml(d.place)}</div>`:'')
       +(d.quantity?`<div class="sg-field">數量：${escapeHtml(d.quantity)}</div>`:'');
   }
   const note=d.note?`<div class="sg-note">備註：${escapeHtml(d.note)}</div>`:'';
@@ -11278,6 +11279,7 @@ function openStorageModal(kind,id){
       <div class="fg"><label>物品分類 *</label><input id="sm-category" list="sm-mcat-list" placeholder="例：衣物、書籍文件、廚房用品、舊家具" value="${escapeHtml(d.category||'')}"><datalist id="sm-mcat-list">${SG_MOVING_CATS.map(c=>`<option value="${escapeHtml(c)}">`).join('')}</datalist></div>
       <div class="fg"><label>物品名稱 / 說明（選填）</label><input id="sm-name" placeholder="例：冬季外套、舊餐具、露營用品、舊書桌" value="${escapeHtml(d.name||'')}"></div>
       <div class="fg"><label>處理方式</label><select id="sm-disposal">${_sgOpts(SG_DISPOSAL,d.disposal)}</select></div>
+      <div class="fg"><label>放在新家哪裡（選填）</label><input id="sm-place" list="sm-mplace-list" placeholder="例：主臥衣櫃、儲藏室、玄關櫃、小孩房" value="${escapeHtml(d.place||'')}"><datalist id="sm-mplace-list">${SG_SPACES.map(s=>`<option value="${escapeHtml(s)}">`).join('')}</datalist></div>
       <div class="fg"><label>數量感</label><select id="sm-quantity">${_sgOpts(SG_QTY,d.quantity)}</select></div>
       <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：先不要丟、等新櫃完成再搬、需要家人確認">${escapeHtml(d.note||'')}</textarea></div>`;
   }
@@ -11301,7 +11303,7 @@ async function saveStorageItem(){
     data={space:_sgVal('sm-space'),scene:_sgVal('sm-scene'),place:_sgVal('sm-place'),note:_sgVal('sm-note')};
     if(!data.scene){alert('請填「使用情境」');return;}
   } else if(kind==='moving'){
-    data={category:_sgVal('sm-category'),name:_sgVal('sm-name'),disposal:_sgVal('sm-disposal'),quantity:_sgVal('sm-quantity'),note:_sgVal('sm-note')};
+    data={category:_sgVal('sm-category'),name:_sgVal('sm-name'),disposal:_sgVal('sm-disposal'),place:_sgVal('sm-place'),quantity:_sgVal('sm-quantity'),note:_sgVal('sm-note')};
     if(!data.category){alert('請選「物品分類」');return;}
   }
   try{
@@ -11399,7 +11401,8 @@ function sgAdminCardHtml(it){
       +(d.place?`<div class="sg-field">希望位置：${escapeHtml(d.place)}</div>`:'');
   } else if(it.kind==='moving'){
     summary=`<span class="sg-tag">${escapeHtml(d.category||'—')}</span> <b>${escapeHtml(d.name||'')}</b>`
-      +(d.disposal?` · ${escapeHtml(d.disposal)}`:'')+(d.quantity?` · 數量 ${escapeHtml(d.quantity)}`:'');
+      +(d.disposal?` · ${escapeHtml(d.disposal)}`:'')+(d.quantity?` · 數量 ${escapeHtml(d.quantity)}`:'')
+      +(d.place?`<div class="sg-field">新家位置：${escapeHtml(d.place)}</div>`:'');
   }
   const note=d.note?`<div class="sg-note">客戶備註：${escapeHtml(d.note)}</div>`:'';
   const stOpts=Object.keys(SG_STATUS).map(k=>`<option value="${k}"${k===st?' selected':''}>${SG_STATUS[k]}</option>`).join('');
@@ -11448,7 +11451,7 @@ function copyStorageSummary(){
       else if(k==='large') line=`${d.name||''} ${d.qty||''} ${d.frequency?'('+d.frequency+')':''} ${d.place?'→ '+d.place:''} ${d.care?'/'+d.care:''}`;
       else if(k==='hide') line=`${d.item||''}（${d.importance||'-'}）${d.how?'希望:'+d.how:''}`;
       else if(k==='outlet') line=`${d.space||''} / ${d.scene||''}${d.place?'｜位置:'+d.place:''}`;
-      else if(k==='moving') line=`${d.category||''}${d.name?' / '+d.name:''}｜${d.disposal||'-'}${d.quantity?'｜'+d.quantity:''}`;
+      else if(k==='moving') line=`${d.category||''}${d.name?' / '+d.name:''}｜${d.disposal||'-'}${d.place?'｜→'+d.place:''}${d.quantity?'｜'+d.quantity:''}`;
       line=line.replace(/\s+/g,' ').trim();
       const flags=[it.is_important?'★重要':'',SG_STATUS[it.status||'new']].filter(Boolean).join(' ');
       txt+=`  - ${line}${flags?'  ['+flags+']':''}${d.note?'  /備註:'+d.note:''}${it.designer_note?'  /內部:'+it.designer_note:''}\n`;
