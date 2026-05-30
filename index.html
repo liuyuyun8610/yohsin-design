@@ -1492,7 +1492,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <!-- 工具首頁：卡片列表 -->
       <div id="tool-home">
-        <div class="notice-desc" style="margin-bottom:1.2rem;">這裡是給您的小工具，協助整理生活需求與入住準備。不用一次填完，想到再回來補即可。選一個開始：</div>
+        <div class="notice-desc" style="margin-bottom:1.2rem;">這裡整理了一些裝修前可以協助思考的工具，幫助我們更了解您的生活物品、用電需求與搬家整理狀況。您不需要一次填完，可以想到再慢慢補充。</div>
         <div class="tool-card" onclick="openTool('storage')">
           <div class="tool-card-main">
             <div class="tool-card-ttl">收納需求盤點 <span class="sg-cnt" id="tcnt-storage">0</span></div>
@@ -1536,7 +1536,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增一筆收納需求</button>
         </div>
         <div id="sg-pane-large" class="sg-pane" style="display:none;">
-          <div class="notice-desc" style="margin-bottom:1rem;">列出家裡比較不好收、容易被忽略，或需要特別安排位置的生活物品。<strong style="color:var(--accent);">這裡不用填家電尺寸——冰箱、洗衣機、電視這類家電請到「必填清單」填。</strong><br><span style="color:var(--ink-light);">例如：行李箱、棉被、換季衣物、工具箱、梯子、寵物用品、兒童推車、安全帽、露營用品、運動器材、清潔工具、大量備品、收藏品。</span></div>
+          <div class="notice-desc" style="margin-bottom:1rem;">列出體積較大、形狀特殊、季節性，或平常不知道該放哪裡的物品。<strong style="color:var(--accent);">這裡不用填家電尺寸——冰箱、洗衣機、電視這類家電請到「必填清單」填。</strong><br><span style="color:var(--ink-light);">例如：行李箱、棉被、換季衣物、露營用品、運動器材、工具箱、寵物用品、兒童推車、安全帽、大量備品、收藏品。</span></div>
           <div id="sg-list-large"></div>
           <button class="add-row-btn" onclick="openStorageModal('large')">＋ 新增一筆</button>
         </div>
@@ -1551,9 +1551,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div id="tool-outlet" class="tool-view" style="display:none;">
         <button class="tool-back" onclick="openTool('home')">‹ 返回工具</button>
         <div class="tool-subtitle">開關插座需求</div>
-        <div class="notice-desc" style="margin-bottom:1rem;">這裡可以先整理您在各空間會用到的電器、充電設備與網路需求。不需要懂電路配置，只要寫出「會在哪裡用什麼」，後續我們會依您的生活方式協助規劃插座、開關與線路位置。<br><span style="color:var(--ink-light);">範例：主臥｜床頭手機充電｜手機、手錶、檯燈｜床頭兩側｜希望藏線。</span></div>
+        <div class="notice-desc" style="margin-bottom:1rem;">不用決定插座數量、也不用畫水電圖，只要描述「哪個空間會有什麼用電情境」就好，後續我們依您的生活方式協助規劃。<br><span style="color:var(--ink-light);">範例：主臥｜床頭手機充電｜床頭兩側｜希望藏線、不要露出。</span></div>
         <div id="sg-list-outlet"></div>
-        <button class="add-row-btn" onclick="openStorageModal('outlet')">＋ 新增一筆插座需求</button>
+        <button class="add-row-btn" onclick="openStorageModal('outlet')">＋ 新增一筆用電需求</button>
       </div>
 
       <!-- 工具：搬家前整理清單 -->
@@ -1564,7 +1564,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div id="sg-moving-stats" style="font-size:12px;color:var(--accent);margin-bottom:10px;"></div>
         <div id="sg-moving-filter" class="sg-chips"></div>
         <div id="sg-list-moving"></div>
-        <button class="add-row-btn" onclick="openStorageModal('moving')">＋ 新增一筆整理項目</button>
+        <button class="add-row-btn" onclick="openStorageModal('moving')">＋ 新增整理項目</button>
       </div>
     </div>
 
@@ -11112,8 +11112,7 @@ const SG_OUTLET=['需要','不需要','不確定'];
 const SG_IMPORTANCE=['很重要','普通','還好'];
 const SG_SPACES_OUTLET=['玄關','客廳','餐廳','廚房','主臥','次臥','書房','浴室','陽台','其他'];
 const SG_YESNO=['是','否','不確定'];
-const SG_DISPOSAL=['保留','淘汰','捐贈','二手出售','搬入新家','尚未決定'];
-const SG_DONE=['未整理','整理中','已完成'];
+const SG_DISPOSAL=['搬入新家','淘汰','捐贈','二手賣出','暫存'];
 const SG_MOVING_CATS=['衣物','鞋子','書籍文件','廚房用品','小孩用品','寵物用品','清潔用品','舊家具','收藏品','其他'];
 const SG_STATUS={new:'未處理',discuss:'需討論',included:'已納入設計',need_more:'需客戶補充'};
 const SG_KIND_LABEL={have:'我有哪些東西',large:'不好收的東西',hide:'我不想看到什麼',outlet:'開關插座需求',moving:'搬家前整理'};
@@ -11124,7 +11123,7 @@ const SG_EMPTY_HINT={
   outlet:'尚未填寫開關插座需求。可以先從最常使用的空間開始，例如床頭、沙發旁、書桌、廚房電器區、玄關櫃。',
   moving:'尚未建立搬家整理項目。可以先從衣物、書籍文件、廚房用品或舊家具開始整理。'
 };
-const SG_CTA={have:'＋ 開始填寫第一筆',large:'＋ 新增第一筆',hide:'＋ 新增第一筆',outlet:'＋ 新增一筆插座需求',moving:'＋ 新增一筆整理項目'};
+const SG_CTA={have:'＋ 開始填寫第一筆',large:'＋ 新增第一筆',hide:'＋ 新增第一筆',outlet:'＋ 新增一筆用電需求',moving:'＋ 新增整理項目'};
 function _sgOpts(arr,sel){return arr.map(o=>`<option value="${escapeHtml(o)}"${o===sel?' selected':''}>${escapeHtml(o)}</option>`).join('');}
 
 // ── 客戶端 ──
@@ -11171,10 +11170,9 @@ function updateStorageProgress(){
 function renderMovingTool(){
   const items=_storageItems.filter(x=>x.kind==='moving');
   // 統計
-  const done=items.filter(x=>(x.data||{}).done==='已完成').length;
-  const undecided=items.filter(x=>(x.data||{}).disposal==='尚未決定').length;
+  const keep=items.filter(x=>(x.data||{}).disposal==='搬入新家').length;
   const stats=document.getElementById('sg-moving-stats');
-  if(stats) stats.innerHTML=items.length?`已建立 ${items.length} 筆｜已完成 ${done} 筆｜尚未決定 ${undecided} 筆`:'';
+  if(stats) stats.innerHTML=items.length?`已建立 ${items.length} 筆整理項目｜要搬入新家 ${keep} 筆`:'';
   // 篩選 chips（依處理方式）
   const chips=document.getElementById('sg-moving-filter');
   if(chips){
@@ -11220,14 +11218,12 @@ function sgClientCardHtml(it){
       +(d.how?`<div class="sg-field">希望怎麼收：${escapeHtml(d.how)}</div>`:'');
   } else if(it.kind==='outlet'){
     rows=`<div class="sg-row"><span class="sg-tag">${escapeHtml(d.space||'—')}</span><span class="sg-field"><b>${escapeHtml(d.scene||'')}</b></span></div>`
-      +(d.devices?`<div class="sg-field">設備：${escapeHtml(d.devices)}</div>`:'')
-      +(d.place?`<div class="sg-field">希望位置：${escapeHtml(d.place)}</div>`:'')
-      +`<div class="sg-row">`+(d.hideWire?`<span class="sg-field">藏線：${escapeHtml(d.hideWire)}</span>`:'')+(d.netPort?`<span class="sg-field">網路孔：${escapeHtml(d.netPort)}</span>`:'')+`</div>`;
+      +(d.place?`<div class="sg-field">希望位置：${escapeHtml(d.place)}</div>`:'');
   } else if(it.kind==='moving'){
-    rows=`<div class="sg-row"><span class="sg-tag">${escapeHtml(d.category||'—')}</span><span class="sg-field"><b>${escapeHtml(d.name||'')}</b></span>`
-      +(d.disposal?`<span class="sg-tag" style="background:#EEE6DB;">${escapeHtml(d.disposal)}</span>`:'')
-      +(d.done?`<span class="sg-field">${escapeHtml(d.done)}</span>`:'')+`</div>`
-      +`<div class="sg-row">`+(d.quantity?`<span class="sg-field">數量：${escapeHtml(d.quantity)}</span>`:'')+(d.place?`<span class="sg-field">預計放：${escapeHtml(d.place)}</span>`:'')+`</div>`;
+    rows=`<div class="sg-row"><span class="sg-tag">${escapeHtml(d.category||'—')}</span>`
+      +(d.name?`<span class="sg-field"><b>${escapeHtml(d.name)}</b></span>`:'')
+      +(d.disposal?`<span class="sg-tag" style="background:#EEE6DB;">${escapeHtml(d.disposal)}</span>`:'')+`</div>`
+      +(d.quantity?`<div class="sg-field">數量：${escapeHtml(d.quantity)}</div>`:'');
   }
   const note=d.note?`<div class="sg-note">備註：${escapeHtml(d.note)}</div>`:'';
   return `<div class="sg-card">${rows}${note}${reminder}
@@ -11272,23 +11268,18 @@ function openStorageModal(kind,id){
       <div class="fg"><label>重要程度</label><select id="sm-importance">${_sgOpts(SG_IMPORTANCE,d.importance)}</select></div>`;
   } else if(kind==='outlet'){
     body=`
-      <div style="font-size:11px;color:var(--ink-light);background:#FBF6EC;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.6;">不用懂電路配置，只要寫出「會在哪裡用什麼」，後續我們幫您規劃插座、開關與線路位置。</div>
+      <div style="font-size:11px;color:var(--ink-light);background:#FBF6EC;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.6;">不用決定插座數量、也不用畫水電圖，只要描述「哪個空間會有什麼用電情境」就好。</div>
       <div class="fg"><label>空間 *</label><select id="sm-space">${_sgOpts(SG_SPACES_OUTLET,d.space)}</select></div>
-      <div class="fg"><label>使用情境 *</label><input id="sm-scene" placeholder="例：床頭手機充電、書桌電腦設備、玄關烘鞋" value="${escapeHtml(d.scene||'')}"></div>
-      <div class="fg"><label>會使用的設備</label><input id="sm-devices" placeholder="例：手機、平板、電腦、檯燈、音響、吹風機、路由器" value="${escapeHtml(d.devices||'')}"></div>
-      <div class="fg"><label>希望位置（選填）</label><input id="sm-place" placeholder="例：床頭兩側、沙發左側、書桌下方、玄關櫃內" value="${escapeHtml(d.place||'')}"></div>
-      <div class="fg"><label>是否希望藏線</label><select id="sm-hideWire">${_sgOpts(SG_YESNO,d.hideWire)}</select></div>
-      <div class="fg"><label>是否需要網路孔</label><select id="sm-netPort">${_sgOpts(SG_OUTLET,d.netPort)}</select></div>
-      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：插座希望多一點">${escapeHtml(d.note||'')}</textarea></div>`;
+      <div class="fg"><label>使用情境 *</label><input id="sm-scene" placeholder="例：手機充電、吹風機、掃地機、電腦、遊戲機、夜燈" value="${escapeHtml(d.scene||'')}"></div>
+      <div class="fg"><label>希望位置（選填）</label><input id="sm-place" placeholder="例：沙發旁、床頭、書桌下、玄關櫃內、餐桌附近、鏡櫃旁" value="${escapeHtml(d.place||'')}"></div>
+      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：希望藏線、不要露出、需要比較多插座、希望方便拿取">${escapeHtml(d.note||'')}</textarea></div>`;
   } else if(kind==='moving'){
     body=`
       <div class="fg"><label>物品分類 *</label><input id="sm-category" list="sm-mcat-list" placeholder="例：衣物、書籍文件、廚房用品、舊家具" value="${escapeHtml(d.category||'')}"><datalist id="sm-mcat-list">${SG_MOVING_CATS.map(c=>`<option value="${escapeHtml(c)}">`).join('')}</datalist></div>
-      <div class="fg"><label>物品名稱 / 說明 *</label><input id="sm-name" placeholder="例：冬季外套、舊餐具、露營用品、舊書桌" value="${escapeHtml(d.name||'')}"></div>
+      <div class="fg"><label>物品名稱 / 說明（選填）</label><input id="sm-name" placeholder="例：冬季外套、舊餐具、露營用品、舊書桌" value="${escapeHtml(d.name||'')}"></div>
       <div class="fg"><label>處理方式</label><select id="sm-disposal">${_sgOpts(SG_DISPOSAL,d.disposal)}</select></div>
-      <div class="fg"><label>預計放置位置（選填）</label><input id="sm-place" placeholder="例：主臥衣櫃、儲藏室、玄關櫃、小孩房" value="${escapeHtml(d.place||'')}"></div>
       <div class="fg"><label>數量感</label><select id="sm-quantity">${_sgOpts(SG_QTY,d.quantity)}</select></div>
-      <div class="fg"><label>完成狀態</label><select id="sm-done">${_sgOpts(SG_DONE,d.done)}</select></div>
-      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="可自由補充">${escapeHtml(d.note||'')}</textarea></div>`;
+      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：先不要丟、等新櫃完成再搬、需要家人確認">${escapeHtml(d.note||'')}</textarea></div>`;
   }
   document.getElementById('sm-body').innerHTML=body;
   document.getElementById('sm-modal').style.display='block';
@@ -11307,11 +11298,11 @@ async function saveStorageItem(){
     data={item:_sgVal('sm-item'),trouble:_sgVal('sm-trouble'),how:_sgVal('sm-how'),importance:_sgVal('sm-importance')};
     if(!data.item){alert('請填「不想看到的物品」');return;}
   } else if(kind==='outlet'){
-    data={space:_sgVal('sm-space'),scene:_sgVal('sm-scene'),devices:_sgVal('sm-devices'),place:_sgVal('sm-place'),hideWire:_sgVal('sm-hideWire'),netPort:_sgVal('sm-netPort'),note:_sgVal('sm-note')};
+    data={space:_sgVal('sm-space'),scene:_sgVal('sm-scene'),place:_sgVal('sm-place'),note:_sgVal('sm-note')};
     if(!data.scene){alert('請填「使用情境」');return;}
   } else if(kind==='moving'){
-    data={category:_sgVal('sm-category'),name:_sgVal('sm-name'),disposal:_sgVal('sm-disposal'),place:_sgVal('sm-place'),quantity:_sgVal('sm-quantity'),done:_sgVal('sm-done'),note:_sgVal('sm-note')};
-    if(!data.name){alert('請填「物品名稱 / 說明」');return;}
+    data={category:_sgVal('sm-category'),name:_sgVal('sm-name'),disposal:_sgVal('sm-disposal'),quantity:_sgVal('sm-quantity'),note:_sgVal('sm-note')};
+    if(!data.category){alert('請選「物品分類」');return;}
   }
   try{
     if(_sgEditId){
@@ -11405,13 +11396,10 @@ function sgAdminCardHtml(it){
       +(d.how?`<div class="sg-field">希望：${escapeHtml(d.how)}</div>`:'');
   } else if(it.kind==='outlet'){
     summary=`<span class="sg-tag">${escapeHtml(d.space||'—')}</span> <b>${escapeHtml(d.scene||'')}</b>`
-      +(d.devices?`<div class="sg-field">設備：${escapeHtml(d.devices)}</div>`:'')
-      +(d.place?`<div class="sg-field">希望位置：${escapeHtml(d.place)}</div>`:'')
-      +`<div class="sg-field">`+(d.hideWire?`藏線：${escapeHtml(d.hideWire)}　`:'')+(d.netPort?`網路孔：${escapeHtml(d.netPort)}`:'')+`</div>`;
+      +(d.place?`<div class="sg-field">希望位置：${escapeHtml(d.place)}</div>`:'');
   } else if(it.kind==='moving'){
     summary=`<span class="sg-tag">${escapeHtml(d.category||'—')}</span> <b>${escapeHtml(d.name||'')}</b>`
-      +(d.disposal?` · ${escapeHtml(d.disposal)}`:'')+(d.done?` · ${escapeHtml(d.done)}`:'')
-      +`<div class="sg-field">`+(d.quantity?`數量：${escapeHtml(d.quantity)}　`:'')+(d.place?`預計放：${escapeHtml(d.place)}`:'')+`</div>`;
+      +(d.disposal?` · ${escapeHtml(d.disposal)}`:'')+(d.quantity?` · 數量 ${escapeHtml(d.quantity)}`:'');
   }
   const note=d.note?`<div class="sg-note">客戶備註：${escapeHtml(d.note)}</div>`:'';
   const stOpts=Object.keys(SG_STATUS).map(k=>`<option value="${k}"${k===st?' selected':''}>${SG_STATUS[k]}</option>`).join('');
@@ -11459,8 +11447,8 @@ function copyStorageSummary(){
       if(k==='have') line=`${d.space||''} / ${d.category||''}（${d.quantity||'-'}・${d.frequency||'-'}）${d.place?'→ '+d.place:''}`;
       else if(k==='large') line=`${d.name||''} ${d.qty||''} ${d.frequency?'('+d.frequency+')':''} ${d.place?'→ '+d.place:''} ${d.care?'/'+d.care:''}`;
       else if(k==='hide') line=`${d.item||''}（${d.importance||'-'}）${d.how?'希望:'+d.how:''}`;
-      else if(k==='outlet') line=`${d.space||''} / ${d.scene||''}｜設備:${d.devices||'-'}${d.place?'｜位置:'+d.place:''}｜藏線:${d.hideWire||'-'}｜網路孔:${d.netPort||'-'}`;
-      else if(k==='moving') line=`${d.category||''} / ${d.name||''}｜${d.disposal||'-'}｜${d.done||'-'}${d.place?'｜→'+d.place:''}`;
+      else if(k==='outlet') line=`${d.space||''} / ${d.scene||''}${d.place?'｜位置:'+d.place:''}`;
+      else if(k==='moving') line=`${d.category||''}${d.name?' / '+d.name:''}｜${d.disposal||'-'}${d.quantity?'｜'+d.quantity:''}`;
       line=line.replace(/\s+/g,' ').trim();
       const flags=[it.is_important?'★重要':'',SG_STATUS[it.status||'new']].filter(Boolean).join(' ');
       txt+=`  - ${line}${flags?'  ['+flags+']':''}${d.note?'  /備註:'+d.note:''}${it.designer_note?'  /內部:'+it.designer_note:''}\n`;
