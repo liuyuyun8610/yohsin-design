@@ -1461,6 +1461,27 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <!-- 施工照片 -->
     <div class="page" id="p-construction">
       <div class="page-title">施工照片區</div>
+
+      <!-- 目前狀態（設計師填，客戶不用一張一張照片看就能知道進度）-->
+      <div id="cons-status-card" style="display:none;margin-bottom:14px;padding:14px 16px;background:#FBF6EC;border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:12px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Noto Serif TC',serif;font-size:11px;letter-spacing:0.32em;color:#A07A38;text-transform:uppercase;">CURRENT STATUS · 目前進度</span>
+          <span id="cons-status-updated" style="font-size:10px;color:var(--ink-light);"></span>
+        </div>
+        <div id="cons-status-phase-row" style="display:none;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:12px;color:var(--ink-muted);">目前階段</span>
+          <span id="cons-status-phase" style="font-size:14px;font-weight:600;color:var(--accent);letter-spacing:0.04em;"></span>
+        </div>
+        <div id="cons-status-this" style="display:none;margin-bottom:8px;">
+          <div style="font-size:11px;color:#7A5218;font-weight:500;margin-bottom:4px;letter-spacing:0.04em;">→ 本週重點</div>
+          <div id="cons-status-this-body" style="font-size:13px;color:var(--ink);line-height:1.65;"></div>
+        </div>
+        <div id="cons-status-next" style="display:none;">
+          <div style="font-size:11px;color:#7A5218;font-weight:500;margin-bottom:4px;letter-spacing:0.04em;">→ 下週預計</div>
+          <div id="cons-status-next-body" style="font-size:13px;color:var(--ink);line-height:1.65;"></div>
+        </div>
+      </div>
+
       <div class="cal-hdr">
         <div class="cal-mnth" id="cal-label"></div>
         <div class="cal-navs">
@@ -3379,6 +3400,7 @@ function goPageMobile(id,el,type){
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
   if(id==='p-materials') renderClientMaterials();
+  if(id==='p-construction') renderClientConstructionStatus();
   trackPageEnter(id);
 }
 function goAdminPageMobile(id,el){
@@ -4117,6 +4139,7 @@ function goPage(id,el){
   if(id==='p-overview') renderClientDashboard();
   if(id==='p-payment') renderClientPayment();
   if(id==='p-materials') renderClientMaterials();
+  if(id==='p-construction') renderClientConstructionStatus();
   // 焦慮雷達：開始計時新頁面
   trackPageEnter(id);
 }
@@ -8885,6 +8908,40 @@ async function renderClientPhaseTimeline(proj) {
     const left = current.offsetLeft - (tilesEl.clientWidth - current.offsetWidth) / 2;
     tilesEl.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
   }, 50);
+}
+
+// 施工照片頁上方：目前階段 + 本週重點 + 下週預計（讀同一份 weekly_progress）
+function renderClientConstructionStatus(){
+  const card=document.getElementById('cons-status-card'); if(!card) return;
+  const c=(clients||[]).find(x=>x.id===currentClientId); if(!c||!c.projectId){card.style.display='none';return;}
+  const proj=projects.find(p=>Number(p.id)===Number(c.projectId)); if(!proj){card.style.display='none';return;}
+  const wp=proj.weekly_progress||{};
+  const phase=(wp.current_phase||'').trim();
+  const thisItems=Array.isArray(wp.completed)?wp.completed.filter(Boolean):[];
+  const nextItems=Array.isArray(wp.next_week)?wp.next_week.filter(Boolean):[];
+  if(!phase && thisItems.length===0 && nextItems.length===0){card.style.display='none';return;}
+  card.style.display='block';
+  const updEl=document.getElementById('cons-status-updated');
+  if(updEl) updEl.textContent=wp.updated_at?('更新於 '+new Date(wp.updated_at).toLocaleDateString('zh-TW')):'';
+  const phaseRow=document.getElementById('cons-status-phase-row');
+  if(phaseRow){
+    if(phase){
+      phaseRow.style.display='flex';
+      document.getElementById('cons-status-phase').textContent=phase;
+    } else { phaseRow.style.display='none'; }
+  }
+  const thisWrap=document.getElementById('cons-status-this');
+  const thisBody=document.getElementById('cons-status-this-body');
+  if(thisItems.length){
+    thisWrap.style.display='block';
+    thisBody.innerHTML='<ul style="list-style:none;padding-left:0;margin:0;">'+thisItems.map(x=>'<li style="padding-left:14px;position:relative;margin-bottom:3px;"><span style="position:absolute;left:0;color:#A07A38;">·</span>'+escapeHtml(x)+'</li>').join('')+'</ul>';
+  } else { thisWrap.style.display='none'; }
+  const nextWrap=document.getElementById('cons-status-next');
+  const nextBody=document.getElementById('cons-status-next-body');
+  if(nextItems.length){
+    nextWrap.style.display='block';
+    nextBody.innerHTML='<ul style="list-style:none;padding-left:0;margin:0;">'+nextItems.map(x=>'<li style="padding-left:14px;position:relative;margin-bottom:3px;"><span style="position:absolute;left:0;color:#A07A38;">·</span>'+escapeHtml(x)+'</li>').join('')+'</ul>';
+  } else { nextWrap.style.display='none'; }
 }
 
 // 本週進度卡：設計師在 ERP 寫 weekly_progress jsonb，客戶端顯示
