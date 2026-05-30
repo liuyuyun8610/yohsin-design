@@ -266,6 +266,17 @@ table{max-width:100%;}
 /* 全站「匯出 PDF」按鈕共用樣式（改一處＝全站匯出鈕一起變） */
 .btn-export-pdf{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;padding:7px 16px;background:rgb(171,158,147);color:#fff;border:none;border-radius:999px;cursor:pointer;letter-spacing:0.04em;flex-shrink:0;box-shadow:0 2px 8px rgba(90,60,30,0.18);transition:opacity .15s,box-shadow .15s;}
 .btn-export-pdf:hover{opacity:0.9;box-shadow:0 5px 16px rgba(90,60,30,0.28);}
+/* 保固卡（素面奶茶色底圖 + 動態文字層） */
+.warranty-card{position:relative;width:100%;max-width:540px;margin:0 auto;aspect-ratio:1.55/1;background:url('assets/warranty-card-light.png') center/cover no-repeat;border-radius:14px;box-shadow:0 8px 28px rgba(90,60,30,0.14);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:clamp(20px,5.5%,36px) clamp(22px,7%,48px);text-align:center;color:#5C4A38;}
+.wc-brand{font-family:'Noto Serif TC',serif;font-size:14px;letter-spacing:0.12em;color:#6B5B47;}
+.wc-brand span{display:block;font-size:8.5px;letter-spacing:0.42em;color:#A8987F;margin-top:5px;}
+.wc-name{font-family:'Noto Serif TC',serif;font-size:clamp(16px,4.4vw,22px);color:#3F3424;letter-spacing:0.02em;line-height:1.35;padding:0 6px;}
+.wc-foot{width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
+.wc-period{text-align:left;}
+.wc-period span{display:block;font-size:8px;letter-spacing:0.22em;color:#A8987F;margin-bottom:3px;}
+.wc-period b{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:12.5px;color:#5C4A38;font-weight:500;letter-spacing:0.02em;}
+.wc-status{font-size:10.5px;color:#3D5C24;background:rgba(255,255,255,0.55);border:0.5px solid rgba(120,140,90,0.45);padding:3px 12px;border-radius:999px;white-space:nowrap;letter-spacing:0.04em;}
+.wc-status.expired{color:#8B7E6A;border-color:rgba(139,126,106,0.4);}
 .tool-card{display:flex;align-items:center;gap:14px;background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
 .tool-card:hover{box-shadow:0 4px 18px rgba(90,60,30,0.1);border-color:var(--accent-light,rgba(139,107,72,0.3));}
 .tool-card-main{flex:1;min-width:0;}
@@ -1216,26 +1227,56 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
       </div>
 
-      <!-- 保固資訊卡（已完工才顯示） -->
-      <div class="card" id="dash-warranty-card" style="margin-bottom:12px;display:none;">
-        <div class="card-title">保固資訊</div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="width:36px;height:36px;background:var(--sand);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"></div>
-          <div>
-            <div style="font-size:14px;font-weight:500;color:var(--ink);">專案保固中</div>
-            <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">完工後保固一年，如有問題請直接聯繫設計師</div>
+      <!-- 保固卡（已完工才顯示） -->
+      <div id="dash-warranty-card" style="margin-bottom:12px;display:none;">
+        <div class="warranty-card">
+          <div class="wc-brand">有心制作<span>WARRANTY CARD</span></div>
+          <div class="wc-name" id="wc-name">—</div>
+          <div class="wc-foot">
+            <div class="wc-period"><span>WARRANTY PERIOD</span><b id="wc-period">—</b></div>
+            <div class="wc-status" id="wc-status">保固中</div>
           </div>
         </div>
-        <div style="background:var(--sand);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div>
-            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:3px;">完工日期</div>
-            <div id="warranty-end-date" style="font-size:14px;font-weight:500;">—</div>
-          </div>
-          <div>
-            <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:3px;">保固到期</div>
-            <div id="warranty-expire-date" style="font-size:14px;font-weight:500;color:var(--green);">—</div>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;">
+          <div style="font-size:12px;color:var(--ink-muted);line-height:1.6;flex:1;min-width:180px;">完工後享一年保固，有任何問題可隨時聯繫設計師。</div>
+          <button onclick="goPage('p-warranty',null)" style="font-family:inherit;font-size:12px;padding:8px 18px;background:transparent;color:var(--accent);border:0.5px solid var(--accent);border-radius:999px;cursor:pointer;letter-spacing:0.04em;white-space:nowrap;">查看保固卡 ›</button>
         </div>
+        <!-- 舊欄位保留隱藏，避免其他程式參照出錯 -->
+        <span id="warranty-end-date" style="display:none;"></span><span id="warranty-expire-date" style="display:none;"></span>
+      </div>
+    </div>
+
+    <!-- 保固服務（完整頁，從總覽「查看保固卡」進入） -->
+    <div class="page" id="p-warranty">
+      <div class="page-title">保固服務</div>
+      <div style="margin-bottom:1.4rem;"><div class="warranty-card">
+        <div class="wc-brand">有心制作<span>WARRANTY CARD</span></div>
+        <div class="wc-name" id="wc-name-full">—</div>
+        <div class="wc-foot">
+          <div class="wc-period"><span>WARRANTY PERIOD</span><b id="wc-period-full">—</b></div>
+          <div class="wc-status" id="wc-status-full">保固中</div>
+        </div>
+      </div></div>
+      <div class="doc-section">
+        <div class="doc-section-title">🛡️ 保固範圍</div>
+        <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
+          本公司施作之工程項目，自完工日起<strong style="color:var(--ink);">保固一年</strong>。保固期間內因施工品質產生的問題，我們會負責處理。<br>下列情形不在保固範圍：人為損壞、天災（地震、淹水等）、自行或委由第三方變更／拆改、正常使用之耗材與自然老化。
+        </div>
+      </div>
+      <div class="doc-section">
+        <div class="doc-section-title">🔧 如何報修</div>
+        <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
+          發現問題時，<strong style="color:var(--ink);">直接在 LINE 聯繫您的設計師最快</strong>，並附上照片與簡單說明（位置、狀況）。我們會盡快評估並安排處理時間。緊急狀況（如漏水）請立即來電告知。
+        </div>
+      </div>
+      <div class="doc-section">
+        <div class="doc-section-title">🌿 保養小提醒</div>
+        <ul style="margin:0;padding-left:32px;font-size:13px;line-height:1.85;color:var(--ink-light);">
+          <li>木作與系統櫃避免長時間接觸水氣，潮濕季節可適度除濕。</li>
+          <li>五金鉸鍊、滑軌可定期上油保養，開闔更順手。</li>
+          <li>矽利康（防水膠）若發霉變色，可清潔或請我們協助更換。</li>
+          <li>石材、木地板依材質定期清潔保養，避免強酸鹼清潔劑。</li>
+        </ul>
       </div>
     </div>
 
@@ -9575,18 +9616,26 @@ async function renderClientDashboard(){
   const warrantyCard=document.getElementById('dash-warranty-card');
   if(proj&&proj.status==='已完工'&&warrantyCard){
     warrantyCard.style.display='block';
-    let warrantyEnd='—', expireDate='—';
+    let warrantyEnd='—', expireDate='—', expired=false;
     if(proj.endDate){
       try{
         const d=new Date(proj.endDate.replace(/\//g,'-'));
         warrantyEnd=proj.endDate;
         d.setFullYear(d.getFullYear()+1);
         expireDate=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+        expired=(Date.now()>d.getTime());
       }catch(e){}
     }
+    const cli=clients.find(x=>x.id===currentClientId);
+    const nameLine=proj.name||(cli&&cli.name)||'—';
+    const period=(warrantyEnd!=='—')?(warrantyEnd+'  –  '+expireDate):'—';
+    const statusTxt=expired?'已過保 · Expired':'保固中 · Active';
     const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
     setT('warranty-end-date',warrantyEnd);
     setT('warranty-expire-date',expireDate);
+    ['wc-name','wc-name-full'].forEach(id=>setT(id,nameLine));
+    ['wc-period','wc-period-full'].forEach(id=>setT(id,period));
+    ['wc-status','wc-status-full'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=statusTxt;el.classList.toggle('expired',expired);}});
   } else if(warrantyCard){ warrantyCard.style.display='none'; }
 
   // --- 1. 施工進度 ---
