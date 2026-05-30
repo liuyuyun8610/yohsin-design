@@ -3464,6 +3464,32 @@ async function doLogin(){
   } finally { delete err.dataset.busy; }
 }
 
+// 設計師備註：cid|aid -> note 文字（admin 端用，渲染指派頁的備註欄）
+let _adminArticleNotes={};
+async function _loadAdminArticleNotes(){
+  _adminArticleNotes={};
+  try{
+    const r=await sbClient.from('client_article_notes').select('*');
+    if(r.error){console.warn('load admin article notes:',r.error);return;}
+    (r.data||[]).forEach(n=>{ _adminArticleNotes[n.client_id+'|'+n.article_id]=n.note||''; });
+  }catch(e){console.warn('load admin article notes exception:',e);}
+}
+async function saveArticleNote(cid,aid,note){
+  const key=cid+'|'+aid;
+  const txt=(note||'').trim();
+  try{
+    if(txt){
+      _adminArticleNotes[key]=txt;
+      const {error}=await sbClient.from('client_article_notes').upsert({client_id:cid,article_id:aid,note:txt},{onConflict:'client_id,article_id'});
+      if(error) throw error;
+    } else {
+      delete _adminArticleNotes[key];
+      const {error}=await sbClient.from('client_article_notes').delete().eq('client_id',cid).eq('article_id',aid);
+      if(error) throw error;
+    }
+  }catch(e){alert('備註儲存失敗：'+e.message);}
+}
+
 async function _ensureClientsLoaded(){
   // Phase B：admin（Auth 已登入）才能 SELECT clients；其他角色 clients 全域維持 [] 或只含 self
   if(clients && clients.length>0) return;
@@ -3484,6 +3510,7 @@ async function _enterAdmin(){
   showScreen('s-admin');
   showDashboardNav(true);
   await _ensureClientsLoaded();
+  await _loadAdminArticleNotes();
   renderProjects();renderAdminClients();
   populateDocsClientSel();populateLogClientSel();populateCMProjectSel();
 }
@@ -10883,14 +10910,20 @@ async function renderClientPayment(){
 
 // ========== KNOWLEDGE ==========
 let _clientSignatures={}; // article_id -> {signature_url, agreement_text, signed_at}
+let _clientArticleNotes={}; // article_id -> note 文字（設計師寫給這位客戶的備註）
 
 async function loadClientSignatures(){
   if(!currentClientId) return;
   _clientSignatures={};
+  _clientArticleNotes={};
   try{
     const {data}=await sbClient.from('client_signatures').select('*').eq('client_id',currentClientId);
     if(data) data.forEach(s=>{_clientSignatures[s.article_id]=s;});
   }catch(e){console.warn('load signatures',e);}
+  try{
+    const {data}=await sbClient.from('client_article_notes').select('*').eq('client_id',currentClientId);
+    if(data) data.forEach(n=>{ if(n.note && n.note.trim()) _clientArticleNotes[n.article_id]=n.note; });
+  }catch(e){console.warn('load article notes',e);}
 }
 
 // 客戶端模塊 toggle（從 work-system DB 跨讀）
@@ -11013,7 +11046,16 @@ function renderClientAcknowledgements(){
           </div>`;
       }
     }
-    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">切結書</span></div></div><div class="know-bd">${a.body}${sigBlock}</div>`;
+    let noteBlock='';
+    const noteTxt=_clientArticleNotes[a.id];
+    if(noteTxt && noteTxt.trim()){
+      noteBlock=`
+        <div style="margin-top:18px;padding:13px 16px;background:#FBF8F4;border:0.5px solid var(--accent-light);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;">
+          <div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:6px;letter-spacing:0.1em;">設計師備註</div>
+          <div style="font-size:13px;line-height:1.85;color:var(--ink);white-space:pre-wrap;">${String(noteTxt).replace(/[<>]/g,'')}</div>
+        </div>`;
+    }
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">切結書</span></div></div><div class="know-bd">${a.body}${noteBlock}${sigBlock}</div>`;
     el.appendChild(d);
   });
 }
@@ -12175,9 +12217,26 @@ function renderAssignBody(){
   const proj=projects.find(p=>p.id===c.projectId);
   document.getElementById('assign-ph').style.display='none';const body=document.getElementById('assign-body');body.style.display='block';
   body.innerHTML=`<div style="font-size:14px;font-weight:500;margin-bottom:3px;">${c.name}</div><div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">${proj?proj.name:'—'}</div>`;
-  articles.forEach(a=>{const isOn=c.assigned.includes(a.id);const item=document.createElement('div');item.className='aai';item.innerHTML=`<button class="toggle${isOn?' on':''}" onclick="toggleAssign(${c.id},${a.id},this)"></button><div><div class="aai-name">${a.title}</div><div class="aai-tag">${a.tag}</div></div>`;body.appendChild(item);});
+  articles.forEach(a=>{
+    const isOn=c.assigned.includes(a.id);
+    const item=document.createElement('div');item.className='aai';
+    item.innerHTML=`<button class="toggle${isOn?' on':''}" onclick="toggleAssign(${c.id},${a.id},this)"></button><div style="flex:1;min-width:0;"><div class="aai-name">${a.title}</div><div class="aai-tag">${a.tag}</div></div>`;
+    body.appendChild(item);
+    // 已指派的切結書，提供「設計師備註」欄（只給這位客戶看到，例如殺價換免費監工）
+    if(isOn && a.tag==='切結書'){
+      const noteVal=_adminArticleNotes[c.id+'|'+a.id]||'';
+      const noteWrap=document.createElement('div');
+      noteWrap.style.cssText='margin:-2px 0 10px 46px;';
+      noteWrap.innerHTML=`
+        <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">📝 此客戶專屬備註（顯示在這篇切結書內文下方）</div>
+        <textarea placeholder="例：本案已贈送免費空調監工服務。" style="width:100%;font-family:inherit;font-size:12.5px;line-height:1.7;padding:8px 10px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;resize:vertical;min-height:52px;box-sizing:border-box;">${noteVal.replace(/</g,'&lt;')}</textarea>`;
+      const ta=noteWrap.querySelector('textarea');
+      ta.addEventListener('blur',()=>{ if((ta.value||'').trim()!==noteVal.trim()) saveArticleNote(c.id,a.id,ta.value); });
+      body.appendChild(noteWrap);
+    }
+  });
 }
-async function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();try{await dbUpdateClientArticles(cid,c.assigned);}catch(e){console.error('assign save failed',e);}}
+async function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();if(selectedAssignC===cid)renderAssignBody();try{await dbUpdateClientArticles(cid,c.assigned);}catch(e){console.error('assign save failed',e);}}
 
 document.addEventListener('DOMContentLoaded', function() {
   try {
