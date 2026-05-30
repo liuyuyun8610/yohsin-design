@@ -1527,7 +1527,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div style="font-size:13px;line-height:1.9;color:var(--ink);">真正好用的收納，不只是櫃子多，而是<strong style="color:var(--accent);">每一類物品都有適合的位置</strong>。這份盤點能幫我們了解您的生活習慣與物品數量，讓櫃體配置、層板高度、抽屜比例更貼近實際使用。</div>
           <div style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.8;">不需要填得很精準，用「很多、普通、少」或簡單備註即可，也可以分次慢慢填。</div>
         </div>
-        <div id="sg-progress" style="font-size:12px;color:var(--accent);margin-bottom:10px;letter-spacing:0.02em;">目前已盤點：0 筆物品</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <div id="sg-progress" style="font-size:12px;color:var(--accent);letter-spacing:0.02em;">目前已盤點：0 筆物品</div>
+          <button id="sg-storage-export" onclick="exportStoragePdf()" class="btn-export-pdf" style="display:none;">⬇ 匯出物品清單 PDF</button>
+        </div>
         <div class="stabs">
           <button class="stab active" onclick="switchStorageTab('have',this)">我有哪些東西 <span class="sg-cnt" id="sg-cnt-have">0</span></button>
           <button class="stab" onclick="switchStorageTab('large',this)">不好收的東西 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
@@ -11187,6 +11190,58 @@ function updateStorageProgress(){
   ['have','large','hide'].forEach(k=>{const el=document.getElementById('sg-cnt-'+k);if(el)el.textContent=_storageItems.filter(x=>x.kind===k).length;});
   const prog=document.getElementById('sg-progress');
   if(prog) prog.innerHTML=n?`已盤點 ${n} 項物品，您可以隨時回來補充。`:'目前已盤點：0 筆物品';
+  const expBtn=document.getElementById('sg-storage-export');
+  if(expBtn) expBtn.style.display=n?'inline-block':'none';
+}
+function exportStoragePdf(){
+  const items=_storageItems.filter(x=>['have','large','hide'].includes(x.kind));
+  if(!items.length){alert('目前沒有物品可匯出');return;}
+  const c=clients.find(x=>x.id===currentClientId);
+  const proj=c?projects.find(p=>Number(p.id)===Number(c.projectId)):null;
+  const projName=(proj&&proj.name)||'—';
+  const projAddr=((proj&&proj.address)||'')+((proj&&proj.unit)?(' '+proj.unit):'');
+  const clientName=(c&&c.name)||'—';
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const today=new Date(); const dateStr=today.getFullYear()+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+String(today.getDate()).padStart(2,'0');
+  const sec=(kind,cols,rowFn)=>{
+    const arr=_storageItems.filter(x=>x.kind===kind);
+    if(!arr.length) return '';
+    const head=cols.map(h=>`<th>${h}</th>`).join('');
+    const body=arr.map((it,i)=>'<tr><td class="c">'+(i+1)+'</td>'+rowFn(it.data||{}).map(v=>`<td>${esc(v)||'—'}</td>`).join('')+'</tr>').join('');
+    return `<h2>${SG_KIND_LABEL[kind]}（${arr.length}）</h2><table><thead><tr><th class="c">序</th>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  };
+  const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>'+esc(projName)+' 物品清單</title>'
+    +'<style>@page{size:A4;margin:16mm 14mm;}*{box-sizing:border-box;}'
+    +'body{font-family:"NumQuicksand","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#2C2218;font-size:12px;line-height:1.5;margin:0;background:#fff;}'
+    +'h1{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:500;margin:0 0 4px;letter-spacing:0.04em;}'
+    +'.brand{font-family:"Noto Serif TC",serif;font-size:13px;letter-spacing:0.18em;color:#8B6B48;margin-bottom:4px;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #8B6B48;padding-bottom:10px;margin-bottom:14px;gap:20px;}'
+    +'.meta{font-size:11px;color:#6E5E4E;line-height:1.7;}.meta b{color:#2C2218;}'
+    +'.right{text-align:right;font-size:11px;color:#6E5E4E;line-height:1.8;}'
+    +'.note{font-size:10.5px;color:#8B7E6A;background:#FAF7F2;border-left:3px solid #C4A882;padding:7px 12px;margin-bottom:12px;line-height:1.6;}'
+    +'h2{font-size:13px;color:#8B6B48;letter-spacing:0.06em;margin:18px 0 6px;}'
+    +'table{width:100%;border-collapse:collapse;margin-top:4px;page-break-inside:auto;}'
+    +'thead th{font-size:10.5px;color:#6E5E4E;font-weight:500;padding:7px 8px;border-bottom:1px solid #8B6B48;text-align:left;background:#F5EFE7;letter-spacing:0.04em;}'
+    +'th.c,td.c{text-align:center;}'
+    +'tbody tr{border-bottom:0.5px solid #D9CFC1;page-break-inside:avoid;}'
+    +'tbody td{font-size:11.5px;vertical-align:top;word-break:break-word;padding:7px 8px;}'
+    +'.foot{margin-top:20px;font-size:10px;color:#A89478;text-align:center;letter-spacing:0.08em;border-top:0.5px solid #EAE3D2;padding-top:8px;}'
+    +'.noprint{position:fixed;top:10px;right:10px;z-index:10;}@media print{.noprint{display:none;}body{margin:0;}}'
+    +'</style></head><body>'
+    +'<div class="noprint"><button onclick="window.print()" style="padding:9px 18px;font-family:inherit;font-size:13px;background:#8B6B48;color:#fff;border:none;border-radius:6px;cursor:pointer;">列印 / 儲存為 PDF</button></div>'
+    +'<div class="hd"><div><div class="brand">有心制作 · 空間設計</div><h1>我的物品清單</h1>'
+    +'<div class="meta">業主：<b>'+esc(clientName)+'</b>　｜　工程名稱：<b>'+esc(projName)+'</b>'+(projAddr?'<br>工程地址：'+esc(projAddr):'')+'</div></div>'
+    +'<div class="right"><div>製表日期：'+dateStr+'</div><div>物品筆數：'+items.length+' 筆</div></div></div>'
+    +'<div class="note">本清單彙整客戶填寫的家中物品、不好收的物品與不想外露的物品，供設計師規劃櫃體配置、抽屜比例、層板高度與開放／封閉收納比例時參考。</div>'
+    +sec('have',['空間','物品分類','數量感','常用','希望放','備註'],d=>[d.space,d.category,d.quantity,d.frequency,d.place,d.note])
+    +sec('large',['物品名稱','大概數量','使用頻率','希望放','特別提醒','備註'],d=>[d.name,d.qty,d.frequency,d.place,d.care,d.note])
+    +sec('hide',['不想看到的物品','重要程度','目前困擾','希望怎麼收'],d=>[d.item,d.importance,d.trouble,d.how])
+    +'<div class="foot">YOHSIN INTERIOR ｜ 有心制作 · 空間設計</div>'
+    +'<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},300);});<\/script>'
+    +'</body></html>';
+  const w=window.open('','_blank');
+  if(!w){alert('請先在瀏覽器允許此網站彈出視窗，再點一次匯出 PDF');return;}
+  w.document.open(); w.document.write(html); w.document.close();
 }
 function renderMovingTool(){
   const items=_storageItems.filter(x=>x.kind==='moving');
