@@ -261,6 +261,27 @@ table{max-width:100%;}
 .know-bd p{margin:0 0 6px;}
 .know-bd ul,.know-bd ol{padding-left:36px;margin:6px 0 12px;}
 .know-bd li{margin-bottom:4px;}
+/* 收納規劃工具 */
+.sg-cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;font-size:10px;line-height:16px;text-align:center;border-radius:9px;background:var(--accent-pale,#EFE7DB);color:var(--accent);vertical-align:middle;}
+.sg-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.sg-card .sg-row{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:6px;}
+.sg-field{font-size:12.5px;color:var(--ink-muted);}
+.sg-field b{color:var(--ink);font-weight:600;}
+.sg-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:6px;background:var(--accent-pale,#EFE7DB);color:var(--accent);}
+.sg-note{font-size:12px;color:var(--ink-light);margin-top:4px;line-height:1.7;}
+.sg-card-actions{display:flex;gap:8px;margin-top:8px;}
+.sg-mini-btn{font-size:11px;padding:4px 12px;border-radius:7px;border:0.5px solid var(--border);background:#fff;color:var(--ink-muted);cursor:pointer;font-family:inherit;}
+.sg-mini-btn.danger{color:var(--red);border-color:var(--red);}
+.sg-st{display:inline-block;font-size:10px;padding:2px 8px;border-radius:6px;}
+.sg-st.new{background:#F0EEEA;color:#6E5E4E;}
+.sg-st.discuss{background:#FBF0DC;color:#7A5218;}
+.sg-st.included{background:#E6EFE4;color:#3E6B45;}
+.sg-st.need_more{background:#FBE6E2;color:#9A4530;}
+.sg-imp{display:inline-block;font-size:10px;padding:2px 8px;border-radius:6px;background:#9A4530;color:#fff;}
+#sm-body .fg{margin-bottom:12px;}
+#sm-body .fg label{display:block;font-size:12px;color:var(--ink-muted);margin-bottom:5px;}
+#sm-body .fg input,#sm-body .fg select,#sm-body .fg textarea{width:100%;padding:9px 12px;font-family:inherit;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand,#F6F4EE);color:var(--ink);outline:none;box-sizing:border-box;}
+#sm-body .fg textarea{resize:vertical;min-height:54px;line-height:1.6;}
 
 .meeting-attendees{font-size:12px;color:var(--ink-muted);background:var(--sand);border-radius:7px;padding:5px 10px;margin-bottom:10px;display:inline-block;}
 /* ── 需求表單 ── */
@@ -992,6 +1013,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
       <button class="tnav" onclick="goPage('p-payment',this)">財務紀錄</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
+      <button class="tnav" onclick="goPage('p-storage',this)">收納規劃工具</button>
       <button class="tnav" onclick="goPage('p-usage',this)">使用說明</button>
       <button class="tnav" onclick="goPage('p-knowledge',this)">裝修知識</button>
 
@@ -1014,6 +1036,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">財務紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-storage',this,'client')">收納規劃工具</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-usage',this,'client')">使用說明</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">裝修知識</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
@@ -1447,6 +1470,39 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div>
 
+    <!-- 收納規劃工具 -->
+    <div class="page" id="p-storage">
+      <div class="page-title">收納規劃工具</div>
+      <div class="card" style="margin-bottom:1.2rem;background:#FBF8F4;">
+        <div style="font-size:13px;line-height:1.9;color:var(--ink);">
+          很多人在裝修時會直覺地想「多做一點櫃子」，但真正好用的收納，不只是櫃子多，而是<strong style="color:var(--accent);">每一類物品都有適合的位置</strong>。這份收納需求盤點能幫我們了解您的生活習慣、物品數量與常用物品，讓後續櫃體配置、層板高度、抽屜比例與插座位置更貼近實際使用。
+        </div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.8;">不需要填得很精準，用「很多、普通、少」或簡單備註即可，也可以分次慢慢填。</div>
+      </div>
+
+      <div class="stabs">
+        <button class="stab active" onclick="switchStorageTab('have',this)">我有哪些東西 <span class="sg-cnt" id="sg-cnt-have">0</span></button>
+        <button class="stab" onclick="switchStorageTab('large',this)">大尺寸 / 特殊物品 <span class="sg-cnt" id="sg-cnt-large">0</span></button>
+        <button class="stab" onclick="switchStorageTab('hide',this)">我不想看到什麼 <span class="sg-cnt" id="sg-cnt-hide">0</span></button>
+      </div>
+
+      <div id="sg-pane-have" class="sg-pane">
+        <div class="notice-desc" style="margin-bottom:1rem;">盤點各空間有哪些東西、大概多少、常不常用、希望放哪裡。<br><span style="color:var(--ink-light);">範例：主臥 · 衣物（很多）· 每天 · 希望放主臥衣櫃；玄關 · 鞋子（約 40 雙）· 需要好拿。</span></div>
+        <div id="sg-list-have"></div>
+        <button class="add-row-btn" onclick="openStorageModal('have')">＋ 新增物品</button>
+      </div>
+      <div id="sg-pane-large" class="sg-pane" style="display:none;">
+        <div class="notice-desc" style="margin-bottom:1rem;">家電或大件物品先列出來，避免櫃子做好後放不下。<br><span style="color:var(--ink-light);">範例：冰箱 · 約 70×70×180 · 放廚房電器櫃 · 需要插座；掃地機器人 · 需要插座與回充位置。</span></div>
+        <div id="sg-list-large"></div>
+        <button class="add-row-btn" onclick="openStorageModal('large')">＋ 新增大尺寸物品</button>
+      </div>
+      <div id="sg-pane-hide" class="sg-pane" style="display:none;">
+        <div class="notice-desc" style="margin-bottom:1rem;">把不想被看到的雜物列出來，我們幫您藏好。<br><span style="color:var(--ink-light);">範例：電線（很重要，希望全藏起來）；小孩玩具（每天散落，希望集中收一櫃）。</span></div>
+        <div id="sg-list-hide"></div>
+        <button class="add-row-btn" onclick="openStorageModal('hide')">＋ 新增項目</button>
+      </div>
+    </div>
+
     <!-- 選材 -->
     <div class="page" id="p-materials">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -1694,6 +1750,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goAdminPage('a-clients',this)">客戶管理</button>
       <!-- 知識文章 / 文章指派 入口移至 work-system 中央管理 -->
       <button class="tnav" onclick="goAdminPage('a-logs',this)">施工日誌</button>
+      <button class="tnav" onclick="goAdminPage('a-storage',this)">收納規劃</button>
       <button class="tnav" onclick="goAdminPage('a-survey',this)">需求表單</button>
       <button class="tnav" onclick="goAdminPage('a-settings',this)">設定</button>
     </div>
@@ -1712,6 +1769,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-clients',this)">客戶管理</button>
       <!-- 知識文章 / 文章指派 入口移至 work-system 中央管理 -->
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-logs',this)">施工日誌</button>
+      <button class="mobile-tnav" onclick="goAdminPageMobile('a-storage',this)">收納規劃</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-survey',this)">需求表單</button>
       <button class="mobile-tnav" onclick="goAdminPageMobile('a-settings',this)">設定</button>
       <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;display:flex;justify-content:space-between;align-items:center;">
@@ -2538,6 +2596,36 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
     </div>
 
+    <!-- 收納規劃（設計師後台） -->
+    <div class="page" id="a-storage">
+      <div class="sec-head"><div class="sec-ttl">收納規劃盤點</div></div>
+      <div class="admin-sel-row">
+        <label>選擇客戶：</label>
+        <select class="admin-sel" id="sg-admin-client-sel" onchange="loadAdminStorage()"></select>
+      </div>
+      <div id="sg-admin-toolbar" style="display:none;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:1rem;">
+        <select class="admin-sel" id="sg-filter-kind" onchange="renderAdminStorage()" style="min-width:140px;">
+          <option value="">全部工具</option>
+          <option value="have">我有哪些東西</option>
+          <option value="large">大尺寸 / 特殊物品</option>
+          <option value="hide">我不想看到什麼</option>
+        </select>
+        <select class="admin-sel" id="sg-filter-space" onchange="renderAdminStorage()" style="min-width:120px;">
+          <option value="">全部空間</option>
+        </select>
+        <select class="admin-sel" id="sg-filter-status" onchange="renderAdminStorage()" style="min-width:130px;">
+          <option value="">全部狀態</option>
+          <option value="new">未處理</option>
+          <option value="discuss">需討論</option>
+          <option value="included">已納入設計</option>
+          <option value="need_more">需客戶補充</option>
+        </select>
+        <button class="btn-ink" onclick="copyStorageSummary()" style="margin-left:auto;">⧉ 複製成會議紀錄</button>
+      </div>
+      <div id="sg-admin-list"></div>
+      <div id="sg-admin-empty" style="display:none;text-align:center;padding:3rem;color:var(--ink-light);font-size:13px;">這位客戶還沒有填寫收納盤點</div>
+    </div>
+
     <!-- 設定 -->
     <!-- 需求表單管理 -->
     <div class="page" id="a-survey">
@@ -2848,6 +2936,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <div class="render-lb-bottom">
     <div class="render-lb-caption" id="render-lb-caption"></div>
     <div class="render-lb-counter" id="render-lb-counter"></div>
+  </div>
+</div>
+
+<!-- 收納物品 新增/編輯 MODAL（客戶端）-->
+<div id="sm-modal" style="display:none;">
+  <div class="modal-bd">
+    <div class="modal">
+      <div class="modal-ttl" id="sm-ttl">新增物品</div>
+      <div id="sm-body"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeStorageModal()">取消</button>
+        <button class="btn-ink" onclick="saveStorageItem()">儲存</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3340,6 +3442,7 @@ const PAGE_KEY_MAP = {
   'p-construction': 'construction',
   'p-payment': 'payment',
   'p-changes': 'change_orders',
+  'p-storage': 'storage',
 };
 function trackPageEnter(pageId){
   if(!currentClientId) return;
@@ -3403,6 +3506,7 @@ function goPageMobile(id,el,type){
   if(id==='p-payment') renderClientPayment();
   if(id==='p-materials') renderClientMaterials();
   if(id==='p-construction') renderClientConstructionStatus();
+  if(id==='p-storage') renderStoragePage();
   trackPageEnter(id);
 }
 function goAdminPageMobile(id,el){
@@ -4169,6 +4273,7 @@ function goPage(id,el){
   if(id==='p-payment') renderClientPayment();
   if(id==='p-materials') renderClientMaterials();
   if(id==='p-construction') renderClientConstructionStatus();
+  if(id==='p-storage') renderStoragePage();
   // 焦慮雷達：開始計時新頁面
   trackPageEnter(id);
 }
@@ -4185,6 +4290,7 @@ async function goAdminPage(id,el){
   if(id==='a-clients') renderAdminClients();
   if(id==='a-projects') renderProjects();
   if(id==='a-settings') initSettings();
+  if(id==='a-storage') initAdminStorage();
 }
 
 function syncAllData(){
@@ -10924,6 +11030,261 @@ async function loadClientSignatures(){
     const {data}=await sbClient.from('client_article_notes').select('*').eq('client_id',currentClientId);
     if(data) data.forEach(n=>{ if(n.note && n.note.trim()) _clientArticleNotes[n.article_id]=n.note; });
   }catch(e){console.warn('load article notes',e);}
+}
+
+// ════════════════════════════════════════════════════════════
+// 收納規劃工具（客戶端 + 設計師後台）
+// 資料表 storage_items：kind = have | large | hide
+// ════════════════════════════════════════════════════════════
+const SG_SPACES=['玄關','客廳','餐廳','廚房','主臥','小孩房','更衣室','浴室','洗衣區','儲藏室','陽台','其他'];
+const SG_CATS=['衣物','鞋子','包包','行李箱','清潔用品','小家電','鍋具','餐具','文件','玩具','寵物用品','收藏品','備品','其他'];
+const SG_QTY=['很多','普通','少','不確定'];
+const SG_FREQ=['每天','每週','偶爾','很少'];
+const SG_OUTLET=['需要','不需要','不確定'];
+const SG_IMPORTANCE=['很重要','普通','還好'];
+const SG_STATUS={new:'未處理',discuss:'需討論',included:'已納入設計',need_more:'需客戶補充'};
+const SG_KIND_LABEL={have:'我有哪些東西',large:'大尺寸 / 特殊物品',hide:'我不想看到什麼'};
+function _sgOpts(arr,sel){return arr.map(o=>`<option value="${escapeHtml(o)}"${o===sel?' selected':''}>${escapeHtml(o)}</option>`).join('');}
+
+// ── 客戶端 ──
+let _storageItems=[];
+let _sgEditId=null, _sgEditKind='have';
+async function renderStoragePage(){
+  if(!currentClientId) return;
+  try{
+    const {data}=await sbClient.from('storage_items').select('*').eq('client_id',currentClientId).order('id',{ascending:true});
+    _storageItems=data||[];
+  }catch(e){console.warn('load storage_items',e);_storageItems=[];}
+  ['have','large','hide'].forEach(k=>{
+    const el=document.getElementById('sg-cnt-'+k); if(el) el.textContent=_storageItems.filter(x=>x.kind===k).length;
+    renderStorageList(k);
+  });
+}
+function renderStorageList(kind){
+  const el=document.getElementById('sg-list-'+kind); if(!el) return;
+  const items=_storageItems.filter(x=>x.kind===kind);
+  if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--ink-light);padding:0.4rem 0 0.8rem;">還沒有填寫，點下方按鈕新增即可（可以分次慢慢填）。</div>';return;}
+  el.innerHTML=items.map(it=>sgClientCardHtml(it)).join('');
+}
+function sgClientCardHtml(it){
+  const d=it.data||{};
+  const reminder=(it.status==='need_more')?`<div style="font-size:11px;color:#9A4530;margin-top:6px;">🔔 設計師希望您再補充一下這項的資訊</div>`:'';
+  let rows='';
+  if(it.kind==='have'){
+    rows=`<div class="sg-row"><span class="sg-tag">${escapeHtml(d.space||'—')}</span><span class="sg-field"><b>${escapeHtml(d.category||'')}</b></span>`
+      +(d.quantity?`<span class="sg-field">數量：${escapeHtml(d.quantity)}</span>`:'')
+      +(d.frequency?`<span class="sg-field">常用：${escapeHtml(d.frequency)}</span>`:'')+`</div>`
+      +(d.place?`<div class="sg-field">希望放：${escapeHtml(d.place)}</div>`:'');
+  } else if(it.kind==='large'){
+    rows=`<div class="sg-row"><span class="sg-field"><b>${escapeHtml(d.name||'')}</b></span>`
+      +(d.size?`<span class="sg-field">尺寸：${escapeHtml(d.size)}</span>`:'')
+      +(d.qty?`<span class="sg-field">數量：${escapeHtml(String(d.qty))}</span>`:'')
+      +(d.outlet?`<span class="sg-field">插座：${escapeHtml(d.outlet)}</span>`:'')+`</div>`
+      +(d.place?`<div class="sg-field">預計位置：${escapeHtml(d.place)}</div>`:'')
+      +(d.link?`<div class="sg-field">連結：<a href="${escapeHtml(d.link)}" target="_blank" style="color:var(--accent);">商品頁 ›</a></div>`:'');
+  } else {
+    rows=`<div class="sg-row"><span class="sg-field"><b>${escapeHtml(d.item||'')}</b></span>`
+      +(d.importance?`<span class="sg-tag">${escapeHtml(d.importance)}</span>`:'')+`</div>`
+      +(d.trouble?`<div class="sg-field">目前困擾：${escapeHtml(d.trouble)}</div>`:'')
+      +(d.how?`<div class="sg-field">希望怎麼收：${escapeHtml(d.how)}</div>`:'');
+  }
+  const note=d.note?`<div class="sg-note">備註：${escapeHtml(d.note)}</div>`:'';
+  return `<div class="sg-card">${rows}${note}${reminder}
+    <div class="sg-card-actions">
+      <button class="sg-mini-btn" onclick="openStorageModal('${it.kind}',${it.id})">編輯</button>
+      <button class="sg-mini-btn danger" onclick="deleteStorageItem(${it.id})">刪除</button>
+    </div></div>`;
+}
+function switchStorageTab(kind,btn){
+  document.querySelectorAll('#p-storage .stab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  ['have','large','hide'].forEach(k=>{const p=document.getElementById('sg-pane-'+k);if(p)p.style.display=(k===kind)?'block':'none';});
+}
+function openStorageModal(kind,id){
+  _sgEditKind=kind; _sgEditId=id||null;
+  const it=id?_storageItems.find(x=>x.id===id):null;
+  const d=it?(it.data||{}):{};
+  document.getElementById('sm-ttl').textContent=(id?'編輯':'新增')+'：'+SG_KIND_LABEL[kind];
+  let body='';
+  if(kind==='have'){
+    body=`
+      <div class="fg"><label>空間 *</label><select id="sm-space">${_sgOpts(SG_SPACES,d.space)}</select></div>
+      <div class="fg"><label>物品分類 / 名稱 *</label><input id="sm-category" list="sm-cat-list" placeholder="例：衣物、鞋子、鍋具…" value="${escapeHtml(d.category||'')}"><datalist id="sm-cat-list">${SG_CATS.map(c=>`<option value="${escapeHtml(c)}">`).join('')}</datalist></div>
+      <div class="fg"><label>數量感</label><select id="sm-quantity">${_sgOpts(SG_QTY,d.quantity)}</select></div>
+      <div class="fg"><label>常用程度</label><select id="sm-frequency">${_sgOpts(SG_FREQ,d.frequency)}</select></div>
+      <div class="fg"><label>希望放置位置（選填）</label><input id="sm-place" placeholder="例：主臥衣櫃、玄關櫃、家事櫃" value="${escapeHtml(d.place||'')}"></div>
+      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：長洋裝很多、需要好拿">${escapeHtml(d.note||'')}</textarea></div>`;
+  } else if(kind==='large'){
+    body=`
+      <div class="fg"><label>物品名稱 *</label><input id="sm-name" placeholder="例：冰箱、洗衣機、掃地機器人" value="${escapeHtml(d.name||'')}"></div>
+      <div class="fg"><label>尺寸（選填，可填大概）</label><input id="sm-size" placeholder="例：約 70×70×180 cm" value="${escapeHtml(d.size||'')}"></div>
+      <div class="fg"><label>數量</label><input id="sm-qty" type="number" min="1" value="${escapeHtml(String(d.qty||1))}"></div>
+      <div class="fg"><label>預計位置（選填）</label><input id="sm-place" placeholder="例：廚房電器櫃、家事櫃、儲藏室" value="${escapeHtml(d.place||'')}"></div>
+      <div class="fg"><label>是否需要插座</label><select id="sm-outlet">${_sgOpts(SG_OUTLET,d.outlet)}</select></div>
+      <div class="fg"><label>商品連結（選填，不會量尺寸可貼這）</label><input id="sm-link" placeholder="https://…" value="${escapeHtml(d.link||'')}"></div>
+      <div class="fg"><label>備註（選填）</label><textarea id="sm-note" placeholder="例：每天使用、希望藏起來">${escapeHtml(d.note||'')}</textarea></div>`;
+  } else {
+    body=`
+      <div class="fg"><label>不想看到的物品 *</label><input id="sm-item" placeholder="例：電線、掃把拖把、玩具、備品" value="${escapeHtml(d.item||'')}"></div>
+      <div class="fg"><label>目前困擾（選填）</label><input id="sm-trouble" placeholder="例：客廳線很多、玩具每天散落" value="${escapeHtml(d.trouble||'')}"></div>
+      <div class="fg"><label>希望怎麼收（選填）</label><input id="sm-how" placeholder="例：全部藏起來、集中放一個櫃子" value="${escapeHtml(d.how||'')}"></div>
+      <div class="fg"><label>重要程度</label><select id="sm-importance">${_sgOpts(SG_IMPORTANCE,d.importance)}</select></div>`;
+  }
+  document.getElementById('sm-body').innerHTML=body;
+  document.getElementById('sm-modal').style.display='block';
+}
+function closeStorageModal(){document.getElementById('sm-modal').style.display='none';_sgEditId=null;}
+function _sgVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+async function saveStorageItem(){
+  const kind=_sgEditKind; let data={};
+  if(kind==='have'){
+    data={space:_sgVal('sm-space'),category:_sgVal('sm-category'),quantity:_sgVal('sm-quantity'),frequency:_sgVal('sm-frequency'),place:_sgVal('sm-place'),note:_sgVal('sm-note')};
+    if(!data.category){alert('請至少填「物品分類 / 名稱」');return;}
+  } else if(kind==='large'){
+    data={name:_sgVal('sm-name'),size:_sgVal('sm-size'),qty:Number(_sgVal('sm-qty'))||1,place:_sgVal('sm-place'),outlet:_sgVal('sm-outlet'),link:_sgVal('sm-link'),note:_sgVal('sm-note')};
+    if(!data.name){alert('請填「物品名稱」');return;}
+  } else {
+    data={item:_sgVal('sm-item'),trouble:_sgVal('sm-trouble'),how:_sgVal('sm-how'),importance:_sgVal('sm-importance')};
+    if(!data.item){alert('請填「不想看到的物品」');return;}
+  }
+  try{
+    if(_sgEditId){
+      const {error}=await sbClient.from('storage_items').update({data,updated_at:new Date().toISOString()}).eq('id',_sgEditId);
+      if(error) throw error;
+    } else {
+      const {error}=await sbClient.from('storage_items').insert({client_id:currentClientId,kind,data});
+      if(error) throw error;
+    }
+  }catch(e){alert('儲存失敗：'+e.message);return;}
+  closeStorageModal();
+  await renderStoragePage();
+  switchStorageTab(kind,document.querySelector(`#p-storage .stab[onclick*="'${kind}'"]`));
+}
+async function deleteStorageItem(id){
+  if(!confirm('確定刪除這筆？')) return;
+  try{const {error}=await sbClient.from('storage_items').delete().eq('id',id);if(error)throw error;}
+  catch(e){alert('刪除失敗：'+e.message);return;}
+  await renderStoragePage();
+}
+
+// ── 設計師後台 ──
+let _adminStorageItems=[];
+function initAdminStorage(){
+  const sel=document.getElementById('sg-admin-client-sel');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">— 選擇客戶 —</option>'+(clients||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.name||('客戶#'+c.id))}</option>`).join('');
+    if(cur) sel.value=cur;
+  }
+  const sp=document.getElementById('sg-filter-space');
+  if(sp && sp.options.length<=1){ sp.innerHTML='<option value="">全部空間</option>'+SG_SPACES.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join(''); }
+  loadAdminStorage();
+}
+async function loadAdminStorage(){
+  const sel=document.getElementById('sg-admin-client-sel');
+  const cid=sel?Number(sel.value):0;
+  const toolbar=document.getElementById('sg-admin-toolbar');
+  const empty=document.getElementById('sg-admin-empty');
+  const list=document.getElementById('sg-admin-list');
+  if(!cid){ if(toolbar)toolbar.style.display='none'; if(empty)empty.style.display='none'; if(list)list.innerHTML=''; return; }
+  try{
+    const {data}=await sbClient.from('storage_items').select('*').eq('client_id',cid).order('kind',{ascending:true}).order('id',{ascending:true});
+    _adminStorageItems=data||[];
+  }catch(e){console.warn('load admin storage',e);_adminStorageItems=[];}
+  if(toolbar)toolbar.style.display='flex';
+  renderAdminStorage();
+}
+function renderAdminStorage(){
+  const list=document.getElementById('sg-admin-list');
+  const empty=document.getElementById('sg-admin-empty');
+  if(!list) return;
+  const fk=(document.getElementById('sg-filter-kind')||{}).value||'';
+  const fs=(document.getElementById('sg-filter-space')||{}).value||'';
+  const fst=(document.getElementById('sg-filter-status')||{}).value||'';
+  let items=_adminStorageItems.slice();
+  if(fk) items=items.filter(x=>x.kind===fk);
+  if(fs) items=items.filter(x=>x.data&&(x.data.space===fs||x.data.place===fs));
+  if(fst) items=items.filter(x=>(x.status||'new')===fst);
+  if(!items.length){ list.innerHTML=''; if(empty)empty.style.display='block'; return; }
+  if(empty)empty.style.display='none';
+  list.innerHTML=items.map(it=>sgAdminCardHtml(it)).join('');
+}
+function sgAdminCardHtml(it){
+  const d=it.data||{}; const st=it.status||'new';
+  let summary='';
+  if(it.kind==='have'){
+    summary=`<span class="sg-tag">${escapeHtml(d.space||'—')}</span> <b>${escapeHtml(d.category||'')}</b>`
+      +(d.quantity?` · 數量 ${escapeHtml(d.quantity)}`:'')+(d.frequency?` · ${escapeHtml(d.frequency)}`:'')
+      +(d.place?`<div class="sg-field">希望放：${escapeHtml(d.place)}</div>`:'');
+  } else if(it.kind==='large'){
+    summary=`<b>${escapeHtml(d.name||'')}</b>`+(d.size?` · ${escapeHtml(d.size)}`:'')+(d.qty?` · ×${escapeHtml(String(d.qty))}`:'')
+      +(d.outlet?` · 插座：${escapeHtml(d.outlet)}`:'')
+      +(d.place?`<div class="sg-field">預計位置：${escapeHtml(d.place)}</div>`:'')
+      +(d.link?`<div class="sg-field"><a href="${escapeHtml(d.link)}" target="_blank" style="color:var(--accent);">商品連結 ›</a></div>`:'');
+  } else {
+    summary=`<b>${escapeHtml(d.item||'')}</b>`+(d.importance?` · ${escapeHtml(d.importance)}`:'')
+      +(d.trouble?`<div class="sg-field">困擾：${escapeHtml(d.trouble)}</div>`:'')
+      +(d.how?`<div class="sg-field">希望：${escapeHtml(d.how)}</div>`:'');
+  }
+  const note=d.note?`<div class="sg-note">客戶備註：${escapeHtml(d.note)}</div>`:'';
+  const stOpts=Object.keys(SG_STATUS).map(k=>`<option value="${k}"${k===st?' selected':''}>${SG_STATUS[k]}</option>`).join('');
+  return `<div class="sg-card">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+      <span class="sg-tag">${SG_KIND_LABEL[it.kind]}</span>${it.is_important?'<span class="sg-imp">重要</span>':''}
+    </div>
+    <div class="sg-field" style="font-size:13px;">${summary}</div>${note}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <select class="admin-sel" style="min-width:120px;padding:5px 8px;font-size:12px;" onchange="sgAdminSet(${it.id},'status',this.value)">${stOpts}</select>
+      <button class="sg-mini-btn${it.is_important?' danger':''}" onclick="sgAdminSet(${it.id},'is_important',${it.is_important?'false':'true'})">${it.is_important?'取消重要':'標記重要'}</button>
+    </div>
+    <div style="margin-top:8px;">
+      <textarea placeholder="內部備註（不顯示給客戶）" style="width:100%;font-family:inherit;font-size:12px;line-height:1.6;padding:7px 10px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;resize:vertical;min-height:44px;box-sizing:border-box;" onblur="sgAdminSetNote(${it.id},this.value)">${escapeHtml(it.designer_note||'')}</textarea>
+    </div>
+  </div>`;
+}
+async function sgAdminSet(id,field,value){
+  const it=_adminStorageItems.find(x=>x.id===id); if(!it) return;
+  const patch={}; patch[field]=value; patch.updated_at=new Date().toISOString();
+  try{const {error}=await sbClient.from('storage_items').update(patch).eq('id',id);if(error)throw error;}
+  catch(e){alert('更新失敗：'+e.message);return;}
+  it[field]=value;
+  renderAdminStorage();
+}
+async function sgAdminSetNote(id,value){
+  const it=_adminStorageItems.find(x=>x.id===id); if(!it) return;
+  const v=(value||'').trim();
+  if((it.designer_note||'')===v) return;
+  try{const {error}=await sbClient.from('storage_items').update({designer_note:v,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;}
+  catch(e){alert('備註儲存失敗：'+e.message);return;}
+  it.designer_note=v;
+}
+function copyStorageSummary(){
+  const sel=document.getElementById('sg-admin-client-sel');
+  const cname=sel&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'';
+  if(!_adminStorageItems.length){alert('目前沒有資料可複製');return;}
+  let txt=`【收納需求盤點】${cname}\n\n`;
+  ['have','large','hide'].forEach(k=>{
+    const items=_adminStorageItems.filter(x=>x.kind===k);
+    if(!items.length) return;
+    txt+=`■ ${SG_KIND_LABEL[k]}\n`;
+    items.forEach(it=>{
+      const d=it.data||{}; let line='';
+      if(k==='have') line=`${d.space||''} / ${d.category||''}（${d.quantity||'-'}・${d.frequency||'-'}）${d.place?'→ '+d.place:''}`;
+      else if(k==='large') line=`${d.name||''} ${d.size||''} ×${d.qty||1} ${d.outlet?'插座:'+d.outlet:''} ${d.place?'→ '+d.place:''}`;
+      else line=`${d.item||''}（${d.importance||'-'}）${d.how?'希望:'+d.how:''}`;
+      const flags=[it.is_important?'★重要':'',SG_STATUS[it.status||'new']].filter(Boolean).join(' ');
+      txt+=`  - ${line}${flags?'  ['+flags+']':''}${d.note?'  /備註:'+d.note:''}${it.designer_note?'  /內部:'+it.designer_note:''}\n`;
+    });
+    txt+='\n';
+  });
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>alert('已複製成會議紀錄格式，可直接貼到記事或會議文件。')).catch(()=>sgFallbackCopy(txt));
+  } else sgFallbackCopy(txt);
+}
+function sgFallbackCopy(txt){
+  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');alert('已複製成會議紀錄格式。');}catch(e){alert('複製失敗，請手動選取。');}
+  document.body.removeChild(ta);
 }
 
 // 客戶端模塊 toggle（從 work-system DB 跨讀）
