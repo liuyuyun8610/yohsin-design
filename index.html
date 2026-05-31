@@ -539,7 +539,7 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .meeting-record{background:#fff;border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
 .meeting-record-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background 0.12s;}
 .meeting-record-hd:hover{background:var(--sand);}
-.meeting-record-date{font-size:12px;font-weight:500;color:var(--ink);min-width:72px;flex-shrink:0;}
+.meeting-record-date{font-size:11px;font-weight:500;color:var(--ink);flex-shrink:0;white-space:nowrap;}
 .meeting-record-title{font-size:13px;color:var(--ink-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .meeting-record-arr{font-size:12px;color:var(--ink-light);transition:transform 0.2s;flex-shrink:0;}
 .meeting-record-arr.open{transform:rotate(90deg);}
@@ -714,6 +714,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client .ci{background:var(--cli-card-alt);border:0.5px solid var(--cli-border);color:#4A4A4A;font-size:12px;}
 #s-client .cs{color:#4A4A4A;font-size:11px;background:var(--cli-card-alt);border:0.5px solid var(--cli-border);border-radius:0;}
 #s-client input.ci::placeholder{color:rgba(160,144,128,0.45);}
+#s-client .copy-model{flex-shrink:0;font-size:12px;line-height:1;padding:4px 7px;border:0.5px solid var(--cli-border,rgba(139,107,72,0.25));border-radius:6px;background:#fff;color:var(--cli-accent2,#B8936A);cursor:pointer;}
+#s-client .copy-model:active{opacity:0.55;}
+/* 手機版必填清單：字級縮小到與標題列一致、加寬表格避免名稱/品牌/型號被擠掉 */
+@media (max-width:640px){
+  #p-checklist .tbl-wrap table{min-width:760px;}
+  #s-client #p-checklist .ci,#s-client #p-checklist .cs{font-size:11px;padding:7px 6px;}
+  #p-checklist thead th{font-size:11px;padding:7px 6px;letter-spacing:0.03em;}
+  #s-client #p-checklist .copy-model{font-size:11px;padding:3px 5px;}
+}
 #s-client .add-row-btn{color:var(--cli-muted);border-color:var(--cli-border);}
 #s-client .cal-wrap{background:var(--cli-card-alt);border-radius:16px;}
 #s-client .cday{background:var(--cli-card);border-color:transparent;}
@@ -12592,10 +12601,12 @@ function renderAppTable(type,data){
     // 型號
     const tdM=document.createElement('td');
     const tdMWrap=document.createElement('div');tdMWrap.style.cssText='display:flex;align-items:center;gap:4px;';
-    const mi=document.createElement('input');mi.className='ci';mi.value=r.model||'';mi.placeholder='型號';mi.style.flex='1';
+    const mi=document.createElement('input');mi.className='ci';mi.value=r.model||'';mi.placeholder='型號';mi.style.flex='1';mi.style.minWidth='0';
     mi.oninput=e=>r.model=e.target.value;
     mi.onblur=()=>{if(pid)dbSaveChecklistItem(pid,dbType,r).catch(e=>console.warn(e));};
-    tdMWrap.appendChild(mi);tdM.appendChild(tdMWrap);tr.appendChild(tdM);
+    const cpB=document.createElement('button');cpB.type='button';cpB.className='copy-model';cpB.textContent='⧉';cpB.title='複製型號，方便 Google 查詢';
+    cpB.onclick=()=>{const v=(mi.value||'').trim();if(!v)return;const done=()=>{cpB.textContent='✓';setTimeout(()=>cpB.textContent='⧉',1200);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(done).catch(()=>{try{mi.select();document.execCommand('copy');done();}catch(e){}});}else{try{mi.select();document.execCommand('copy');done();}catch(e){}}};
+    tdMWrap.appendChild(mi);tdMWrap.appendChild(cpB);tdM.appendChild(tdMWrap);tr.appendChild(tdM);
     // 尺寸
     const tdDim=document.createElement('td');
     const di=document.createElement('input');di.className='ci';di.value=r.dims||'';di.placeholder='例：60×40×85';di.style.width='100%';
