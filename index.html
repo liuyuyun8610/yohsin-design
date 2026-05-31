@@ -4304,6 +4304,11 @@ function fmtMDate(s){
   if(!m) return String(s);
   return m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+String(m[3]).padStart(2,'0');
 }
+// 日期轉可比較數值 YYYYMMDD（不論 - 或 / 分隔；無法解析回 0 排最後），給排序用
+function dateNum(s){
+  const m=fmtMDate(s).match(/^(\d{4})\/(\d{2})\/(\d{2})/);
+  return m?Number(m[1]+m[2]+m[3]):0;
+}
 // HTML 富文字 → 純文字（保留換行），給「複製」用
 function htmlToText(h){
   return String(h||'')
@@ -6903,7 +6908,7 @@ function renderClientLineScreenshots(d){
   const shots=d.lineScreenshots||[];
   if(!shots.length){el.innerHTML='<div class="empty-state">尚無 LINE 截圖記錄</div>';return;}
   // Sort newest first
-  const sorted=[...shots].sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted=[...shots].sort((a,b)=>dateNum(b.date)-dateNum(a.date));
   sorted.forEach(s=>{
     const imgs=s.images||[];
     const count=imgs.length;
@@ -6941,7 +6946,7 @@ function smartFormat(text){
 
 function renderClientFormalMeetings(d){
   const el=document.getElementById('client-formal-meetings');el.innerHTML='';
-  const sorted=[...(d.formalMeetings||[])].sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted=[...(d.formalMeetings||[])].sort((a,b)=>dateNum(b.date)-dateNum(a.date));
   if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議記錄</div>';return;}
   sorted.forEach(m=>{
     const imgHtml=(m.images&&m.images.length)?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px;">${m.images.map(src=>{
@@ -6997,7 +7002,7 @@ function renderClientNotes(){
   const c=clients.find(x=>x.id===currentClientId);
   if(!c) return;
   const cid=Number(c.id);
-  const notes=(docsData[cid]?.clientNotes||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const notes=(docsData[cid]?.clientNotes||[]).slice().sort((a,b)=>dateNum(b.date)-dateNum(a.date));
   const el=document.getElementById('client-notes-list');
   if(!el) return;
   el.innerHTML='';
@@ -7917,7 +7922,7 @@ function switchAdminMeetingTab(tab,el){
 
 function renderAdminClientNotesList(cid){
   const el=document.getElementById('admin-client-notes-list'); if(!el) return;
-  const notes=(docsData[cid]?.clientNotes||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const notes=(docsData[cid]?.clientNotes||[]).slice().sort((a,b)=>dateNum(b.date)-dateNum(a.date));
   el.innerHTML='';
   if(!notes.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">業主尚未新增筆記</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
@@ -8147,6 +8152,7 @@ function previewLineImgs(e){
 }
 function renderAdminLineList(cid){
   const shots=docsData[cid].lineScreenshots||[];
+  shots.sort((a,b)=>dateNum(b.date)-dateNum(a.date)); // 最新日期在最上面
   const el=document.getElementById('admin-line-list');el.innerHTML='';
   if(!shots.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無截圖記錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
@@ -8159,7 +8165,7 @@ function renderAdminLineList(cid){
     const main=document.createElement('div');main.className='ufile-row';
     main.innerHTML=`<div class="ufile-icon"></div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:500;">${s.date}</div>
+        <div style="font-size:12px;font-weight:500;">${fmtMDate(s.date)}</div>
         <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${(s.images||[]).length} 張截圖${s.note?'　<span style="color:var(--accent);">'+s.note+'</span>':''}</div>
       </div>
       <button class="btn-sm" onclick="toggleLineShotEdit(${cid},${i})" id="line-edit-btn-${cid}-${i}">編輯</button>
@@ -8337,6 +8343,7 @@ function handleFormalDrop(e){
 }
 function renderAdminFormalList(cid){
   const meetings=docsData[cid].formalMeetings||[];
+  meetings.sort((a,b)=>dateNum(b.date)-dateNum(a.date)); // 最新日期在最上面
   const el=document.getElementById('admin-formal-list');el.innerHTML='';
   if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議記錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
@@ -9854,7 +9861,7 @@ function renderDashMeetings(){
   });
 
   // 排序最新在前，取最多 3 筆
-  all.sort((a,b)=>b.date.localeCompare(a.date));
+  all.sort((a,b)=>dateNum(b.date)-dateNum(a.date));
   const top=all.slice(0,3);
 
   if(!top.length){
