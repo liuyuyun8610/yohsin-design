@@ -1081,7 +1081,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 專案總覽 -->
     <div class="page active" id="p-overview">
-      <!-- 保固卡（已完工才顯示，置頂） -->
+      <!-- 專案標題 -->
+      <div style="margin-bottom:1.2rem;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:0.4rem;">
+          <div id="p-proj-title" style="font-family:'NumQuicksand','Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;line-height:1.1;"></div>
+          <span id="p-proj-status"></span>
+        </div>
+        <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：—</div>
+      </div>
+
+      <!-- 保固卡（保固中／已完工顯示） -->
       <div id="dash-warranty-card" style="margin-bottom:1.4rem;display:none;">
         <div class="warranty-card">
           <div class="wc-brand">有心制作<span>WARRANTY CARD</span></div>
@@ -1096,14 +1105,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button onclick="goPage('p-warranty',null)" style="font-family:inherit;font-size:12px;padding:8px 18px;background:transparent;color:var(--accent);border:0.5px solid var(--accent);border-radius:999px;cursor:pointer;letter-spacing:0.04em;white-space:nowrap;">查看保固卡 ›</button>
         </div>
         <span id="warranty-end-date" style="display:none;"></span><span id="warranty-expire-date" style="display:none;"></span>
-      </div>
-      <!-- 專案標題 -->
-      <div style="margin-bottom:1.2rem;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:0.4rem;">
-          <div id="p-proj-title" style="font-family:'NumQuicksand','Noto Serif TC',serif;font-size:26px;font-weight:500;letter-spacing:0.04em;line-height:1.1;"></div>
-          <span id="p-proj-status"></span>
-        </div>
-        <div style="font-size:12px;color:var(--ink-light);" id="p-proj-meta">合約起始：— ｜ 預計完工：—</div>
       </div>
 
       <!-- 本週進度卡（設計師每週填，客戶看「我們最近幫您做了什麼」）-->
@@ -1172,7 +1173,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
 
       <!-- 1. 目前施工進度 -->
-      <div class="card" style="margin-bottom:12px;background:transparent;border:none;box-shadow:none;padding:0 4px;">
+      <div class="card" id="dash-construction-card" style="margin-bottom:12px;background:transparent;border:none;box-shadow:none;padding:0 4px;">
         <div class="card-title">目前施工進度</div>
         <div id="dash-progress-now" style="margin-bottom:10px;"></div>
         <div id="dash-progress-done" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
@@ -9159,6 +9160,8 @@ async function renderClientPhaseTimeline(proj) {
   const progEl = document.getElementById('dash-phase-progress');
   if (!card || !tilesEl) return;
   if (!proj || !proj.currentPhase) { card.style.display = 'none'; return; }
+  // 保固中／已完工：旅程已結束，隱藏時間軸
+  if (['保固中','已完工','已過保','已結案'].includes(proj.status)) { card.style.display = 'none'; return; }
   card.style.display = 'block';
   const cp = Number(proj.currentPhase) || 1;
 
@@ -9644,9 +9647,13 @@ async function renderClientDashboard(){
   // --- 裝修旅程 Monopoly 風時間軸 ---
   renderClientPhaseTimeline(proj);
 
-  // --- 保固資訊 ---
+  // --- 保固中／已完工：隱藏目前施工進度 ---
+  const constrCard=document.getElementById('dash-construction-card');
+  if(constrCard) constrCard.style.display=(proj&&['保固中','已完工','已過保','已結案'].includes(proj.status))?'none':'block';
+
+  // --- 保固資訊（保固中／已完工／已過保 顯示保固卡）---
   const warrantyCard=document.getElementById('dash-warranty-card');
-  if(proj&&proj.status==='已完工'&&warrantyCard){
+  if(proj&&['已完工','保固中','已過保'].includes(proj.status)&&warrantyCard){
     warrantyCard.style.display='block';
     let warrantyEnd='—', expireDate='—', expired=false;
     if(proj.endDate){
