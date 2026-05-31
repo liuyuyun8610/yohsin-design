@@ -4304,6 +4304,33 @@ function fmtMDate(s){
   if(!m) return String(s);
   return m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+String(m[3]).padStart(2,'0');
 }
+// HTML 富文字 → 純文字（保留換行），給「複製」用
+function htmlToText(h){
+  return String(h||'')
+    .replace(/<\s*br\s*\/?>/gi,'\n')
+    .replace(/<li[^>]*>/gi,'・')
+    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi,'\n')
+    .replace(/<[^>]+>/g,'')
+    .replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#39;/g,"'").replace(/&quot;/gi,'"')
+    .replace(/\n{3,}/g,'\n\n').replace(/[ \t]+\n/g,'\n').trim();
+}
+// 通用複製到剪貼簿（含 fallback），btn 顯示 ✓ 回饋
+function copyTextToClipboard(text,btn){
+  const done=()=>{ if(btn){const o=btn.textContent;btn.textContent='✓ 已複製';setTimeout(()=>btn.textContent=o,1400);} };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopyText(text,done));
+  } else fallbackCopyText(text,done);
+}
+function fallbackCopyText(text,done){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');if(done)done();}catch(e){alert('複製失敗，請手動選取');}
+  document.body.removeChild(ta);
+}
+function copyFormalMeeting(cid,i){
+  const m=(docsData[cid]&&docsData[cid].formalMeetings||[])[i]; if(!m) return;
+  const text=`${fmtMDate(m.date)}　${m.title||''}\n\n${htmlToText(m.content||'')}`.trim();
+  copyTextToClipboard(text,event&&event.target&&event.target.closest('button'));
+}
 
 // ========== 客戶端：圖紙未讀計數（跨裝置 DB 同步）==========
 // in-memory cache: { [clientId_type]: lastSeenId }
@@ -8318,7 +8345,7 @@ function renderAdminFormalList(cid){
     // 取純文字 snippet（去 HTML tags）
     const plain=(m.content||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     const imgCount=(m.images||[]).length;
-    r.innerHTML=`<div class="ufile-icon"></div><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;">${m.date} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${plain.substring(0,60)}${plain.length>60?'…':''}${imgCount?` ・${imgCount}`:''}</div></div><button class="btn-sm" onclick="editFormalMeeting(${cid},${i})" style="margin-right:6px;">編輯</button><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;
+    r.innerHTML=`<div class="ufile-icon"></div><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;">${fmtMDate(m.date)} — ${m.title}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${plain.substring(0,60)}${plain.length>60?'…':''}${imgCount?` ・${imgCount}`:''}</div></div><button class="btn-sm" onclick="copyFormalMeeting(${cid},${i})" style="margin-right:6px;">複製</button><button class="btn-sm" onclick="editFormalMeeting(${cid},${i})" style="margin-right:6px;">編輯</button><button class="btn-sm danger" onclick="removeFormal(${cid},${i})">刪除</button>`;
     wrap.appendChild(r);
   });
   el.appendChild(wrap);
