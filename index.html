@@ -4304,6 +4304,17 @@ function fmtMDate(s){
   if(!m) return String(s);
   return m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+String(m[3]).padStart(2,'0');
 }
+// 從一組項目算「最後更新時間」：YYYY/MM/DD HH:MM（24h），凌晨(0-4點)加「凌晨」前綴
+function lastUpdateLabel(items){
+  const ts=(items||[]).map(v=>{const t=v&&(v.updatedAt||v.createdAt);return t?Date.parse(t):0;}).filter(n=>n>0);
+  if(!ts.length) return '';
+  const d=new Date(Math.max(...ts));
+  if(isNaN(d.getTime())) return '';
+  const p=n=>String(n).padStart(2,'0');
+  const h=d.getHours();
+  const pre=(h>=0&&h<5)?'凌晨 ':'';
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${pre}${p(h)}:${p(d.getMinutes())}`;
+}
 // 日期轉可比較數值 YYYYMMDD（不論 - 或 / 分隔；無法解析回 0 排最後），給排序用
 function dateNum(s){
   const m=fmtMDate(s).match(/^(\d{4})\/(\d{2})\/(\d{2})/);
@@ -4782,7 +4793,7 @@ async function dbLoadDocs(pid){
     docsData[pid].contracts={design:[],construction:[]};
     docsData[pid].quotes=[];
     (data||[]).forEach(r=>{
-      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',contractHtml:r.contract_html||'',contractData:r.contract_data||null,signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||'',
+      const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',createdAt:r.created_at||null,updatedAt:r.updated_at||null,contractHtml:r.contract_html||'',contractData:r.contract_data||null,signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||'',
         // 圖紙最終版客戶確認欄位
         customerConfirmedAt:r.customer_confirmed_at||null, customerSignatureName:r.customer_signature_name||'', customerAcknowledgements:r.customer_acknowledgements||null};
       if(r.doc_type.startsWith('drawing_')){
@@ -6626,7 +6637,9 @@ function renderClient3DGallery(d){
   const albumMaxId=k=>Math.max(...grouped[k].map(v=>Number(v.dbId)||0));
   const dates=Object.keys(grouped).sort((a,b)=>albumMaxId(b)-albumMaxId(a));
   // Build album list view + inside view (hidden by default)
+  const _lu=lastUpdateLabel(allRenders);
   gallery.innerHTML=`
+    ${_lu?`<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;letter-spacing:0.02em;">最後更新時間：${_lu}</div>`:''}
     <div id="album-list-view" class="album-list"></div>
     <div id="album-inside-view" style="display:none;">
       <div class="render-album-back" onclick="closeAlbum()">‹ 返回相簿</div>
@@ -6749,7 +6762,8 @@ function renderClientElevationGallery(d){
   // group by album name (date 欄位)
   const grouped={};
   all.forEach(v=>{(grouped[v.date||'未分組']=grouped[v.date||'未分組']||[]).push(v);});
-  const albumNames=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+  const _albMaxId=k=>Math.max(0,...grouped[k].map(v=>Number(v.dbId)||0));
+  const albumNames=Object.keys(grouped).sort((a,b)=>{const d=dateNum(b)-dateNum(a);return d!==0?d:_albMaxId(b)-_albMaxId(a);});
 
   gallery.innerHTML='';
   albumNames.forEach((name,albumIdx)=>{
@@ -7201,7 +7215,9 @@ function renderAdminDrawingList(cid){
       if(!albums[key]) albums[key]=[];
       albums[key].push({...v,_idx:i});
     });
-    const albumKeys=Object.keys(albums).sort((a,b)=>b.localeCompare(a));
+    // 最新日期相簿排最上面；非日期命名的相簿則以最新上傳（dbId）排序
+    const albumMaxId=k=>Math.max(0,...albums[k].map(v=>Number(v.dbId)||0));
+    const albumKeys=Object.keys(albums).sort((a,b)=>{const d=dateNum(b)-dateNum(a);return d!==0?d:albumMaxId(b)-albumMaxId(a);});
 
     albumKeys.forEach((albumName,albumIdx)=>{
       const photos=albums[albumName];
