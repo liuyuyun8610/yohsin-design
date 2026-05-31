@@ -1042,7 +1042,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="tnav" onclick="goPage('p-contracts',this)">合約報價</button>
       <button class="tnav" onclick="goPage('p-meetings',this)">會議記錄</button>
       <button class="tnav" onclick="goPage('p-materials',this)">選材紀錄</button>
-      <button class="tnav" onclick="goPage('p-construction',this)">施工照片</button>
+      <button class="tnav" onclick="goPage('p-construction',this)">行事曆</button>
       <button class="tnav" onclick="goPage('p-payment',this)">財務紀錄</button>
       <button class="tnav" onclick="goPage('p-checklist',this)">必填清單</button>
       <button class="tnav" onclick="goPage('p-storage',this)">工具</button>
@@ -1065,7 +1065,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <button class="mobile-tnav" onclick="goPageMobile('p-contracts',this,'client')">合約報價</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議記錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-materials',this,'client')">選材紀錄</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">施工照片</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">行事曆</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">財務紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-checklist',this,'client')">必填清單</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-storage',this,'client')">工具</button>
@@ -1673,7 +1673,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
     <!-- 施工照片 -->
     <div class="page" id="p-construction">
-      <div class="page-title">施工照片區</div>
+      <div class="page-title">行事曆</div>
+      <div class="notice-desc" style="margin-bottom:1.2rem;">這裡包含施工照片與我們的工程進度，依日期整理，方便您回顧每天的進展。</div>
 
       <!-- 目前狀態（設計師填，客戶不用一張一張照片看就能知道進度）-->
       <div id="cons-status-card" style="display:none;margin-bottom:14px;padding:14px 16px;background:#FBF6EC;border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:12px;">
