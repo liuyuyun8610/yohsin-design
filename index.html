@@ -716,12 +716,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client input.ci::placeholder{color:rgba(160,144,128,0.45);}
 #s-client .copy-model{flex-shrink:0;font-size:12px;line-height:1;padding:4px 7px;border:0.5px solid var(--cli-border,rgba(139,107,72,0.25));border-radius:6px;background:#fff;color:var(--cli-accent2,#B8936A);cursor:pointer;}
 #s-client .copy-model:active{opacity:0.55;}
-/* 手機版必填清單：字級縮小到與標題列一致、加寬表格避免名稱/品牌/型號被擠掉 */
-@media (max-width:640px){
+/* 手機版必填清單：字級 12px、加寬表格避免名稱/品牌/型號被擠掉 */
+@media (max-width:768px){
   #p-checklist .tbl-wrap table{min-width:760px;}
-  #s-client #p-checklist .ci,#s-client #p-checklist .cs{font-size:11px;padding:7px 6px;}
-  #p-checklist thead th{font-size:11px;padding:7px 6px;letter-spacing:0.03em;}
-  #s-client #p-checklist .copy-model{font-size:11px;padding:3px 5px;}
+  #s-client #p-checklist .ci,#s-client #p-checklist .cs,#p-checklist .tbl-wrap input,#p-checklist .tbl-wrap select{font-size:12px !important;padding:7px 7px;}
+  #p-checklist thead th{font-size:12px !important;padding:7px 7px;letter-spacing:0.02em;}
+  #s-client #p-checklist .copy-model{font-size:12px !important;padding:3px 6px;}
 }
 #s-client .add-row-btn{color:var(--cli-muted);border-color:var(--cli-border);}
 #s-client .cal-wrap{background:var(--cli-card-alt);border-radius:16px;}
