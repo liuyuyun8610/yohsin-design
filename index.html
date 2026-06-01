@@ -11053,6 +11053,7 @@ async function renderClientMaterials(){
                   ${statusPill(it.status)}
                 </div>
                 ${lines?`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">${lines}</div>`:''}
+                ${it.client_can_purchase?`<div style="display:inline-block;font-size:10px;color:#2D5A87;background:#E8EFF6;padding:2px 8px;border-radius:6px;margin-bottom:4px;letter-spacing:0.04em;">🛒 可自行採購</div>`:''}
                 ${it.location?`<div style="font-size:11px;color:var(--ink-muted);">📍 ${it.location}</div>`:''}
                 ${it.designer_advice?`<div style="font-size:11px;color:var(--accent);background:var(--sand);padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">💡 ${it.designer_advice}</div>`:''}
                 ${it.caveats?`<div style="font-size:11px;color:#7A5E1A;background:#FBF4E8;padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">小提醒｜${it.caveats}</div>`:''}
