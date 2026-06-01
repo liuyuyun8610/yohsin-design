@@ -1349,15 +1349,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.7;">買家具量尺寸時直接看這份。包含整體空間尺寸與已預留的家具位置標註。</div>
           <div id="client-furniture-gallery"></div>
         </div>
-        <div class="doc-section">
-          <div class="doc-section-title">施工圖紙</div>
-          <div class="drawing-grid" id="client-drawings"></div>
-          <div class="old-versions-toggle" onclick="toggleOldVersions('drawings-old')">
-            ▸ 舊版本資料
-          </div>
-          <div class="old-versions-body" id="drawings-old">
-            <div id="client-drawings-old"></div>
-          </div>
+        <div class="doc-section" id="client-plan-section" style="display:none;">
+          <div class="doc-section-title">平面施工圖</div>
+          <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳各版本的平面施工圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
+          <div id="client-plan-gallery"></div>
         </div>
         <div class="doc-section" id="client-elevation-section" style="display:none;">
           <div class="doc-section-title">立面施工圖</div>
@@ -4459,8 +4454,8 @@ function goToDrawingType(type){
       const sec=document.getElementById('client-furniture-section');
       if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
     } else {
-      const dg=document.getElementById('client-drawings');
-      if(dg) dg.scrollIntoView({behavior:'smooth',block:'start'});
+      const sec=document.getElementById('client-plan-section');
+      if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
     }
   }, 150);
 }
@@ -6548,52 +6543,9 @@ function getDrawingConfirmBlock(v, drawingType){
 // ========== CLIENT DOCS ==========
 function renderClientDocs(){
   const d=docsData[currentClientId];if(!d)return;
-  const dg=document.getElementById('client-drawings');dg.innerHTML='';
-  const dgo=document.getElementById('client-drawings-old');dgo.innerHTML='';
 
-  // 平面系統圖（立面已改 album，獨立區塊；效果圖也獨立）
-  const planTypes=['平面系統圖'];
-  const icons={'平面系統圖':'','立面系統圖':''};
-  planTypes.forEach(t=>{
-    const vers=d.drawings[t]||[];
-    // 排序：最終版優先 → 日期新到舊 → 同日期 dbId 大到小
-    const sortedVers=[...vers].sort((a,b)=>{
-      if(!!b.isFinal !== !!a.isFinal) return (b.isFinal?1:0)-(a.isFinal?1:0);
-      const ad=a.date||'', bd=b.date||'';
-      if(ad !== bd) return bd.localeCompare(ad);
-      return (b.dbId||0)-(a.dbId||0);
-    });
-    const showVer=sortedVers[0];               // 排序後第一個（最終版 / 最新）
-    const oldVers=sortedVers.slice(1);
-    if(showVer){
-      const c=document.createElement('div');c.className='drawing-card';
-      const hasImg=showVer.fileUrl&&/\.(jpg|jpeg|png|webp|gif)$/i.test(showVer.fileUrl);
-      const FALLBACK_COVER='https://images.pexels.com/photos/4977406/pexels-photo-4977406.jpeg?auto=compress&cs=tinysrgb&w=800';
-      const thumb=hasImg?`<img src="${showVer.fileUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<img src="${FALLBACK_COVER}" alt="施工圖紙" style="width:100%;height:100%;object-fit:cover;">`;
-      const latestBadge=`<span style="font-size:9px;font-weight:500;background:#F3EEE5;color:#7A5C3A;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:0.04em;">最新版</span>`;
-      const finalBadge=showVer.isFinal?`<span class="pill pill-final" style="font-size:9px;">最終版</span>`:'';
-      const noteLine=showVer.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:4px;line-height:1.6;"><strong style="color:var(--ink);">主要調整：</strong>${showVer.note}</div>`:'';
-      const confirmBlock=getDrawingConfirmBlock(showVer, t);
-      c.innerHTML=`<div class="drawing-thumb" style="padding:0;">${thumb}</div><div class="drawing-info"><div class="drawing-name">${t} ${latestBadge}${finalBadge}</div><div class="drawing-meta" style="color:var(--ink);font-weight:500;">版本日期：${showVer.date||'—'}</div>${noteLine}${confirmBlock}</div>`;
-      const thumbEl=c.querySelector('.drawing-thumb');
-      if(showVer.fileUrl && thumbEl) thumbEl.onclick=()=>window.open(showVer.fileUrl,'_blank');
-      dg.appendChild(c);
-    }
-    oldVers.forEach(v=>{
-      const r=document.createElement('div');
-      r.className='old-ver-item';
-      r.style.cursor = v.fileUrl ? 'pointer' : 'default';
-      const noteText=v.note?`主要調整：${v.note}`:'舊版本';
-      r.innerHTML=`<span style="font-size:16px;">${icons[t]||''}</span><span style="flex:1;">${t}｜<span style="color:var(--ink-light);">${noteText}</span></span><span class="fdate">${v.date||''}</span>`;
-      if(v.fileUrl){
-        r.onclick=()=>window.open(v.fileUrl,'_blank');
-        r.title='點擊開啟';
-      }
-      dgo.appendChild(r);
-    });
-  });
-  if(!dgo.children.length)dgo.innerHTML='<div style="font-size:12px;color:var(--ink-light);">無舊版本資料</div>';
-
+  // 平面施工圖 gallery（呈現方式同立面：分批版本 → 可折疊相簿）
+  renderClientPlanGallery(d);
   // 空間與家具尺寸圖（置頂；買家具最常用）
   renderClientFurnitureGallery(d);
   // 立面施工圖 gallery（依相簿名稱分組，PDF/圖片皆可）
@@ -6757,23 +6709,24 @@ function renderClientFurnitureGallery(d){
   }
 }
 
-// 立面施工圖（客戶端）：依相簿名稱分組，支援 PDF + 圖片
-function renderClientElevationGallery(d){
-  const sec=document.getElementById('client-elevation-section');
-  const gallery=document.getElementById('client-elevation-gallery');
+// 通用：依相簿（date 欄位）分組的施工圖庫，支援 PDF + 圖片
+// 立面施工圖 / 平面施工圖 共用同一套呈現（分批版本 → 可折疊相簿 → 點縮圖進閱讀模式）
+function renderClientAlbumGallery(d, opts){
+  const sec=document.getElementById(opts.sectionId);
+  const gallery=document.getElementById(opts.galleryId);
   if(!sec||!gallery) return;
-  const all=(d.drawings['立面系統圖']||[]).filter(v=>v.fileUrl)
+  const all=(d.drawings[opts.type]||[]).filter(v=>v.fileUrl)
     .sort((a,b)=>(Number(b.dbId)||0)-(Number(a.dbId)||0)); // 新上傳的版本排前面
   if(!all.length){sec.style.display='none';return;}
   sec.style.display='block';
   // 給 slideshow 用（跨相簿全部）：點任一張縮圖會進入閱讀模式
-  window._elevAllItems = all;
+  window[opts.slideKey] = all;
 
   // group by album name (date 欄位)
   const grouped={};
   all.forEach(v=>{(grouped[v.date||'未分組']=grouped[v.date||'未分組']||[]).push(v);});
   const _albMaxId=k=>Math.max(0,...grouped[k].map(v=>Number(v.dbId)||0));
-  const albumNames=Object.keys(grouped).sort((a,b)=>{const d=dateNum(b)-dateNum(a);return d!==0?d:_albMaxId(b)-_albMaxId(a);});
+  const albumNames=Object.keys(grouped).sort((a,b)=>{const dd=dateNum(b)-dateNum(a);return dd!==0?dd:_albMaxId(b)-_albMaxId(a);});
 
   gallery.innerHTML='';
   albumNames.forEach((name,albumIdx)=>{
@@ -6782,8 +6735,8 @@ function renderClientElevationGallery(d){
     const wrap=document.createElement('div');
     wrap.style.cssText='margin-bottom:10px;border:0.5px solid var(--border);border-radius:12px;background:#fff;overflow:hidden;';
     const safe=encodeURIComponent(name).replace(/%/g,'_');
-    const gridId=`cli-elev-grid-${safe}`;
-    const arrowId=`cli-elev-arrow-${safe}`;
+    const gridId=`${opts.idPrefix}-grid-${safe}`;
+    const arrowId=`${opts.idPrefix}-arrow-${safe}`;
     wrap.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--sand);cursor:pointer;user-select:none;" onclick="(function(){var g=document.getElementById('${gridId}');var a=document.getElementById('${arrowId}');if(!g)return;var open=g.style.display!=='none';g.style.display=open?'none':'grid';if(a)a.style.transform=open?'':'rotate(90deg)';})()">
         <span id="${arrowId}" style="font-size:12px;color:var(--ink-light);transition:transform .2s;${isFirst?'transform:rotate(90deg)':''}">›</span>
@@ -6809,14 +6762,14 @@ function renderClientElevationGallery(d){
                        : v.isFinal ? 'box-shadow:inset 0 0 0 2px #D4A017;'
                        : '';
       cell.style.cssText += ringStyle;
+      const openReader=()=>{
+        window[opts.slideKey] = all;  // 全部（跨相簿）給 slideshow 用
+        const realIdx = all.findIndex(x=>x.dbId===v.dbId);
+        openElevationSlideshow(opts.slideKey, realIdx>=0?realIdx:0);
+      };
       if(isImg){
         cell.innerHTML=`${cornerBadge}<img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-        // 點擊：進入 slideshow 閱讀模式（一張一張看）
-        cell.onclick=()=>{
-          window._elevAllItems = all;  // 全部立面圖（跨相簿）給 slideshow 用
-          const realIdx = all.findIndex(x=>x.dbId===v.dbId);
-          openElevationSlideshow('_elevAllItems', realIdx>=0?realIdx:0);
-        };
+        cell.onclick=openReader;
       } else {
         // PDF：先放 placeholder + label，PDF.js 渲染好換上第一頁縮圖
         cell.style.background='#FBF8F4';
@@ -6830,12 +6783,7 @@ function renderClientElevationGallery(d){
         const loadingEl=cell.querySelector('.pdf-thumb-loading');
         if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
         renderPdfThumb(v.fileUrl, imgEl, {width:280});
-        // 點擊：進入 slideshow 閱讀模式（一張一張看）
-        cell.onclick=()=>{
-          window._elevAllItems = all;  // 全部立面圖（跨相簿）給 slideshow 用
-          const realIdx = all.findIndex(x=>x.dbId===v.dbId);
-          openElevationSlideshow('_elevAllItems', realIdx>=0?realIdx:0);
-        };
+        cell.onclick=openReader;
       }
       grid.appendChild(cell);
     });
@@ -6845,10 +6793,20 @@ function renderClientElevationGallery(d){
     if(finals.length){
       const block = document.createElement('div');
       block.style.cssText = 'padding:10px 14px;border-top:0.5px solid var(--accent-pale);background:#FAFAF8;';
-      block.innerHTML = finals.map(v => getDrawingConfirmBlock(v, '立面系統圖')).join('');
+      block.innerHTML = finals.map(v => getDrawingConfirmBlock(v, opts.type)).join('');
       wrap.appendChild(block);
     }
   });
+}
+
+// 立面施工圖（客戶端）：依相簿名稱分組
+function renderClientElevationGallery(d){
+  renderClientAlbumGallery(d, {type:'立面系統圖', sectionId:'client-elevation-section', galleryId:'client-elevation-gallery', slideKey:'_elevAllItems', idPrefix:'cli-elev'});
+}
+
+// 平面施工圖（客戶端）：呈現方式同立面（多版本 → 相簿）
+function renderClientPlanGallery(d){
+  renderClientAlbumGallery(d, {type:'平面系統圖', sectionId:'client-plan-section', galleryId:'client-plan-gallery', slideKey:'_planAllItems', idPrefix:'cli-plan'});
 }
 
 function openAlbum(date, imgs){
