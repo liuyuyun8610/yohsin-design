@@ -7225,6 +7225,7 @@ function renderAdminDrawingList(cid){
             <div class="cell-overlay" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.55));opacity:0;transition:opacity .15s;">
               <div style="display:flex;gap:4px;padding:6px;">
                 ${showCover&&!v.isCover?`<button onclick="setCover(${cid},${i})" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">設封面</button>`:''}
+                ${currentDrawingType==='立面系統圖'?`<button onclick="event.stopPropagation();renameDrawingFile(${cid},'${currentDrawingType}',${i})" style="flex:1;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">改檔名</button>`:''}
                 <button onclick="removeDrawing(${cid},'${currentDrawingType}',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
               </div>
             </div>`;
@@ -7264,7 +7265,8 @@ function renderAdminDrawingList(cid){
           cell.innerHTML=`<div style="position:relative;width:100%;height:100%;background:#FBF8F4;cursor:${pdfUrl?'pointer':'default'};overflow:hidden;" ${pdfUrl?`onclick="window.open('${pdfUrl}','_blank')"`:''}>
             <img class="pdf-thumb-admin" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">
             <div class="pdf-loading-admin" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:0.05em;pointer-events:none;">PDF</div>
-            <div style="position:absolute;left:0;right:0;bottom:0;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:#fff;font-size:9px;text-align:center;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${v.note||'PDF'}</div>
+            <div style="position:absolute;left:0;right:0;bottom:0;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:#fff;font-size:9px;text-align:center;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${v.name||v.note||'PDF'}</div>
+            ${currentDrawingType==='立面系統圖'?`<button onclick="event.stopPropagation();renameDrawingFile(${cid},'${currentDrawingType}',${i})" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;">改檔名</button>`:''}
             <button onclick="event.stopPropagation();removeDrawing(${cid},'${currentDrawingType}',${i})" style="position:absolute;top:4px;right:4px;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;">刪除</button>
           </div>`;
           const imgEl=cell.querySelector('img.pdf-thumb-admin');
@@ -7322,9 +7324,11 @@ function renderAdminDrawingList(cid){
     vers.forEach((v,i)=>{
       const r=document.createElement('div');r.className='ufile-row';
       const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
+      const dispName=v.name||v.note||'(未命名)';
       r.innerHTML=`${isImg&&v.fileUrl?`<img src="${v.fileUrl}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;flex-shrink:0;">`:`<div class="ufile-icon">PDF</div>`}
-        <div class="ufile-name">${currentDrawingType} — ${v.note}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div>
+        <div class="ufile-name">${dispName}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div>
         <div class="ufile-meta">${v.date}</div>
+        <button class="btn-sm" onclick="renameDrawingFile(${cid},'${currentDrawingType}',${i})">改檔名</button>
         <button class="btn-sm" onclick="toggleFinal(${cid},'${currentDrawingType}',${i})">${v.isFinal?'取消最終':'設為最終'}</button>
         <button class="btn-sm danger" onclick="removeDrawing(${cid},'${currentDrawingType}',${i})">刪除</button>`;
       wrap.appendChild(r);
@@ -7652,6 +7656,21 @@ function addDrawingVersion(){
   })();
 }
 function toggleFinal(cid,type,idx){const vers=docsData[cid].drawings[type];vers.forEach(v=>v.isFinal=false);vers[idx].isFinal=!vers[idx].isFinal;renderAdminDrawingList(cid);}
+async function renameDrawingFile(cid,type,idx){
+  const vers=docsData[cid]?.drawings?.[type];
+  if(!vers||!vers[idx]) return;
+  const v=vers[idx];
+  if(!v.dbId){alert('此檔還沒存到資料庫，無法改名');return;}
+  const nv=prompt('輸入新的檔案名稱（客戶端會看到這個名稱）：', v.name||v.note||'');
+  if(nv===null) return;
+  const name=nv.trim();
+  try{
+    const {error}=await sbClient.from('project_docs').update({name}).eq('id',v.dbId);
+    if(error) throw error;
+    v.name=name;
+    renderAdminDrawingList(cid);
+  }catch(err){console.error(err);alert('改名失敗：'+err.message);}
+}
 function removeDrawing(cid,type,idx){
   if(!confirm('確定刪除？'))return;
   const item=docsData[cid].drawings[type][idx];
