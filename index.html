@@ -10627,7 +10627,7 @@ function openMaterialDetail(matId){
         ` : ''}
 
         ${canConfirm ? `
-          <button onclick="closeMaterialDetail();openConfirmMaterialModal('${it.id}','${escapedItem}')" style="margin-top:14px;width:100%;padding:12px;background:#B09487;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;letter-spacing:0.12em;box-shadow:0 4px 14px rgba(176,148,135,0.45);">確認此選材</button>
+          <button onclick="closeMaterialDetail();openConfirmMaterialModal('${it.id}','${escapedItem}')" style="margin-top:14px;width:100%;padding:12px;background:rgb(171,158,147);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;letter-spacing:0.12em;box-shadow:0 2px 5px rgba(90,70,55,0.25);">確認此選材</button>
         ` : ''}
       </div>
     </div>
@@ -11069,7 +11069,7 @@ async function renderClientMaterials(){
                   ✓ 已確認 by <strong>${it.customer_signature_name||'客戶'}</strong><br>
                   <span style="color:var(--ink-muted);">${new Date(it.customer_confirmed_at).toLocaleString('zh-TW',{hour12:false})}</span>
                 </div>`:''}
-                ${canConfirm && !isConfirmed?`<button onclick="openConfirmMaterialModal('${it.id}','${escapedItem}')" style="margin-top:8px;width:100%;padding:8px;background:#B09487;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;letter-spacing:0.1em;box-shadow:0 3px 10px rgba(176,148,135,0.45);">確認此選材</button>`:''}
+                ${canConfirm && !isConfirmed?`<button onclick="openConfirmMaterialModal('${it.id}','${escapedItem}')" style="margin-top:8px;width:100%;padding:8px;background:rgb(171,158,147);color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;letter-spacing:0.1em;box-shadow:0 2px 5px rgba(90,70,55,0.25);">確認此選材</button>`:''}
               </div>
             </div>`;
           }).join('')}
