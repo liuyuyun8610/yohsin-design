@@ -1360,12 +1360,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
         </div>
         <div class="doc-section" id="client-elevation-section" style="display:none;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:0;">
-            <div class="doc-section-title" style="margin:0;">立面施工圖</div>
-            <button id="elev-read-all-btn" onclick="openElevationSlideshow('_elevAllItems',0)" style="display:none;background:#3A2E18;color:#F5EBD8;border:none;padding:7px 14px;border-radius:999px;font-size:11px;cursor:pointer;font-family:inherit;letter-spacing:0.1em;align-items:center;gap:6px;">
-              <span style="font-size:12px;">📖</span> 一張一張看
-            </button>
-          </div>
+          <div class="doc-section-title">立面施工圖</div>
           <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳完成的立面圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
           <div id="client-elevation-gallery"></div>
         </div>
@@ -6771,10 +6766,8 @@ function renderClientElevationGallery(d){
     .sort((a,b)=>(Number(b.dbId)||0)-(Number(a.dbId)||0)); // 新上傳的版本排前面
   if(!all.length){sec.style.display='none';return;}
   sec.style.display='block';
-  // 給 slideshow 用（跨相簿全部）
+  // 給 slideshow 用（跨相簿全部）：點任一張縮圖會進入閱讀模式
   window._elevAllItems = all;
-  const readAllBtn = document.getElementById('elev-read-all-btn');
-  if(readAllBtn) readAllBtn.style.display = 'inline-flex';
 
   // group by album name (date 欄位)
   const grouped={};
