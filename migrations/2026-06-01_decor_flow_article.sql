@@ -7,14 +7,13 @@ update articles set body = $BODY$
 <div class="art-subtitle">室內裝修工程流程（新成屋約 3 個月起跳、中古屋約 5 個月起跳）。非本公司配合之廠商，一律由屋主自行對接。</div>
 
 <div class="art-section-hd">一、中古屋翻新</div>
-<div class="art-note"><div class="art-note-title">待校對</div><div class="art-note-list">此段原圖較模糊，法條與天數請務必確認後修正。</div></div>
-<p>開工前須申請管委會同意，以及該縣市的「室內裝修許可」：</p>
-<ul>
-  <li>請務必於認證單位審查設計合約後，向社區／大樓提出室內裝修申請書。</li>
-  <li>同時須向當地主管機關通報、取得實質施工許可。</li>
-  <li>裝修期間若遭檢舉或糾紛，將依《建築法》相關規定處理（條號待校對）。</li>
-  <li>若屋主拒絕配合申請，本公司得無條件解除設計合約，且不承接後續工程。</li>
-</ul>
+<div class="art-meeting-bd"><strong style="color:var(--accent);">申請管委會以及該縣市室內裝修許可證</strong></div>
+<ol style="margin:8px 0 12px;padding-left:24px;line-height:1.9;">
+  <li>請務必於確認簽署設計合約後，向社區／大樓拿取室內裝修申請書。</li>
+  <li>同時也必須申請台北市／新北市的室內裝修許可證。</li>
+  <li>若不申請室裝許可，提醒您：裝修期間很可能遇到「檢舉魔人」檢舉，一旦被檢舉會直接開罰。依《建築法》第 95 條之 1，違反者（含屋主、承租者、施工業者）將處新臺幣 6 萬元以上、30 萬元以下罰鍰，逾期未改善還可連續處罰。</li>
+  <li>如拒絕申請，設計師得無條件解除設計合約，且不承接裝修工程。</li>
+</ol>
 
 <div class="art-section-hd">二、新成屋裝修</div>
 <p>完成室裝許可申請後，即可進行室內裝修，流程如下：</p>
