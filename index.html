@@ -1848,8 +1848,25 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
       <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
 
+      <!-- 追加減原則（客戶端可隨時點開閱讀）-->
+      <details style="margin-top:1.4rem;background:#FBF8F4;border:0.5px solid var(--accent-light,rgba(139,107,72,0.3));border-radius:12px;overflow:hidden;">
+        <summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:13px;font-weight:500;color:var(--accent);display:flex;align-items:center;justify-content:space-between;gap:8px;">📋 追加減原則（點開閱讀）<span style="font-size:11px;color:var(--ink-light);">▾</span></summary>
+        <div style="padding:2px 16px 16px;font-size:13px;line-height:1.85;color:var(--ink-light);">
+          <p style="margin:0 0 12px;">裝修過程中，因現場狀況變動或使用需求調整，常會出現「追加減項目」。為避免後續雙方誤會或爭議，我們的處理方式如下，也請您配合：</p>
+          <p style="margin:10px 0 2px;"><strong style="color:var(--ink);">1. 追加項目皆會另外報價</strong></p>
+          <p style="margin:0 0 10px;">每一項原合約沒有的新增（或減少）工程，我們都會先報價讓您確認，同意後才安排施工。若該工種已進場，追加後可能無法依原定工期完成，需配合工班時間調整。</p>
+          <p style="margin:10px 0 2px;"><strong style="color:var(--ink);">2. 以「訊息確認」為主，避免口頭</strong></p>
+          <p style="margin:0 0 10px;">我們會在 LINE 發出追加項目的文字說明與金額，請您回覆「OK」即時確認；我們也會保留紀錄方便日後查找。</p>
+          <p style="margin:10px 0 2px;"><strong style="color:var(--ink);">3. 緊急狀況會先處理，但會補報價說明</strong></p>
+          <p style="margin:0 0 10px;">有些工程（例如水電管線）若不即時處理會影響工期，我們會在現場簡單向您說明後先行處理，並於 24 小時內補上報價說明，仍請您照常確認。</p>
+          <p style="margin:10px 0 2px;"><strong style="color:var(--ink);">4. 每週整理追加項目報表</strong></p>
+          <p style="margin:0 0 12px;">我們會定期提供目前的追加／減項明細，方便您掌握費用狀況，也避免最後結算時產生落差。</p>
+          <p style="margin:0;color:var(--ink-muted);">感謝您的配合與理解，我們會盡力讓每個項目都清楚、透明，讓裝修過程更順利！</p>
+        </div>
+      </details>
+
       <!-- 追加減紀錄（併入財務紀錄，放在付款進度下方）-->
-      <div id="pay-section-changes" style="margin-top:1.4rem;margin-bottom:1rem;display:none;">
+      <div id="pay-section-changes" style="margin-top:1rem;margin-bottom:1rem;display:none;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
           <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 追加減紀錄</div>
           <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
