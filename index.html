@@ -6774,7 +6774,8 @@ function renderClientElevationGallery(d){
   const sec=document.getElementById('client-elevation-section');
   const gallery=document.getElementById('client-elevation-gallery');
   if(!sec||!gallery) return;
-  const all=(d.drawings['立面系統圖']||[]).filter(v=>v.fileUrl);
+  const all=(d.drawings['立面系統圖']||[]).filter(v=>v.fileUrl)
+    .sort((a,b)=>(Number(b.dbId)||0)-(Number(a.dbId)||0)); // 新上傳的版本排前面
   if(!all.length){sec.style.display='none';return;}
   sec.style.display='block';
   // 給 slideshow 用（跨相簿全部）
