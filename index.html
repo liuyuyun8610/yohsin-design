@@ -10583,6 +10583,7 @@ function openMaterialDetail(matId){
           </div>`
       }
 
+      ${it.client_can_purchase?`<div style="background:#C2703B;color:#fff;font-size:13px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:9px 8px;display:flex;align-items:center;justify-content:center;gap:6px;">🛒 本項目由客人自行採購</div>`:''}
       <div style="padding:1.2rem 1.4rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
           <div style="font-size:18px;font-weight:500;color:var(--ink);letter-spacing:0.04em;">${it.item}</div>
@@ -11042,18 +11043,18 @@ async function renderClientMaterials(){
                   <span style="font-size:18px;color:#C4A882;">✦</span>
                   <span>材質圖片整理中</span>
                 </div>`;
-            return `<div class="card" style="padding:0;overflow:hidden;${isConfirmed?'border:1.5px solid #6B8F4D;':''}">
+            return `<div class="card" style="padding:0;overflow:hidden;${it.client_can_purchase?'border:1.5px solid #C2703B;':isConfirmed?'border:1.5px solid #6B8F4D;':''}">
               <div onclick="openMaterialDetail('${it.id}')" style="cursor:pointer;position:relative;">
                 ${photoBlock}
                 ${photo?`<div style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.92);color:var(--accent);font-size:10px;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px);letter-spacing:0.06em;">放大查看</div>`:''}
               </div>
+              ${it.client_can_purchase?`<div style="background:#C2703B;color:#fff;font-size:12px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:7px 8px;display:flex;align-items:center;justify-content:center;gap:5px;">🛒 本項目由客人自行採購</div>`:''}
               <div style="padding:10px 12px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">
                   <div style="font-size:13px;font-weight:500;color:var(--ink);">${it.item}</div>
                   ${statusPill(it.status)}
                 </div>
                 ${lines?`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">${lines}</div>`:''}
-                ${it.client_can_purchase?`<div style="display:inline-block;font-size:10px;color:#2D5A87;background:#E8EFF6;padding:2px 8px;border-radius:6px;margin-bottom:4px;letter-spacing:0.04em;">🛒 可自行採購</div>`:''}
                 ${it.location?`<div style="font-size:11px;color:var(--ink-muted);">📍 ${it.location}</div>`:''}
                 ${it.designer_advice?`<div style="font-size:11px;color:var(--accent);background:var(--sand);padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">💡 ${it.designer_advice}</div>`:''}
                 ${it.caveats?`<div style="font-size:11px;color:#7A5E1A;background:#FBF4E8;padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">小提醒｜${it.caveats}</div>`:''}
