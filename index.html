@@ -470,11 +470,10 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .doc-section-title::after{content:'';flex:1;height:0.5px;background:var(--border);}
 
 /* drawing viewer */
-.drawing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:0.8rem;}
-@media(max-width:500px){.drawing-grid{grid-template-columns:1fr;}}
-.drawing-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
-.drawing-card:hover{border-color:var(--accent-light);}
-.drawing-thumb{height:100px;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--ink-light);}
+.drawing-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0.8rem;}
+.drawing-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.15s;box-shadow:0 2px 8px rgba(90,60,30,0.05);}
+.drawing-card:hover{border-color:var(--accent-light);box-shadow:0 6px 16px rgba(90,60,30,0.1);transform:translateY(-2px);}
+.drawing-thumb{aspect-ratio:4/3;height:auto;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--ink-light);position:relative;overflow:hidden;}
 .drawing-info{padding:10px 12px;}
 .drawing-name{font-size:13px;font-weight:500;margin-bottom:2px;}
 .drawing-meta{font-size:11px;color:var(--ink-light);}
@@ -6721,41 +6720,35 @@ function renderClientFurnitureGallery(d){
   const sorted=[...all].sort((a,b)=>(b.dbId||0)-(a.dbId||0));
 
   gallery.innerHTML='';
-  // 用偏大的 grid 凸顯重要性
+  // 統一卡片系統：與施工圖紙同一套 .drawing-card（4:3 縮圖 + 標題 + 最新版 + 日期）
   const grid=document.createElement('div');
-  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;';
-  sorted.forEach(v=>{
+  grid.className='drawing-grid';
+  sorted.forEach((v,i)=>{
     const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
-    const cell=document.createElement('div');
-    cell.style.cssText='aspect-ratio:4/3;background:#fff;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;box-shadow:0 2px 8px rgba(90,60,30,0.06);transition:transform .15s,box-shadow .15s;';
-    cell.onmouseover=()=>{cell.style.transform='translateY(-2px)';cell.style.boxShadow='0 4px 12px rgba(90,60,30,0.12)';};
-    cell.onmouseout=()=>{cell.style.transform='';cell.style.boxShadow='0 2px 8px rgba(90,60,30,0.06)';};
-    const cornerBadge=v.customerConfirmedAt
-      ? `<div style="position:absolute;top:6px;right:6px;background:#6B8F4D;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;z-index:2;">✓ 已確認</div>`
-      : v.isFinal
-        ? `<div style="position:absolute;top:6px;right:6px;background:#D4A017;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;z-index:2;">🏁 最終版</div>`
+    const c=document.createElement('div');c.className='drawing-card';
+    const badge=v.customerConfirmedAt
+      ? `<span style="font-size:9px;font-weight:500;background:#E8F0E2;color:#3D5C24;padding:2px 7px;border-radius:5px;margin-left:6px;">✓ 已確認</span>`
+      : (v.isFinal||i===0)
+        ? `<span style="font-size:9px;font-weight:500;background:#F3EEE5;color:#7A5C3A;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:0.04em;">最新版</span>`
         : '';
+    const title=v.note||'空間與家具尺寸圖';
+    let thumbInner;
     if(isImg){
-      cell.innerHTML=`${cornerBadge}
-        <img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">
-        <div style="position:absolute;left:0;right:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.65));color:#fff;font-size:11px;line-height:1.3;">
-          ${v.note||v.date||'家具尺寸圖'}
-        </div>`;
+      thumbInner=`<img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`;
     } else {
-      cell.style.background='#FBF8F4';
-      cell.innerHTML=`${cornerBadge}
-        <img class="pdf-thumb" style="width:100%;height:100%;object-fit:cover;display:block;background:#FBF8F4;" alt="">
-        <div class="pdf-thumb-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:600;color:var(--accent);letter-spacing:0.06em;pointer-events:none;">PDF</div>
-        <div style="position:absolute;left:0;right:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:#fff;font-size:11px;line-height:1.3;">
-          ${v.note||v.date||'家具尺寸圖'}
-        </div>`;
-      const imgEl=cell.querySelector('img.pdf-thumb');
-      const loadingEl=cell.querySelector('.pdf-thumb-loading');
+      thumbInner=`<img class="pdf-thumb" style="width:100%;height:100%;object-fit:cover;display:block;background:#FBF8F4;" alt="">
+        <div class="pdf-thumb-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:600;color:var(--accent);letter-spacing:0.06em;pointer-events:none;">PDF</div>`;
+    }
+    c.innerHTML=`<div class="drawing-thumb" style="background:#FBF8F4;">${thumbInner}</div>
+      <div class="drawing-info"><div class="drawing-name">${title} ${badge}</div><div class="drawing-meta">版本日期：${v.date||'—'}</div></div>`;
+    if(!isImg){
+      const imgEl=c.querySelector('img.pdf-thumb');
+      const loadingEl=c.querySelector('.pdf-thumb-loading');
       if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
       renderPdfThumb(v.fileUrl, imgEl, {width:340});
     }
-    cell.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'空間與家具尺寸圖');
-    grid.appendChild(cell);
+    c.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'空間與家具尺寸圖');
+    grid.appendChild(c);
   });
   gallery.appendChild(grid);
 
