@@ -10590,7 +10590,7 @@ function openMaterialDetail(matId){
           </div>`
       }
 
-      ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:13px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:9px 8px;display:flex;align-items:center;justify-content:center;gap:6px;">🛒 本項目由客人自行採購</div>`:''}
+      ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:13px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:9px 8px;line-height:1.55;">🛒 本項目由客人自行採購${it.client_purchase_due?`<div style="font-size:11px;font-weight:500;margin-top:2px;">請於 ${fmtMDate(it.client_purchase_due)} 前送到案場</div>`:''}</div>`:''}
       <div style="padding:1.2rem 1.4rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
           <div style="font-size:18px;font-weight:500;color:var(--ink);letter-spacing:0.04em;">${it.item}</div>
@@ -11055,7 +11055,7 @@ async function renderClientMaterials(){
                 ${photoBlock}
                 ${photo?`<div style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.92);color:var(--accent);font-size:10px;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px);letter-spacing:0.06em;">放大查看</div>`:''}
               </div>
-              ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:12px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:7px 8px;display:flex;align-items:center;justify-content:center;gap:5px;">🛒 本項目由客人自行採購</div>`:''}
+              ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:12px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:7px 8px;line-height:1.5;">🛒 本項目由客人自行採購${it.client_purchase_due?`<div style="font-size:10px;font-weight:500;margin-top:1px;">請於 ${fmtMDate(it.client_purchase_due)} 前送到案場</div>`:''}</div>`:''}
               <div style="padding:10px 12px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">
                   <div style="font-size:13px;font-weight:500;color:var(--ink);">${it.item}</div>
