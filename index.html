@@ -6654,59 +6654,9 @@ function renderClient3DGallery(d){
   }
 }
 
-// 空間與家具尺寸圖（客戶端）：置頂，買家具量尺寸最常用
+// 空間與家具尺寸圖（客戶端）：與平面/立面同一套文字列表呈現（相簿 → 檔名+上傳日期 → 點進閱讀模式）
 function renderClientFurnitureGallery(d){
-  const sec=document.getElementById('client-furniture-section');
-  const gallery=document.getElementById('client-furniture-gallery');
-  if(!sec||!gallery) return;
-  const all=(d.drawings['空間與家具尺寸圖']||[]).filter(v=>v.fileUrl);
-  if(!all.length){sec.style.display='none';return;}
-  sec.style.display='block';
-
-  // 由新到舊排序（依 dbId）
-  const sorted=[...all].sort((a,b)=>(b.dbId||0)-(a.dbId||0));
-
-  gallery.innerHTML='';
-  // 統一卡片系統：與施工圖紙同一套 .drawing-card（4:3 縮圖 + 標題 + 最新版 + 日期）
-  const grid=document.createElement('div');
-  grid.className='drawing-grid';
-  sorted.forEach((v,i)=>{
-    const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
-    const c=document.createElement('div');c.className='drawing-card';
-    const badge=v.customerConfirmedAt
-      ? `<span style="font-size:9px;font-weight:500;background:#E8F0E2;color:#3D5C24;padding:2px 7px;border-radius:5px;margin-left:6px;">✓ 已確認</span>`
-      : (v.isFinal||i===0)
-        ? `<span style="font-size:9px;font-weight:500;background:#F3EEE5;color:#7A5C3A;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:0.04em;">最新版</span>`
-        : '';
-    const title=v.note||'空間與家具尺寸圖';
-    let thumbInner;
-    if(isImg){
-      thumbInner=`<img src="${v.fileUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-    } else {
-      thumbInner=`<img class="pdf-thumb" style="width:100%;height:100%;object-fit:cover;display:block;background:#FBF8F4;" alt="">
-        <div class="pdf-thumb-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:600;color:var(--accent);letter-spacing:0.06em;pointer-events:none;">PDF</div>`;
-    }
-    c.innerHTML=`<div class="drawing-thumb" style="background:#FBF8F4;">${thumbInner}</div>
-      <div class="drawing-info"><div class="drawing-name">${title} ${badge}</div><div class="drawing-meta">版本日期：${v.date||'—'}</div></div>`;
-    if(!isImg){
-      const imgEl=c.querySelector('img.pdf-thumb');
-      const loadingEl=c.querySelector('.pdf-thumb-loading');
-      if(imgEl) imgEl.onload=()=>{ if(loadingEl) loadingEl.style.display='none'; };
-      renderPdfThumb(v.fileUrl, imgEl, {width:340});
-    }
-    c.onclick=()=>openDocViewer(v.fileUrl, v.note||v.date||'空間與家具尺寸圖');
-    grid.appendChild(c);
-  });
-  gallery.appendChild(grid);
-
-  // 最終版確認區塊
-  const finals=all.filter(v=>v.isFinal);
-  if(finals.length){
-    const block=document.createElement('div');
-    block.style.cssText='margin-top:10px;padding:10px;background:#FAFAF8;border:1px dashed var(--accent-pale);border-radius:8px;';
-    block.innerHTML=finals.map(v=>getDrawingConfirmBlock(v,'空間與家具尺寸圖')).join('');
-    gallery.appendChild(block);
-  }
+  renderClientAlbumGallery(d, {type:'空間與家具尺寸圖', sectionId:'client-furniture-section', galleryId:'client-furniture-gallery', slideKey:'_furnAllItems', idPrefix:'cli-furn'});
 }
 
 // 通用：依相簿（date 欄位）分組的施工圖庫，支援 PDF + 圖片
