@@ -1350,14 +1350,18 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div id="client-furniture-gallery"></div>
         </div>
         <div class="doc-section" id="client-plan-section" style="display:none;">
-          <div class="doc-section-title">平面施工圖</div>
-          <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳各版本的平面施工圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
-          <div id="client-plan-gallery"></div>
+          <div class="doc-section-title" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:7px;" onclick="toggleDocSection('plan')"><span id="plan-sec-arrow" style="font-size:13px;color:var(--ink-light);transition:transform .2s;display:inline-block;">›</span>平面施工圖</div>
+          <div id="plan-sec-body" style="display:none;">
+            <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳各版本的平面施工圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
+            <div id="client-plan-gallery"></div>
+          </div>
         </div>
         <div class="doc-section" id="client-elevation-section" style="display:none;">
-          <div class="doc-section-title">立面施工圖</div>
-          <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳完成的立面圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
-          <div id="client-elevation-gallery"></div>
+          <div class="doc-section-title" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:7px;" onclick="toggleDocSection('elevation')"><span id="elevation-sec-arrow" style="font-size:13px;color:var(--ink-light);transition:transform .2s;display:inline-block;">›</span>立面施工圖</div>
+          <div id="elevation-sec-body" style="display:none;">
+            <div style="font-size:11px;color:var(--ink-muted);margin:8px 0 12px;line-height:1.7;">設計師會分批上傳完成的立面圖。點任一張可進入閱讀模式，左右翻頁瀏覽。</div>
+            <div id="client-elevation-gallery"></div>
+          </div>
         </div>
       </div>
 
@@ -3115,6 +3119,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <div class="render-lb-bottom">
     <div class="render-lb-caption" id="render-lb-caption"></div>
     <div class="render-lb-counter" id="render-lb-counter"></div>
+    <button class="render-lb-dl" onclick="downloadCurrentLb(event)" style="margin-top:8px;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,0.16);border:0.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:7px 14px;cursor:pointer;">⬇ 下載這張</button>
   </div>
 </div>
 
@@ -6612,10 +6617,14 @@ function renderClient3DGallery(d){
     <div id="album-list-view" class="album-list"></div>
     <div id="album-inside-view" style="display:none;">
       <div class="render-album-back" onclick="closeAlbum()">‹ 返回相簿</div>
-      <div class="render-album-header">
-        <div class="render-album-title" id="album-inside-date"></div>
-        <div class="render-album-sub" id="album-inside-sub"></div>
+      <div class="render-album-header" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <div class="render-album-title" id="album-inside-date"></div>
+          <div class="render-album-sub" id="album-inside-sub"></div>
+        </div>
+        <button onclick="downloadAlbumZip(this)" style="flex-shrink:0;font-size:12px;font-weight:500;color:var(--accent);background:#fff;border:0.5px solid var(--accent-pale);border-radius:8px;padding:7px 12px;cursor:pointer;">⬇ 下載整本</button>
       </div>
+      <div style="font-size:11px;color:var(--ink-light);margin:-4px 0 10px;">點任一張可放大瀏覽，放大後可單張下載。</div>
       <div id="album-inside-grid" class="render-grid"></div>
     </div>`;
   const albumList=document.getElementById('album-list-view');
@@ -6761,6 +6770,7 @@ function openAlbum(date, imgs){
   if(subEl) subEl.textContent=`${imgs.length} 張`;
   grid.innerHTML='';
   window._lbImages=imgs.map(v=>({src:v.fileUrl,caption:v.note||''}));
+  window._currentAlbum={name:date,imgs:imgs};
   imgs.forEach((v,i)=>{
     const wrap=document.createElement('div');
     wrap.className='render-img-wrap';
@@ -6817,6 +6827,55 @@ function lbNav(dir){
   const imgs=window._lbImages||[];
   _lbCurrent=(_lbCurrent+dir+imgs.length)%imgs.length;
   _updateLightbox();
+}
+// 收合「平面/立面施工圖」整個區塊
+function toggleDocSection(key){
+  const body=document.getElementById(key+'-sec-body');
+  const arrow=document.getElementById(key+'-sec-arrow');
+  if(!body) return;
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  if(arrow) arrow.style.transform=open?'':'rotate(90deg)';
+}
+
+// 下載單張圖片（用 blob，跨網域也能強制下載；失敗則開新分頁）
+async function _dlBlob(url, filename){
+  try{
+    const r=await fetch(url); if(!r.ok) throw 0;
+    const b=await r.blob(); const u=URL.createObjectURL(b);
+    const a=document.createElement('a'); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),4000);
+  }catch(e){ window.open(url,'_blank'); }
+}
+function _extOf(url){ const m=(url||'').match(/\.(jpg|jpeg|png|webp|gif)(?:\?|$)/i); return m?m[1].toLowerCase():'jpg'; }
+function downloadCurrentLb(e){
+  if(e) e.stopPropagation();
+  const imgs=window._lbImages||[]; const it=imgs[_lbCurrent]; if(!it) return;
+  _dlBlob(it.src, `效果圖_${_lbCurrent+1}.${_extOf(it.src)}`);
+}
+async function _ensureJSZip(){
+  if(window.JSZip) return window.JSZip;
+  await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  return window.JSZip;
+}
+// 下載整本相簿（打包成一個 zip）
+async function downloadAlbumZip(btn){
+  const alb=window._currentAlbum;
+  if(!alb||!alb.imgs||!alb.imgs.length){ alert('沒有可下載的圖片'); return; }
+  const old=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.style.opacity='0.6'; btn.textContent='打包中…'; }
+  try{
+    const JSZip=await _ensureJSZip(); const zip=new JSZip(); let n=1;
+    for(const v of alb.imgs){
+      try{ const r=await fetch(v.fileUrl); const b=await r.blob(); zip.file(`${String(n).padStart(2,'0')}.${_extOf(v.fileUrl)}`, b); }catch(_){}
+      n++;
+    }
+    const blob=await zip.generateAsync({type:'blob'});
+    const u=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=u; a.download=`${(alb.name||'效果圖').replace(/[\\/:*?"<>|]/g,'_')}.zip`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),5000);
+  }catch(e){ alert('下載失敗，請改用單張下載：'+(e&&e.message||e)); }
+  finally{ if(btn){ btn.disabled=false; btn.style.opacity='1'; btn.textContent=old; } }
 }
 function handleLbBgClick(e){if(e.target.id==='render-lightbox')closeRenderLightbox();}
 function closeRenderLightbox(){
