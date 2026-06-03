@@ -508,9 +508,9 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .render-thumb-note-input{width:100%;border:none;border-top:0.5px solid var(--border);padding:5px 7px;font-size:10px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;color:var(--ink);background:#fafafa;outline:none;resize:none;line-height:1.4;}
 /* Lightbox */
 .render-lightbox{position:fixed;inset:0;background:rgba(10,8,6,0.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
-.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 52px;min-height:0;}
-.render-lightbox-img-wrap img{max-width:100%;max-height:78vh;border-radius:6px;object-fit:contain;user-select:none;cursor:zoom-in;transition:transform .2s;}
-.render-lightbox-img-wrap img.zoomed{cursor:zoom-out;transform:scale(1.8);}
+.render-lightbox-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:0 36px;min-height:0;touch-action:none;overflow:hidden;}
+.render-lightbox-img-wrap img{max-width:100%;max-height:90vh;border-radius:6px;object-fit:contain;user-select:none;-webkit-user-drag:none;cursor:zoom-in;transform-origin:center center;will-change:transform;}
+.render-lightbox-img-wrap img.zoomed{cursor:zoom-out;}
 .render-lb-close{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.65);font-size:28px;cursor:pointer;line-height:1;z-index:10;padding:6px;}
 .render-lb-close:hover{color:#fff;}
 .render-lb-prev,.render-lb-next{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.5);font-size:38px;cursor:pointer;padding:10px 16px;user-select:none;transition:color .15s;}
@@ -3113,7 +3113,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <span class="render-lb-close" onclick="closeRenderLightbox()">✕</span>
   <div class="render-lightbox-img-wrap">
     <span class="render-lb-prev" onclick="lbNav(-1);event.stopPropagation()">‹</span>
-    <img id="render-lightbox-img" src="" alt="" draggable="false" onclick="toggleLbZoom(event)">
+    <img id="render-lightbox-img" src="" alt="" draggable="false">
     <span class="render-lb-next" onclick="lbNav(1);event.stopPropagation()">›</span>
   </div>
   <div class="render-lb-bottom">
@@ -6793,15 +6793,61 @@ function closeAlbum(){
 }
 
 let _lbCurrent=0;
+// === 燈箱：雙指縮放 + 拖移 + 雙擊放大（手機）/ 雙擊（桌機）===
+let _lbScale=1,_lbTx=0,_lbTy=0,_lbLastTap=0;
+function _lbApply(anim){
+  const img=document.getElementById('render-lightbox-img');
+  if(!img) return;
+  img.style.transition=anim?'transform .2s':'none';
+  img.style.transform=`translate(${_lbTx}px,${_lbTy}px) scale(${_lbScale})`;
+  img.classList.toggle('zoomed',_lbScale>1.02);
+}
+function _lbReset(anim){_lbScale=1;_lbTx=0;_lbTy=0;_lbApply(anim);}
+function _lbClampPan(){
+  const img=document.getElementById('render-lightbox-img');if(!img)return;
+  const maxX=Math.max(0,(img.clientWidth*_lbScale-window.innerWidth)/2)+30;
+  const maxY=Math.max(0,(img.clientHeight*_lbScale-window.innerHeight)/2)+30;
+  _lbTx=Math.max(-maxX,Math.min(maxX,_lbTx));
+  _lbTy=Math.max(-maxY,Math.min(maxY,_lbTy));
+}
+function _lbDist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
+function _lbSetupGestures(){
+  const wrap=document.querySelector('.render-lightbox-img-wrap');
+  if(!wrap||wrap._lbBound) return; wrap._lbBound=true;
+  let s=null;
+  wrap.addEventListener('touchstart',e=>{
+    if(e.touches.length===2){ s={mode:'pinch',d0:_lbDist(e.touches),sc0:_lbScale}; e.preventDefault(); }
+    else if(e.touches.length===1){ s={mode:'one',x0:e.touches[0].clientX,y0:e.touches[0].clientY,tx0:_lbTx,ty0:_lbTy,moved:false}; }
+  },{passive:false});
+  wrap.addEventListener('touchmove',e=>{
+    if(!s) return;
+    if(s.mode==='pinch'&&e.touches.length>=2){
+      _lbScale=Math.max(1,Math.min(4,s.sc0*(_lbDist(e.touches)/s.d0)));
+      _lbClampPan(); _lbApply(false); e.preventDefault();
+    }else if(s.mode==='one'&&e.touches.length===1){
+      const dx=e.touches[0].clientX-s.x0, dy=e.touches[0].clientY-s.y0;
+      if(Math.abs(dx)>6||Math.abs(dy)>6) s.moved=true;
+      if(_lbScale>1.02){ _lbTx=s.tx0+dx; _lbTy=s.ty0+dy; _lbClampPan(); _lbApply(false); e.preventDefault(); }
+    }
+  },{passive:false});
+  wrap.addEventListener('touchend',e=>{
+    if(!s) return;
+    if(s.mode==='pinch'){ if(_lbScale<=1.02) _lbReset(true); s=null; return; }
+    const dx=e.changedTouches[0].clientX-s.x0;
+    if(_lbScale<=1.02){
+      if(!s.moved){ const now=Date.now(); if(now-_lbLastTap<300){_lbScale=2.5;_lbApply(true);_lbLastTap=0;} else _lbLastTap=now; }
+      else if(Math.abs(dx)>45) lbNav(dx<0?1:-1);
+    }
+    s=null;
+  });
+  wrap.addEventListener('dblclick',e=>{toggleLbZoom(e);}); // 桌機雙擊放大
+}
 function openRenderLightbox(idx){
   _lbCurrent=idx;
   _updateLightbox();
   const lb=document.getElementById('render-lightbox');
   if(lb){lb.style.display='flex';document.body.style.overflow='hidden';}
-  // Swipe support
-  let tx=0;
-  lb.ontouchstart=e=>{tx=e.touches[0].clientX;};
-  lb.ontouchend=e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)lbNav(dx<0?1:-1);};
+  _lbSetupGestures();
 }
 function _updateLightbox(){
   const imgs=window._lbImages||[];if(!imgs.length)return;
@@ -6812,19 +6858,14 @@ function _updateLightbox(){
   if(img) img.src=item.src;
   if(cap) cap.textContent=item.caption||'';
   if(ctr) ctr.textContent=`${_lbCurrent+1} / ${imgs.length}`;
+  _lbReset(false);
 }
 function toggleLbZoom(e){
-  e.stopPropagation();
-  const img=document.getElementById('render-lightbox-img');
-  if(!img) return;
-  img.classList.toggle('zoomed');
+  if(e) e.stopPropagation();
+  if(_lbScale>1.02) _lbReset(true); else { _lbScale=2.5; _lbApply(true); }
 }
-
 function lbNav(dir){
-  // Reset zoom before navigating
-  const img=document.getElementById('render-lightbox-img');
-  if(img) img.classList.remove('zoomed');
-  const imgs=window._lbImages||[];
+  const imgs=window._lbImages||[];if(!imgs.length)return;
   _lbCurrent=(_lbCurrent+dir+imgs.length)%imgs.length;
   _updateLightbox();
 }
