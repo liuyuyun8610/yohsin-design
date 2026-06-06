@@ -2539,6 +2539,29 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="stab" onclick="switchDrawingType('立面系統圖',this)">立面系統圖</button>
           <button class="stab" onclick="switchDrawingType('效果圖',this)">效果圖</button>
         </div>
+        <!-- AI 生活情境預覽：每位客戶開關（只在效果圖 tab 顯示，置頂好找）-->
+        <div id="ai-admin-box" style="display:none;margin-bottom:14px;padding:14px 16px;background:#FAF7F2;border:0.5px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:600;color:var(--accent);">🪄 AI 生活情境預覽</span>
+            <span style="font-size:11px;color:var(--ink-light);">讓這位客戶能在效果圖上請 AI 生成「改光線／加生活感」的情境圖（不覆蓋原圖）</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);">
+              <input type="checkbox" id="ai-admin-enabled" style="width:16px;height:16px;cursor:pointer;" onchange="aiAdminSave()">
+              對此客戶開放
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);">
+              每日次數上限
+              <input type="number" id="ai-admin-limit" min="1" max="30" value="3" style="width:62px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;" onchange="aiAdminSave()">
+            </label>
+            <span id="ai-admin-used" style="font-size:12px;color:var(--ink-light);"></span>
+            <span id="ai-admin-status" style="font-size:12px;color:#3D5C24;"></span>
+          </div>
+          <div style="margin-top:10px;">
+            <span style="font-size:12px;color:var(--accent);cursor:pointer;" onclick="aiAdminToggleHistory()">▸ 查看客戶生成過的情境圖</span>
+            <div id="ai-admin-history" style="display:none;margin-top:10px;"></div>
+          </div>
+        </div>
         <div id="admin-drawing-list" style="margin-bottom:1rem;"></div>
         <!-- 平面/立面：一般上傳 -->
         <div id="drawing-upload-area" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -2571,29 +2594,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="btn-ink" onclick="addDrawingVersion()">＋ 建立相簿並上傳</button>
         </div>
         <div id="drawing-multi-preview" style="display:none;margin-top:10px;"></div>
-        <!-- AI 生活情境預覽：每位客戶開關（只在效果圖 tab 顯示）-->
-        <div id="ai-admin-box" style="display:none;margin-top:14px;padding:14px 16px;background:#FAF7F2;border:0.5px solid var(--border);border-radius:12px;">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span style="font-size:13px;font-weight:600;color:var(--accent);">🪄 AI 生活情境預覽</span>
-            <span style="font-size:11px;color:var(--ink-light);">讓這位客戶能在效果圖上請 AI 生成「改光線／加生活感」的情境圖（不覆蓋原圖）</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);">
-              <input type="checkbox" id="ai-admin-enabled" style="width:16px;height:16px;cursor:pointer;" onchange="aiAdminSave()">
-              對此客戶開放
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);">
-              每日次數上限
-              <input type="number" id="ai-admin-limit" min="1" max="30" value="3" style="width:62px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;" onchange="aiAdminSave()">
-            </label>
-            <span id="ai-admin-used" style="font-size:12px;color:var(--ink-light);"></span>
-            <span id="ai-admin-status" style="font-size:12px;color:#3D5C24;"></span>
-          </div>
-          <div style="margin-top:10px;">
-            <span style="font-size:12px;color:var(--accent);cursor:pointer;" onclick="aiAdminToggleHistory()">▸ 查看客戶生成過的情境圖</span>
-            <div id="ai-admin-history" style="display:none;margin-top:10px;"></div>
-          </div>
-        </div>
       </div>
 
       <!-- 材料挑選 -->
