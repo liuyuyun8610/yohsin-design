@@ -3154,10 +3154,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <button class="render-lb-dl" onclick="downloadCurrentLb(event)" style="margin-top:8px;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,0.16);border:0.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:7px 14px;cursor:pointer;">⬇ 下載這張</button>
     <!-- AI 生活情境預覽（僅效果圖、客戶端顯示）-->
     <div id="ai-lb-tools" style="display:none;margin-top:10px;gap:8px;justify-content:center;flex-wrap:wrap;" onclick="event.stopPropagation()">
-      <button class="ai-lb-btn" onclick="aiExplainCurrent(event)">✨ AI 解說這張圖</button>
-      <button class="ai-lb-btn" onclick="aiTogglePanel(event)">🪄 生活情境預覽</button>
+      <button class="ai-lb-btn" onclick="aiTogglePanel(event)">🪄 AI 生活情境預覽</button>
     </div>
-    <div id="ai-lb-explain" style="display:none;" onclick="event.stopPropagation()"></div>
     <div id="ai-lb-panel" style="display:none;" onclick="event.stopPropagation()"></div>
   </div>
 </div>
@@ -6907,11 +6905,9 @@ function _updateLightbox(){
 // 每次切換/開啟燈箱時，重置 AI 區塊；只有效果圖+客戶端才顯示工具
 function _aiSyncLightbox(){
   const tools=document.getElementById('ai-lb-tools');
-  const ex=document.getElementById('ai-lb-explain');
   const pan=document.getElementById('ai-lb-panel');
   const show = !!window._lbIsRender && loginMode==='client' && !!currentClientId;
   if(tools) tools.style.display = show ? 'flex' : 'none';
-  if(ex){ ex.style.display='none'; ex.innerHTML=''; }
   if(pan){
     if(!show){ pan.style.display='none'; }
     else if(pan.style.display==='block'){
@@ -6971,23 +6967,6 @@ async function _aiCall(payload,admin){
   let data={}; try{data=await res.json();}catch(e){}
   if(!res.ok) throw new Error(data.error||('伺服器錯誤 '+res.status));
   return data;
-}
-// 看圖解說
-async function aiExplainCurrent(e){
-  if(e) e.stopPropagation();
-  const it=_aiCurrentImg(); if(!it) return;
-  const box=document.getElementById('ai-lb-explain'); if(!box) return;
-  box.style.display='block';
-  box.innerHTML='<div class="ai-card"><div style="font-size:12px;color:#8A6B48;">✨ AI 正在看這張圖…</div></div>';
-  try{
-    const d=await _aiCall({action:'explain',imageUrl:it.src});
-    box.innerHTML='<div class="ai-card">'+
-      '<div style="font-size:12px;font-weight:600;color:#8A6B48;margin-bottom:8px;">✨ AI 圖片解說</div>'+
-      '<div style="font-size:13.5px;line-height:1.85;color:#3D3D3D;">'+_aiEsc(d.text)+'</div>'+
-      '<div class="ai-note">此說明由 AI 依畫面產生，僅供情境輔助參考。</div></div>';
-  }catch(err){
-    box.innerHTML='<div class="ai-card"><div style="font-size:12.5px;color:#B5503B;">解說失敗：'+_aiEsc(err.message)+'</div></div>';
-  }
 }
 // 開/收 情境面板
 function aiTogglePanel(e){
