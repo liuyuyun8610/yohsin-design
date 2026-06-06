@@ -56,3 +56,25 @@ https://vqxxaameifyvezvozvnf.supabase.co/functions/v1/line-push
    - `LINE_CHANNEL_ACCESS_TOKEN` = (long-lived access token)
    - `ADMIN_PUSH_SECRET` = (random string you generate; pasted into ys-interior admin UI)
 5. LINE Developers Console → Messaging API → set Webhook URL to the line-webhook URL above; turn on "Use webhook"
+
+---
+
+## `ai-preview`
+
+「AI 生活情境預覽」功能後端（客戶端效果圖頁）。一支函式包辦：看圖解說、生成情境預覽圖（fal nano-banana/edit）、存圖、每日次數限制、危險詞攔截、後台開關與查看紀錄。
+
+Auth：客戶動作（explain / generate / list）帶 anon `Authorization: Bearer`；後台動作（settings / set / flag）另帶 `X-Admin-Secret`（沿用 `ADMIN_PUSH_SECRET`）。
+
+**Required env vars:**
+- `FAL_KEY`（= su-ai-render 那把 fal.ai 金鑰）
+- `ADMIN_PUSH_SECRET`（與 line-push 同一把，已設過就免）
+- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — Supabase 自動注入，**不用手動設**
+
+需先在 SQL Editor 跑 `migrations/2026-06-06_ai_scene_preview.sql` 建表。
+
+**Endpoint**（deploy 後）：
+```
+https://vqxxaameifyvezvozvnf.supabase.co/functions/v1/ai-preview
+```
+
+Deploy：Dashboard → Edge Functions → Deploy a new function → 名稱 `ai-preview` → 貼上 `ai-preview/index.ts` → Deploy；再到 Manage secrets 加 `FAL_KEY`。

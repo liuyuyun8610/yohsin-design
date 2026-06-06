@@ -516,10 +516,19 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .render-lb-prev,.render-lb-next{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.5);font-size:38px;cursor:pointer;padding:10px 16px;user-select:none;transition:color .15s;}
 .render-lb-prev{left:0;}.render-lb-next{right:0;}
 .render-lb-prev:hover,.render-lb-next:hover{color:#fff;}
-.render-lb-bottom{display:flex;flex-direction:column;align-items:center;padding:8px 16px 14px;max-width:660px;width:100%;}
+.render-lb-bottom{display:flex;flex-direction:column;align-items:center;padding:8px 16px 14px;max-width:660px;width:100%;max-height:52vh;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;}
 .render-lb-caption{font-size:14px;color:rgba(255,255,255,0.88);letter-spacing:.03em;text-align:center;line-height:1.7;margin-bottom:6px;min-height:20px;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px 16px;}
 .render-lb-caption:empty{display:none;}
 .render-lb-counter{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:.1em;}
+/* AI 生活情境預覽 */
+.ai-lb-btn{font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,0.14);border:0.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:7px 14px;cursor:pointer;transition:.15s;}
+.ai-lb-btn:hover{background:rgba(255,255,255,0.26);}
+.ai-card{background:#FBF8F4;border-radius:12px;padding:14px 16px;margin-top:10px;text-align:left;width:100%;max-width:560px;box-sizing:border-box;color:#2C2218;}
+.ai-chip{font-size:12px;color:#5C4A36;background:#fff;border:0.5px solid rgba(139,107,72,0.25);border-radius:999px;padding:7px 13px;cursor:pointer;transition:.15s;}
+.ai-chip:hover{background:#F0E9DF;}
+.ai-chip:disabled{opacity:.5;cursor:default;}
+.ai-note{font-size:10.5px;color:#A0907E;line-height:1.65;margin-top:10px;}
+.ai-result-tag{font-size:9px;font-weight:500;color:#7A5218;background:#FAF0DE;padding:2px 7px;border-radius:5px;}
 
 
 /* Drag-drop zone for 效果圖 */
@@ -2562,6 +2571,29 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <button class="btn-ink" onclick="addDrawingVersion()">＋ 建立相簿並上傳</button>
         </div>
         <div id="drawing-multi-preview" style="display:none;margin-top:10px;"></div>
+        <!-- AI 生活情境預覽：每位客戶開關（只在效果圖 tab 顯示）-->
+        <div id="ai-admin-box" style="display:none;margin-top:14px;padding:14px 16px;background:#FAF7F2;border:0.5px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:600;color:var(--accent);">🪄 AI 生活情境預覽</span>
+            <span style="font-size:11px;color:var(--ink-light);">讓這位客戶能在效果圖上請 AI 生成「改光線／加生活感」的情境圖（不覆蓋原圖）</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink);">
+              <input type="checkbox" id="ai-admin-enabled" style="width:16px;height:16px;cursor:pointer;" onchange="aiAdminSave()">
+              對此客戶開放
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);">
+              每日次數上限
+              <input type="number" id="ai-admin-limit" min="1" max="30" value="3" style="width:62px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;" onchange="aiAdminSave()">
+            </label>
+            <span id="ai-admin-used" style="font-size:12px;color:var(--ink-light);"></span>
+            <span id="ai-admin-status" style="font-size:12px;color:#3D5C24;"></span>
+          </div>
+          <div style="margin-top:10px;">
+            <span style="font-size:12px;color:var(--accent);cursor:pointer;" onclick="aiAdminToggleHistory()">▸ 查看客戶生成過的情境圖</span>
+            <div id="ai-admin-history" style="display:none;margin-top:10px;"></div>
+          </div>
+        </div>
       </div>
 
       <!-- 材料挑選 -->
@@ -3120,6 +3152,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="render-lb-caption" id="render-lb-caption"></div>
     <div class="render-lb-counter" id="render-lb-counter"></div>
     <button class="render-lb-dl" onclick="downloadCurrentLb(event)" style="margin-top:8px;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,0.16);border:0.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:7px 14px;cursor:pointer;">⬇ 下載這張</button>
+    <!-- AI 生活情境預覽（僅效果圖、客戶端顯示）-->
+    <div id="ai-lb-tools" style="display:none;margin-top:10px;gap:8px;justify-content:center;flex-wrap:wrap;" onclick="event.stopPropagation()">
+      <button class="ai-lb-btn" onclick="aiExplainCurrent(event)">✨ AI 解說這張圖</button>
+      <button class="ai-lb-btn" onclick="aiTogglePanel(event)">🪄 生活情境預覽</button>
+    </div>
+    <div id="ai-lb-explain" style="display:none;" onclick="event.stopPropagation()"></div>
+    <div id="ai-lb-panel" style="display:none;" onclick="event.stopPropagation()"></div>
   </div>
 </div>
 
@@ -3212,6 +3251,8 @@ const WS_URL='https://kwtozldimwidbkemrdgg.supabase.co';
 const WS_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dG96bGRpbXdpZGJrZW1yZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDcyNTcsImV4cCI6MjA5MTcyMzI1N30.OK8qXUNSDEeCakMHyV9_fJZBGMtpE_wANNCzWvkBYuc';
 // LINE push edge function — secret is bundled into admin JS; if leaked, rotate via `openssl rand -hex 32` and update both Supabase secret + this constant.
 const LINE_PUSH_URL = SB_URL + '/functions/v1/line-push';
+// AI 生活情境預覽 edge function（效果圖頁：解說 / 生情境圖 / 後台開關）
+const AI_PREVIEW_URL = SB_URL + '/functions/v1/ai-preview';
 // FIXME: 長期應移除前端 hardcoded secret（改用 Supabase Auth session 驗證 — 對應 Phase B）
 // 目前是設計師 admin 介面用，洩漏風險：任何 view source 的人都能拿到並對你的 LINE 群組發推播
 const ADMIN_PUSH_SECRET = '155e78090e71181ecd223cd2f2082864b9b46614dc2f187401d0818fe0f8532e';
@@ -6769,8 +6810,9 @@ function openAlbum(date, imgs){
   if(dateEl) dateEl.textContent=date;
   if(subEl) subEl.textContent=`${imgs.length} 張`;
   grid.innerHTML='';
-  window._lbImages=imgs.map(v=>({src:v.fileUrl,caption:v.note||''}));
+  window._lbImages=imgs.map(v=>({src:v.fileUrl,caption:v.note||'',id:v.dbId}));
   window._currentAlbum={name:date,imgs:imgs};
+  window._lbIsRender=true; // 標記：這是效果圖相簿 → 燈箱才顯示 AI 工具
   imgs.forEach((v,i)=>{
     const wrap=document.createElement('div');
     wrap.className='render-img-wrap';
@@ -6844,6 +6886,7 @@ function _lbSetupGestures(){
 }
 function openRenderLightbox(idx){
   _lbCurrent=idx;
+  const _pan=document.getElementById('ai-lb-panel'); if(_pan) _pan.style.display='none'; // 每次重開先收起 AI 面板
   _updateLightbox();
   const lb=document.getElementById('render-lightbox');
   if(lb){lb.style.display='flex';document.body.style.overflow='hidden';}
@@ -6859,6 +6902,26 @@ function _updateLightbox(){
   if(cap) cap.textContent=item.caption||'';
   if(ctr) ctr.textContent=`${_lbCurrent+1} / ${imgs.length}`;
   _lbReset(false);
+  _aiSyncLightbox();
+}
+// 每次切換/開啟燈箱時，重置 AI 區塊；只有效果圖+客戶端才顯示工具
+function _aiSyncLightbox(){
+  const tools=document.getElementById('ai-lb-tools');
+  const ex=document.getElementById('ai-lb-explain');
+  const pan=document.getElementById('ai-lb-panel');
+  const show = !!window._lbIsRender && loginMode==='client' && !!currentClientId;
+  if(tools) tools.style.display = show ? 'flex' : 'none';
+  if(ex){ ex.style.display='none'; ex.innerHTML=''; }
+  if(pan){
+    if(!show){ pan.style.display='none'; }
+    else if(pan.style.display==='block'){
+      // 換到新的一張圖 → 清掉結果、重載這張圖的歷史
+      const r=document.getElementById('ai-gen-results'); if(r) r.innerHTML='';
+      const s=document.getElementById('ai-gen-status'); if(s){ s.style.display='none'; }
+      const inp=document.getElementById('ai-custom-input'); if(inp) inp.value='';
+      _aiLoadHistory();
+    }
+  }
 }
 function toggleLbZoom(e){
   if(e) e.stopPropagation();
@@ -6893,6 +6956,164 @@ function downloadCurrentLb(e){
   if(e) e.stopPropagation();
   const imgs=window._lbImages||[]; const it=imgs[_lbCurrent]; if(!it) return;
   _dlBlob(it.src, `效果圖_${_lbCurrent+1}.${_extOf(it.src)}`);
+}
+
+/* ═══════════ AI 生活情境預覽（效果圖燈箱）═══════════ */
+const AI_SCENES=[['morning','早晨自然光'],['evening','傍晚暖光'],['night','晚上開燈'],['cozy','加入生活感'],['dining','餐桌使用情境'],['kids','有小孩的日常'],['pets','有寵物的日常'],['brighter','畫面更明亮']];
+let _aiBusy=false;
+function _aiEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function _aiCurrentImg(){const imgs=window._lbImages||[];return imgs[_lbCurrent]||null;}
+function _aiProjectId(){const c=(clients||[]).find(x=>x.id===currentClientId);return c&&c.project_id?c.project_id:null;}
+async function _aiCall(payload,admin){
+  const headers={'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY};
+  if(admin) headers['X-Admin-Secret']=ADMIN_PUSH_SECRET;
+  const res=await fetch(AI_PREVIEW_URL,{method:'POST',headers,body:JSON.stringify(payload)});
+  let data={}; try{data=await res.json();}catch(e){}
+  if(!res.ok) throw new Error(data.error||('伺服器錯誤 '+res.status));
+  return data;
+}
+// 看圖解說
+async function aiExplainCurrent(e){
+  if(e) e.stopPropagation();
+  const it=_aiCurrentImg(); if(!it) return;
+  const box=document.getElementById('ai-lb-explain'); if(!box) return;
+  box.style.display='block';
+  box.innerHTML='<div class="ai-card"><div style="font-size:12px;color:#8A6B48;">✨ AI 正在看這張圖…</div></div>';
+  try{
+    const d=await _aiCall({action:'explain',imageUrl:it.src});
+    box.innerHTML='<div class="ai-card">'+
+      '<div style="font-size:12px;font-weight:600;color:#8A6B48;margin-bottom:8px;">✨ AI 圖片解說</div>'+
+      '<div style="font-size:13.5px;line-height:1.85;color:#3D3D3D;">'+_aiEsc(d.text)+'</div>'+
+      '<div class="ai-note">此說明由 AI 依畫面產生，僅供情境輔助參考。</div></div>';
+  }catch(err){
+    box.innerHTML='<div class="ai-card"><div style="font-size:12.5px;color:#B5503B;">解說失敗：'+_aiEsc(err.message)+'</div></div>';
+  }
+}
+// 開/收 情境面板
+function aiTogglePanel(e){
+  if(e) e.stopPropagation();
+  const p=document.getElementById('ai-lb-panel'); if(!p) return;
+  if(p.style.display==='block'){p.style.display='none';return;}
+  p.style.display='block';
+  if(!p.dataset.built){_aiBuildPanel(p);p.dataset.built='1';}
+  _aiLoadHistory();
+  setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),60);
+}
+function _aiBuildPanel(p){
+  p.innerHTML='<div class="ai-card">'+
+    '<div style="font-size:12px;font-weight:600;color:#8A6B48;margin-bottom:4px;">🪄 AI 生活情境預覽</div>'+
+    '<div style="font-size:11.5px;color:#7C6A55;line-height:1.6;margin-bottom:10px;">選一個生活情境，讓 AI 幫你把這張效果圖轉成更接近入住後的畫面。僅作情境輔助，不代表正式設計變更。</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:7px;">'+AI_SCENES.map(function(s){return '<button class="ai-chip" onclick="aiGenScene(\''+s[0]+'\',event)">'+s[1]+'</button>';}).join('')+'</div>'+
+    '<div style="display:flex;gap:7px;margin-top:10px;">'+
+      '<input id="ai-custom-input" placeholder="例如：餐桌上有筆電、地上有狗狗、窗外有河岸景色" style="flex:1;min-width:0;padding:8px 11px;font-size:12.5px;border:0.5px solid rgba(139,107,72,0.25);border-radius:9px;background:#fff;color:#2C2218;outline:none;">'+
+      '<button class="ai-chip" style="white-space:nowrap;" onclick="aiGenCustom(event)">生成</button>'+
+    '</div>'+
+    '<div id="ai-gen-status" style="font-size:12px;color:#8A6B48;margin-top:8px;display:none;line-height:1.6;"></div>'+
+    '<div id="ai-gen-results" style="margin-top:10px;"></div>'+
+    '<div class="ai-note">AI 圖片為情境輔助預覽，實際設計仍以最終圖面、材質樣品與合約內容為準。</div></div>';
+}
+function aiGenScene(key,e){if(e)e.stopPropagation();_aiGenerate({sceneKey:key});}
+function aiGenCustom(e){
+  if(e)e.stopPropagation();
+  const inp=document.getElementById('ai-custom-input');
+  const v=(inp&&inp.value||'').trim();
+  if(!v){_aiStatus('請先輸入想看的情境 🙂');return;}
+  _aiGenerate({sceneKey:'custom',customPrompt:v});
+}
+async function _aiGenerate(opts){
+  if(_aiBusy) return;
+  const it=_aiCurrentImg(); if(!it) return;
+  if(!currentClientId){_aiStatus('請先登入才能使用');return;}
+  _aiBusy=true; _aiStatus('AI 生成中…（約 10~20 秒，請稍候）',true);
+  try{
+    const d=await _aiCall({action:'generate',clientId:currentClientId,projectId:_aiProjectId(),sourceImageUrl:it.src,sourceDrawingId:it.id||null,sceneKey:opts.sceneKey,customPrompt:opts.customPrompt||''});
+    if(d.blocked){_aiStatus(d.message,false,true);_aiBusy=false;return;}
+    _aiStatus(d.remaining!=null?('完成！今天還可生成 '+d.remaining+' 次'):'完成！',false);
+    _aiPrependResult(d);
+    const inp=document.getElementById('ai-custom-input'); if(inp&&opts.sceneKey==='custom') inp.value='';
+  }catch(err){_aiStatus('生成失敗：'+err.message,false,true);}
+  _aiBusy=false;
+}
+function _aiStatus(msg,loading,warn){
+  const s=document.getElementById('ai-gen-status'); if(!s)return;
+  s.style.display='block';
+  s.style.color=warn?'#B5503B':'#8A6B48';
+  s.innerHTML=(loading?'<span style="display:inline-block;margin-right:6px;">⏳</span>':'')+_aiEsc(msg).replace(/\n/g,'<br>');
+}
+function _aiThumb(item){
+  return '<a href="'+item.result_image_url+'" target="_blank" style="display:block;position:relative;border-radius:10px;overflow:hidden;border:0.5px solid rgba(139,107,72,0.2);">'+
+    '<img src="'+item.result_image_url+'" loading="lazy" style="width:100%;display:block;">'+
+    '<div style="position:absolute;left:6px;bottom:6px;"><span class="ai-result-tag">AI 情境預覽 · 非正式設計圖</span></div>'+
+    (item.scene_label?'<div style="position:absolute;right:6px;top:6px;font-size:9.5px;color:#fff;background:rgba(0,0,0,.45);padding:2px 7px;border-radius:5px;">'+_aiEsc(item.scene_label)+'</div>':'')+
+  '</a>';
+}
+function _aiPrependResult(d){
+  const wrap=document.getElementById('ai-gen-results'); if(!wrap)return;
+  wrap.insertAdjacentHTML('afterbegin','<div style="margin-bottom:8px;">'+_aiThumb({result_image_url:d.url,scene_label:d.sceneLabel})+'</div>');
+}
+async function _aiLoadHistory(){
+  const it=_aiCurrentImg(); const wrap=document.getElementById('ai-gen-results');
+  if(!it||!wrap||!currentClientId) return;
+  try{
+    const d=await _aiCall({action:'list',clientId:currentClientId,sourceDrawingId:it.id||null});
+    wrap.innerHTML=(d.items&&d.items.length)?d.items.map(function(x){return '<div style="margin-bottom:8px;">'+_aiThumb(x)+'</div>';}).join(''):'';
+  }catch(e){}
+}
+
+/* ── 後台：每位客戶的 AI 情境預覽開關 ── */
+async function aiAdminLoadSettings(){
+  const cid=getAdminDocClientId(); if(!cid) return;
+  const enabledEl=document.getElementById('ai-admin-enabled');
+  const limitEl=document.getElementById('ai-admin-limit');
+  const usedEl=document.getElementById('ai-admin-used');
+  try{
+    const d=await _aiCall({action:'settings',clientId:cid},true);
+    if(enabledEl) enabledEl.checked=!!d.enabled;
+    if(limitEl) limitEl.value=d.daily_limit||3;
+    if(usedEl) usedEl.textContent='今天已生成 '+(d.used_today||0)+' 次';
+  }catch(e){ if(usedEl) usedEl.textContent='讀取設定失敗：'+e.message; }
+}
+let _aiAdminSaveT=null;
+function aiAdminSave(){
+  clearTimeout(_aiAdminSaveT);
+  _aiAdminSaveT=setTimeout(_aiAdminSaveNow,250); // 防抖（改數字連按）
+}
+async function _aiAdminSaveNow(){
+  const cid=getAdminDocClientId(); if(!cid) return;
+  const enabled=document.getElementById('ai-admin-enabled')?.checked;
+  const dailyLimit=Number(document.getElementById('ai-admin-limit')?.value)||3;
+  const st=document.getElementById('ai-admin-status'); if(st) st.textContent='儲存中…';
+  try{
+    await _aiCall({action:'set',clientId:cid,enabled,dailyLimit},true);
+    if(st){ st.textContent='✓ 已儲存'; setTimeout(()=>{if(st)st.textContent='';},1800); }
+  }catch(e){ if(st){ st.style.color='#B5503B'; st.textContent='儲存失敗：'+e.message; } }
+}
+async function aiAdminToggleHistory(){
+  const box=document.getElementById('ai-admin-history'); if(!box) return;
+  if(box.style.display==='block'){ box.style.display='none'; return; }
+  box.style.display='block';
+  const cid=getAdminDocClientId(); if(!cid){ box.innerHTML='<div style="font-size:12px;color:var(--ink-light);">請先選擇客戶</div>'; return; }
+  box.innerHTML='<div style="font-size:12px;color:var(--ink-light);">載入中…</div>';
+  try{
+    const d=await _aiCall({action:'list',clientId:cid},true);
+    if(!d.items||!d.items.length){ box.innerHTML='<div style="font-size:12px;color:var(--ink-light);">這位客戶還沒有生成過情境圖。</div>'; return; }
+    box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">'+
+      d.items.map(function(x){
+        return '<div style="border:0.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;">'+
+          '<a href="'+x.result_image_url+'" target="_blank"><img src="'+x.result_image_url+'" loading="lazy" style="width:100%;display:block;"></a>'+
+          '<div style="padding:7px 9px;">'+
+            '<div style="font-size:11px;color:var(--ink);font-weight:500;">'+_aiEsc(x.scene_label||'自訂情境')+'</div>'+
+            '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">'+_aiEsc((x.created_at||'').slice(0,16).replace('T',' '))+'</div>'+
+            '<label style="display:flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;color:var(--ink-muted);cursor:pointer;">'+
+              '<input type="checkbox" '+(x.in_discussion?'checked':'')+' onchange="aiAdminFlag('+x.id+',this.checked,this)" style="cursor:pointer;"> 加入正式討論'+
+            '</label>'+
+          '</div></div>';
+      }).join('')+'</div>';
+  }catch(e){ box.innerHTML='<div style="font-size:12px;color:#B5503B;">載入失敗：'+_aiEsc(e.message)+'</div>'; }
+}
+async function aiAdminFlag(id,inDiscussion,el){
+  try{ await _aiCall({action:'flag',id,inDiscussion},true); }
+  catch(e){ if(el) el.checked=!inDiscussion; alert('更新失敗：'+e.message); }
 }
 async function _ensureJSZip(){
   if(window.JSZip) return window.JSZip;
@@ -7199,6 +7420,12 @@ function switchDrawingType(type,el){
     if(albumNameRow) albumNameRow.style.display='none';
     if(preview){ preview.style.display='none'; preview.innerHTML=''; }
     window._pendingDropFiles=null;
+  }
+  // AI 情境預覽設定：只在效果圖 tab 顯示
+  const aiBox=document.getElementById('ai-admin-box');
+  if(aiBox){
+    if(type==='效果圖'){ aiBox.style.display='block'; aiAdminLoadSettings(); }
+    else aiBox.style.display='none';
   }
   renderAdminDrawingList(getAdminDocClientId());
 }
@@ -9099,7 +9326,7 @@ async function renderAdminLogs(){
       log.photos.forEach((src,i)=>{
         const img=document.createElement('img');img.className='lmp';img.src=src;
         img.style.cursor='zoom-in';
-        img.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));openRenderLightbox(i);};
+        img.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));window._lbIsRender=false;openRenderLightbox(i);};
         row.appendChild(img);
       });
       cont.appendChild(row);
@@ -9815,7 +10042,7 @@ async function renderClientDashboard(){
       const img=document.createElement('img');
       img.src=src; img.alt='施工照片';
       img.style.cssText='height:80px;width:80px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:zoom-in;';
-      img.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));openRenderLightbox(i);};
+      img.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));window._lbIsRender=false;openRenderLightbox(i);};
       photoStrip.appendChild(img);
     });
     if(rest>0){
@@ -12909,7 +13136,7 @@ function renderDetail(){
     log.photos.forEach((src,i)=>{
       const w=document.createElement('div');w.className='pt';w.style.cursor='zoom-in';
       const img=document.createElement('img');img.src=src;img.alt='施工照片';
-      w.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));openRenderLightbox(i);};
+      w.onclick=()=>{window._lbImages=log.photos.map(p=>({src:p,caption:''}));window._lbIsRender=false;openRenderLightbox(i);};
       w.appendChild(img);pg.appendChild(w);
     });
     body.appendChild(pg);
