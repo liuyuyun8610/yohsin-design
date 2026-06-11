@@ -245,6 +245,10 @@ table{max-width:100%;}
 .know-bd hr{border:none;border-top:0.5px solid var(--border);margin:18px 0;}
 .know-bd a{color:var(--accent);text-decoration:underline;}
 .know-bd img{max-width:100%;border-radius:8px;margin:8px 0;}
+.know-summary,.know-designer{margin-top:18px;padding:14px 16px;border-radius:10px;font-size:13px;line-height:1.85;}
+.know-summary{background:#F6F4EE;border:0.5px solid var(--line);color:var(--ink);}
+.know-designer{background:#FBF8F4;border:0.5px solid var(--accent-light);border-left:3px solid var(--accent);color:var(--ink-muted);}
+.know-block-hd{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:7px;letter-spacing:0.08em;}
 .know-bd{display:none;padding:20px 20px 22px;background:#fff;font-size:13.5px;color:var(--ink);line-height:1.9;border-top:0.5px solid var(--border);}
 .know-bd.open{display:block;}
 
@@ -3390,6 +3394,7 @@ async function loadAllData() {
 
     articles = (artData||[]).map(a => ({
       id:a.id, title:a.title, tag:a.tag, body:a.body,
+      summary:a.summary||'', designer_note:a.designer_note||'',
       requires_signature:!!a.requires_signature, signature_label:a.signature_label||''
     }));
     nextAId = articles.length ? Math.max(...articles.map(a=>a.id))+1 : 1;
@@ -12171,7 +12176,10 @@ async function renderKnowledge(){
       }
     }
     const mustBadge=_isMust(a)?'<span class="know-must">必讀</span>':'';
-    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span>${mustBadge}<span class="know-tag">${a.tag}</span></div><span class="know-time">約 ${_readMins(a)} 分鐘</span></div><div class="know-bd">${a.body}${sigBlock}</div>`;
+    const esc=s=>String(s||'').replace(/[<>]/g,m=>m==='<'?'&lt;':'&gt;');
+    const summaryBlock=a.summary?`<div class="know-summary"><div class="know-block-hd">簡單來說</div><div>${esc(a.summary).replace(/\n/g,'<br>')}</div></div>`:'';
+    const noteBlock=a.designer_note?`<div class="know-designer"><div class="know-block-hd">設計師提醒</div><div>${esc(a.designer_note).replace(/\n/g,'<br>')}</div></div>`:'';
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span>${mustBadge}<span class="know-tag">${a.tag}</span></div><span class="know-time">約 ${_readMins(a)} 分鐘</span></div><div class="know-bd">${a.body}${summaryBlock}${noteBlock}${sigBlock}</div>`;
     el.appendChild(d);
   });
   if(!el.children.length)el.innerHTML='<div class="empty-state">尚未指派任何文章</div>';
