@@ -233,6 +233,18 @@ table{max-width:100%;}
 .know-arr{font-size:13px;color:var(--ink-light);transition:transform 0.2s;display:inline-block;}
 .know-arr.open{transform:rotate(90deg);}
 .know-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--accent-pale);color:var(--accent);}
+.know-must{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:#FBF4E8;color:#7A5E1A;border:0.5px solid #D4B870;}
+.know-time{font-size:11px;color:var(--ink-light);flex-shrink:0;white-space:nowrap;}
+/* 後台富文本(TipTap)文章在客戶端的排版 */
+.know-bd h2{font-size:15px;font-weight:600;color:var(--accent);margin:20px 0 10px;letter-spacing:0.02em;}
+.know-bd h3{font-size:13.5px;font-weight:600;color:var(--ink);margin:16px 0 8px;}
+.know-bd p{margin:0 0 12px;}
+.know-bd ul,.know-bd ol{margin:0 0 12px;padding-left:22px;}
+.know-bd li{margin-bottom:5px;}
+.know-bd blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--accent-light);background:#FBF8F4;border-radius:0 8px 8px 0;color:var(--ink-muted);}
+.know-bd hr{border:none;border-top:0.5px solid var(--border);margin:18px 0;}
+.know-bd a{color:var(--accent);text-decoration:underline;}
+.know-bd img{max-width:100%;border-radius:8px;margin:8px 0;}
 .know-bd{display:none;padding:20px 20px 22px;background:#fff;font-size:13.5px;color:var(--ink);line-height:1.9;border-top:0.5px solid var(--border);}
 .know-bd.open{display:block;}
 
@@ -12126,9 +12138,12 @@ async function renderKnowledge(){
   renderClientAcknowledgements();
   const c=clients.find(x=>x.id===currentClientId);
   const el=document.getElementById('know-list');el.innerHTML='';
-  (c?c.assigned:[]).forEach(aid=>{
-    const a=articles.find(x=>x.id===aid);if(!a)return;
-    if(a.tag==='切結書') return; // 切結書 走 合約文件頁，不在注意事項顯示
+  // 必讀(標題含「必讀/務必」)置頂；估閱讀時間
+  const _isMust=a=>/必讀|務必/.test(a.title||'');
+  const _readMins=a=>Math.max(1,Math.round((a.body||'').replace(/<[^>]*>/g,'').replace(/\s+/g,'').length/350));
+  const _assigned=(c?c.assigned:[]).map(aid=>articles.find(x=>x.id===aid)).filter(a=>a&&a.tag!=='切結書');
+  _assigned.sort((x,y)=>(_isMust(y)?1:0)-(_isMust(x)?1:0));
+  _assigned.forEach(a=>{
     const d=document.createElement('div');d.className='know-item';
     let sigBlock='';
     if(a.requires_signature){
@@ -12155,7 +12170,8 @@ async function renderKnowledge(){
           </div>`;
       }
     }
-    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span><span class="know-tag">${a.tag}</span></div></div><div class="know-bd">${a.body}${sigBlock}</div>`;
+    const mustBadge=_isMust(a)?'<span class="know-must">必讀</span>':'';
+    d.innerHTML=`<div class="know-hd" onclick="toggleKnow(this)"><div class="know-left"><span class="know-arr">›</span><span style="font-size:13px;font-weight:500;">${a.title}</span>${mustBadge}<span class="know-tag">${a.tag}</span></div><span class="know-time">約 ${_readMins(a)} 分鐘</span></div><div class="know-bd">${a.body}${sigBlock}</div>`;
     el.appendChild(d);
   });
   if(!el.children.length)el.innerHTML='<div class="empty-state">尚未指派任何文章</div>';
