@@ -1203,7 +1203,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">平面施工圖</div>
           <div style="font-size:10px;color:var(--cli-light,#A09080);margin-top:2px;">空間平面配置</div>
         </div>
-        <div onclick="goToDrawingType('立面系統圖')" style="position:relative;background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04);" onmouseover="this.style.boxShadow='0 8px 24px rgba(90,60,30,0.13), 0 2px 6px rgba(90,60,30,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04)';this.style.transform='translateY(0)'">
+        <div onclick="goToDrawingType('立面施工圖')" style="position:relative;background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04);" onmouseover="this.style.boxShadow='0 8px 24px rgba(90,60,30,0.13), 0 2px 6px rgba(90,60,30,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04)';this.style.transform='translateY(0)'">
           <span id="badge-elev" style="display:none;position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;background:#E63946;color:#fff;font-size:11px;font-weight:600;border-radius:10px;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,57,70,0.4);font-family:'NumQuicksand','Noto Sans TC',sans-serif;line-height:1;">1</span>
           <div style="font-size:24px;margin-bottom:6px;" id="ov-elev-icon-wrap"></div>
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">立面施工圖</div>
@@ -2554,7 +2554,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">可上傳多個版本，標記「最終版」的顯示在客戶主要區域，其餘自動歸入舊版本。上傳完成後請按右上「LINE 通知提醒」一次通知客戶。</div>
         <div class="stabs" id="drawing-type-tabs">
           <button class="stab active" onclick="switchDrawingType('平面施工圖',this)">平面施工圖</button>
-          <button class="stab" onclick="switchDrawingType('立面系統圖',this)">立面系統圖</button>
+          <button class="stab" onclick="switchDrawingType('立面施工圖',this)">立面施工圖</button>
           <button class="stab" onclick="switchDrawingType('效果圖',this)">效果圖</button>
         </div>
         <!-- AI 生活情境預覽：每位客戶開關（只在效果圖 tab 顯示，置頂好找）-->
@@ -3031,9 +3031,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               </label>
             </div>
 
-            <!-- 立面系統圖 -->
+            <!-- 立面施工圖 -->
             <div style="text-align:center;">
-              <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:.06em;margin-bottom:8px;">立面系統圖</div>
+              <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:.06em;margin-bottom:8px;">立面施工圖</div>
               <div id="elev-icon-preview" style="width:72px;height:60px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);font-size:28px;margin:0 auto 8px;"></div>
               <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--ink-muted);cursor:pointer;">
                 更換
@@ -4509,7 +4509,7 @@ function goToDrawingType(type){
     if(type==='效果圖'){
       const sec=document.getElementById('client-renders-section');
       if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
-    } else if(type==='立面系統圖'){
+    } else if(type==='立面施工圖'){
       const sec=document.getElementById('client-elevation-section');
       if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
     } else if(type==='空間與家具尺寸圖'){
@@ -4524,7 +4524,7 @@ function goToDrawingType(type){
 
 function refreshDrawingBadges(){
   if(!currentClientId) return;
-  const types=[['空間與家具尺寸圖','badge-furniture'],['效果圖','badge-render'],['平面施工圖','badge-plan'],['立面系統圖','badge-elev']];
+  const types=[['空間與家具尺寸圖','badge-furniture'],['效果圖','badge-render'],['平面施工圖','badge-plan'],['立面施工圖','badge-elev']];
   types.forEach(([t,id])=>{
     const el=document.getElementById(id);
     if(!el) return;
@@ -4651,7 +4651,7 @@ async function uploadGalleryIcon(e){
   showLoader(false);
 }
 
-// ── 立面系統圖 Icon ──
+// ── 立面施工圖 Icon ──
 function applyElevIcon(url){
   const wrap=document.getElementById('ov-elev-icon-wrap');
   if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
@@ -4665,7 +4665,7 @@ async function uploadElevIcon(e){
     const url=await uploadToStorage(file,'icons');
     await sbClient.from('system_settings').upsert({key:'elev_icon_url',value:url},{onConflict:'key'});
     applyElevIcon(url);
-    alert('✓ 立面系統圖 Icon 已更新');
+    alert('✓ 立面施工圖 Icon 已更新');
   }catch(err){alert('上傳失敗：'+err.message);}
   document.getElementById('elev-icon-input').value='';
   showLoader(false);
@@ -4861,9 +4861,9 @@ async function dbLoadDocs(pid){
   try{
     const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     // Reset
-    docsData[pid].drawings={'平面施工圖':[],'立面系統圖':[],'效果圖':[]};
+    docsData[pid].drawings={'平面施工圖':[],'立面施工圖':[],'效果圖':[]};
     docsData[pid].contracts={design:[],construction:[]};
     docsData[pid].quotes=[];
     (data||[]).forEach(r=>{
@@ -4927,7 +4927,7 @@ async function dbLoadMeetings(pid){
   try{
     const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     docsData[pid].lineScreenshots=[];
     docsData[pid].formalMeetings=[];
     docsData[pid].clientNotes=[];
@@ -5116,7 +5116,7 @@ async function dbLoadPendingItems(pid){
   try{
     const {data,error}=await sbClient.from('pending_items').select('*').eq('project_id',pid).order('item_date',{ascending:false}).order('id',{ascending:false});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     docsData[pid].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at,confirmationNote:r.confirmation_note||''}));
   }catch(e){console.warn('dbLoadPendingItems failed:',e.message);}
 }
@@ -6469,7 +6469,7 @@ async function saveProject(){
       const proj={name,status,address,unit,date,endDate,contractAmount,receivedAmount,lineGroupId};
       await dbSaveProject(proj);
       projects.push(proj);
-      docsData[proj.id]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+      docsData[proj.id]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     }
   } catch(e){alert('儲存失敗：'+e.message);}
   showLoader(false);
@@ -6564,7 +6564,7 @@ async function saveClient(){
       const newClient={id:dbId,user:u,pass:p,name:n,projectId:projId,status:st,note:no,assigned:[],isBoss};
       clients.push(newClient);
       nextCId=Math.max(nextCId,dbId+1);
-      docsData[dbId]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+      docsData[dbId]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     }
   }catch(e){
     console.error('saveClient error:', e);
@@ -6806,7 +6806,7 @@ function renderClientAlbumGallery(d, opts){
 
 // 立面施工圖（客戶端）：依相簿名稱分組
 function renderClientElevationGallery(d){
-  renderClientAlbumGallery(d, {type:'立面系統圖', sectionId:'client-elevation-section', galleryId:'client-elevation-gallery', slideKey:'_elevAllItems', idPrefix:'cli-elev'});
+  renderClientAlbumGallery(d, {type:'立面施工圖', sectionId:'client-elevation-section', galleryId:'client-elevation-gallery', slideKey:'_elevAllItems', idPrefix:'cli-elev'});
 }
 
 // 平面施工圖（客戶端）：呈現方式同立面（多版本 → 相簿）
@@ -7288,7 +7288,7 @@ async function addClientNote(){
     const imageUrls=await uploadFilesToStorage(pendingClientNoteImgs,'meeting-photos');
     const newNote={date:date.replace(/-/g,'/'),title,content,images:imageUrls};
     await dbSaveMeeting(cid,'client_note',newNote);
-    if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     if(!docsData[cid].clientNotes) docsData[cid].clientNotes=[];
     docsData[cid].clientNotes.push(newNote);
     // Reset form
@@ -7356,7 +7356,7 @@ function getAdminDocClientId(){
 }
 async function renderAdminDocs(){
   const cid=getAdminDocClientId();
-  if(!docsData[cid])docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+  if(!docsData[cid])docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
   showLoader(true);
   await dbLoadDocs(cid);
   await dbLoadMeetings(cid);
@@ -7379,10 +7379,10 @@ function switchDrawingType(type,el){
   const dropZone=document.getElementById('drawing-drop-zone');
   const uploadBtn=document.getElementById('drawing-upload-area')?.querySelector('.btn-ink');
 
-  // 效果圖 + 立面系統圖：相簿（多檔）模式
-  if(type==='效果圖' || type==='立面系統圖'){
-    if(fi){ fi.multiple=true; fi.onchange=previewDrawingImgs; fi.accept=type==='立面系統圖'?'.pdf,image/*':'image/*'; }
-    if(lbl) lbl.textContent=type==='立面系統圖'?'選擇檔案（PDF/圖片，可多選）':'選擇圖片（可多選）';
+  // 效果圖 + 立面施工圖：相簿（多檔）模式
+  if(type==='效果圖' || type==='立面施工圖'){
+    if(fi){ fi.multiple=true; fi.onchange=previewDrawingImgs; fi.accept=type==='立面施工圖'?'.pdf,image/*':'image/*'; }
+    if(lbl) lbl.textContent=type==='立面施工圖'?'選擇檔案（PDF/圖片，可多選）':'選擇圖片（可多選）';
     if(finalRow) finalRow.style.display='none';
     if(uploadBtn) uploadBtn.style.display='none';
     if(dropZone) {
@@ -7390,7 +7390,7 @@ function switchDrawingType(type,el){
       // 立面也接受 PDF
       const dzText=dropZone.querySelector('.dz-text');
       const dzHint=dropZone.querySelector('.dz-hint');
-      if(type==='立面系統圖'){
+      if(type==='立面施工圖'){
         if(dzText) dzText.textContent='拖曳 PDF 或圖片到這裡，或點擊選取';
         if(dzHint) dzHint.textContent='可一次選多檔，畫好幾張上傳幾張，客戶能即時看到進度';
       } else {
@@ -7401,13 +7401,13 @@ function switchDrawingType(type,el){
     if(albumNameRow) albumNameRow.style.display='flex';
     if(albumNameInput) {
       // 立面常用「客廳/廚房/主臥」之類分組；效果圖預設用日期
-      const ph=type==='立面系統圖'?'例：第一階段、客廳立面、進度更新':'例：第一次提案效果圖';
+      const ph=type==='立面施工圖'?'例：第一階段、客廳立面、進度更新':'例：第一次提案效果圖';
       albumNameInput.placeholder=ph;
-      if(!albumNameInput.value) albumNameInput.value=type==='立面系統圖'?('進度更新 '+todayStr()):todayStr();
+      if(!albumNameInput.value) albumNameInput.value=type==='立面施工圖'?('進度更新 '+todayStr()):todayStr();
     }
     // 上傳按鈕標籤
     const albumBtn=albumNameRow?.querySelector('.btn-ink');
-    if(albumBtn) albumBtn.textContent=type==='立面系統圖'?'＋ 上傳這批立面圖':'＋ 建立相簿並上傳';
+    if(albumBtn) albumBtn.textContent=type==='立面施工圖'?'＋ 上傳這批立面圖':'＋ 建立相簿並上傳';
   } else {
     if(fi){ fi.multiple=false; fi.onchange=null; fi.value=''; }
     if(lbl) lbl.textContent='選擇檔案（PDF/圖片）';
@@ -7430,10 +7430,10 @@ function renderAdminDrawingList(cid){
   const vers=docsData[cid]?.drawings?.[currentDrawingType]||[];
   const el=document.getElementById('admin-drawing-list');el.innerHTML='';
 
-  // 效果圖 + 立面系統圖 都用相簿模式
-  if(currentDrawingType==='效果圖' || currentDrawingType==='立面系統圖'){
+  // 效果圖 + 立面施工圖 都用相簿模式
+  if(currentDrawingType==='效果圖' || currentDrawingType==='立面施工圖'){
     if(!vers.length){
-      const emptyMsg=currentDrawingType==='立面系統圖'
+      const emptyMsg=currentDrawingType==='立面施工圖'
         ?'尚無立面圖。可以一邊畫一邊上傳，畫好幾張上傳幾張，客戶能即時看到進度。'
         :'尚無效果圖，請在下方建立相簿並上傳';
       el.innerHTML=`<div class="empty-state" style="padding:0.8rem 0;">${emptyMsg}</div>`;return;
@@ -7499,7 +7499,7 @@ function renderAdminDrawingList(cid){
             <div class="cell-overlay" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.55));opacity:0;transition:opacity .15s;">
               <div style="display:flex;gap:4px;padding:6px;">
                 ${showCover&&!v.isCover?`<button onclick="setCover(${cid},${i})" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">設封面</button>`:''}
-                ${currentDrawingType==='立面系統圖'?`<button onclick="event.stopPropagation();renameDrawingFile(${cid},'${currentDrawingType}',${i})" style="flex:1;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">改檔名</button>`:''}
+                ${currentDrawingType==='立面施工圖'?`<button onclick="event.stopPropagation();renameDrawingFile(${cid},'${currentDrawingType}',${i})" style="flex:1;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">改檔名</button>`:''}
                 <button onclick="removeDrawing(${cid},'${currentDrawingType}',${i})" style="flex:1;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:4px 2px;cursor:pointer;font-family:inherit;">刪除</button>
               </div>
             </div>`;
@@ -7540,7 +7540,7 @@ function renderAdminDrawingList(cid){
             <img class="pdf-thumb-admin" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">
             <div class="pdf-loading-admin" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:0.05em;pointer-events:none;">PDF</div>
             <div style="position:absolute;left:0;right:0;bottom:0;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:#fff;font-size:9px;text-align:center;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${v.name||v.note||'PDF'}</div>
-            ${currentDrawingType==='立面系統圖'?`<button onclick="event.stopPropagation();renameDrawingFile(${cid},'${currentDrawingType}',${i})" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;">改檔名</button>`:''}
+            ${currentDrawingType==='立面施工圖'?`<button onclick="event.stopPropagation();renameDrawingFile(${cid},'${currentDrawingType}',${i})" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;">改檔名</button>`:''}
             <button onclick="event.stopPropagation();removeDrawing(${cid},'${currentDrawingType}',${i})" style="position:absolute;top:4px;right:4px;background:rgba(160,50,40,0.85);color:#fff;border:none;border-radius:4px;font-size:9px;padding:3px 6px;cursor:pointer;font-family:inherit;">刪除</button>
           </div>`;
           const imgEl=cell.querySelector('img.pdf-thumb-admin');
@@ -7557,7 +7557,7 @@ function renderAdminDrawingList(cid){
       const addZone=document.createElement('div');
       addZone.id=addZoneId;
       addZone.style.cssText=`display:${isFirstAlbum?'block':'none'};border-top:0.5px solid var(--border);`;
-      const isElevation=currentDrawingType==='立面系統圖';
+      const isElevation=currentDrawingType==='立面施工圖';
       const acceptAttr=isElevation?'.pdf,image/*':'image/*';
       const dzPrompt=isElevation?'拖曳 PDF 或照片到這裡，或點擊選取（可多檔）':'拖曳照片到這裡，或點擊選取（可多張）';
       addZone.innerHTML=`
@@ -7592,7 +7592,7 @@ function renderAdminDrawingList(cid){
     });
 
   } else {
-    // ── 平面/立面系統圖：list view ──
+    // ── 平面/立面施工圖：list view ──
     if(!vers.length){el.innerHTML='<div class="empty-state" style="padding:0.8rem 0;">尚無版本</div>';return;}
     const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
     vers.forEach((v,i)=>{
@@ -7709,7 +7709,7 @@ function handleAlbumDrop(e,cid,albumName,safeId){
   const dz=document.getElementById(`album-dropzone-${safeId}`);
   if(dz){dz.style.borderColor='var(--accent-light)';dz.style.background='var(--sand)';}
   // 立面 接受 PDF + 圖片，效果圖只接受圖片
-  const allowPdf=currentDrawingType==='立面系統圖';
+  const allowPdf=currentDrawingType==='立面施工圖';
   const files=Array.from(e.dataTransfer.files).filter(f=>{
     if(f.type.startsWith('image/')) return true;
     if(allowPdf && (f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf'))) return true;
@@ -7803,7 +7803,7 @@ function handleDrawingDrop(e){
   e.preventDefault();
   document.getElementById('drawing-drop-zone').classList.remove('dz-hover');
   // 立面 接受 PDF + 圖片，效果圖只接受圖片
-  const allowPdf=currentDrawingType==='立面系統圖';
+  const allowPdf=currentDrawingType==='立面施工圖';
   const files=Array.from(e.dataTransfer.files).filter(f=>{
     if(f.type.startsWith('image/')) return true;
     if(allowPdf && (f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf'))) return true;
@@ -7857,19 +7857,19 @@ function addDrawingVersion(){
   const hasInputFiles=fi&&fi.files&&fi.files.length>0;
   if(!hasDropFiles&&!hasInputFiles){alert('請先選擇檔案');return;}
 
-  // 效果圖 + 立面系統圖：多檔上傳，以相簿名稱為分組 key
-  if(currentDrawingType==='效果圖' || currentDrawingType==='立面系統圖'){
+  // 效果圖 + 立面施工圖：多檔上傳，以相簿名稱為分組 key
+  if(currentDrawingType==='效果圖' || currentDrawingType==='立面施工圖'){
     if(!cid){alert('無法取得客戶 ID，請重新開啟文件頁面');return;}
     const drawType=currentDrawingType;
     const files=window._pendingDropFiles||Array.from(fi.files);
     window._pendingDropFiles=null;
     const albumNameEl=document.getElementById('album-name-input');
-    const defaultName=drawType==='立面系統圖'?('進度更新 '+todayStr()):todayStr();
+    const defaultName=drawType==='立面施工圖'?('進度更新 '+todayStr()):todayStr();
     const albumName=(albumNameEl&&albumNameEl.value.trim())||defaultName;
     showLoader(true);
     (async()=>{
       try{
-        if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+        if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
         if(!docsData[cid].drawings[drawType]) docsData[cid].drawings[drawType]=[];
         let successCount=0;
         const errors=[];
@@ -7902,7 +7902,7 @@ function addDrawingVersion(){
     return;
   }
 
-  // 平面/立面系統圖：單張上傳
+  // 平面/立面施工圖：單張上傳
   const isFinal=document.getElementById('drawing-is-final').checked;
   const file=fi.files[0];
   const note=file.name.replace(/\.[^.]+$/,'');
@@ -7911,7 +7911,7 @@ function addDrawingVersion(){
     try{
       const fileUrl=await uploadToStorage(file,'drawings');
       const size=fmtFileSize(file.size);
-      if(!docsData[cid])docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+      if(!docsData[cid])docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
       if(!docsData[cid].drawings[currentDrawingType])docsData[cid].drawings[currentDrawingType]=[];
       if(isFinal){
         for(const v of docsData[cid].drawings[currentDrawingType]){
@@ -8126,7 +8126,7 @@ async function uploadCliFurPhotos(e){
   const statusEl=document.getElementById('cli-fur-upload-status');
   if(statusEl) statusEl.style.display='block';
   try{
-    if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面系統圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[cid]) docsData[cid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     if(!docsData[cid].furniturePlans) docsData[cid].furniturePlans=[];
     for(const file of files){
       const fileUrl=await uploadToStorage(file,'furniture-plans');
@@ -9166,7 +9166,7 @@ async function pushClientCredentialsToLine(clientId){
 async function notifyDrawingUpdateClick(){
   const cid=getAdminDocClientId();
   if(!cid){alert('請先選擇客戶');return;}
-  const labelMap={'平面施工圖':'平面施工圖','立面系統圖':'立面系統圖','效果圖':'3D 效果圖'};
+  const labelMap={'平面施工圖':'平面施工圖','立面施工圖':'立面施工圖','效果圖':'3D 效果圖'};
   const label=labelMap[currentDrawingType]||currentDrawingType;
   await maybePushDrawingUpdate(cid,label);
 }
@@ -9635,7 +9635,7 @@ window.renderClientNextAction = async function(proj){
   }
 
   // 圖紙最終版未確認
-  const drawingTypes = ['空間與家具尺寸圖','平面施工圖','立面系統圖','效果圖'];
+  const drawingTypes = ['空間與家具尺寸圖','平面施工圖','立面施工圖','效果圖'];
   let unconfirmedFinal = null;
   for(const t of drawingTypes){
     const list = drawings[t] || [];
