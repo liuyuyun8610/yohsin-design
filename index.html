@@ -13486,6 +13486,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const idx=clients.findIndex(x=>Number(x.id)===Number(client.id));
         if(idx>=0) clients[idx]=client; else clients.push(client);
         _enterClient(client);
+        // 背景刷新文章指派：快照存的是「登入當下」的清單，後台新增/補指派的文章
+        // 不重登永遠看不到。RPC 不存在（migration 未跑）時靜默略過，不影響使用。
+        try{
+          sbClient.rpc('refresh_client_articles',{p_client_id:Number(client.id)}).then(({data,error})=>{
+            if(error||!Array.isArray(data))return;
+            const arr=data.map(Number);
+            if(JSON.stringify(arr)===JSON.stringify(client.assigned||[]))return;
+            client.assigned=arr;
+            const i=clients.findIndex(x=>Number(x.id)===Number(client.id));
+            if(i>=0)clients[i].assigned=arr;
+            localStorage.setItem('ys_session',JSON.stringify({mode:'client',u:parsed.u,client}));
+            renderKnowledge();
+          }).catch(()=>{});
+        }catch(e){}
       } else if(mode==='client' && clientId){
         // 舊版：只有 clientId — 試著從 clients 找；找不到清掉 session
         const c=clients.find(x=>Number(x.id)===Number(clientId));
