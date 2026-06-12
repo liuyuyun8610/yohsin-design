@@ -496,14 +496,15 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 
 /* 3D 效果圖 gallery */
 /* 3D 效果圖相簿 */
-.album-list{display:flex;flex-direction:column;gap:10px;}
-.album-card{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--sand);aspect-ratio:16/9;box-shadow:0 2px 12px rgba(42,37,32,0.08);}
+.album-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:640px){.album-list{grid-template-columns:repeat(2,1fr);}}
+.album-card{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--sand);aspect-ratio:1;box-shadow:0 2px 12px rgba(42,37,32,0.08);}
 .album-card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s;}
 .album-card:hover img{transform:scale(1.03);}
-.album-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(18,14,10,0.75) 0%,transparent 50%);display:flex;flex-direction:column;justify-content:flex-end;padding:16px 18px 14px;}
-.album-card-date{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:16px;font-weight:500;color:#fff;letter-spacing:.05em;}
-.album-card-count{font-size:11px;color:rgba(255,255,255,0.65);margin-top:4px;letter-spacing:.06em;}
-.album-card-enter{position:absolute;bottom:14px;right:16px;font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:.06em;opacity:0;transition:opacity .2s;}
+.album-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(18,14,10,0.75) 0%,transparent 50%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px 13px 11px;}
+.album-card-date{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;color:#fff;letter-spacing:.04em;}
+.album-card-count{font-size:10px;color:rgba(255,255,255,0.65);margin-top:3px;letter-spacing:.05em;}
+.album-card-enter{position:absolute;top:10px;right:12px;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:.05em;opacity:0;transition:opacity .2s;}
 .album-card:hover .album-card-enter{opacity:1;}
 /* Album inside view */
 .render-album-back{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#fff;cursor:pointer;padding:6px 14px 6px 10px;letter-spacing:.04em;background:#AB9E93;border-radius:999px;margin-bottom:14px;transition:opacity .15s;}
@@ -6700,7 +6701,7 @@ function renderClient3DGallery(d){
   });
   // PDFs
   if(pdfs.length){
-    const pdfWrap=document.createElement('div');pdfWrap.style.cssText='margin-top:10px;';
+    const pdfWrap=document.createElement('div');pdfWrap.style.cssText='margin-top:10px;grid-column:1/-1;';
     pdfs.forEach(v=>{
       const a=document.createElement('a');a.href=v.fileUrl;a.target='_blank';
       a.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:0.5px solid var(--border);border-radius:10px;text-decoration:none;color:var(--ink);margin-bottom:6px;';
@@ -6713,7 +6714,7 @@ function renderClient3DGallery(d){
   const finals = allRenders.filter(v => v.isFinal);
   if(finals.length){
     const block = document.createElement('div');
-    block.style.cssText = 'margin-top:1rem;padding:14px 16px;background:#FAFAF8;border:1px dashed var(--accent-pale);border-radius:10px;';
+    block.style.cssText = 'margin-top:1rem;padding:14px 16px;background:#FAFAF8;border:1px dashed var(--accent-pale);border-radius:10px;grid-column:1/-1;';
     block.innerHTML = `<div style="font-size:12px;color:var(--accent);font-weight:500;margin-bottom:8px;">效果圖最終版確認</div>` +
       finals.map(v => getDrawingConfirmBlock(v, '效果圖')).join('');
     albumList.appendChild(block);
@@ -6846,7 +6847,7 @@ function openAlbum(date, imgs){
 function closeAlbum(){
   const listView=document.getElementById('album-list-view');
   const insideView=document.getElementById('album-inside-view');
-  if(listView) listView.style.display='flex';
+  if(listView) listView.style.display='';
   if(insideView) insideView.style.display='none';
 }
 
