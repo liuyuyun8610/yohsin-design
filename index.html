@@ -501,6 +501,9 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .album-card{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--sand);aspect-ratio:1;box-shadow:0 2px 12px rgba(42,37,32,0.08);}
 .album-card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s;}
 .album-card:hover img{transform:scale(1.03);}
+/* 滑過相簿時微微晃動（像從書架上抽出一本相本）*/
+@keyframes albumWiggle{0%{transform:rotate(0deg)}30%{transform:rotate(.9deg)}60%{transform:rotate(-.7deg)}85%{transform:rotate(.35deg)}100%{transform:rotate(0deg)}}
+.album-card:hover{animation:albumWiggle .55s ease-in-out;}
 .album-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(18,14,10,0.75) 0%,transparent 50%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px 13px 11px;}
 .album-card-date{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;color:#fff;letter-spacing:.04em;}
 .album-card-count{font-size:10px;color:rgba(255,255,255,0.65);margin-top:3px;letter-spacing:.05em;}
