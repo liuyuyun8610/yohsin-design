@@ -6779,6 +6779,8 @@ function renderClientAlbumGallery(d, opts){
           : '';
       const fileName=escapeHtml(v.name||v.note||`${name}（第 ${i+1} 張）`);
       const uploadDate=fmtMDate(v.createdAt||v.date||'');
+      // 設計師填的「此版修改備註」：有 name 時 note 是獨立備註，未打開圖前先顯示重點
+      const noteLine=(v.note&&v.name)?`<span style="display:block;font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.6;white-space:pre-wrap;">📌 ${escapeHtml(v.note)}</span>`:'';
       const row=document.createElement('div');
       row.style.cssText='display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:0.5px solid var(--border);cursor:pointer;background:#fff;transition:background .12s;';
       row.onmouseover=()=>row.style.background='#FBF8F4';
@@ -6788,6 +6790,7 @@ function renderClientAlbumGallery(d, opts){
         <span style="flex:1;min-width:0;">
           <span style="display:block;font-size:13px;color:var(--ink);line-height:1.45;word-break:break-all;">${fileName}${badge}</span>
           ${uploadDate?`<span style="display:block;font-size:11px;color:var(--ink-light);margin-top:2px;">上傳日期：${uploadDate}</span>`:''}
+          ${noteLine}
         </span>
         <span style="flex-shrink:0;font-size:16px;color:var(--ink-light);line-height:1;">›</span>`;
       row.onclick=()=>{
