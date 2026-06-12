@@ -9828,9 +9828,12 @@ window.renderClientNextAction = async function(proj){
       label:'報價單更新',
       sub:`${latestQuote.name ? trunc(latestQuote.name,14) + ' · ' : ''}${shortDate(latestQuote.dateStr)}`,
       navigate: () => {
-        // 報價資料區塊在 p-overview 頁內，直接捲到該位置
-        const el = document.getElementById('client-quotes');
-        if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // 報價資料區塊在「合約報價」頁（p-contracts）內：先切頁、再捲到該區塊
+        goPage('p-contracts', document.querySelector('#s-client .tnav[onclick*="p-contracts"]'));
+        setTimeout(() => {
+          const el = document.getElementById('client-quotes');
+          if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 180);
       }
     });
   }
