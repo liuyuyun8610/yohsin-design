@@ -6650,7 +6650,8 @@ function renderClientDocs(){
   if(!d.quotes.length){ql.innerHTML='<div class="empty-state" style="padding:1rem 0;">尚無報價資料</div>';}
   else d.quotes.forEach(q=>{
     const r=document.createElement('div');r.className='fi-item';
-    r.innerHTML=`<div class="ficon">PDF</div><span>${q.name}</span><span class="fsize">${q.size}</span><span class="fdate" style="margin-left:8px;">${q.date}</span>`;
+    // note = 設計師填的「此次更新重點備註」，未打開檔案前先讓客戶知道內容
+    r.innerHTML=`<div class="ficon">PDF</div><div style="flex:1;min-width:0;"><div>${q.name}</div>${q.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.6;white-space:pre-wrap;">📌 ${q.note}</div>`:''}</div><span class="fsize">${q.size}</span><span class="fdate" style="margin-left:8px;">${q.date}</span>`;
     if(q.fileUrl) r.onclick=()=>window.open(q.fileUrl,'_blank');
     ql.appendChild(r);
   });
