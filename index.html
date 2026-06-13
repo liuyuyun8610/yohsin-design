@@ -10415,7 +10415,7 @@ async function exportMaterialsPdf(){
       const sigBadge = isConfirmed
         ? `<div style="font-size:9px;color:#3D5C24;margin-top:3px;">✓ ${esc(r.customer_signature_name||'客戶')} 已確認</div>`
         : '';
-      const photoUrl = Array.isArray(r.photos) && r.photos[0]?.url;
+      const photoUrl = selMainPhoto(r.photos);
       const ph = `<div style="width:74px;height:74px;background:linear-gradient(135deg,#F4F1EB,#EAE3D2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#A09080;font-size:9px;letter-spacing:0.08em;">無樣板</div>`;
       const photoCell = photoUrl
         ? `<div style="position:relative;width:74px;height:74px;">${ph}<img src="${esc(photoUrl)}" referrerpolicy="no-referrer" onload="this.style.opacity=1" onerror="this.remove()" style="position:absolute;top:0;left:0;width:74px;height:74px;object-fit:cover;border-radius:4px;border:0.5px solid #D9CFC1;opacity:0;transition:opacity 0.2s;background:#fff;"></div>`
@@ -10800,11 +10800,19 @@ async function getClientIp(){
   return '';
 }
 
+// 選材主圖：優先取非案例照（色卡/樣本），完工照只在詳細頁的「看實際完工照」顯示。
+// 舊資料 photos[0] 可能是 type:'case'（完工照），直接取第一張會把完工照攤在卡片上。
+function selMainPhoto(photos){
+  if(!Array.isArray(photos)||!photos.length) return null;
+  const m = photos.find(p=>p && p.type!=='case') || photos[0];
+  return m ? m.url : null;
+}
+
 // ========== 選材詳細 modal（大圖 + 看實際完工照按鈕）==========
 function openMaterialDetail(matId){
   const it = (window._selectionsCache && window._selectionsCache[matId]);
   if(!it){ console.warn('[material detail] 找不到 selection', matId); return; }
-  const photo = Array.isArray(it.photos) && it.photos[0]?.url;
+  const photo = selMainPhoto(it.photos);
   const cases = it.library_id ? ((window._materialCasePhotos && window._materialCasePhotos.get(it.library_id)) || []) : [];
   const lines = [it.brand, it.name, it.model].filter(Boolean).join(' / ');
   const isConfirmed = !!it.customer_confirmed_at;
@@ -11277,7 +11285,7 @@ async function renderClientMaterials(){
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">
           ${items.map(it=>{
-            const photo=Array.isArray(it.photos)&&it.photos[0]?.url;
+            const photo=selMainPhoto(it.photos);
             const lines=[it.brand,it.name,it.model].filter(Boolean).join(' / ');
             const canConfirm = it.status==='客戶確認中' || it.status==='設計師提案';
             const isConfirmed = !!it.customer_confirmed_at;
