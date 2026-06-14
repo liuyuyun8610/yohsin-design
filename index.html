@@ -3096,8 +3096,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div style="padding:8px 20px;background:#FAF7F2;font-size:11px;color:var(--ink-muted);border-bottom:0.5px solid var(--line);">
       簽名前可點上方「列印 / 下載 PDF」仔細閱讀完整合約內容。確認無誤後再於下方簽名。
     </div>
-    <iframe id="contract-frame" style="flex:1;width:100%;border:0;background:#fff;"></iframe>
-    <div id="contract-sign-zone" style="padding:14px 20px;border-top:0.5px solid var(--line);background:#FBF8F4;">
+    <iframe id="contract-frame" style="flex:1 1 0;min-height:120px;width:100%;border:0;background:#fff;"></iframe>
+    <div id="contract-sign-zone" style="padding:14px 20px;border-top:0.5px solid var(--line);background:#FBF8F4;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
       <div id="contract-already-signed" style="display:none;text-align:center;color:var(--ink-muted);font-size:13px;">
         <div style="margin-bottom:8px;color:#3A5E32;font-weight:500;">✓ 您已於 <span id="contract-signed-time"></span> 簽署此合約</div>
         <img id="contract-signed-img" alt="簽名" style="max-height:120px;border:0.5px solid var(--line);border-radius:6px;background:#fff;padding:6px;">
@@ -12382,6 +12382,8 @@ function openContractViewer(dbId){
   const signed=!!c.signedAt;
   document.getElementById('contract-already-signed').style.display=signed?'block':'none';
   document.getElementById('contract-sign-pending').style.display=signed?'none':'block';
+  // 先顯示 Modal，canvas 寬度才量得到正確值（隱藏時 clientWidth=0 會 fallback 成 620px 爆版）
+  document.getElementById('contract-modal').style.display='flex';
   if(signed){
     const t=new Date(c.signedAt);
     document.getElementById('contract-signed-time').textContent=`${t.getFullYear()}/${t.getMonth()+1}/${t.getDate()} ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
@@ -12399,7 +12401,6 @@ function openContractViewer(dbId){
     ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
   }
   _contractState={dbId,drawing:false,lastX:0,lastY:0,hasInk:false};
-  document.getElementById('contract-modal').style.display='flex';
 }
 function closeContractViewer(){document.getElementById('contract-modal').style.display='none';}
 function printContractForClient(){
