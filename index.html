@@ -1931,7 +1931,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
                 <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);">內容</th>
                 <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:82px;">日期</th>
                 <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:80px;">單價</th>
-                <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:48px;">數量</th>
+                <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:44px;">數量</th>
+                <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:46px;">單位</th>
                 <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:90px;">小計</th>
               </tr>
             </thead>
@@ -10292,7 +10293,7 @@ async function loadClientChangeOrders(pid){
         groups[k].items.push(r);
       });
 
-      const totalCols = 6;
+      const totalCols = 7;
       groupOrder.forEach(k=>{
         const g = groups[k];
         // 計算組內小計（追加正、減項負）
@@ -10317,6 +10318,7 @@ async function loadClientChangeOrders(pid){
             <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
             <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
             <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
+            <td style="padding:10px 8px;text-align:center;font-size:13px;color:var(--ink-muted);">${r.unit?escapeHtml(r.unit):'—'}</td>
             <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
           tb.appendChild(tr);
         });
@@ -10325,7 +10327,7 @@ async function loadClientChangeOrders(pid){
         const sumColor = gNet >= 0 ? 'var(--red)' : 'var(--green)';
         const subTr = document.createElement('tr');
         subTr.innerHTML = `
-          <td colspan="5" style="text-align:right;padding:8px 12px;font-size:12px;color:var(--ink-muted);background:rgba(0,0,0,0.015);">${g.label} 小計</td>
+          <td colspan="6" style="text-align:right;padding:8px 12px;font-size:12px;color:var(--ink-muted);background:rgba(0,0,0,0.015);">${g.label} 小計</td>
           <td style="text-align:right;padding:8px 12px;font-size:13px;font-weight:600;color:${sumColor};background:rgba(0,0,0,0.015);">${sumSign}$${fmtN(Math.abs(gNet))}</td>`;
         tb.appendChild(subTr);
       });
@@ -10594,7 +10596,7 @@ async function exportChangeOrdersPdf(){
       gNet += (r.type === '追加' ? amt : -amt);
     });
     // 分組標題列
-    rowsHtml += `<tr><td colspan="7" style="background:#F5EFE7;padding:8px 12px;color:#8B6B48;font-weight:600;font-size:12px;letter-spacing:0.06em;border-top:1px solid #8B6B48;">${esc(g.label)}</td></tr>`;
+    rowsHtml += `<tr><td colspan="8" style="background:#F5EFE7;padding:8px 12px;color:#8B6B48;font-weight:600;font-size:12px;letter-spacing:0.06em;border-top:1px solid #8B6B48;">${esc(g.label)}</td></tr>`;
     // 各項目（組內重新編號）
     g.items.forEach((r, idxInGroup) => {
       const amt = Number(r.unit_price) * Number(r.quantity);
@@ -10607,6 +10609,7 @@ async function exportChangeOrdersPdf(){
         <td style="text-align:center;padding:9px 8px;color:${color};font-weight:500;">${esc(r.type||'')}</td>
         <td style="text-align:right;padding:9px 12px;">$${fmtN(Number(r.unit_price))}</td>
         <td style="text-align:right;padding:9px 8px;color:#6E5E4E;">${esc(r.quantity)}</td>
+        <td style="text-align:center;padding:9px 8px;color:#6E5E4E;">${r.unit?esc(r.unit):'—'}</td>
         <td style="text-align:right;padding:9px 12px;font-weight:500;color:${color};">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>
       </tr>`;
     });
@@ -10614,7 +10617,7 @@ async function exportChangeOrdersPdf(){
     const sumSign = gNet >= 0 ? '+' : '-';
     const sumColor = gNet >= 0 ? '#A32D2D' : '#3B6D11';
     rowsHtml += `<tr>
-      <td colspan="6" style="text-align:right;padding:7px 12px;font-size:11px;color:#6E5E4E;background:#FAF7F2;">${esc(g.label)} 小計</td>
+      <td colspan="7" style="text-align:right;padding:7px 12px;font-size:11px;color:#6E5E4E;background:#FAF7F2;">${esc(g.label)} 小計</td>
       <td style="text-align:right;padding:7px 12px;font-size:12px;font-weight:600;color:${sumColor};background:#FAF7F2;">${sumSign}$${fmtN(Math.abs(gNet))}</td>
     </tr>`;
   });
@@ -10651,9 +10654,10 @@ async function exportChangeOrdersPdf(){
     +'<th>項目內容</th>'
     +'<th class="c" style="width:74px;">日期</th>'
     +'<th class="c" style="width:58px;">類別</th>'
-    +'<th class="r" style="width:92px;">單價</th>'
-    +'<th class="r" style="width:48px;">數量</th>'
-    +'<th class="r" style="width:108px;">小計</th>'
+    +'<th class="r" style="width:88px;">單價</th>'
+    +'<th class="r" style="width:44px;">數量</th>'
+    +'<th class="c" style="width:46px;">單位</th>'
+    +'<th class="r" style="width:104px;">小計</th>'
     +'</tr></thead><tbody>'+rowsHtml+'</tbody></table>'
     +'<div class="totals">'
     +'<div class="row"><span>追加小計</span><span>+$'+fmtN(addTotal)+'</span></div>'
