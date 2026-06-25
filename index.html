@@ -4389,8 +4389,8 @@ function fmtMDate(s){
   return m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+String(m[3]).padStart(2,'0');
 }
 // 從一組項目算「最後更新時間」：YYYY/MM/DD HH:MM（24h），凌晨(0-4點)加「凌晨」前綴
-function lastUpdateLabel(items){
-  const ts=(items||[]).map(v=>{const t=v&&(v.updatedAt||v.createdAt);return t?Date.parse(t):0;}).filter(n=>n>0);
+function lastUpdateLabel(items,preferUpload){
+  const ts=(items||[]).map(v=>{const t=v&&(preferUpload?(v.createdAt||v.updatedAt):(v.updatedAt||v.createdAt));return t?Date.parse(t):0;}).filter(n=>n>0);
   if(!ts.length) return '';
   const d=new Date(Math.max(...ts));
   if(isNaN(d.getTime())) return '';
@@ -6679,9 +6679,9 @@ function renderClient3DGallery(d){
   const albumMaxId=k=>Math.max(...grouped[k].map(v=>Number(v.dbId)||0));
   const dates=Object.keys(grouped).sort((a,b)=>albumMaxId(b)-albumMaxId(a));
   // Build album list view + inside view (hidden by default)
-  const _lu=lastUpdateLabel(allRenders);
+  const _lu=lastUpdateLabel(allRenders,true);
   gallery.innerHTML=`
-    ${_lu?`<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;letter-spacing:0.02em;">最後更新時間：${_lu}</div>`:''}
+    ${_lu?`<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;letter-spacing:0.02em;">最後上傳時間：${_lu}</div>`:''}
     <div id="album-list-view" class="album-list"></div>
     <div id="album-inside-view" style="display:none;">
       <div class="render-album-back" onclick="closeAlbum()">‹ 返回相簿</div>
