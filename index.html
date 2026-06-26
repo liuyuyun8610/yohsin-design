@@ -13128,6 +13128,28 @@ const APP_DEFAULTS=[
 
 // ========== CALENDAR ==========
 function dkey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+// 工項分類配色（讓客戶端月曆像公司那樣一眼分明）
+function tagColor(tag){
+  const t=String(tag||'');
+  const map=[
+    [/拆除/, '#B5705C', '#F6E3DC'],
+    [/保護/, '#C19A4B', '#F6EFD9'],
+    [/泥作/, '#B07B57', '#F4E7DC'],
+    [/水電|強電|弱電|配電/, '#5B7A9E', '#E5EDF5'],
+    [/木作/, '#8A6D3B', '#F0E7D5'],
+    [/油漆|塗/, '#6E8A6A', '#E5EFE2'],
+    [/空調|設備|全熱/, '#5E8C8C', '#E0EEEE'],
+    [/玻璃|鋁|窗/, '#7E8A9E', '#E8EAF0'],
+    [/系統|櫃/, '#A2785E', '#F1E6DC'],
+    [/清潔|驗收|完工/, '#8AA06E', '#EDF2E2'],
+    [/會議/, '#5B7A9E', '#E5EDF5'],
+    [/看場|丈量|現場/, '#7A9473', '#E7F0E4'],
+    [/進場|開工/, '#A37B4E', '#F2E8DA'],
+  ];
+  for(const m of map){ if(m[0].test(t)) return {fg:m[1], bg:m[2]}; }
+  return {fg:'#8B7B68', bg:'#EFE9E0'};
+}
+function paintTag(el, tag){ const c=tagColor(tag); el.style.background=c.bg; el.style.color=c.fg; el.style.fontWeight='600'; }
 function renderCalendar(){
   const MN=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   const DL=['日','一','二','三','四','五','六'];
@@ -13140,8 +13162,8 @@ function renderCalendar(){
     const key=dkey(curYear,curMonth,d);const evts=CAL_EVENTS[key]||[],log=calLogs[key],hasLog=!!log,isHol=evts.some(e=>e.type==='hol'),isToday=d===today.getDate()&&curMonth===today.getMonth()&&curYear===today.getFullYear();
     const c=document.createElement('div');c.className='cday'+(isHol?' hol':'')+(hasLog?' has-log':'')+(isToday?' today':'')+(selDate===key?' sel':'');c.onclick=()=>selectDate(key);
     const n=document.createElement('div');n.className='cdn';n.textContent=d;c.appendChild(n);
-    evts.slice(0,2).forEach(e=>{const t=document.createElement('div');t.className='cetag'+(e.type==='bk'?' bk':'');t.textContent=e.label;c.appendChild(t);});
-    if(hasLog&&log.tag){const t=document.createElement('div');t.className='cetag bk';t.textContent=log.tag;c.appendChild(t);}
+    evts.slice(0,2).forEach(e=>{const t=document.createElement('div');t.className='cetag'+(e.type==='bk'?' bk':'');t.textContent=e.label;if(e.type==='bk')paintTag(t,e.label);c.appendChild(t);});
+    if(hasLog&&log.tag){const t=document.createElement('div');t.className='cetag bk';t.textContent=log.tag;paintTag(t,log.tag);c.appendChild(t);}
     if(hasLog&&log.photos&&log.photos.length){const p=document.createElement('div');p.className='cpc';p.textContent=log.photos.length+' 張照片';c.appendChild(p);}
     g.appendChild(c);
   }
@@ -13155,8 +13177,8 @@ function renderDetail(){
   const evts=CAL_EVENTS[selDate]||[],log=calLogs[selDate]||{work:'',photos:[]};
   const body=document.getElementById('det-body');body.innerHTML='';
   // 工程標籤（來自 DB）
-  if(log.tag){const chips=document.createElement('div');chips.className='det-chips';const c=document.createElement('span');c.className='det-chip chip-bk';c.textContent=log.tag;chips.appendChild(c);body.appendChild(chips);}
-  else if(evts.length){const chips=document.createElement('div');chips.className='det-chips';evts.forEach(e=>{const c=document.createElement('span');c.className='det-chip chip-'+(e.type==='hol'?'hol':'bk');c.textContent=e.label;chips.appendChild(c);});body.appendChild(chips);}
+  if(log.tag){const chips=document.createElement('div');chips.className='det-chips';const c=document.createElement('span');c.className='det-chip chip-bk';c.textContent=log.tag;paintTag(c,log.tag);chips.appendChild(c);body.appendChild(chips);}
+  else if(evts.length){const chips=document.createElement('div');chips.className='det-chips';evts.forEach(e=>{const c=document.createElement('span');c.className='det-chip chip-'+(e.type==='hol'?'hol':'bk');c.textContent=e.label;if(e.type!=='hol')paintTag(c,e.label);chips.appendChild(c);});body.appendChild(chips);}
   // 施工記錄（唯讀）
   if(log.work){
     const sl=document.createElement('div');sl.className='sec-lbl';sl.textContent='本日施工記錄';body.appendChild(sl);
