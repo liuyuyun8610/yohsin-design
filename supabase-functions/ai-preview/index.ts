@@ -22,8 +22,13 @@ const FAL_KEY = Deno.env.get('FAL_KEY')!
 const ADMIN_SECRET = Deno.env.get('ADMIN_PUSH_SECRET') || ''
 const SB_URL = Deno.env.get('SUPABASE_URL')!
 const SB_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+// 有心專屬模型（Flux.2 LoRA，與 su-ai-render 渲染器同一個訓練成果）。
+// 設了 FAL_LORA_URL 就用它生情境圖（自帶有心味）；沒設則退回 nano-banana。
+const FAL_LORA_URL = Deno.env.get('FAL_LORA_URL') || ''
+const LORA_SCALE = Number(Deno.env.get('FAL_LORA_SCALE') || '0.6')  // 調低，加真實感但不蓋掉客戶選的材質
 
 const EDIT_MODEL = 'fal-ai/nano-banana/edit'                 // 指令式編輯：保留構圖、只改光線/氛圍
+const LORA_EDIT_MODEL = 'fal-ai/flux-2/lora/edit'            // Flux.2 編輯 + 套有心 LoRA
 const VISION_MODEL = 'fal-ai/any-llm/vision'                 // 看圖 → 文字
 const VISION_LLM = 'google/gemini-2.5-flash'
 
@@ -155,13 +160,16 @@ Deno.serve(async (req) => {
         sceneLabel = s.label
       }
 
-      // 生圖
-      const edited = await falRun(EDIT_MODEL, {
+      // 生圖：有設 FAL_LORA_URL → 用有心私有模型(Flux.2+LoRA)；否則退回 nano-banana。
+      const genInput = {
         prompt: BASE_RULES + instruction,
         image_urls: [body.sourceImageUrl],
         num_images: 1,
         output_format: 'jpeg',
-      })
+      }
+      const edited = FAL_LORA_URL
+        ? await falRun(LORA_EDIT_MODEL, { ...genInput, loras: [{ path: FAL_LORA_URL, scale: LORA_SCALE }] })
+        : await falRun(EDIT_MODEL, genInput)
       const falUrl = pickImg(edited)
       if (!falUrl) return json({ error: 'AI 未回傳圖片' }, 502)
 
