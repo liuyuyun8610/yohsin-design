@@ -3404,7 +3404,7 @@ async function loadAllData() {
       receivedAmount:Number(p.received_amount)||0,
       lineGroupId:p.line_group_id||'',
       currentPhase:Number(p.current_phase)||1,
-      clientType:p.client_type||'成屋'
+      clientType:p.client_type||'existing'
     }));
     nextPId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
 
@@ -3890,8 +3890,8 @@ function _enterClient(c){
   currentClientId=c.id;
   const proj=projects.find(q=>Number(q.id)===Number(c.projectId));
   // 客戶類型：預售屋(客變)＝精簡版，隱藏 3D/選材/施工照/收納，只留平面系統圖/合約報價/財務兩筆/追加減/想法
-  window.clientType = (proj && proj.clientType) || '成屋';
-  document.body.classList.toggle('presale-mode', window.clientType==='預售屋');
+  window.clientType = (proj && proj.clientType) || 'existing';
+  document.body.classList.toggle('presale-mode', window.clientType==='presale');
   document.getElementById('tb-client-name').textContent=c.name;
   const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
   document.getElementById('p-proj-title').textContent=proj?proj.name:'';
