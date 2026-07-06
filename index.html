@@ -969,7 +969,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 body.presale-mode [data-existing-only]{display:none!important;}
 body.presale-mode #client-vr-tour-section,
 body.presale-mode #client-renders-section,
+body.presale-mode #client-elevation-section,
 body.presale-mode #dash-photo-card,
+body.presale-mode #dash-construction-card,
+body.presale-mode #pay-section-construction,
+body.presale-mode #contract-sec-construction,
+body.presale-mode #contract-sec-ack,
 body.presale-mode #s-client .tnav[onclick*="p-materials"],
 body.presale-mode #s-client .tnav[onclick*="p-construction"],
 body.presale-mode #s-client .tnav[onclick*="p-storage"],
@@ -1225,7 +1230,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">平面施工圖</div>
           <div style="font-size:10px;color:var(--cli-light,#A09080);margin-top:2px;">空間平面配置</div>
         </div>
-        <div onclick="goToDrawingType('立面施工圖')" style="position:relative;background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04);" onmouseover="this.style.boxShadow='0 8px 24px rgba(90,60,30,0.13), 0 2px 6px rgba(90,60,30,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04)';this.style.transform='translateY(0)'">
+        <div data-existing-only onclick="goToDrawingType('立面施工圖')" style="position:relative;background:var(--cli-card,#FBF8F4);border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04);" onmouseover="this.style.boxShadow='0 8px 24px rgba(90,60,30,0.13), 0 2px 6px rgba(90,60,30,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(90,60,30,0.08), 0 1px 3px rgba(90,60,30,0.04)';this.style.transform='translateY(0)'">
           <span id="badge-elev" style="display:none;position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;background:#E63946;color:#fff;font-size:11px;font-weight:600;border-radius:10px;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,57,70,0.4);font-family:'NumQuicksand','Noto Sans TC',sans-serif;line-height:1;">1</span>
           <div style="font-size:24px;margin-bottom:6px;" id="ov-elev-icon-wrap"></div>
           <div style="font-size:12px;font-weight:500;color:var(--cli-ink,#2C2218);letter-spacing:.04em;">立面施工圖</div>
@@ -1421,24 +1426,24 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       <div class="page-title">合約報價</div>
       <div id="docs-panel-contracts">
         <div class="doc-section">
-          <div class="doc-section-title">設計合約</div>
+          <div class="doc-section-title" id="contract-title-design">設計合約</div>
           <div class="card" style="padding:0.8rem 1rem;">
             <div id="client-contracts-design"></div>
           </div>
         </div>
-        <div class="doc-section">
+        <div class="doc-section" id="contract-sec-construction">
           <div class="doc-section-title">工程合約</div>
           <div class="card" style="padding:0.8rem 1rem;">
             <div id="client-contracts-construction"></div>
           </div>
         </div>
         <div class="doc-section">
-          <div class="doc-section-title">報價資料</div>
+          <div class="doc-section-title" id="contract-title-quote">報價資料</div>
           <div class="card" style="padding:0.8rem 1rem;">
             <div id="client-quotes"></div>
           </div>
         </div>
-        <div class="doc-section">
+        <div class="doc-section" id="contract-sec-ack">
           <div class="doc-section-title">相關聲明 ／ 切結書</div>
           <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;line-height:1.7;">下列為條件性聲明文件。請依需求閱讀、必要時於文末簽署。</div>
           <div id="client-acknowledgements"></div>
@@ -1835,7 +1840,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       <!-- 設計費 區塊 -->
       <div id="pay-section-design" style="margin-bottom:1rem;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
-          <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 設計費</div>
+          <div id="pay-title-design" style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 設計費</div>
           <div style="flex:1;height:0.5px;background:var(--blue-pale);"></div>
           <div style="font-size:12px;font-weight:600;color:#5E786E;" id="pay-design-summary"></div>
         </div>
@@ -3891,7 +3896,15 @@ function _enterClient(c){
   const proj=projects.find(q=>Number(q.id)===Number(c.projectId));
   // 客戶類型：預售屋(客變)＝精簡版，隱藏 3D/選材/施工照/收納，只留平面系統圖/合約報價/財務兩筆/追加減/想法
   window.clientType = (proj && proj.clientType) || 'existing';
-  document.body.classList.toggle('presale-mode', window.clientType==='presale');
+  const _isPresale = window.clientType==='presale';
+  document.body.classList.toggle('presale-mode', _isPresale);
+  // 預售屋改用客變用語
+  (function(){
+    const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
+    set('contract-title-design', _isPresale?'客變設計合約':'設計合約');
+    set('contract-title-quote',  _isPresale?'客變報價單':'報價資料');
+    set('pay-title-design',      _isPresale?'✏️ 客變服務費':'✏️ 設計費');
+  })();
   document.getElementById('tb-client-name').textContent=c.name;
   const mcn=document.getElementById('mobile-client-name');if(mcn)mcn.textContent=c.name;
   document.getElementById('p-proj-title').textContent=proj?proj.name:'';
@@ -9477,6 +9490,12 @@ const PHASE_LIST_FALLBACK = [
   { sort_order: 10, name: '清潔驗收',  emoji: '✨' },
   { sort_order: 11, name: '入住完工',  emoji: '🏡' },
 ];
+// 預售屋客變旅程：只有三站
+const PRESALE_PHASE_LIST = [
+  { sort_order: 1, name: '繪製圖面', emoji: '📐' },
+  { sort_order: 2, name: '客變中',   emoji: '✏️' },
+  { sort_order: 3, name: '客變完成', emoji: '✅' },
+];
 let _phaseListCache = null;
 let _phaseListCacheTime = 0;
 async function getPhaseList() {
@@ -9511,9 +9530,10 @@ async function renderClientPhaseTimeline(proj) {
   // 保固中／已完工：旅程已結束，隱藏時間軸
   if (['保固中','已完工','已過保','已結案'].includes(proj.status)) { card.style.display = 'none'; return; }
   card.style.display = 'block';
-  const cp = Number(proj.currentPhase) || 1;
 
-  const list = await getPhaseList();
+  const list = (window.clientType==='presale') ? PRESALE_PHASE_LIST : await getPhaseList();
+  // 預售屋只有三站，currentPhase 夾在 1~3
+  const cp = Math.min(Number(proj.currentPhase) || 1, list.length);
   // 用「第 cp 站完成 / 全部 list.length 站」算 % — cp 是「正在進行的站」，
   // 表示前面 cp-1 站已完成 + 當前站進行中（算半完成 0.5 比較貼近實際）
   const completedFraction = ((cp - 1) + 0.5) / list.length;
