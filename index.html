@@ -6627,7 +6627,9 @@ function goToClientDocs(cid){
 }
 
 // 給最終版圖紙產出「請確認 / 已確認」HTML 區塊（一致樣式，跟材料確認流程同 pattern）
+// 2026-07-19 效果圖不再需要客戶簽名確認：只標「🏁 最終版」，不出確認區塊（施工圖類照舊要簽）
 function getDrawingConfirmBlock(v, drawingType){
+  if(drawingType === '效果圖') return '';
   if(!v || !v.isFinal) return '';
   const note = (v.note || '').replace(/'/g, "\\'");
   if(v.customerConfirmedAt){
@@ -6750,15 +6752,8 @@ function renderClient3DGallery(d){
     });
     albumList.appendChild(pdfWrap);
   }
-  // 待確認最終版（含 PDF + 圖片所有 isFinal）
-  const finals = allRenders.filter(v => v.isFinal);
-  if(finals.length){
-    const block = document.createElement('div');
-    block.style.cssText = 'margin-top:1rem;padding:14px 16px;background:#FAFAF8;border:1px dashed var(--accent-pale);border-radius:10px;grid-column:1/-1;';
-    block.innerHTML = `<div style="font-size:12px;color:var(--accent);font-weight:500;margin-bottom:8px;">效果圖最終版確認</div>` +
-      finals.map(v => getDrawingConfirmBlock(v, '效果圖')).join('');
-    albumList.appendChild(block);
-  }
+  // 2026-07-19 效果圖最終版不再需要客戶確認簽名——相簿列表上的「🏁 最終版」標籤就夠了，
+  // 這裡不再輸出確認區塊。（歷史已簽的紀錄仍保留在資料庫，只是不顯示確認流程）
 }
 
 // 空間與家具尺寸圖（客戶端）：與平面/立面同一套文字列表呈現（相簿 → 檔名+上傳日期 → 點進閱讀模式）
@@ -9685,8 +9680,8 @@ window.renderClientNextAction = async function(proj){
     });
   }
 
-  // 圖紙最終版未確認
-  const drawingTypes = ['空間與家具尺寸圖','平面施工圖','立面施工圖','效果圖'];
+  // 圖紙最終版未確認（效果圖已改為只標最終版、不需客戶確認，故不列入提醒）
+  const drawingTypes = ['空間與家具尺寸圖','平面施工圖','立面施工圖'];
   let unconfirmedFinal = null;
   for(const t of drawingTypes){
     const list = drawings[t] || [];
