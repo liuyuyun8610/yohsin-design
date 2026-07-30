@@ -1589,6 +1589,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       </div>
       <div id="cl-app">
         <div class="notice-desc" style="margin-bottom:1rem;">請將您要採購的電器或是原有的設備填入下方表格，可作為外出採購的參考指南。</div>
+        <button onclick="printChecklist('app')" style="margin-bottom:10px;padding:6px 14px;font-size:12px;font-family:inherit;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);cursor:pointer;">⎙ 輸出紙本（可另存 PDF）</button>
         <div class="tbl-wrap"><table id="app-table" class="resizable-table"><thead><tr>
           <th>電器名稱<span class="col-resizer"></span></th>
           <th>品牌<span class="col-resizer"></span></th>
@@ -1601,6 +1602,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       </div>
       <div id="cl-fur" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
+        <button onclick="printChecklist('fur')" style="margin-bottom:10px;padding:6px 14px;font-size:12px;font-family:inherit;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);cursor:pointer;">⎙ 輸出紙本（可另存 PDF）</button>
         <div class="tbl-wrap"><table id="fur-table" class="resizable-table"><thead><tr>
           <th>家具名稱<span class="col-resizer"></span></th>
           <th>品牌<span class="col-resizer"></span></th>
@@ -12893,6 +12895,54 @@ async function initPublicSurvey(token){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-survey-public').classList.add('active');
   renderPublicSurvey();
+}
+
+// 輸出紙本：開列印視圖（客戶可直接列印或另存 PDF，方便帶去賣場採購）
+function printChecklist(type){
+  const data = type==='app' ? appData : furData;
+  const title = type==='app' ? '家電採購清單' : '家具採購清單';
+  const rows = (data||[]).filter(r=>(r.name||'').trim());
+  if(!rows.length){ alert('清單還沒有內容'); return; }
+  const c = clients.find(x=>x.id===currentClientId);
+  const pname = c ? (c.name||'') : '';
+  const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const today = new Date().toLocaleDateString('zh-TW');
+  const trs = rows.map((r,i)=>'<tr>'
+    +'<td class="num">'+(i+1)+'</td>'
+    +'<td class="name">'+esc(r.name)+'</td>'
+    +'<td>'+esc(r.loc||'—')+'</td>'
+    +'<td>'+esc(r.brand||'—')+'</td>'
+    +'<td>'+esc(r.model||'—')+'</td>'
+    +'<td>'+esc(r.dims||'—')+'</td>'
+    +'<td>'+esc(r.status||'—')+'</td>'
+    +'</tr>').join('');
+  const html = '<!doctype html><html lang="zh-TW"><head><meta charset="utf-8">'
+    +'<title>'+esc(pname? pname+'｜':'')+esc(title)+'</title><style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"PingFang TC","Noto Sans TC",sans-serif;color:#3E332A;padding:32px;background:#fff}'
+    +'header{border-bottom:2px solid #3E332A;padding-bottom:12px;margin-bottom:16px}'
+    +'.brand{font-size:11px;letter-spacing:3px;color:#8A7A6B}'
+    +'h1{font-size:18px;margin-top:6px;font-weight:600}'
+    +'.meta{font-size:11px;color:#8A7A6B;margin-top:4px}'
+    +'table{width:100%;border-collapse:collapse;font-size:12px}'
+    +'th{text-align:left;font-weight:500;color:#8A7A6B;border-bottom:1px solid #C9BCAE;padding:6px 8px;white-space:nowrap}'
+    +'td{border-bottom:1px solid #E5DCD0;padding:8px;vertical-align:top}'
+    +'td.num{color:#8A7A6B;width:28px}td.name{font-weight:600}'
+    +'.toolbar{position:fixed;top:12px;right:12px}'
+    +'.toolbar button{font-size:13px;padding:8px 16px;background:#A65A3F;color:#fff;border:0;border-radius:6px;cursor:pointer}'
+    +'@media print{.toolbar{display:none}body{padding:0}tr{break-inside:avoid}}'
+    +'</style></head><body>'
+    +'<div class="toolbar"><button onclick="window.print()">列印 / 另存 PDF</button></div>'
+    +'<header><div class="brand">YOHSIN 有心制作</div>'
+    +'<h1>'+esc(pname? pname+'｜':'')+esc(title)+'</h1>'
+    +'<div class="meta">輸出日期：'+today+'｜共 '+rows.length+' 項</div></header>'
+    +'<table><thead><tr><th>#</th><th>名稱</th><th>位置</th><th>品牌</th><th>型號</th><th>尺寸</th><th>狀態</th></tr></thead>'
+    +'<tbody>'+trs+'</tbody></table>'
+    +'<scr'+'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print()},400)})</scr'+'ipt>'
+    +'</body></html>';
+  const w = window.open('','_blank');
+  if(!w){ alert('瀏覽器擋了彈出視窗，請允許後再試'); return; }
+  w.document.write(html); w.document.close();
 }
 
 function renderChecklists(){
