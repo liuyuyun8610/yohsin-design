@@ -174,6 +174,33 @@
   }
 
   /* 「已閱讀」勾選 gate */
+  /* 圖面/照片上傳 */
+  .attach-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:10px 18px;font-size:13px;color:var(--ink-2,#5A5048);
+    background:var(--paper);border:1px dashed var(--line);border-radius:10px;
+    cursor:pointer;font-family:inherit;letter-spacing:0.04em;
+    transition:border-color .15s;
+  }
+  .attach-btn:hover{border-color:var(--accent);}
+  .attach-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+  .attach-item{
+    position:relative;display:flex;align-items:center;gap:8px;
+    padding:8px 30px 8px 10px;background:var(--paper);
+    border:0.5px solid var(--line);border-radius:10px;max-width:100%;
+  }
+  .attach-item img{width:44px;height:44px;object-fit:cover;border-radius:6px;}
+  .attach-item .att-name{font-size:11.5px;color:var(--ink-2,#5A5048);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .attach-item .att-status{font-size:10px;letter-spacing:0.05em;}
+  .attach-item .att-status.ok{color:#5A7A5E;}
+  .attach-item .att-status.err{color:#A24A42;}
+  .attach-item .att-remove{
+    position:absolute;top:4px;right:4px;width:18px;height:18px;border:0;border-radius:50%;
+    background:rgba(45,36,24,.08);color:var(--ink-2,#5A5048);font-size:11px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .attach-item .att-remove:hover{background:rgba(162,74,66,.18);color:#A24A42;}
+
   .ack-box{
     display:flex;
     align-items:center;
@@ -515,7 +542,7 @@
 <div id="top-announce" class="top-announce" role="status" aria-live="polite">
   <span class="top-announce-label">公告</span>
   <span id="top-announce-text">
-    目前 2026 裝修預約已滿，可預約 <strong>2027 開場</strong> 之專案（實際開始規劃時間為 2026 年 9-10 月）
+    目前 2026 年裝修預約已滿，現可預約 <strong>2027 年開工</strong>專案。實際設計規劃預計於 2026 年 9–10 月開始——雖然明年才動工，前面的功課還是得先做。
   </span>
 </div>
 
@@ -527,10 +554,14 @@
 
 <!-- 費用說明（篩選用：避免誤以為免費設計或超低設計費）-->
 <section class="fee-wrap">
-  <div class="fee-intro">
-    <strong>初步諮詢</strong>
-    如有任何想問的，歡迎致電或利用線上洽詢，也歡迎您到我們林口的工作室見面聊聊。
-    對於房屋暫時沒想法，建議您選擇提案服務，讓我們透過空間提案認識彼此，也會讓進度更快。
+  <!-- 免費諮詢與付費提案拆成兩個清楚的區塊：免費諮詢不是付費提案的前置門票 -->
+  <div class="fee-intro" style="border-left:3px solid var(--accent);">
+    <strong>免費初步諮詢</strong>
+    還不確定要不要合作，也可以先聊聊。電話、線上，或到林口工作室見面諮詢都不收費，主要是讓我們先了解你的房子與需求，也讓彼此確認聊天的頻率對不對。第一次見面不用帶著決心來，帶著房子的問題來就好。
+  </div>
+  <div class="fee-intro" style="margin-top:10px;">
+    <strong>付費提案服務</strong>
+    如果你目前對格局還沒有方向，或希望先看到平面配置與初步預算，再決定下一步，可以選擇付費提案服務。提案不是見面的門票，而是我們正式開始替你的空間動腦。
   </div>
 
   <div class="fee-grid">
@@ -587,30 +618,35 @@
         <li>新成屋 每坪 NT$6-10 萬</li>
         <li>中古屋 每坪 NT$11-15 萬</li>
         <li>工程管理費 8-10%（依案件情況）</li>
-        <li>最低提案金額 NT$120 萬</li>
+        <li>工程提案預算 NT$120 萬起<br>
+          <span style="font-size:11px;color:var(--ink-3);">此處指整體裝修工程提案預算，與前方 NT$6,000／NT$8,000 的單次提案服務費不同。</span>
+        </li>
         <li>工程保固一年；設備、地板等廠商保固期內，您不會成為裝修孤兒</li>
       </ul>
     </div>
   </div>
 
-  <!-- 裝修時程預估（讓客戶有心理準備）-->
+  <!-- 裝修時程（讓客戶有心理準備；設計與施工分開講）-->
   <div class="fee-intro" style="margin-top:18px;">
-    <strong>裝修時程預估</strong>
-    室內設計皆為訂製，不同屋況、坪數與裝修需求會產生不同的服務與時程。下列是依照我們過往經驗擬定的預估時間，實際以個案為主。
+    <strong>從開始設計到入住，大概要多久？</strong>
+    室內設計是訂製服務，屋況、坪數、需求複雜度與修改次數都會影響時間。以下依照過往經驗提供參考，實際仍以個案排程為準。
     <ul style="margin-top:10px;list-style:none;padding:0;">
       <li style="padding-left:14px;position:relative;font-size:12.5px;color:var(--ink-3);line-height:2;">
         <span style="position:absolute;left:4px;top:0;color:var(--accent);">·</span>
-        新成屋提案 — 裝修時間約 <strong style="color:var(--ink);">2.5–3 個月</strong>
+        新成屋 — 設計約 <strong style="color:var(--ink);">2 個月</strong>＋施工約 <strong style="color:var(--ink);">2.5–3 個月</strong>
       </li>
       <li style="padding-left:14px;position:relative;font-size:12.5px;color:var(--ink-3);line-height:2;">
         <span style="position:absolute;left:4px;top:0;color:var(--accent);">·</span>
-        中古屋提案 — 裝修時間約 <strong style="color:var(--ink);">4.5–5 個月</strong>
+        中古屋 — 設計約 <strong style="color:var(--ink);">3 個月</strong>＋施工約 <strong style="color:var(--ink);">4–6 個月</strong>
       </li>
       <li style="padding-left:14px;position:relative;font-size:12.5px;color:var(--ink-3);line-height:2;">
         <span style="position:absolute;left:4px;top:0;color:var(--accent);">·</span>
-        客變需求 — 配置規劃時間 <strong style="color:var(--ink);">至少 1 個月</strong>
+        預售屋客變 — 配置規劃 <strong style="color:var(--ink);">至少 1 個月</strong>
       </li>
     </ul>
+    <p style="margin-top:8px;font-size:11.5px;color:var(--ink-3);line-height:1.9;">
+      實際時程仍會受到社區規範、材料交期、現場屋況與確認速度影響。以上不是倒數計時器，但可以先拿來安排搬家與人生。
+    </p>
   </div>
 
 </section>
@@ -643,11 +679,11 @@
     <div class="field" style="margin-top:18px;">
       <label class="field-label">想預約的服務</label>
       <div class="chips" data-group="service_type">
-        <div class="chip" data-val="電話或線上諮詢">電話或線上諮詢</div>
-        <div class="chip" data-val="見面諮詢（林口辦公室）">見面諮詢</div>
+        <div class="chip" data-val="電話或線上諮詢">電話或線上諮詢（免費）</div>
+        <div class="chip" data-val="見面諮詢（林口辦公室）">工作室見面諮詢（免費）</div>
         <div class="chip" data-val="預售屋客變服務">預售屋客變</div>
-        <div class="chip" data-val="新成屋裝修提案">新成屋提案</div>
-        <div class="chip" data-val="舊屋裝修提案">舊屋（中古屋）提案</div>
+        <div class="chip" data-val="新成屋裝修提案">新成屋提案（NT$6,000）</div>
+        <div class="chip" data-val="舊屋裝修提案">中古屋提案（NT$8,000）</div>
       </div>
     </div>
   </div>
@@ -680,6 +716,20 @@
     </div>
 
     <div class="field">
+      <label class="field-label">有資料的話，可以先傳給我們 <span class="opt">(選填)</span></label>
+      <p style="font-size:12px;color:var(--ink-3);line-height:1.9;margin:2px 0 10px;">
+        建商平面圖、DWG、現況照片，或喜歡的風格參考都可以。沒有也沒關係，不會因此被退件。
+      </p>
+      <input type="file" id="attach-input" multiple
+        accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.dwg,image/*,application/pdf"
+        style="display:none" onchange="handleAttachPick(event)">
+      <button type="button" class="attach-btn" onclick="document.getElementById('attach-input').click()">
+        ＋ 選擇檔案 <span style="opacity:.65;">（最多 5 個，每個 20MB 內）</span>
+      </button>
+      <div id="attach-list" class="attach-list"></div>
+    </div>
+
+    <div class="field">
       <label class="field-label">所在地區 <span class="opt">(我們服務範圍：北北桃)</span></label>
       <div class="row-2">
         <select id="region-city" class="region-select" onchange="updateDistricts()">
@@ -697,11 +747,16 @@
     <div class="field">
       <label class="field-label">室內坪數</label>
       <div class="chips" data-group="area_ping">
-        <div class="chip" data-val="10-20 坪">10-20</div>
-        <div class="chip" data-val="20-30 坪">20-30</div>
-        <div class="chip" data-val="30-40 坪">30-40</div>
-        <div class="chip" data-val="40 坪以上">40+</div>
+        <div class="chip" data-val="10-19 坪">10–19 坪</div>
+        <div class="chip" data-val="20-29 坪">20–29 坪</div>
+        <div class="chip" data-val="30-39 坪">30–39 坪</div>
+        <div class="chip" data-val="40 坪以上">40 坪以上</div>
       </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">誰會住在這裡？有什麼生活習慣想先告訴我們？ <span class="opt">(選填)</span></label>
+      <textarea id="household_note" placeholder="例如：兩大一小＋一隻柴犬、需要在家工作、鞋子很多、希望好整理，或任何你覺得設計師最好先知道的事。"></textarea>
     </div>
 
     <div class="field">
@@ -718,6 +773,9 @@
   <div class="section">
     <div class="section-num">03 · BUDGET</div>
     <div class="section-title">大約的預算範圍 <span class="light">／ 之後可細談</span></div>
+    <p style="font-size:12.5px;color:var(--ink-3);line-height:1.9;margin:-6px 0 14px;">
+      預計投入的裝修工程預算，不含設計費、家具、家電與窗簾。還沒抓到也沒關係，選「還不確定」，見面再一起拆。
+    </p>
 
     <div class="field">
       <div class="chips" data-group="budget_range">
@@ -862,6 +920,67 @@ const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const formData = {};
 
+/* ── 圖面/照片上傳：選檔即上傳到 inquiry-files bucket，成功才會附進表單 ──
+   最多 5 檔、各 20MB；上傳失敗會標示錯誤，不擋表單送出。 */
+const attachItems = []; // {id, file, status:'uploading'|'done'|'error', url, name}
+const ATTACH_MAX = 5, ATTACH_SIZE = 20 * 1024 * 1024;
+
+function handleAttachPick(e){
+  const files = Array.from(e.target.files || []);
+  e.target.value = '';
+  for(const f of files){
+    if(attachItems.filter(a => a.status !== 'removed').length >= ATTACH_MAX){ showToast('最多 5 個檔案就好'); break; }
+    if(f.size > ATTACH_SIZE){ showToast(`「${f.name}」超過 20MB，請壓縮後再傳`); continue; }
+    const item = { id: Date.now() + '-' + Math.random().toString(36).slice(2,7), file: f, status: 'uploading', url: '', name: f.name };
+    attachItems.push(item);
+    uploadAttach(item);
+  }
+  renderAttachList();
+}
+
+async function uploadAttach(item){
+  const ext = (item.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g,'') || 'bin';
+  const path = `inq/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  try{
+    const res = await fetch(`${SB_URL}/storage/v1/object/inquiry-files/${path}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_ANON_KEY, 'Authorization': `Bearer ${SB_ANON_KEY}`, 'Content-Type': item.file.type || 'application/octet-stream' },
+      body: item.file,
+    });
+    if(!res.ok) throw new Error(await res.text());
+    item.status = 'done';
+    item.url = `${SB_URL}/storage/v1/object/public/inquiry-files/${path}`;
+  }catch(err){
+    console.error('attach upload failed:', err);
+    item.status = 'error';
+  }
+  renderAttachList();
+}
+
+function removeAttach(id){
+  const idx = attachItems.findIndex(a => a.id === id);
+  if(idx >= 0) attachItems.splice(idx, 1);
+  renderAttachList();
+}
+
+function renderAttachList(){
+  const box = document.getElementById('attach-list');
+  if(!box) return;
+  box.innerHTML = '';
+  for(const a of attachItems){
+    const el = document.createElement('div');
+    el.className = 'attach-item';
+    const isImg = /^image\//.test(a.file.type);
+    const thumb = isImg ? `<img src="${URL.createObjectURL(a.file)}" alt="">` : `<span style="font-size:20px;">📄</span>`;
+    const status = a.status === 'done' ? '<span class="att-status ok">✓ 已上傳</span>'
+      : a.status === 'error' ? '<span class="att-status err">上傳失敗</span>'
+      : '<span class="att-status">上傳中…</span>';
+    el.innerHTML = `${thumb}<div><div class="att-name">${a.name.replace(/</g,'&lt;')}</div>${status}</div><button type="button" class="att-remove" title="移除">✕</button>`;
+    el.querySelector('.att-remove').onclick = () => removeAttach(a.id);
+    box.appendChild(el);
+  }
+}
+
 // ack-box checked state styling
 const ackEl = document.getElementById('ack-read');
 if(ackEl){
@@ -939,28 +1058,47 @@ async function submit(){
     vibe_dislike: formData.vibe_dislike || [],
     style_note: formData.style_note || null,
     budget_range: formData.budget_range || null,
+    household_note: (document.getElementById('household_note')?.value || '').trim() || null,
+    attachments: attachItems.filter(a => a.status === 'done').map(a => ({ name: a.name, url: a.url })),
     user_agent: navigator.userAgent,
     source_url: window.location.href,
   };
 
+  const stillUploading = attachItems.some(a => a.status === 'uploading');
+  if(stillUploading){ showToast('檔案還在上傳，等它一下再送出'); btn.disabled = false; btn.textContent = '送 出 諮 詢'; return; }
+
+  const postInquiry = (body) => fetch(`${SB_URL}/rest/v1/consultation_inquiries`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_ANON_KEY,
+      'Authorization': `Bearer ${SB_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify(body),
+  });
+
   try{
-    const res = await fetch(`${SB_URL}/rest/v1/consultation_inquiries`, {
-      method: 'POST',
-      headers: {
-        'apikey': SB_ANON_KEY,
-        'Authorization': `Bearer ${SB_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify(payload),
-    });
+    let res = await postInquiry(payload);
     if(!res.ok){
       const detail = await res.text();
-      console.error('Submit failed:', res.status, detail);
-      showToast('送出失敗，請直接 LINE 我們');
-      btn.disabled = false;
-      btn.textContent = '送 出 諮 詢';
-      return;
+      // 資料表還沒有新欄位（household_note/attachments）：把內容併進 style_note 重送，客人資料不能掉
+      if(/household_note|attachments/.test(detail)){
+        const p2 = { ...payload };
+        const extra = [];
+        if(p2.household_note) extra.push('【居住成員與需求】' + p2.household_note);
+        if(p2.attachments && p2.attachments.length) extra.push('【附件】' + p2.attachments.map(a => a.url).join(' '));
+        delete p2.household_note; delete p2.attachments;
+        p2.style_note = [p2.style_note, ...extra].filter(Boolean).join('\n');
+        res = await postInquiry(p2);
+      }
+      if(!res.ok){
+        console.error('Submit failed:', res.status, detail);
+        showToast('送出失敗，請直接 LINE 我們');
+        btn.disabled = false;
+        btn.textContent = '送 出 諮 詢';
+        return;
+      }
     }
     // 隱藏所有原本內容
     document.querySelector('.hero').style.display = 'none';
