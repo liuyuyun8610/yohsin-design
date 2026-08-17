@@ -2,3 +2,4 @@
 
 # Cyberduck SFTP connection bookmarks (內含 hostname/username)
 *.duck
+.vercel

@@ -848,6 +848,46 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .mobile-tnav,#s-client .mobile-tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:14px;font-weight:500;letter-spacing:0.2em;background:transparent;border-color:var(--line);color:var(--ink-muted);}
 .mobile-tnav.active,#s-client .mobile-tnav.active{background:transparent;color:var(--ink);font-weight:500;}
 
+/* ── 客戶端頂端選單：7 個第一層 + 下拉群組（2026-08-17 IA 重整規格書）── */
+/* 下拉要能溢出 topbar，所以不能沿用 .tb-nav 的 overflow-x:auto（會被裁掉）。
+   代價是排不下時不再橫捲而是溢出視窗 → 用下面的 1024 斷點提早收進漢堡。 */
+#s-client .tb-nav{overflow:visible;}
+/* 客戶端專屬斷點：7 個第一層在 ~950px 以下就擠不下（實測 768px 會溢出視窗右緣，
+   違反規格 12「中等桌機寬度不得重疊/換行/截斷」）。桌機列與漢堡綁同一個值，
+   不會出現「兩個都不見」的空窗。admin 後台維持原本的 720。 */
+@media(max-width:1023px){
+  #s-client .tb-nav{display:none;}
+  #s-client .hamburger{display:flex;}
+  #s-client .tb-user{display:none;}
+  #s-client .tb-brand{border-right:none;padding-right:0;margin-right:0;}
+}
+.tnav-group{position:relative;display:inline-flex;flex-shrink:0;}
+.tnav-parent{display:inline-flex;align-items:center;gap:5px;}
+.tnav-chev{font-size:9px;line-height:1;opacity:.65;transition:transform .18s;}
+.tnav-parent[aria-expanded="true"] .tnav-chev{transform:rotate(180deg);}
+.tnav-dd{display:none;position:absolute;top:calc(100% + 9px);left:50%;transform:translateX(-50%);
+  min-width:224px;background:#fff;border:0.5px solid var(--border);border-radius:10px;
+  box-shadow:0 10px 30px rgba(42,37,32,.14);padding:6px;z-index:260;}
+.tnav-group.open .tnav-dd{display:block;}
+.tnav-group.dd-right .tnav-dd{left:auto;right:0;transform:none;}
+#s-client .tnav-dd .tnav-sub{display:block;width:100%;text-align:left;white-space:nowrap;
+  font-size:13px;letter-spacing:0.14em;padding:11px 14px;margin:0;min-height:42px;
+  border:none;border-radius:7px;}
+#s-client .tnav-dd .tnav-sub:hover{background:var(--cli-card-alt) !important;color:var(--cli-accent);}
+#s-client .tnav-dd .tnav-sub.active{background:#BCA892 !important;color:#fff;border-bottom-color:transparent;}
+/* 手機：同一份 config 產生的 accordion */
+#mobile-menu-client .m-group-btn{display:flex;align-items:center;justify-content:space-between;width:100%;}
+#mobile-menu-client .m-sub{display:none;}
+#mobile-menu-client .m-group.open .m-sub{display:block;}
+#mobile-menu-client .m-group.open .tnav-chev{transform:rotate(180deg);}
+#mobile-menu-client .m-sub-item{padding-left:2.7rem;font-size:13px;letter-spacing:0.14em;}
+#mobile-menu-client .m-sub-item.active{color:var(--cli-accent);}
+/* 外連項目（開新分頁）：<a> 要跟 <button> 長一樣，並標一個 ↗ */
+.tnav-ext{text-decoration:none;box-sizing:border-box;}
+#s-client .tnav-dd a.tnav-ext{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+#mobile-menu-client a.m-sub-item{display:flex;align-items:center;justify-content:space-between;gap:8px;text-decoration:none;}
+.ext-mark{font-size:11px;opacity:.5;font-weight:400;}
+
 /* ---- Sub-tabs (stabs/stab) ---- */
 .stabs,#s-client .stabs{gap:24px;margin-bottom:18px;border-bottom:0.5px solid var(--line);padding-bottom:0;}
 .stab,#s-client .stab{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:12px;letter-spacing:0.25em;background:transparent !important;border:none;border-bottom:1.5px solid transparent;border-radius:0;color:var(--ink-light);padding:10px 0;}
@@ -1137,7 +1177,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       <button class="mobile-tnav" onclick="goPageMobile('p-storage',this,'client')">工具</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-usage',this,'client')">使用說明</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-knowledge',this,'client')">裝修知識</button>
-      <div style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
+      <div id="mobile-client-foot" style="border-top:0.5px solid var(--border);padding:12px 1.5rem;font-size:12px;color:var(--ink-muted);display:flex;justify-content:space-between;align-items:center;">
         <span id="mobile-client-name"></span>
         <button onclick="doLogout()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">登出</button>
       </div>
@@ -1570,9 +1610,10 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       </div>
     </div>
 
-    <!-- 裝修知識 -->
+    <!-- 我的閱讀資料（設計師指派給這位客戶的文章，含必讀與需簽署切結書）
+         ⚠ 這一頁不等於官網的公開「裝修知識」文章站，別把它當成可以外連取代的頁面 -->
     <div class="page" id="p-knowledge">
-      <div class="page-title">裝修知識</div>
+      <div class="page-title">我的閱讀資料</div>
       <div class="notice-desc">以下為設計師為您整理的重要說明，請點擊展開閱讀。</div>
       <div id="know-tools"></div>
       <div id="know-list"></div>
@@ -3758,27 +3799,10 @@ window.addEventListener('pagehide', trackPageLeave);
 // 暴露給其他地方手動 call（例如打開 modal、下載檔案）
 window.trackEvent = trackEvent;
 
+/* 手機客戶端選單已改由 CLIENT_NAV 產生、直接呼叫 goPage（goPage 自己會關抽屜、
+   同步桌機與手機的 active）。這支留著只為了相容可能還在呼叫它的舊路徑。 */
 function goPageMobile(id,el,type){
-  trackPageLeave();
-  // 同步桌機 nav 的 active 狀態（用 onclick 比對，不依賴按鈕順序）
-  document.querySelectorAll('#s-client .tnav').forEach(t=>{
-    const oc=t.getAttribute('onclick')||'';
-    if(oc.includes("'"+id+"'")) t.classList.add('active'); else t.classList.remove('active');
-  });
-  document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('#mobile-menu-client .mobile-tnav').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  closeMobileMenu('client');
-  window.scrollTo({top:0,behavior:'smooth'});
-  const backBtn=document.getElementById('cli-back-btn');
-  if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
-  if(id==='p-overview') renderClientDashboard();
-  if(id==='p-payment') renderClientPayment();
-  if(id==='p-materials') renderClientMaterials();
-  if(id==='p-construction') renderClientConstructionStatus();
-  if(id==='p-storage') renderStoragePage();
-  trackPageEnter(id);
+  goPage(id,el);
 }
 function goAdminPageMobile(id,el){
   goAdminPage(id,document.querySelector('#s-admin .tb-nav .tnav[onclick*="'+id+'"]')||document.querySelector('#s-admin .tnav'));
@@ -3899,6 +3923,8 @@ function _enterClient(c){
   window.clientType = (proj && proj.clientType) || 'existing';
   const _isPresale = window.clientType==='presale';
   document.body.classList.toggle('presale-mode', _isPresale);
+  /* 預售模式會用 CSS 藏掉部分入口 → 重算群組可見性，避免「打開是空的」下拉（規格 6.3） */
+  if(typeof syncNavGroupVisibility==='function') syncNavGroupVisibility();
   // 預售屋改用客變用語
   (function(){
     const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
@@ -4591,13 +4617,151 @@ function goBackToOverview(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+/* ════════════════════════════════════════════════════════════
+   客戶端頂端選單：單一 navigation config（2026-08-17 IA 重整規格書）
+   第一層固定 7 個入口，桌機下拉與手機 accordion 都從這一份產生，
+   不再各維護一份 hard-coded 清單。
+
+   ⚠ 葉節點的 onclick 一定要保留 goPage('p-xxx',this) 這個字面字串：
+     全站有 15+ 處用 [onclick*="p-xxx"] 反查按鈕，預售屋精簡版
+     （body.presale-mode，檔案上方 <style>）也是靠這個字串藏入口。
+     改成 data-* 或 addEventListener 會讓那些選擇器靜默失效，
+     預售客戶就會看到不該看到的分頁。
+   ⚠ 原本的靜態 11 項清單留在 HTML 裡當 fallback，這支渲染器會蓋掉它。 */
+const CLIENT_NAV=[
+  {id:'home',label:'專案首頁',page:'p-overview'},
+  {id:'docs',label:'圖面文件',children:[
+    {label:'設計圖面',page:'p-docs'},{label:'合約報價',page:'p-contracts'}]},
+  {id:'comm',label:'溝通確認',children:[
+    {label:'會議記錄',page:'p-meetings'},{label:'選材紀錄',page:'p-materials'}]},
+  /* 工程進度目前只有行事曆一個 route（施工照片是 p-construction 頁內的區塊，
+     沒有獨立 route）→ 依規格 6.4 做成直接連結，不做只有一項的下拉。
+     這樣預售模式藏 p-construction 時，這個第一層入口也會跟著自動消失。 */
+  {id:'progress',label:'工程進度',page:'p-construction'},
+  {id:'cost',label:'費用',page:'p-payment'},
+  {id:'mylist',label:'我的清單',page:'p-checklist'},
+  /* 「裝修知識」改成外連公司的公開文章站（2026-08-17 使用者決定）。
+     ⚠ 原本的 p-knowledge 不能拿掉：它顯示的是設計師「指派給這位客戶」的文章，
+       其中含必讀與需要客戶線上簽署的切結書（requires_signature）。
+       所以內部頁保留、改名為「我的閱讀資料」，外連另開一項。 */
+  {id:'more',label:'更多',children:[
+    {label:'工具',page:'p-storage'},
+    {label:'使用說明',page:'p-usage'},
+    {label:'我的閱讀資料',page:'p-knowledge'},
+    {label:'裝修知識',href:'https://yohsin-articles.vercel.app/',external:true}]},
+];
+const navEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function renderClientNav(){
+  const bar=document.querySelector('#s-client .tb-nav');
+  if(bar){
+    bar.innerHTML=CLIENT_NAV.map(it=>{
+      if(!it.children)
+        return `<button class="tnav" data-nav="${it.id}" onclick="goPage('${it.page}',this)">${navEsc(it.label)}</button>`;
+      return `<div class="tnav-group" data-nav="${it.id}">`
+        +`<button type="button" class="tnav tnav-parent" aria-expanded="false" aria-haspopup="true" aria-controls="dd-${it.id}" onclick="toggleNavGroup('${it.id}',event)">${navEsc(it.label)}<span class="tnav-chev">▾</span></button>`
+        +`<div class="tnav-dd" id="dd-${it.id}" role="menu">`
+        +it.children.map(c=>c.external
+          ? `<a class="tnav tnav-sub tnav-ext" role="menuitem" href="${c.href}" target="_blank" rel="noopener" onclick="closeNavDropdown()">${navEsc(c.label)}<span class="ext-mark">↗</span></a>`
+          : `<button class="tnav tnav-sub" role="menuitem" onclick="goPage('${c.page}',this)">${navEsc(c.label)}</button>`).join('')
+        +`</div></div>`;
+    }).join('');
+  }
+  const foot=document.getElementById('mobile-client-foot');
+  if(foot&&foot.parentElement){
+    foot.parentElement.querySelectorAll('.mobile-tnav,.m-group').forEach(n=>n.remove());
+    foot.insertAdjacentHTML('beforebegin',CLIENT_NAV.map(it=>{
+      if(!it.children)
+        return `<button class="mobile-tnav" data-nav="${it.id}" onclick="goPage('${it.page}',this)">${navEsc(it.label)}</button>`;
+      return `<div class="m-group" data-nav="${it.id}">`
+        +`<button type="button" class="mobile-tnav m-group-btn" aria-expanded="false" onclick="toggleMobileGroup('${it.id}',event)">${navEsc(it.label)}<span class="tnav-chev">▾</span></button>`
+        +`<div class="m-sub">`
+        +it.children.map(c=>c.external
+          ? `<a class="mobile-tnav m-sub-item tnav-ext" href="${c.href}" target="_blank" rel="noopener" onclick="closeMobileMenu('client')">${navEsc(c.label)}<span class="ext-mark">↗</span></a>`
+          : `<button class="mobile-tnav m-sub-item" onclick="goPage('${c.page}',this)">${navEsc(c.label)}</button>`).join('')
+        +`</div></div>`;
+    }).join(''));
+  }
+  syncNavGroupVisibility();
+  const cur=document.querySelector('#s-client .page.active');
+  syncClientNavActive(cur?cur.id:'p-overview');
+}
+/* 群組可見性由 children 推導：全部 child 被藏（例如預售模式）→ 父群組也要藏，
+   否則會出現「打開是空的」下拉（規格 6.3／6.4）。 */
+function syncNavGroupVisibility(){
+  document.querySelectorAll('#s-client .tnav-group,#mobile-menu-client .m-group').forEach(g=>{
+    const kids=[...g.querySelectorAll('.tnav-sub,.m-sub-item')];
+    if(!kids.length){g.style.display='none';return;}
+    g.style.display=kids.some(k=>getComputedStyle(k).display!=='none')?'':'none';
+  });
+}
+/* active 一律由目前的 page id 反推，不再依賴呼叫端傳進來的按鈕。
+   這樣 goPage('p-warranty',null) 之類的呼叫不會讓整排 nav 都沒有 active，
+   桌機切頁後手機清單的 active 也會跟著對（原本只有手機會回寫桌機，反向沒做）。 */
+function syncClientNavActive(id){
+  document.querySelectorAll('#s-client .tnav,#mobile-menu-client .mobile-tnav')
+    .forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll(`#s-client .tb-nav .tnav[onclick*="'${id}'"],#mobile-menu-client .mobile-tnav[onclick*="'${id}'"]`)
+    .forEach(b=>{
+      b.classList.add('active');
+      b.closest('.tnav-group')?.querySelector('.tnav-parent')?.classList.add('active');
+      b.closest('.m-group')?.querySelector('.m-group-btn')?.classList.add('active');
+    });
+}
+let navOpenGroup=null;
+function toggleNavGroup(gid,ev){
+  if(ev)ev.stopPropagation();
+  const willOpen=navOpenGroup!==gid;
+  closeNavDropdown();
+  if(!willOpen)return;
+  const g=document.querySelector(`#s-client .tnav-group[data-nav="${gid}"]`);
+  if(!g)return;
+  g.classList.add('open');
+  g.querySelector('.tnav-parent')?.setAttribute('aria-expanded','true');
+  navOpenGroup=gid;
+  /* 靠近右側視窗邊界就改成靠右對齊，不讓下拉跑出畫面（規格 4.4） */
+  const dd=g.querySelector('.tnav-dd');
+  if(dd){
+    g.classList.remove('dd-right');
+    if(dd.getBoundingClientRect().right>window.innerWidth-8)g.classList.add('dd-right');
+  }
+}
+function closeNavDropdown(){
+  document.querySelectorAll('#s-client .tnav-group.open').forEach(g=>{
+    g.classList.remove('open');
+    g.querySelector('.tnav-parent')?.setAttribute('aria-expanded','false');
+  });
+  navOpenGroup=null;
+}
+function toggleMobileGroup(gid,ev){
+  if(ev)ev.stopPropagation();
+  const g=document.querySelector(`#mobile-menu-client .m-group[data-nav="${gid}"]`);
+  const wasOpen=g&&g.classList.contains('open');
+  document.querySelectorAll('#mobile-menu-client .m-group').forEach(x=>{
+    x.classList.remove('open');
+    x.querySelector('.m-group-btn')?.setAttribute('aria-expanded','false');
+  });
+  if(!wasOpen&&g){
+    g.classList.add('open');
+    g.querySelector('.m-group-btn')?.setAttribute('aria-expanded','true');
+  }
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.tnav-group'))closeNavDropdown();});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||!navOpenGroup)return;
+  const btn=document.querySelector(`#s-client .tnav-group[data-nav="${navOpenGroup}"] .tnav-parent`);
+  closeNavDropdown();
+  btn?.focus();
+});
+document.addEventListener('DOMContentLoaded',renderClientNav);
+
 function goPage(id,el){
   // 焦慮雷達：上報切換前的頁面停留時間
   trackPageLeave();
-  document.querySelectorAll('#s-client .tnav').forEach(t=>t.classList.remove('active'));
-  if(el) el.classList.add('active');
   document.querySelectorAll('#s-client .page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  syncClientNavActive(id);          // 桌機／手機／父群組一起算，不看傳進來的 el
+  closeNavDropdown();
+  closeMobileMenu('client');        // 規格 5.2：點到實際 route 後抽屜要自己關
   window.scrollTo({top:0,behavior:'smooth'});
   const backBtn=document.getElementById('cli-back-btn');
   if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
