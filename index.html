@@ -42,7 +42,7 @@
   --clay-dark:rgba(158,146,138,0.45);
   --clay-flat:#DED8D8;
   /* 奶茶色：按鈕唯一用色，改這裡全登入頁一起變 */
-  --milktea:#B9A794;--milktea-dark:#A89380;--milktea-pale:rgba(185,167,148,0.38);
+  --milktea:#B8ADA7;--milktea-dark:#A69A93;--milktea-pale:rgba(184,173,167,0.40);
 }
 *,*::before,*::after{box-sizing:border-box;}
 html,body{max-width:100%;overflow-x:hidden;}
@@ -56,16 +56,21 @@ table{max-width:100%;}
 #s-login.active{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:2rem;}
 
 /* LOGIN — 黏土／新擬態：背景色維持 --paper 不變，層次全部靠柔性陰影，按鈕奶茶色 */
-#s-login.active{padding:60px 24px;}
+#s-login.active{padding:60px 24px;flex-direction:column;}
+/* 卡片外的備註：灰字，跟卡片同寬對齊 */
+/* text-wrap:balance 讓兩行長度接近，不會出現「你。」單獨掉到第二行 */
+.login-foot{width:100%;max-width:430px;margin:24px auto 0;font-size:12px;font-weight:300;line-height:1.95;letter-spacing:0.06em;color:#8B8480;text-align:center;text-wrap:balance;}
 .login-wrap{background:var(--paper);border:none;border-radius:34px;padding:52px 40px 46px;width:100%;max-width:460px;text-align:center;
   box-shadow:15px 15px 32px var(--clay-dark), -15px -15px 32px var(--clay-light);}
 .logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:0;}
 .logo-svg-lg{width:72px;height:60px;margin-bottom:18px;opacity:0.92;}
-/* logo 坐在一塊凸起的圓盤上，跟下面凹進去的輸入框形成一凸一凹的層次 */
-.site-logo-img{margin-bottom:22px !important;padding:16px;border-radius:50%;background:var(--paper);
-  box-shadow:8px 8px 18px var(--clay-dark), -8px -8px 18px var(--clay-light);}
+/* ⚠ .site-logo-img 同時用在 topbar 等 4 處，這裡只能放共通樣式，
+   不要把登入頁專用的裝飾寫在這條上，會連小 logo 一起被套 */
+.site-logo-img{margin-bottom:18px !important;}
 .logo-name{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:30px;font-weight:600;letter-spacing:0.22em;color:var(--ink);line-height:1.25;}
-.logo-sub{font-size:11px;letter-spacing:0.42em;color:var(--ink-light);margin-top:18px;text-transform:uppercase;}
+/* 字級與字距由 fitLoginSub() 量出來覆寫，讓這行的左右邊界對齊上方中文標題。
+   這裡的值是「還沒縮之前」的基準，也是縮放的上限。 */
+.logo-sub{font-size:11px;letter-spacing:0.42em;color:var(--ink-light);margin-top:14px;text-transform:uppercase;white-space:nowrap;}
 /* 分隔線改成一道柔性凹槽——黏土風不用髮絲線，用「壓下去的溝」 */
 .login-line{border:none;height:3px;background:transparent;margin:34px 0 30px;width:100%;border-radius:3px;
   box-shadow:inset 2px 2px 4px var(--clay-dark), inset -2px -2px 4px var(--clay-light);}
@@ -1131,7 +1136,6 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
 <div id="s-login" class="screen active">
   <div class="login-wrap">
     <div class="logo-area">
-      <img src="" alt="有心制作" class="site-logo-img" style="width:96px;height:96px;object-fit:contain;">
       <div class="logo-name" id="login-site-title">有心制作專案區</div>
       <div class="logo-sub">Yohsin Design · Interior Studio</div>
     </div>
@@ -1146,6 +1150,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
     <div class="l-err" id="l-err"></div>
     <div id="db-status" style="display:none;margin-top:24px;font-size:11px;color:var(--persimmon);letter-spacing:0.1em;"></div>
   </div>
+  <p class="login-foot">此頁面僅開放有心制作空間設計客戶使用，請與設計師索取專案帳號密碼，我等你。</p>
 </div>
 
 <!-- ====== CLIENT SHELL ====== -->
@@ -3490,7 +3495,7 @@ async function loadAllData() {
 
     // Load system settings — admin_password (bcrypt hash) 已不再前端讀取（Phase B RLS 鎖）
     if(settingsData) settingsData.forEach(s=>{
-      if(s.key==='site_title'){siteTitle=s.value;const el=document.getElementById('login-site-title');if(el)el.textContent=s.value;}
+      if(s.key==='site_title'){siteTitle=s.value;const el=document.getElementById('login-site-title');if(el){el.textContent=s.value;fitLoginSub();}}
       if(s.key==='gallery_icon_url'&&s.value) applyGalleryIcon(s.value);
       if(s.key==='plan_icon_url'&&s.value) applyPlanIcon(s.value);
       if(s.key==='elev_icon_url'&&s.value) applyElevIcon(s.value);
@@ -4770,6 +4775,29 @@ document.addEventListener('keydown',e=>{
   closeNavDropdown();
   btn?.focus();
 });
+/* 登入頁：把下方英文縮到跟中文標題等寬，兩行左右邊界對齊。
+   標題可由後台改（site_title），寬度不固定，所以是「量出來」而不是寫死字級。
+   ⚠ 量之前要先清掉上次寫進去的 fontSize，否則每次呼叫都會在縮過的基礎上再縮一次。
+   ⚠ 字距是 em，字級一縮整行等比縮；但尾端會多出一格字距，兩邊都要扣掉才是真正的字面寬。 */
+function fitLoginSub(){
+  const n=document.getElementById('login-site-title');
+  const s=document.querySelector('#s-login .logo-sub');
+  if(!n||!s) return;
+  const ls=el=>parseFloat(getComputedStyle(el).letterSpacing)||0;
+  s.style.fontSize='';
+  const base=parseFloat(getComputedStyle(s).fontSize)||11;
+  const nw=n.getBoundingClientRect().width-ls(n);
+  const sw=s.getBoundingClientRect().width-ls(s);
+  if(!(nw>0&&sw>0)) return;
+  // 只縮不放大：標題很短時維持原字級，不會把英文撐得比標題還大
+  s.style.fontSize=Math.max(6,Math.min(base,base*nw/sw)).toFixed(2)+'px';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  fitLoginSub();
+  // 網頁字型晚一點才載完，字寬會變，載完再量一次
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitLoginSub);
+});
+window.addEventListener('resize',fitLoginSub);
 document.addEventListener('DOMContentLoaded',renderClientNav);
 
 function goPage(id,el){
@@ -4998,11 +5026,11 @@ async function applyTitle(){
   try{
     await sbClient.from('system_settings').upsert({key:'site_title',value:t},{onConflict:'key'});
     siteTitle=t;document.getElementById('settings-title-current').textContent=t;
-    const el=document.getElementById('login-site-title');if(el)el.textContent=t;
+    const el=document.getElementById('login-site-title');if(el){el.textContent=t;fitLoginSub();}
     document.getElementById('settings-title').value='';alert('標題已更新並儲存！');
   }catch(e){
     siteTitle=t;document.getElementById('settings-title-current').textContent=t;
-    const el=document.getElementById('login-site-title');if(el)el.textContent=t;
+    const el=document.getElementById('login-site-title');if(el){el.textContent=t;fitLoginSub();}
     document.getElementById('settings-title').value='';alert('標題已更新（記憶體模式，重新整理後失效）');
   }
   showLoader(false);
