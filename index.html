@@ -143,7 +143,7 @@ table{max-width:100%;}
   .grid-3col{grid-template-columns:1fr 1fr;}
   /* 表格水平捲動 */
   .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  /* 會議記錄在手機上的間距 */
+  /* 會議紀錄在手機上的間距 */
   .meeting-record-bd{padding:10px 12px 12px;}
   /* 文章工具列換行更緊湊 */
   .art-toolbar{gap:3px;padding:6px 8px;}
@@ -1146,7 +1146,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       <button class="tnav active" onclick="goPage('p-overview',this)">專案總覽</button>
       <button class="tnav" onclick="goPage('p-docs',this)">設計圖面</button>
       <button class="tnav" onclick="goPage('p-contracts',this)">合約報價</button>
-      <button class="tnav" onclick="goPage('p-meetings',this)">會議記錄</button>
+      <button class="tnav" onclick="goPage('p-meetings',this)">會議紀錄</button>
       <button class="tnav" onclick="goPage('p-materials',this)">選材紀錄</button>
       <button class="tnav" onclick="goPage('p-construction',this)">行事曆</button>
       <button class="tnav" onclick="goPage('p-payment',this)">財務紀錄</button>
@@ -1169,7 +1169,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       <button class="mobile-tnav active" onclick="goPageMobile('p-overview',this,'client')">專案總覽</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-docs',this,'client')">設計圖面</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-contracts',this,'client')">合約報價</button>
-      <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議記錄</button>
+      <button class="mobile-tnav" onclick="goPageMobile('p-meetings',this,'client')">會議紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-materials',this,'client')">選材紀錄</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-construction',this,'client')">行事曆</button>
       <button class="mobile-tnav" onclick="goPageMobile('p-payment',this,'client')">財務紀錄</button>
@@ -1293,10 +1293,10 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
         <div id="dash-photo-strip" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;"></div>
       </div>
 
-      <!-- 2.5 最近會議記錄 -->
+      <!-- 2.5 最近會議紀錄 -->
       <div class="card" id="dash-meetings-card" style="margin-bottom:12px;">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-          <span>最近會議記錄</span>
+          <span>最近會議紀錄</span>
           <button onclick="goToMeetings()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;letter-spacing:0;">全部記錄 ›</button>
         </div>
         <div id="dash-meetings-list"></div>
@@ -1490,13 +1490,13 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       </div>
     </div>
 
-    <!-- 會議記錄 (獨立頁面) -->
+    <!-- 會議紀錄 (獨立頁面) -->
     <div class="page" id="p-meetings">
-      <div class="page-title">會議記錄</div>
+      <div class="page-title">會議紀錄</div>
       <div id="docs-panel-meetings">
         <div class="meeting-tabs">
           <button class="meeting-tab active" onclick="switchMeetingTab('line',this)">LINE 記錄</button>
-          <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議記錄</button>
+          <button class="meeting-tab" onclick="switchMeetingTab('formal',this)">會議紀錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('client_note',this)">想法紀錄</button>
           <button class="meeting-tab" onclick="switchMeetingTab('pending',this)">待確認事項</button>
         </div>
@@ -1581,7 +1581,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
             <li><strong style="color:var(--ink);">搬家前整理清單</strong>：搬家前先整理哪些要帶進新家、哪些淘汰或捐贈，減少入住後的雜亂。</li>
           </ul>
 
-          <p style="margin:14px 0 4px;"><strong>會議記錄、選材紀錄、施工照片、財務紀錄</strong></p>
+          <p style="margin:14px 0 4px;"><strong>會議紀錄、選材紀錄、施工照片、財務紀錄</strong></p>
           <p style="margin:0 0 4px;color:var(--ink-light);">從開會內容、材料選擇、現場照片到付款記錄，整個過程都留下記錄可回顧。</p>
         </div>
       </div>
@@ -2199,7 +2199,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
         <button class="stab" style="display:none" onclick="switchProjTab('payment',this)">付款計算</button>
         <button class="stab" style="display:none" onclick="switchProjTab('schedule',this)">收款進度</button>
         <button class="stab" style="display:none" onclick="switchProjTab('changes',this)">追加減</button>
-        <button class="stab" onclick="switchProjTab('meetings',this)">會議記錄</button>
+        <button class="stab" onclick="switchProjTab('meetings',this)">會議紀錄</button>
         <button class="stab" onclick="switchProjTab('docs',this)">文件管理</button>
       </div>
 
@@ -2451,12 +2451,12 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       <div id="proj-tab-meetings" style="display:none;">
         <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1.2rem;">所有會議溝通紀錄與待確認事項。</div>
 
-        <!-- 會議記錄管理 -->
+        <!-- 會議紀錄管理 -->
         <div class="card" style="margin-bottom:1rem;">
-          <div class="card-title">會議記錄</div>
+          <div class="card-title">會議紀錄</div>
           <div class="stabs">
             <button class="stab active" onclick="switchAdminMeetingTab('line',this)">LINE 記錄</button>
-            <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議記錄</button>
+            <button class="stab" onclick="switchAdminMeetingTab('formal',this)">會議紀錄</button>
             <button class="stab" onclick="switchAdminMeetingTab('client_note',this)">想法紀錄</button>
             <button class="stab" onclick="switchAdminMeetingTab('pending',this)">待確認事項</button>
           </div>
@@ -2489,9 +2489,9 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
             <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addLineScreenshot()">儲存截圖</button></div>
           </div>
 
-          <!-- 會議記錄：文字 + 圖片 -->
+          <!-- 會議紀錄：文字 + 圖片 -->
           <div id="admin-formal-panel" style="display:none;">
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫正式會議記錄，可附上會議現場照片或手寫記錄圖片。</div>
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">填寫正式會議紀錄，可附上會議現場照片或手寫記錄圖片。</div>
             <div id="admin-formal-list" style="margin-bottom:1rem;"></div>
             <div class="divider"></div>
             <div class="form-grid2" style="margin-bottom:0.8rem;">
@@ -2565,7 +2565,7 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
               <input type="file" id="formal-img-input" accept="image/*" multiple style="display:none;" onchange="previewFormalImgs(event)">
               <div id="formal-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
             </div>
-            <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議記錄</button></div>
+            <div style="display:flex;justify-content:flex-end;"><button class="btn-ink" onclick="addFormalMeeting()">儲存會議紀錄</button></div>
           </div>
 
           <!-- 想法紀錄：唯讀 + 可刪除 -->
@@ -4633,7 +4633,7 @@ const CLIENT_NAV=[
   {id:'docs',label:'圖面文件',children:[
     {label:'設計圖面',page:'p-docs'},{label:'合約報價',page:'p-contracts'}]},
   {id:'comm',label:'溝通確認',children:[
-    {label:'會議記錄',page:'p-meetings'},{label:'選材紀錄',page:'p-materials'}]},
+    {label:'會議紀錄',page:'p-meetings'},{label:'選材紀錄',page:'p-materials'}]},
   /* 工程進度目前只有行事曆一個 route（施工照片是 p-construction 頁內的區塊，
      沒有獨立 route）→ 依規格 6.4 做成直接連結，不做只有一項的下拉。
      這樣預售模式藏 p-construction 時，這個第一層入口也會跟著自動消失。 */
@@ -7390,7 +7390,7 @@ function smartFormat(text){
 function renderClientFormalMeetings(d){
   const el=document.getElementById('client-formal-meetings');el.innerHTML='';
   const sorted=[...(d.formalMeetings||[])].sort((a,b)=>dateNum(b.date)-dateNum(a.date));
-  if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議記錄</div>';return;}
+  if(!sorted.length){el.innerHTML='<div class="empty-state">尚無會議紀錄</div>';return;}
   sorted.forEach(m=>{
     const imgHtml=(m.images&&m.images.length)?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px;">${m.images.map(src=>{
       const url = typeof src==='string' ? src : (src && src.url) || '';
@@ -8815,7 +8815,7 @@ function renderAdminFormalList(cid){
   const meetings=docsData[cid].formalMeetings||[];
   meetings.sort((a,b)=>dateNum(b.date)-dateNum(a.date)); // 最新日期在最上面
   const el=document.getElementById('admin-formal-list');el.innerHTML='';
-  if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議記錄</div>';return;}
+  if(!meetings.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">尚無會議紀錄</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
   meetings.forEach((m,i)=>{
     const r=document.createElement('div');r.className='ufile-row';
@@ -8898,7 +8898,7 @@ function editFormalMeeting(cid, idx){
   renderFormalImagePreview();
   // 切換按鈕文字
   const saveBtn=document.querySelector('button[onclick="addFormalMeeting()"]');
-  if(saveBtn) saveBtn.textContent='更新會議記錄';
+  if(saveBtn) saveBtn.textContent='更新會議紀錄';
   // 加入取消按鈕
   ensureCancelFormalBtn();
   // 滾到表單
@@ -8927,7 +8927,7 @@ function cancelFormalEdit(){
   document.getElementById('formal-img-input').value='';
   document.getElementById('formal-img-preview').innerHTML='';
   const saveBtn=document.querySelector('button[onclick="addFormalMeeting()"]');
-  if(saveBtn) saveBtn.textContent='儲存會議記錄';
+  if(saveBtn) saveBtn.textContent='儲存會議紀錄';
   const cb=document.getElementById('formal-cancel-edit-btn'); if(cb) cb.remove();
 }
 // ── 富文字編輯器 (RTE) ──
@@ -9083,7 +9083,7 @@ function setRteContent(html){
   if(rte) rte.innerHTML=html||'';
 }
 
-// ── 會議記錄自動暫存（localStorage，即時無網路延遲）──
+// ── 會議紀錄自動暫存（localStorage，即時無網路延遲）──
 let _formalAutosaveTimer=null;
 function formalAutosave(){
   clearTimeout(_formalAutosaveTimer);
@@ -9971,7 +9971,7 @@ window.renderClientNextAction = async function(proj){
     });
   }
 
-  // 5. 會議記錄更新
+  // 5. 會議紀錄更新
   const meetings = docs.formalMeetings || [];
   let latestMeet = null;
   for(const m of meetings){
@@ -9982,7 +9982,7 @@ window.renderClientNextAction = async function(proj){
   if(latestMeet){
     rows.push({
       kind:'update',
-      label:'會議記錄更新',
+      label:'會議紀錄更新',
       sub:`${latestMeet.title ? trunc(latestMeet.title,12) + ' · ' : ''}${shortDate(latestMeet.dateStr)}`,
       navigate: () => goPage('p-meetings', document.querySelector('#s-client .tnav[onclick*="p-meetings"]'))
     });
@@ -10312,7 +10312,7 @@ async function renderClientDashboard(){
     if(nameEl) nameEl.style.color=isOverdue?'var(--red)':'';
   } else if(nextEl){ nextEl.style.display='none'; }
 
-  // --- 最近會議記錄 ---
+  // --- 最近會議紀錄 ---
   renderDashMeetings();
 }
 
@@ -10339,7 +10339,7 @@ function renderDashMeetings(){
   const top=all.slice(0,3);
 
   if(!top.length){
-    el.innerHTML='<div style="font-size:13px;color:var(--ink-light);padding:4px 0;">尚無會議記錄</div>';
+    el.innerHTML='<div style="font-size:13px;color:var(--ink-light);padding:4px 0;">尚無會議紀錄</div>';
     return;
   }
 
