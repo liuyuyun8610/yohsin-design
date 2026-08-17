@@ -36,6 +36,13 @@
   --paper:#E8E3E3;--paper-soft:#E6E0DB;
   --line:#C9BFA8;--line-soft:#E0D8C5;
   --persimmon:#8E5235;
+  /* 黏土／新擬態（登入頁）：背景仍是 --paper，量體全靠這兩道柔性陰影做出來。
+     亮面往左上、暗面往右下，兩者一定成對出現，只換方向就變成「壓進去」。 */
+  --clay-light:rgba(255,255,255,0.80);
+  --clay-dark:rgba(158,146,138,0.45);
+  --clay-flat:#DED8D8;
+  /* 奶茶色：按鈕唯一用色，改這裡全登入頁一起變 */
+  --milktea:#B9A794;--milktea-dark:#A89380;--milktea-pale:rgba(185,167,148,0.38);
 }
 *,*::before,*::after{box-sizing:border-box;}
 html,body{max-width:100%;overflow-x:hidden;}
@@ -48,28 +55,39 @@ table{max-width:100%;}
 .screen.active{display:block;}
 #s-login.active{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:2rem;}
 
-/* LOGIN — abso-style: no card, hairline only, serif typography */
+/* LOGIN — 黏土／新擬態：背景色維持 --paper 不變，層次全部靠柔性陰影，按鈕奶茶色 */
 #s-login.active{padding:60px 24px;}
-.login-wrap{background:transparent;border:none;border-radius:0;padding:0;width:100%;max-width:460px;text-align:center;box-shadow:none;}
+.login-wrap{background:var(--paper);border:none;border-radius:34px;padding:52px 40px 46px;width:100%;max-width:460px;text-align:center;
+  box-shadow:15px 15px 32px var(--clay-dark), -15px -15px 32px var(--clay-light);}
 .logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:0;}
 .logo-svg-lg{width:72px;height:60px;margin-bottom:18px;opacity:0.92;}
-.site-logo-img{margin-bottom:18px !important;}
+/* logo 坐在一塊凸起的圓盤上，跟下面凹進去的輸入框形成一凸一凹的層次 */
+.site-logo-img{margin-bottom:22px !important;padding:16px;border-radius:50%;background:var(--paper);
+  box-shadow:8px 8px 18px var(--clay-dark), -8px -8px 18px var(--clay-light);}
 .logo-name{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:30px;font-weight:600;letter-spacing:0.22em;color:var(--ink);line-height:1.25;}
 .logo-sub{font-size:11px;letter-spacing:0.42em;color:var(--ink-light);margin-top:18px;text-transform:uppercase;}
-.login-line{border:none;border-top:0.5px solid var(--line);margin:48px 0;width:100%;}
+/* 分隔線改成一道柔性凹槽——黏土風不用髮絲線，用「壓下去的溝」 */
+.login-line{border:none;height:3px;background:transparent;margin:34px 0 30px;width:100%;border-radius:3px;
+  box-shadow:inset 2px 2px 4px var(--clay-dark), inset -2px -2px 4px var(--clay-light);}
 .mode-switch{display:flex;background:transparent;border-top:0.5px solid var(--line);border-bottom:0.5px solid var(--line);border-radius:0;padding:0;margin-bottom:40px;}
 .mdbtn{flex:1;padding:32px 16px;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:16px;font-weight:300;letter-spacing:0.45em;border:none;border-radius:0;cursor:pointer;background:transparent;color:var(--ink-muted);transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:6px;}
 .mdbtn + .mdbtn{border-left:0.5px solid var(--line);}
 .mdbtn:hover{color:var(--ink);background:var(--paper-soft);}
 .mdbtn.active{color:var(--ink);font-weight:400;background:transparent;}
 .mdbtn.active::after{content:'';width:20px;height:1px;background:var(--ink);}
-.fl{display:block;font-size:11px;letter-spacing:0.3em;color:var(--ink-muted);text-align:left;margin-bottom:8px;text-transform:uppercase;}
-.fi{width:100%;padding:12px 0;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;font-weight:300;letter-spacing:0.05em;border:none;border-bottom:0.5px solid var(--line);border-radius:0;background:transparent;color:var(--ink);outline:none;margin-bottom:28px;}
-.fi:focus{border-bottom-color:var(--ink);background:transparent;}
+.fl{display:block;font-size:11px;letter-spacing:0.3em;color:var(--ink-muted);text-align:left;margin:0 0 10px 6px;text-transform:uppercase;}
+/* 輸入框：壓進去的凹槽（陰影方向跟凸起的卡片相反） */
+.fi{width:100%;padding:15px 18px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;font-weight:300;letter-spacing:0.05em;border:none;border-radius:15px;background:var(--paper);color:var(--ink);outline:none;margin-bottom:22px;
+  box-shadow:inset 5px 5px 10px var(--clay-dark), inset -5px -5px 10px var(--clay-light);transition:box-shadow .25s;}
+.fi:focus{box-shadow:inset 6px 6px 12px var(--clay-dark), inset -6px -6px 12px var(--clay-light), 0 0 0 2.5px var(--milktea-pale);}
 .fi::placeholder{color:var(--ink-light);font-weight:300;letter-spacing:0.05em;}
-.btn-enter{display:inline-block;width:auto;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:400;letter-spacing:0.55em;background:var(--ink);color:var(--paper);padding:18px 64px 18px 70px;border:none;border-radius:0;cursor:pointer;margin-top:12px;transition:background .25s;}
-.btn-enter:hover{background:var(--ink-muted);}
-.btn-enter:disabled{background:var(--line);color:var(--ink-light);cursor:not-allowed;}
+/* 主按鈕：奶茶色的凸起藥丸；按下去改成內凹，手感跟實體按鈕一致 */
+.btn-enter{display:inline-block;width:100%;max-width:300px;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;letter-spacing:0.5em;background:var(--milktea);color:#FFFDFA;padding:18px 32px 18px 40px;border:none;border-radius:999px;cursor:pointer;margin-top:16px;
+  box-shadow:8px 8px 18px var(--clay-dark), -8px -8px 18px var(--clay-light);transition:background .2s, box-shadow .18s, transform .18s;}
+.btn-enter:hover{background:var(--milktea-dark);}
+.btn-enter:active{transform:translateY(1px);box-shadow:inset 6px 6px 13px rgba(120,102,84,.45), inset -4px -4px 10px rgba(255,255,255,.32);}
+.btn-enter:disabled{background:var(--clay-flat);color:var(--ink-light);cursor:not-allowed;
+  box-shadow:inset 4px 4px 9px var(--clay-dark), inset -4px -4px 9px var(--clay-light);}
 .l-err{font-size:12px;color:var(--persimmon);margin-top:18px;letter-spacing:0.1em;min-height:18px;}
 .l-hint{margin-top:1rem;font-size:11px;color:var(--ink-light);line-height:1.9;background:transparent;border-radius:0;padding:0;}
 
