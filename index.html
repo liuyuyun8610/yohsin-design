@@ -1079,6 +1079,50 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   box-shadow:5px 5px 12px var(--clay-dark), -5px -5px 12px var(--clay-light) !important;transition:transform .16s, box-shadow .18s;}
 #s-client .know-tool-card:hover{transform:translateY(-2px);
   box-shadow:7px 7px 16px var(--clay-dark), -6px -6px 15px var(--clay-light) !important;}
+
+/* ══════════════════════════════════════════════════════════════
+   客戶財務頁：資訊分層（2026-08-18 規格）
+   第一層只有三個主數字，其餘全部降級。
+   ══════════════════════════════════════════════════════════════ */
+#s-client .fin-card{padding:22px 24px}
+#s-client .fin-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;flex-wrap:wrap}
+#s-client .fin-lbl{font-size:11px;letter-spacing:.14em;color:var(--ink-light);margin-bottom:5px}
+#s-client .fin-num{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:32px;font-weight:600;
+  letter-spacing:.02em;color:var(--ink);line-height:1.15}
+#s-client .fin-pair{display:flex;gap:30px}
+#s-client .fin-num2{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:20px;font-weight:500;line-height:1.2}
+#s-client .fin-paid{color:#5E786E}
+#s-client .fin-out{color:var(--accent)}
+#s-client .fin-out.fin-over{color:#5E786E}
+#s-client .fin-src{margin-top:16px;padding-top:13px;border-top:0.5px solid var(--border);
+  font-size:11.5px;color:var(--ink-light);letter-spacing:.03em}
+/* 目前待處理 */
+#s-client .todo-none{padding:15px 18px;border-radius:14px;background:var(--paper);
+  font-size:12.5px;color:#5E786E;letter-spacing:.05em;
+  box-shadow:3px 3px 9px var(--clay-dark), -3px -3px 9px var(--clay-light)}
+#s-client .todo-wrap{padding:16px 18px;border-radius:16px;background:var(--paper);
+  box-shadow:4px 4px 11px var(--clay-dark), -4px -4px 11px var(--clay-light)}
+#s-client .todo-h{font-size:11px;letter-spacing:.16em;color:var(--ink-light);margin-bottom:12px}
+#s-client .todo-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-top:0.5px solid var(--border)}
+#s-client .todo-row:first-of-type{border-top:none;padding-top:2px}
+#s-client .todo-main{flex:1;min-width:0}
+#s-client .todo-name{font-size:14px;color:var(--ink);letter-spacing:.03em}
+#s-client .todo-meta{font-size:11px;color:var(--ink-light);margin-top:3px}
+#s-client .todo-amt{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:17px;font-weight:600;
+  color:var(--ink);white-space:nowrap}
+#s-client .todo-st{font-size:11px;letter-spacing:.06em;padding:4px 11px;border-radius:999px;white-space:nowrap}
+#s-client .todo-st.st-pending{background:rgba(139,107,72,.10);color:var(--ink-muted)}
+#s-client .todo-st.st-soon{background:rgba(200,137,31,.14);color:#8A5A11}
+#s-client .todo-st.st-overdue{background:rgba(166,59,38,.13);color:#A63B26}
+#s-client .todo-st.st-nodate{background:rgba(139,107,72,.08);color:var(--ink-light)}
+@media(max-width:720px){
+  #s-client .fin-hero{flex-direction:column;align-items:stretch;gap:16px}
+  #s-client .fin-pair{justify-content:space-between;gap:14px}
+  #s-client .fin-num{font-size:27px}
+  #s-client .todo-row{flex-wrap:wrap;gap:8px}
+  #s-client .todo-amt{order:3}
+  #s-client .todo-st{order:2;margin-left:auto}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1909,55 +1953,29 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
         <div style="color:var(--ink-light);">如有款項已匯出但尚未顯示，可能為入帳時間差，歡迎透過 LINE 與我們確認。</div>
       </div>
 
-      <!-- 金額總覽（全案：設計＋工程）-->
-      <div class="card" id="pay-overview-total" style="margin-bottom:1rem;">
-        <div style="font-size:11px;letter-spacing:0.16em;color:var(--ink-light);font-weight:500;margin-bottom:12px;">金額總覽</div>
-        <div style="display:flex;flex-direction:column;gap:9px;">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">
-            <span style="font-size:13px;color:var(--ink-muted);flex-shrink:0;">原合約金額</span>
-            <span style="text-align:right;">
-              <span id="tot-orig" style="font-size:15px;font-weight:500;color:var(--ink);">$—</span>
-              <span id="tot-orig-breakdown" style="display:block;font-size:11px;color:var(--ink-light);margin-top:1px;"></span>
-            </span>
+      <!-- A. 財務總覽（第一層）：只留三個主數字，來源拆解降為小字 -->
+      <div class="card fin-card" id="pay-overview-total" style="margin-bottom:1rem;">
+        <div class="fin-hero">
+          <div class="fin-main">
+            <div class="fin-lbl">目前合約總額</div>
+            <div class="fin-num" id="fin-total">$—</div>
           </div>
-          <div id="tot-co-row" style="display:none;justify-content:space-between;align-items:baseline;gap:12px;">
-            <span style="font-size:13px;color:var(--ink-muted);">追加減合計</span>
-            <span id="tot-co" style="font-size:15px;font-weight:500;">+$0</span>
-          </div>
-          <div id="tot-adjusted-row" style="display:none;justify-content:space-between;align-items:baseline;gap:12px;padding-top:9px;border-top:0.5px solid var(--border);">
-            <span style="font-size:13px;color:var(--ink);font-weight:500;">調整後總額</span>
-            <span id="tot-adjusted" style="font-size:17px;font-weight:600;color:var(--ink);">$—</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:9px;border-top:0.5px solid var(--border);">
-            <span style="font-size:13px;color:var(--ink-muted);">已付款</span>
-            <span id="tot-received" style="font-size:15px;font-weight:500;color:#5E786E;">$—</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">
-            <span style="font-size:13px;color:var(--ink-muted);">待付款</span>
-            <span id="tot-pending" style="font-size:15px;font-weight:600;color:var(--accent);">$—</span>
+          <div class="fin-pair">
+            <div class="fin-item">
+              <div class="fin-lbl">已付款</div>
+              <div class="fin-num2 fin-paid" id="fin-paid">$—</div>
+            </div>
+            <div class="fin-item">
+              <div class="fin-lbl" id="fin-out-lbl">待付款</div>
+              <div class="fin-num2 fin-out" id="fin-out">$—</div>
+            </div>
           </div>
         </div>
+        <div class="fin-src" id="fin-src"></div>
       </div>
 
-      <!-- 設計費 總覽 -->
-      <div class="card" id="pay-overview-design" style="margin-bottom:0.8rem;">
-        <div style="font-size:11px;letter-spacing:0.16em;color:var(--blue);font-weight:500;margin-bottom:10px;">✏️ 設計費</div>
-        <div class="pay-sum" style="margin:0;border-top:none;border-bottom:none;">
-          <div class="pay-box"><div class="pay-lbl">合約</div><div class="pay-val" id="client-pay-design-contract">$—</div></div>
-          <div class="pay-box"><div class="pay-lbl">已收</div><div class="pay-val" id="client-pay-design-received">$—</div></div>
-          <div class="pay-box"><div class="pay-lbl">待收</div><div class="pay-val danger" id="client-pay-design-pending">$—</div></div>
-        </div>
-      </div>
-
-      <!-- 工程款 總覽 -->
-      <div class="card" id="pay-overview-construction" style="margin-bottom:1rem;">
-        <div style="font-size:11px;letter-spacing:0.16em;color:var(--accent);font-weight:500;margin-bottom:10px;">✏️ 工程款</div>
-        <div class="pay-sum" style="margin:0;border-top:none;border-bottom:none;">
-          <div class="pay-box"><div class="pay-lbl">合約</div><div class="pay-val" id="client-pay-construction-contract">$—</div></div>
-          <div class="pay-box"><div class="pay-lbl">已收</div><div class="pay-val" id="client-pay-construction-received">$—</div></div>
-          <div class="pay-box"><div class="pay-lbl">待收</div><div class="pay-val danger" id="client-pay-construction-pending">$—</div></div>
-        </div>
-      </div>
+      <!-- B. 目前待處理：只顯示還沒完成的款項 -->
+      <div id="pay-todo" style="margin-bottom:1rem;"></div>
 
       <!-- 設計費 區塊 -->
       <div id="pay-section-design" style="margin-bottom:1rem;">
@@ -11629,6 +11647,85 @@ async function renderClientMaterials(){
 }
 
 // ========== CLIENT PAYMENT ==========
+/* ══════════════════════════════════════════════════════════════
+   客戶端財務摘要：單一計算來源（2026-08-18 財務頁改版規格 §4、§12-2）
+   畫面上每一個金額都必須從這裡拿，不可以三張卡各算一次——
+   盤點時發現首頁與財務頁本來就是兩套算法（首頁沒把追加減算進去），
+   所以「待付款」在兩頁會不一樣。這支就是為了收斂那件事。
+
+   ⚠ 只做加總，不動資料模型：設計費以 payment_settings.design_fee 為權威、
+     工程款以 projects.contract_amount 為權威，沒設定才用期別加總保底——
+     這是既有規則，原封沿用。
+   ⚠ 追加減沒有「最終合約影響金額」欄位，DB 只有單筆；net/fee/grand
+     一直都是前端算的。這裡不重算，直接吃 loadClientChangeOrders 回傳的 grand。
+   ══════════════════════════════════════════════════════════════ */
+function clientFinanceSummary({ designItems = [], constructionItems = [], designFeeNum = 0, contractAmt = 0, coGrand = 0 } = {}) {
+  const sum = arr => arr.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  const got = arr => arr.filter(r => r.status === '已收');
+  const designItemsSum = sum(designItems);
+  const conItemsSum = sum(constructionItems);
+  const designContract = designFeeNum > 0 ? designFeeNum : designItemsSum;
+  const conContract = contractAmt > 0 ? contractAmt : conItemsSum;
+  const designReceived = sum(got(designItems));
+  const conReceived = sum(got(constructionItems));
+  const originalContractTotal = designContract + conContract;
+  const adjustmentNet = Number(coGrand) || 0;
+  const currentContractTotal = originalContractTotal + adjustmentNet;
+  const paidTotal = designReceived + conReceived;
+  const outstandingTotal = currentContractTotal - paidTotal;
+  return {
+    designContract, designReceived, designPending: designContract - designReceived,
+    conContract, conReceived, conPending: conContract - conReceived,
+    originalContractTotal, adjustmentNet, currentContractTotal,
+    paidTotal, outstandingTotal,
+    /* 溢收：付超過了。規格 §13 要求顯示「溢收／待沖抵」而不是負的待付款 */
+    isOverpaid: outstandingTotal < 0,
+    overpaid: outstandingTotal < 0 ? -outstandingTotal : 0,
+  };
+}
+/* 期別狀態：已收 / 逾期 / 即將到期 / 待付款 / 待確認日期（規格 §5）
+   逾期與即將到期的判斷本來散在三個地方各寫一次，收斂到這裡。 */
+function payItemState(r, today) {
+  if (r.status === '已收') return { key: 'paid', label: '已收' };
+  if (!r.due) return { key: 'nodate', label: '待確認日期' };
+  const d = new Date(String(r.due).replace(/\//g, '-'));
+  if (isNaN(d)) return { key: 'nodate', label: '待確認日期' };
+  d.setHours(0, 0, 0, 0);
+  if (d < today) return { key: 'overdue', label: '逾期' };
+  const days = Math.round((d - today) / 86400000);
+  if (days <= 7) return { key: 'soon', label: '即將到期' };
+  return { key: 'pending', label: '待付款' };
+}
+/* B. 目前待處理（規格 §5）：只顯示還沒完成的款項，沒有就明確說沒有。
+   目的不是列出所有期款，是讓客戶知道「現在有沒有事情要做」。 */
+function renderPayTodo(allItems) {
+  const host = document.getElementById('pay-todo');
+  if (!host) return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const pend = (allItems || [])
+    .map(r => ({ r, st: payItemState(r, today) }))
+    .filter(x => x.st.key !== 'paid')
+    .sort((a, b) => {
+      const rank = { overdue: 0, soon: 1, pending: 2, nodate: 3 };
+      return (rank[a.st.key] - rank[b.st.key]) || (String(a.r.due || '') > String(b.r.due || '') ? 1 : -1);
+    });
+  if (!pend.length) {
+    host.innerHTML = `<div class="todo-none">✓ 目前無待付款項</div>`;
+    return;
+  }
+  host.innerHTML = `<div class="todo-wrap">
+    <div class="todo-h">目前待處理</div>
+    ${pend.map(({ r, st }) => `<div class="todo-row">
+      <div class="todo-main">
+        <div class="todo-name">${escapeHtml(r.name || '款項')}</div>
+        <div class="todo-meta">${r.due ? `原預計日期　${escapeHtml(r.due)}` : '尚未排定日期'}${
+          r.category ? `　·　${escapeHtml(r.category)}` : ''}</div>
+      </div>
+      <div class="todo-amt">$${fmtN(Math.abs(Number(r.amount) || 0))}</div>
+      <div class="todo-st st-${st.key}">${st.label}</div>
+    </div>`).join('')}
+  </div>`;
+}
 async function renderClientPayment(){
   const c=clients.find(x=>x.id===currentClientId); if(!c||!c.projectId) return;
   const pid=c.projectId;
@@ -11702,29 +11799,32 @@ async function renderClientPayment(){
   // 追加減紀錄已併入本頁：載入並取回總計，餵給最上方「金額總覽」卡（全案：設計＋工程）
   const coTotals = await loadClientChangeOrders(Number(c.projectId)).catch(e=>{console.warn('loadClientChangeOrders(payment):',e?.message);return null;});
   const coGrand = Number(coTotals?.grand) || 0;            // 追加減合計（含監工費）
-  const origContract = designContract + conContract;       // 原合約金額（設計＋工程）
-  const adjustedTotal = origContract + coGrand;            // 調整後總額
-  const totalReceived = designReceived + conReceived;      // 已付款
-  const totalPending = adjustedTotal - totalReceived;      // 待付款
+
+  /* ── A. 財務總覽（第一層）：三個主數字，全部來自同一個 selector ── */
+  const F = clientFinanceSummary({ designItems, constructionItems, designFeeNum, contractAmt, coGrand });
+  window._clientFinance = F;                               // 給首頁與對帳用，避免第二套算法
   const ovTotal = document.getElementById('pay-overview-total');
-  if(ovTotal) ovTotal.style.display = (origContract>0 || totalReceived>0) ? 'block' : 'none';
-  setEl('tot-orig','$'+fmtN(origContract));
-  const bd=document.getElementById('tot-orig-breakdown');
-  if(bd) bd.textContent = (designContract>0 && conContract>0)
-    ? `設計 $${fmtN(designContract)} ＋ 工程 $${fmtN(conContract)}` : '';
-  const coRow=document.getElementById('tot-co-row');
-  const adjRow=document.getElementById('tot-adjusted-row');
-  if(coGrand!==0){
-    if(coRow) coRow.style.display='flex';
-    if(adjRow) adjRow.style.display='flex';
-    setEl('tot-co',(coGrand>=0?'+$':'-$')+fmtN(Math.abs(coGrand)));
-    setEl('tot-adjusted','$'+fmtN(adjustedTotal));
-  } else {
-    if(coRow) coRow.style.display='none';
-    if(adjRow) adjRow.style.display='none';
+  if(ovTotal) ovTotal.style.display = (F.originalContractTotal>0 || F.paidTotal>0) ? 'block' : 'none';
+  setEl('fin-total','$'+fmtN(F.currentContractTotal));
+  setEl('fin-paid','$'+fmtN(F.paidTotal));
+  /* 溢收不顯示負數待付款，改講「溢收／待沖抵」（規格 §13） */
+  setEl('fin-out-lbl', F.isOverpaid ? '溢收／待沖抵' : '待付款');
+  setEl('fin-out','$'+fmtN(F.isOverpaid ? F.overpaid : F.outstandingTotal));
+  const outEl=document.getElementById('fin-out');
+  if(outEl) outEl.classList.toggle('fin-over', F.isOverpaid);
+  /* 來源說明只做小字拆解，不再是第四個大數字 */
+  const srcEl=document.getElementById('fin-src');
+  if(srcEl){
+    const bits=[];
+    if(F.originalContractTotal>0) bits.push(`原合約 $${fmtN(F.originalContractTotal)}`);
+    if(F.adjustmentNet!==0) bits.push(`追加減 ${F.adjustmentNet>=0?'+':'-'}$${fmtN(Math.abs(F.adjustmentNet))}`);
+    else if(coTotals) bits.push('目前無追加減');
+    srcEl.textContent = bits.join('　｜　');
+    srcEl.style.display = bits.length ? 'block' : 'none';
   }
-  setEl('tot-received','$'+fmtN(totalReceived));
-  setEl('tot-pending','$'+fmtN(totalPending));
+
+  /* ── B. 目前待處理：只列還沒完成的款項（規格 §5） ── */
+  renderPayTodo(allItems);
 
   const empty=document.getElementById('client-pay-empty');
   if(!allItems.length){if(empty)empty.style.display='block';return;}
