@@ -1021,6 +1021,43 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   #pay-section-construction > div:first-child > div:nth-child(2){display:none !important;}
   #pay-design-summary,#pay-construction-summary{min-width:0;font-size:11.5px !important;}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   屋主專案區：內頁按鈕改新擬態（2026-08-18）
+   跟登入頁同一套語彙——用既有的 --clay-dark／--clay-light／--milktea，
+   不另外開一組色票，所以之後調品牌色兩邊會一起變。
+   ⚠ 只套 #s-client（屋主看的），設計師後台 #s-admin 不動。
+   ⚠ 頂端 .tnav 維持細線底線的樣式，那是選單 IA 改版時定的視覺語言，
+     做成浮起按鈕會讓七個第一層變得很吵。
+   ══════════════════════════════════════════════════════════════ */
+#s-client .btn-ink,#s-client .btn-export-pdf{
+  background:var(--milktea);color:#FFFDFA;border:none;border-radius:999px;
+  box-shadow:5px 5px 12px var(--clay-dark), -5px -5px 12px var(--clay-light);
+  transition:background .18s, box-shadow .18s, transform .16s;}
+#s-client .btn-ink:hover,#s-client .btn-export-pdf:hover{
+  background:var(--milktea-dark);opacity:1;transform:translateY(-1px);
+  box-shadow:6px 6px 15px var(--clay-dark), -6px -6px 15px var(--clay-light);}
+#s-client .btn-ink:active,#s-client .btn-export-pdf:active{
+  transform:none;box-shadow:inset 4px 4px 10px rgba(120,108,100,.5), inset -3px -3px 9px rgba(255,255,255,.5);}
+#s-client .btn-ghost,#s-client .btn-sm,#s-client .stab,#s-client .meeting-tab,#s-client .btn-out{
+  background:var(--paper);border:none;border-radius:999px;color:var(--ink-muted);
+  box-shadow:4px 4px 10px var(--clay-dark), -4px -4px 10px var(--clay-light);
+  transition:box-shadow .18s, transform .16s, color .18s;}
+#s-client .btn-ghost:hover,#s-client .btn-sm:hover,#s-client .stab:hover,
+#s-client .meeting-tab:hover,#s-client .btn-out:hover{
+  background:var(--paper);color:var(--ink);transform:translateY(-1px);
+  box-shadow:5px 5px 13px var(--clay-dark), -5px -5px 13px var(--clay-light);}
+/* 按下與選中：內凹。選中要比 hover 更明確，所以再加一點底色 */
+#s-client .btn-ghost:active,#s-client .btn-sm:active,#s-client .stab:active,#s-client .meeting-tab:active{
+  transform:none;box-shadow:inset 4px 4px 9px var(--clay-dark), inset -4px -4px 9px var(--clay-light);}
+#s-client .stab.active,#s-client .meeting-tab.active{
+  background:var(--milktea) !important;color:#FFFDFA !important;border-color:transparent !important;
+  box-shadow:inset 4px 4px 9px rgba(120,108,100,.45), inset -3px -3px 8px rgba(255,255,255,.45) !important;}
+/* 卡片型的按鈕（知識工具卡）也跟著浮起來 */
+#s-client .know-tool-card{border:none !important;border-radius:16px !important;
+  box-shadow:5px 5px 12px var(--clay-dark), -5px -5px 12px var(--clay-light) !important;transition:transform .16s, box-shadow .18s;}
+#s-client .know-tool-card:hover{transform:translateY(-2px);
+  box-shadow:7px 7px 16px var(--clay-dark), -6px -6px 15px var(--clay-light) !important;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
