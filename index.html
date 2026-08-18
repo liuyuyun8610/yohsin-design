@@ -1066,6 +1066,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client .stab,#s-client .meeting-tab,#s-client .btn-export-pdf{
   font-family:'Microsoft JhengHei','微軟正黑體','PingFang TC','Heiti TC','Noto Sans TC',sans-serif !important;
   font-weight:400;}
+/* 拿掉兩條多餘的線（2026-08-18 使用者）：
+   標題下的分隔線、分頁鈕容器的底線。兩條都是舊的「底線式分頁」時代留下的，
+   按鈕改成浮起的膠囊之後，膠囊坐在一條線上看起來像沒收乾淨。 */
+#s-client .page-title{border-bottom:none !important;padding-bottom:6px !important;margin-bottom:22px !important}
+#s-client .stabs{border-bottom:none !important;gap:14px !important;padding-bottom:0 !important;margin-bottom:22px !important}
 /* 卡片型的按鈕（知識工具卡）也跟著浮起來 */
 #s-client .know-tool-card{border:none !important;border-radius:16px !important;
   box-shadow:5px 5px 12px var(--clay-dark), -5px -5px 12px var(--clay-light) !important;transition:transform .16s, box-shadow .18s;}
