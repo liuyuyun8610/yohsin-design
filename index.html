@@ -1071,6 +1071,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
    按鈕改成浮起的膠囊之後，膠囊坐在一條線上看起來像沒收乾淨。 */
 #s-client .page-title{border-bottom:none !important;padding-bottom:6px !important;margin-bottom:22px !important}
 #s-client .stabs{border-bottom:none !important;gap:14px !important;padding-bottom:0 !important;margin-bottom:22px !important}
+/* 分頁那一排右側的輸出鈕：推到最右邊，跟三顆分頁同一排 */
+#s-client .stabs{align-items:center}
+#s-client .stabs .stabs-right{margin-left:auto}
 /* 卡片型的按鈕（知識工具卡）也跟著浮起來 */
 #s-client .know-tool-card{border:none !important;border-radius:16px !important;
   box-shadow:5px 5px 12px var(--clay-dark), -5px -5px 12px var(--clay-light) !important;transition:transform .16s, box-shadow .18s;}
@@ -1704,10 +1707,10 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
         <button class="stab active" onclick="switchStab('cl-app',this)">家電採購清單</button>
         <button class="stab" onclick="switchStab('cl-fur',this)">家具採購清單</button>
         <button class="stab" onclick="switchStab('cl-pow',this)">功率計算表</button>
+        <button class="btn-ghost stabs-right" id="cl-print" onclick="printCurrentChecklist()">⎙ 輸出紙本（可另存 PDF）</button>
       </div>
       <div id="cl-app">
         <div class="notice-desc" style="margin-bottom:1rem;">請將您要採購的電器或是原有的設備填入下方表格，可作為外出採購的參考指南。</div>
-        <button onclick="printChecklist('app')" style="margin-bottom:10px;padding:6px 14px;font-size:12px;font-family:inherit;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);cursor:pointer;">⎙ 輸出紙本（可另存 PDF）</button>
         <div class="tbl-wrap"><table id="app-table" class="resizable-table"><thead><tr>
           <th>電器名稱<span class="col-resizer"></span></th>
           <th>品牌<span class="col-resizer"></span></th>
@@ -1720,7 +1723,6 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
       </div>
       <div id="cl-fur" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">請填入您規劃採購或已有的家具，協助設計師掌握空間配置需求。</div>
-        <button onclick="printChecklist('fur')" style="margin-bottom:10px;padding:6px 14px;font-size:12px;font-family:inherit;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);cursor:pointer;">⎙ 輸出紙本（可另存 PDF）</button>
         <div class="tbl-wrap"><table id="fur-table" class="resizable-table"><thead><tr>
           <th>家具名稱<span class="col-resizer"></span></th>
           <th>品牌<span class="col-resizer"></span></th>
@@ -12866,9 +12868,21 @@ async function saveSignature(){
 }
 
 // ========== CHECKLIST ==========
+/* 輸出紙本改放在分頁那一排的右上角，所以要自己判斷現在看的是哪一份
+   （功率計算表沒有紙本輸出，按鈕會自動隱藏）。 */
+function printCurrentChecklist(){
+  const act=document.querySelector('#p-checklist .stab.active')?.getAttribute('onclick')||'';
+  if(act.includes('cl-fur')) printChecklist('fur');
+  else if(act.includes('cl-app')) printChecklist('app');
+}
+function syncChecklistPrintBtn(id){
+  const b=document.getElementById('cl-print');
+  if(b) b.style.display=(id==='cl-pow')?'none':'';
+}
 function switchStab(id,el){
   document.querySelectorAll('#p-checklist .stab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   ['cl-app','cl-fur','cl-pow'].forEach(t=>{document.getElementById(t).style.display=t===id?'block':'none';});
+  syncChecklistPrintBtn(id);
   if(id==='cl-fur') renderCliFurniturePlan();
 }
 // ── 欄寬拖曳調整 ──
