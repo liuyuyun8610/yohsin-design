@@ -1123,6 +1123,52 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   #s-client .todo-amt{order:3}
   #s-client .todo-st{order:2;margin-left:auto}
 }
+
+/* 付款紀錄：摘要列＋accordion（規格 §6） */
+#s-client .pay-acc{margin-bottom:12px;border-radius:16px;background:var(--paper);overflow:hidden;
+  box-shadow:4px 4px 11px var(--clay-dark), -4px -4px 11px var(--clay-light)}
+#s-client .pay-acc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
+  padding:15px 18px;user-select:none}
+#s-client .pay-acc>summary::-webkit-details-marker{display:none}
+#s-client .pay-acc-name{font-size:14px;color:var(--ink);letter-spacing:.08em;flex:none}
+#s-client .pay-acc-st{flex:1;text-align:right;font-size:12px;letter-spacing:.03em}
+#s-client .pay-acc-st.acc-done{color:#5E786E}
+#s-client .pay-acc-st.acc-pending{color:var(--ink-muted)}
+#s-client .pay-acc-st.acc-soon{color:#8A5A11}
+#s-client .pay-acc-st.acc-overdue{color:#A63B26;font-weight:500}
+#s-client .pay-acc-st.acc-none{color:var(--ink-light)}
+#s-client .pay-acc-arrow{flex:none;font-size:15px;color:var(--ink-light);transition:transform .18s}
+#s-client .pay-acc[open] .pay-acc-arrow{transform:rotate(90deg)}
+#s-client .pay-acc-body{padding:0 14px 14px}
+#s-client .pay-acc-body .card{box-shadow:none;background:transparent}
+/* 收據改成文字型 CTA，不再是黑底實心按鈕 */
+#s-client .receipt-link{background:none !important;border:none !important;box-shadow:none !important;
+  padding:2px 0 !important;font-size:11.5px;color:var(--ink-muted);cursor:pointer;
+  letter-spacing:.04em;text-decoration:underline;text-underline-offset:3px;
+  text-decoration-color:rgba(139,107,72,.35);font-family:inherit;border-radius:0 !important}
+#s-client .receipt-link:hover{color:var(--accent);text-decoration-color:var(--accent);transform:none !important}
+
+/* 追加減：第一眼只看淨結果（規格 §7） */
+#s-client .co-hero{margin-bottom:12px;text-align:left}
+#s-client .co-hero-lbl{font-size:11px;letter-spacing:.14em;color:var(--ink-light);margin-bottom:5px}
+#s-client .co-hero-num{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:28px;font-weight:600;
+  color:var(--ink);line-height:1.2}
+#s-client .co-hero-src{margin-top:11px;padding-top:10px;border-top:0.5px solid var(--border);
+  font-size:11.5px;color:var(--ink-light);letter-spacing:.03em}
+/* 工種：預設收合（規格 §8） */
+#s-client .co-trade{border-radius:14px;background:var(--paper);margin-bottom:8px;overflow:hidden;
+  box-shadow:3px 3px 9px var(--clay-dark), -3px -3px 9px var(--clay-light)}
+#s-client .co-trade>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
+  padding:13px 16px;user-select:none}
+#s-client .co-trade>summary::-webkit-details-marker{display:none}
+#s-client .co-trade-name{font-size:13.5px;color:var(--ink);letter-spacing:.06em;flex:1}
+#s-client .co-trade-net{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;font-weight:600;white-space:nowrap}
+#s-client .co-trade-net.plus{color:var(--red)}
+#s-client .co-trade-net.minus{color:var(--green)}
+#s-client .co-trade-net.zero{color:var(--ink-light);font-weight:400}
+#s-client .co-trade-arrow{font-size:14px;color:var(--ink-light);transition:transform .18s}
+#s-client .co-trade[open] .co-trade-arrow{transform:rotate(90deg)}
+#s-client .co-trade-body{padding:0 14px 12px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1137,7 +1183,6 @@ body.presale-mode #client-renders-section,
 body.presale-mode #client-elevation-section,
 body.presale-mode #dash-photo-card,
 body.presale-mode #dash-construction-card,
-body.presale-mode #pay-section-construction,
 body.presale-mode #contract-sec-construction,
 body.presale-mode #contract-sec-ack,
 body.presale-mode #s-client .tnav[onclick*="p-materials"],
@@ -1146,6 +1191,11 @@ body.presale-mode #s-client .tnav[onclick*="p-storage"],
 body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-materials"],
 body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-construction"],
 body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display:none!important;}
+/* 預售屋（客變）：工程款的「期別明細」不適用，但摘要要留著——
+   總額裡本來就含工程款，整區藏掉會讓客戶對不起來（2026-08-18 修正）。 */
+body.presale-mode #pay-acc-construction .pay-acc-body{display:none!important}
+body.presale-mode #pay-acc-construction>summary{cursor:default}
+body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden}
 </style>
 
 <!-- ====== LOGIN ====== -->
@@ -1979,11 +2029,13 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
 
       <!-- 設計費 區塊 -->
       <div id="pay-section-design" style="margin-bottom:1rem;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
-          <div id="pay-title-design" style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 設計費</div>
-          <div style="flex:1;height:0.5px;background:var(--blue-pale);"></div>
-          <div style="font-size:12px;font-weight:600;color:#5E786E;" id="pay-design-summary"></div>
-        </div>
+      <details class="pay-acc" id="pay-acc-design">
+        <summary class="pay-acc-h">
+          <span class="pay-acc-name">設計費</span>
+          <span class="pay-acc-st" id="pay-design-summary">—</span>
+          <span class="pay-acc-arrow">›</span>
+        </summary>
+        <div class="pay-acc-body">
         <div class="card" style="padding:0;">
           <table class="ptbl" style="margin:0;">
             <thead><tr>
@@ -2006,15 +2058,18 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
           </summary>
           <div id="bank-design-body" style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;"></div>
         </details>
-      </div>
+        </div>
+      </details>
 
       <!-- 工程款 區塊 -->
       <div id="pay-section-construction" style="margin-bottom:1rem;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
-          <div style="font-size:13px;font-weight:500;letter-spacing:0.04em;color:var(--accent);">✏️ 工程款</div>
-          <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
-          <div style="font-size:12px;font-weight:600;color:#5E786E;" id="pay-construction-summary"></div>
-        </div>
+      <details class="pay-acc" id="pay-acc-construction">
+        <summary class="pay-acc-h">
+          <span class="pay-acc-name">工程款</span>
+          <span class="pay-acc-st" id="pay-construction-summary">—</span>
+          <span class="pay-acc-arrow">›</span>
+        </summary>
+        <div class="pay-acc-body">
         <div class="card" style="padding:0;">
           <table class="ptbl" style="margin:0;">
             <thead><tr>
@@ -2037,7 +2092,8 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
           </summary>
           <div id="bank-construction-body" style="padding:0 18px 14px;font-size:12.5px;color:var(--ink);line-height:1.95;"></div>
         </details>
-      </div>
+        </div>
+      </details>
 
       <div id="client-pay-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);display:none;">尚無付款記錄</div>
 
@@ -2065,21 +2121,12 @@ body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display
           <div style="flex:1;height:0.5px;background:var(--accent-pale);"></div>
           <button onclick="exportChangeOrdersPdf()" id="btn-export-co-pdf" class="btn-export-pdf">⬇ 匯出 PDF</button>
         </div>
-        <div class="card" style="margin-bottom:12px;">
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
-              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">追加合計</div>
-              <div id="cli-co-add" style="font-size:16px;font-weight:500;color:var(--red);">$0</div>
-            </div>
-            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
-              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">減項合計</div>
-              <div id="cli-co-sub" style="font-size:16px;font-weight:500;color:var(--green);">$0</div>
-            </div>
-            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;">
-              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;">含監工費</div>
-              <div id="cli-co-grand" style="font-size:16px;font-weight:500;">$0</div>
-            </div>
-          </div>
+        <!-- D. 追加減：第一眼只看淨結果，追加／減項／監工費降為小字（規格 §7） -->
+        <div class="card co-hero">
+          <div class="co-hero-lbl">本案追加減結果</div>
+          <div class="co-hero-num" id="cli-co-grand">$0</div>
+          <div class="co-hero-src" id="cli-co-src"></div>
+          <span id="cli-co-add" hidden></span><span id="cli-co-sub" hidden></span>
         </div>
         <div class="card" style="padding:0;">
           <table style="width:100%;border-collapse:collapse;">
@@ -10582,6 +10629,18 @@ async function loadClientChangeOrders(pid){
     setT('cli-co-add','+$'+fmtN(addTotal));
     setT('cli-co-sub','-$'+fmtN(subTotal));
     setT('cli-co-grand',fmtS(grand));
+    /* 淨結果下方的小字拆解（規格 §7）：追加 − 減項 ≠ 淨額時必須說清楚
+       差額是監工費，不能讓客戶自己去猜那筆錢是哪來的。 */
+    (function(){
+      const src=document.getElementById('cli-co-src');
+      if(!src) return;
+      if(!items.length){ src.textContent='目前無追加減'; return; }
+      const bits=[];
+      if(addTotal) bits.push(`追加 $${fmtN(addTotal)}`);
+      if(subTotal) bits.push(`減項 $${fmtN(subTotal)}`);
+      if(fee) bits.push(`含相關監工費 ${pct}%　$${fmtN(fee)}`);
+      src.textContent=bits.join('　｜　');
+    })();
     const tb=document.getElementById('cli-co-tbody');
     const empty=document.getElementById('cli-co-empty');
     const summary=document.getElementById('cli-co-summary');
@@ -10999,9 +11058,17 @@ function downloadReceipt(item, categoryItems, category){
   const projAddr=((proj&&proj.address)||'')+((proj&&proj.unit)?(' '+proj.unit):'');
   const clientName=c.name||'';
 
-  const catTotal=categoryItems.reduce((s,r)=>s+(r.amount||0),0);
-  const catReceived=categoryItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
-  const catPending=catTotal-catReceived;
+  /* 收據上的「合約總金額／已收／未收」一律取自 clientFinanceSummary，
+     不再用該分類的期別加總自己算一次（2026-08-18）。
+     原本的算法沒看 payment_settings.design_fee 與 projects.contract_amount，
+     所以收據上的合約總金額可能跟畫面上的對不起來。 */
+  const _F = window._clientFinance || null;
+  const _isDesign = category === '設計費';
+  const catTotal = _F ? (_isDesign ? _F.designContract : _F.conContract)
+                      : categoryItems.reduce((s,r)=>s+(r.amount||0),0);
+  const catReceived = _F ? (_isDesign ? _F.designReceived : _F.conReceived)
+                         : categoryItems.filter(r=>r.status==='已收').reduce((s,r)=>s+(r.amount||0),0);
+  const catPending = catTotal - catReceived;
   const itemPct=catTotal>0?Math.round((item.amount||0)/catTotal*100):0;
 
   const today=new Date();
@@ -11758,12 +11825,17 @@ async function renderClientPayment(){
   const allItems=scheduleData[pid]||[];
   const contractAmt=proj?Number(proj.contractAmount)||0:0;
 
-  // 最後更新日期：取所有期程中最近一筆 received_date；若無則用今天
+  /* 最後更新日期：取所有期程中最近一筆「實收日期」。
+     ⚠ 兩個既有 bug 一起修（2026-08-18）：
+       1. 讀的欄位是 received_date，但 saveSchedule 實際只寫 received，
+          所以 dates 永遠是空陣列。
+       2. 沒資料時 fallback 成「今天」，等於對客戶謊稱今天有更新過。
+          沒有實收紀錄就顯示「—」，不編一個日期出來。 */
   (function(){
-    const dates=allItems.map(r=>r.received_date).filter(Boolean).sort();
-    const lastStr=dates.length?dates[dates.length-1]:new Date().toISOString().slice(0,10);
+    const dates=allItems.map(r=>r.received||r.received_date).filter(Boolean)
+      .map(v=>String(v).replace(/\//g,'-')).sort();
     const el=document.getElementById('pay-last-updated');
-    if(el) el.textContent=lastStr.replace(/-/g,'/');
+    if(el) el.textContent = dates.length ? dates[dates.length-1].replace(/-/g,'/') : '—';
   })();
 
   // Split by category（default 工程款 for legacy data）
@@ -11868,11 +11940,11 @@ async function renderClientPayment(){
       const tdReceipt=document.createElement('td');
       tdReceipt.style.cssText='padding:9px 14px;text-align:right;';
       if(displayStatus==='已收'){
+        /* 收據按鈕降權（規格 §6）：原本是黑底實心「下載」，視覺權重蓋過金額與狀態。
+           改成文字型 CTA，功能完全不動。 */
         const btn=document.createElement('button');
-        btn.textContent='下載';
-        btn.style.cssText='font-size:11px;padding:4px 12px;border:none;background:var(--ink);color:var(--paper);cursor:pointer;border-radius:0;letter-spacing:0.04em;font-family:inherit;white-space:nowrap;';
-        btn.onmouseenter=()=>{btn.style.background='var(--ink-muted)';};
-        btn.onmouseleave=()=>{btn.style.background='var(--ink)';};
+        btn.textContent='查看收據';
+        btn.className='receipt-link';
         btn.onclick=()=>downloadReceipt(r,items,category);
         tdReceipt.appendChild(btn);
       } else {
@@ -11891,7 +11963,7 @@ async function renderClientPayment(){
           ? (r.received?`實收 ${r.received}`:'已收款')
           : (r.due?`預計 ${r.due}${displayStatus==='逾期'?' ⚠️':''}`:'');
         const btnHtml=displayStatus==='已收'
-          ? `<button class="pc-btn">下載</button>`
+          ? `<button class="pc-btn receipt-link">查看收據</button>`
           : `<span style="font-size:11px;color:var(--ink-light);">—</span>`;
         card.innerHTML=`
           <div class="pc-row">
@@ -11915,15 +11987,37 @@ async function renderClientPayment(){
   renderPayRows('client-pay-design-tbody','client-pay-design-empty',designItems,'設計費');
   renderPayRows('client-pay-construction-tbody','client-pay-construction-empty',constructionItems,'工程款');
 
-  // Section summaries（沿用上方已算好的 designReceived / designItemsSum / conReceived / conItemsSum）
-  setEl('pay-design-summary',designItems.length?`已收 $${fmtN(designReceived)} ／ 共 $${fmtN(designItemsSum)}`:'');
-  setEl('pay-construction-summary',constructionItems.length?`已收 $${fmtN(conReceived)} ／ 共 $${fmtN(conItemsSum)}`:'');
+  /* ── C. 付款紀錄（規格 §6）：分類標題右側只留一個摘要狀態，
+     不再重複「合約／已收／待收」三個數字——第一層已經回答過總覽了。
+     數字一律取自 clientFinanceSummary，不在這裡重算。 ── */
+  const accState = (items, pending) => {
+    if (!items.length) return { txt: '尚無款項', cls: 'acc-none', open: false };
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const states = items.map(r => payItemState(r, today).key);
+    if (states.includes('overdue')) return { txt: '有款項逾期', cls: 'acc-overdue', open: true };
+    if (pending > 0 && states.includes('soon')) return { txt: `尚有 $${fmtN(pending)} 待付・即將到期`, cls: 'acc-soon', open: true };
+    if (pending > 0) return { txt: `尚有 $${fmtN(pending)} 待付`, cls: 'acc-pending', open: false };
+    if (pending < 0) return { txt: `溢收 $${fmtN(-pending)}`, cls: 'acc-done', open: false };
+    return { txt: '✓ 已結清', cls: 'acc-done', open: false };
+  };
+  const applyAcc = (accId, sumId, items, pending) => {
+    const st = accState(items, pending);
+    setEl(sumId, st.txt);
+    const el = document.getElementById(sumId);
+    if (el) el.className = 'pay-acc-st ' + st.cls;
+    const acc = document.getElementById(accId);
+    /* 預設收合；只有逾期或即將到期才自動展開（規格 §6） */
+    if (acc) acc.open = st.open;
+  };
+  applyAcc('pay-acc-design', 'pay-design-summary', designItems, F.designPending);
+  applyAcc('pay-acc-construction', 'pay-construction-summary', constructionItems, F.conPending);
 
-  // Hide empty sections entirely
-  const secDesign=document.getElementById('pay-section-design');
-  const secCon=document.getElementById('pay-section-construction');
-  if(secDesign) secDesign.style.display=designItems.length?'block':'none';
-  if(secCon) secCon.style.display=constructionItems.length?'block':'none';
+  /* 沒有任何款項的分類整個收起來。
+     ⚠ 預售屋模式不在這裡處理——那是 CSS 的事，而且規格要求保留工程款摘要。 */
+  const secDesign=document.getElementById('pay-acc-design');
+  const secCon=document.getElementById('pay-acc-construction');
+  if(secDesign) secDesign.style.display=(designItems.length||F.designContract>0)?'block':'none';
+  if(secCon) secCon.style.display=(constructionItems.length||F.conContract>0)?'block':'none';
 }
 
 // ========== KNOWLEDGE ==========
