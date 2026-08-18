@@ -1169,6 +1169,29 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-client .co-trade-arrow{font-size:14px;color:var(--ink-light);transition:transform .18s}
 #s-client .co-trade[open] .co-trade-arrow{transform:rotate(90deg)}
 #s-client .co-trade-body{padding:0 14px 12px}
+
+/* 追加減單筆明細（第三層） */
+#s-client .co-item{display:flex;align-items:flex-start;gap:14px;padding:10px 2px;border-top:0.5px solid var(--border)}
+#s-client .co-item:first-child{border-top:none}
+#s-client .co-item-main{flex:1;min-width:0}
+#s-client .co-item-name{font-size:13px;color:var(--ink);line-height:1.5}
+#s-client .co-item-note{font-size:11px;color:var(--ink-light);margin-top:2px;line-height:1.5}
+#s-client .co-item-calc{font-size:11px;color:var(--ink-light);margin-top:3px;letter-spacing:.02em}
+#s-client .co-item-amt{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13.5px;font-weight:600;white-space:nowrap}
+#s-client .co-item-amt.plus{color:var(--red)}
+#s-client .co-item-amt.minus{color:var(--green)}
+/* 查看計算方式：低權重 */
+#s-client .co-calc{margin-top:10px}
+#s-client .co-calc>summary{list-style:none;cursor:pointer;font-size:11.5px;color:var(--ink-muted);
+  letter-spacing:.04em;text-decoration:underline;text-underline-offset:3px;
+  text-decoration-color:rgba(139,107,72,.3);display:inline-block}
+#s-client .co-calc>summary::-webkit-details-marker{display:none}
+#s-client .co-calc-body{margin-top:9px;padding:11px 13px;border-radius:11px;background:var(--sand);
+  font-size:12px;color:var(--ink-muted);line-height:2}
+#s-client .co-calc-body b{color:var(--ink);font-weight:500}
+/* 待處理的差額說明 */
+#s-client .todo-gap{margin-top:12px;padding-top:11px;border-top:0.5px solid var(--border);
+  font-size:11.5px;color:var(--ink-light);line-height:1.85}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -2126,31 +2149,16 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
           <div class="co-hero-lbl">本案追加減結果</div>
           <div class="co-hero-num" id="cli-co-grand">$0</div>
           <div class="co-hero-src" id="cli-co-src"></div>
+          <details class="co-calc">
+            <summary>查看計算方式</summary>
+            <div class="co-calc-body" id="cli-co-calc"></div>
+          </details>
           <span id="cli-co-add" hidden></span><span id="cli-co-sub" hidden></span>
         </div>
-        <div class="card" style="padding:0;">
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr>
-                <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:36px;">序</th>
-                <th style="text-align:left;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);">內容</th>
-                <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:82px;">日期</th>
-                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:80px;">單價</th>
-                <th style="text-align:right;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:44px;">數量</th>
-                <th style="text-align:center;padding:9px 8px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:46px;">單位</th>
-                <th style="text-align:right;padding:9px 12px;font-size:11px;color:var(--ink-light);font-weight:400;border-bottom:0.5px solid var(--border);background:var(--sand);width:90px;">小計</th>
-              </tr>
-            </thead>
-            <tbody id="cli-co-tbody"></tbody>
-          </table>
-          <div id="cli-co-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);">尚無追加減記錄</div>
-          <!-- 合計區 -->
-          <div id="cli-co-summary" style="padding:12px 16px;border-top:0.5px solid var(--border);display:none;">
-            <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>追加小計</span><span id="cli-sum-add"></span></div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>減項小計</span><span id="cli-sum-sub"></span></div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--ink-muted);"><span>監工費</span><span id="cli-sum-fee"></span></div>
-            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;padding:8px 0;border-top:1.5px solid var(--border);margin-top:4px;"><span>含監工費總計</span><span id="cli-sum-grand"></span></div>
-          </div>
+        <!-- Level 2/3：工種摘要 → 單筆明細，全部預設收合（規格 §5.2、§5.3） -->
+        <div id="cli-co-trades"></div>
+        <div id="cli-co-empty" style="text-align:center;padding:2rem;font-size:13px;color:var(--ink-light);">尚無追加減記錄</div>
+      </div>
         </div>
       </div>
     </div>
@@ -10638,75 +10646,68 @@ async function loadClientChangeOrders(pid){
       const bits=[];
       if(addTotal) bits.push(`追加 $${fmtN(addTotal)}`);
       if(subTotal) bits.push(`減項 $${fmtN(subTotal)}`);
-      if(fee) bits.push(`含相關監工費 ${pct}%　$${fmtN(fee)}`);
+      if(fee) bits.push('已含監工費');
       src.textContent=bits.join('　｜　');
+      /* 「查看計算方式」點開才顯示完整算式（規格 §6）。
+         這裡不重寫第二套公式——用的就是上面同一組 addTotal/subTotal/fee/grand。 */
+      const calc=document.getElementById('cli-co-calc');
+      if(calc) calc.innerHTML=
+        `追加合計　<b>+$${fmtN(addTotal)}</b><br>`+
+        `減項合計　<b>-$${fmtN(subTotal)}</b><br>`+
+        `小計　　　<b>${net>=0?'+':'-'}$${fmtN(Math.abs(net))}</b><br>`+
+        (pct?`監工費 ${pct}%　<b>${fee>=0?'+':'-'}$${fmtN(Math.abs(fee))}</b><br>`:'')+
+        `<span style="display:inline-block;margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border)">`+
+        `對合約的最終影響　<b>${grand>=0?'+':'-'}$${fmtN(Math.abs(grand))}</b></span>`;
     })();
-    const tb=document.getElementById('cli-co-tbody');
+    /* Level 2/3（規格 §5.2、§5.3）：工種摘要 accordion，點開才看單筆明細。
+       不是刪資料，是降低第一眼的資訊量——所有欄位都還在，只是收起來。 */
+    const host=document.getElementById('cli-co-trades');
     const empty=document.getElementById('cli-co-empty');
-    const summary=document.getElementById('cli-co-summary');
-    if(tb){
-      tb.innerHTML='';
-      if(empty) empty.style.display='none';
-      if(summary) summary.style.display='block';
-
-      // 依工種分組（保留每組內 seq_no 順序）
-      const groups = {}; // key -> { label, items }
-      const groupOrder = []; // 出現順序
-      items.forEach(r=>{
-        const k = r.category_key || '__uncat__';
-        if(!groups[k]){
-          groups[k] = {
-            label: r.category_key ? (tradeMap[r.category_key] || zhLabel(r.category_key, null)) : '其他工程',
-            items: [],
-          };
-          groupOrder.push(k);
-        }
-        groups[k].items.push(r);
-      });
-
-      const totalCols = 7;
-      groupOrder.forEach(k=>{
-        const g = groups[k];
-        // 計算組內小計（追加正、減項負）
-        let gNet = 0;
-        g.items.forEach(r=>{
-          const amt = Number(r.unit_price) * Number(r.quantity);
-          gNet += (r.type === '追加' ? amt : -amt);
+    if(host){
+      host.innerHTML='';
+      if(!items.length){ if(empty) empty.style.display='block'; }
+      else{
+        if(empty) empty.style.display='none';
+        const groups={}, groupOrder=[];
+        items.forEach(r=>{
+          const k=r.category_key||'__uncat__';
+          if(!groups[k]){
+            groups[k]={label:r.category_key?(tradeMap[r.category_key]||zhLabel(r.category_key,null)):'其他工程',items:[]};
+            groupOrder.push(k);
+          }
+          groups[k].items.push(r);
         });
-        // 分組標題列
-        const headTr = document.createElement('tr');
-        headTr.innerHTML = `<td colspan="${totalCols}" style="padding:10px 12px;background:var(--sand);font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;border-top:1px solid var(--border);border-bottom:0.5px solid var(--border);">${g.label}</td>`;
-        tb.appendChild(headTr);
-        // 各項目 — 組內重新從 1 編號
-        g.items.forEach((r, idxInGroup)=>{
-          const amt=Number(r.unit_price)*Number(r.quantity);
-          const isAdd=r.type==='追加';
-          const tr=document.createElement('tr');
-          tr.style.borderBottom='0.5px solid var(--border)';
-          tr.innerHTML=`
-            <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-light);">${idxInGroup + 1}</td>
-            <td style="padding:10px 12px;font-size:13px;">${r.content||'—'}${r.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.45;">${escapeHtml(r.note)}</div>`:''}</td>
-            <td style="text-align:center;padding:10px 8px;font-size:12px;color:var(--ink-muted);">${r.change_date ? r.change_date.replace(/-/g,'/') : '—'}</td>
-            <td style="padding:10px 12px;text-align:right;font-size:13px;color:var(--ink-muted);">$${fmtN(Number(r.unit_price))}</td>
-            <td style="padding:10px 8px;text-align:right;font-size:13px;color:var(--ink-muted);">${r.quantity}</td>
-            <td style="padding:10px 8px;text-align:center;font-size:13px;color:var(--ink-muted);">${r.unit?escapeHtml(r.unit):'—'}</td>
-            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;${isAdd?'color:var(--red)':'color:var(--green);'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</td>`;
-          tb.appendChild(tr);
-        });
-        // 組小計列
-        const sumSign = gNet >= 0 ? '+' : '-';
-        const sumColor = gNet >= 0 ? 'var(--red)' : 'var(--green)';
-        const subTr = document.createElement('tr');
-        subTr.innerHTML = `
-          <td colspan="6" style="text-align:right;padding:8px 12px;font-size:12px;color:var(--ink-muted);background:rgba(0,0,0,0.015);">${g.label} 小計</td>
-          <td style="text-align:right;padding:8px 12px;font-size:13px;font-weight:600;color:${sumColor};background:rgba(0,0,0,0.015);">${sumSign}$${fmtN(Math.abs(gNet))}</td>`;
-        tb.appendChild(subTr);
-      });
-
-      setT('cli-sum-add','+$'+fmtN(addTotal));
-      setT('cli-sum-sub','-$'+fmtN(subTotal));
-      setT('cli-sum-fee',fmtS(fee));
-      setT('cli-sum-grand',fmtS(grand));
+        host.innerHTML=groupOrder.map(k=>{
+          const g=groups[k];
+          let gNet=0;
+          g.items.forEach(r=>{const amt=Number(r.unit_price)*Number(r.quantity);gNet+=(r.type==='追加'?amt:-amt);});
+          /* 小計為 0 顯示「無淨異動」，不要用 +$0 製造視覺噪音（第一階段規格 §13） */
+          const netCls=gNet>0?'plus':(gNet<0?'minus':'zero');
+          const netTxt=gNet===0?'無淨異動':((gNet>0?'+$':'-$')+fmtN(Math.abs(gNet)));
+          return `<details class="co-trade">
+            <summary>
+              <span class="co-trade-name">${escapeHtml(g.label)}</span>
+              <span class="co-trade-net ${netCls}">${netTxt}</span>
+              <span class="co-trade-arrow">›</span>
+            </summary>
+            <div class="co-trade-body">
+              ${g.items.map(r=>{
+                const amt=Number(r.unit_price)*Number(r.quantity);
+                const isAdd=r.type==='追加';
+                return `<div class="co-item">
+                  <div class="co-item-main">
+                    <div class="co-item-name">${escapeHtml(r.content||'—')}</div>
+                    ${r.note?`<div class="co-item-note">${escapeHtml(r.note)}</div>`:''}
+                    <div class="co-item-calc">${escapeHtml(String(r.quantity))} ${escapeHtml(r.unit||'項')} × $${fmtN(Number(r.unit_price))}${
+                      r.change_date?`　·　${escapeHtml(String(r.change_date).replace(/-/g,'/'))}`:''}</div>
+                  </div>
+                  <div class="co-item-amt ${isAdd?'plus':'minus'}">${isAdd?'+':'-'}$${fmtN(Math.abs(amt))}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </details>`;
+        }).join('');
+      }
     }
     return {addTotal,subTotal,net,fee,grand,count:items.length};
   }catch(e){console.warn('loadClientChangeOrders:',e.message);return null;}
@@ -11740,11 +11741,26 @@ function clientFinanceSummary({ designItems = [], constructionItems = [], design
   const currentContractTotal = originalContractTotal + adjustmentNet;
   const paidTotal = designReceived + conReceived;
   const outstandingTotal = currentContractTotal - paidTotal;
+  /* ── 合約餘額 vs 已請款待付（第二階段規格 §2.2）──────────────
+     這兩件事必須分開，不能都叫「待付款」：
+       contractOutstanding＝合約還沒收的錢（總額 − 已收）
+       currentAmountDue  ＝已經排進請款期程、但還沒付的錢
+     兩者的差額＝已經計入合約總額、但還沒被排進期程的金額。
+     實務上就是「追加減已成立但設計師還沒把它加進請款期程」——
+     後台開啟期程畫面時會自動把最後一期覆寫成追加減列（isCoAuto），
+     有做這一步兩個數字就會自動收斂，這裡不做任何假設，純粹依資料算。 */
+  const allItems = [...designItems, ...constructionItems];
+  const currentAmountDue = allItems.filter(r => r.status !== '已收')
+    .reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  const contractOutstanding = outstandingTotal;
+  const unscheduledBalance = contractOutstanding - currentAmountDue;
+  const hasCoLine = allItems.some(r => r.isCoAuto);
   return {
     designContract, designReceived, designPending: designContract - designReceived,
     conContract, conReceived, conPending: conContract - conReceived,
     originalContractTotal, adjustmentNet, currentContractTotal,
     paidTotal, outstandingTotal,
+    contractOutstanding, currentAmountDue, unscheduledBalance, hasCoLine,
     /* 溢收：付超過了。規格 §13 要求顯示「溢收／待沖抵」而不是負的待付款 */
     isOverpaid: outstandingTotal < 0,
     overpaid: outstandingTotal < 0 ? -outstandingTotal : 0,
@@ -11765,7 +11781,7 @@ function payItemState(r, today) {
 }
 /* B. 目前待處理（規格 §5）：只顯示還沒完成的款項，沒有就明確說沒有。
    目的不是列出所有期款，是讓客戶知道「現在有沒有事情要做」。 */
-function renderPayTodo(allItems) {
+function renderPayTodo(allItems, F) {
   const host = document.getElementById('pay-todo');
   if (!host) return;
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -11776,8 +11792,20 @@ function renderPayTodo(allItems) {
       const rank = { overdue: 0, soon: 1, pending: 2, nodate: 3 };
       return (rank[a.st.key] - rank[b.st.key]) || (String(a.r.due || '') > String(b.r.due || '') ? 1 : -1);
     });
+  /* 差額說明：合約裡還沒收的錢，有一部分還沒排進請款期程 */
+  const gap = F && Math.abs(F.unscheduledBalance) > 0.5 ? F.unscheduledBalance : 0;
+  const gapNote = gap ? `<div class="todo-gap">
+      合約未收餘額 $${fmtN(F.contractOutstanding)} 中，目前已請款的是 $${fmtN(F.currentAmountDue)}；
+      另外 $${fmtN(Math.abs(gap))} 是${F.adjustmentNet !== 0 && Math.abs(gap - F.adjustmentNet) < 1
+        ? '本案追加減金額，已計入合約總額但尚未安排請款' : '尚未安排請款的合約餘額'}，
+      實際請款時間會另行通知。
+    </div>` : '';
   if (!pend.length) {
-    host.innerHTML = `<div class="todo-none">✓ 目前無待付款項</div>`;
+    host.innerHTML = `<div class="todo-wrap">
+      <div class="todo-h">目前待處理</div>
+      <div class="todo-none">✓ 目前無待付款項</div>
+      ${gapNote}
+    </div>`;
     return;
   }
   host.innerHTML = `<div class="todo-wrap">
@@ -11791,6 +11819,7 @@ function renderPayTodo(allItems) {
       <div class="todo-amt">$${fmtN(Math.abs(Number(r.amount) || 0))}</div>
       <div class="todo-st st-${st.key}">${st.label}</div>
     </div>`).join('')}
+    ${gapNote}
   </div>`;
 }
 async function renderClientPayment(){
@@ -11880,8 +11909,10 @@ async function renderClientPayment(){
   setEl('fin-total','$'+fmtN(F.currentContractTotal));
   setEl('fin-paid','$'+fmtN(F.paidTotal));
   /* 溢收不顯示負數待付款，改講「溢收／待沖抵」（規格 §13） */
-  setEl('fin-out-lbl', F.isOverpaid ? '溢收／待沖抵' : '待付款');
-  setEl('fin-out','$'+fmtN(F.isOverpaid ? F.overpaid : F.outstandingTotal));
+  /* 標籤依語意變：合約還沒收完 vs 已請款待付，兩者不同時要講清楚（§2、§8） */
+  setEl('fin-out-lbl', F.isOverpaid ? '溢收／待沖抵'
+    : (F.unscheduledBalance !== 0 ? '合約未收餘額' : '待付款'));
+  setEl('fin-out','$'+fmtN(F.isOverpaid ? F.overpaid : F.contractOutstanding));
   const outEl=document.getElementById('fin-out');
   if(outEl) outEl.classList.toggle('fin-over', F.isOverpaid);
   /* 來源說明只做小字拆解，不再是第四個大數字 */
@@ -11895,8 +11926,10 @@ async function renderClientPayment(){
     srcEl.style.display = bits.length ? 'block' : 'none';
   }
 
-  /* ── B. 目前待處理：只列還沒完成的款項（規格 §5） ── */
-  renderPayTodo(allItems);
+  /* ── B. 目前待處理：只列「已排進請款期程且未付」的款項。
+     若合約未收餘額 ≠ 已請款待付，把差額講出來，不讓客戶自己問
+     「另外那筆去哪裡了」（第二階段規格 §2）。 ── */
+  renderPayTodo(allItems, F);
 
   const empty=document.getElementById('client-pay-empty');
   if(!allItems.length){if(empty)empty.style.display='block';return;}
