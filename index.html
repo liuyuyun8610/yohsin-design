@@ -1868,6 +1868,11 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       </div>
       <div id="cl-pow" style="display:none;">
         <div class="notice-desc" style="margin-bottom:1rem;">填入電器瓦數與電壓，系統自動計算電流並建議是否需要專用迴路（≥10A 建議專用迴路）。</div>
+        <!-- 家電已經在上一個分頁填過名稱、位置、品牌型號，這裡不用再打一次 -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1rem;">
+          <button class="btn-ghost" onclick="importAppliancesToPower()">⤓ 從家電採購清單帶入</button>
+          <span style="font-size:12px;color:var(--cli-muted,#6E5E4E);">把「家電採購清單」裡填過的電器整批帶進來，只補瓦數就好。已經在表格裡的不會重複帶。</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr><th>電器名稱</th><th>區域</th><th>瓦數 W</th><th>電壓 V</th><th>數量</th><th>電流 A</th><th>迴路建議</th><th>備註</th><th style="width:28px;"></th></tr></thead><tbody id="pow-tbody"></tbody></table><button class="add-row-btn" onclick="addRow('pow')">＋ 新增一行</button></div>
       </div>
     </div>
@@ -13687,6 +13692,40 @@ function refreshPow(tr,r){
   const circ=a>=10?'需專用迴路':'一般插座';
   tr.children[5].textContent=w?a+' A':'—';
   tr.children[6].innerHTML=w?`<span class="psm cir-${circ}">${circ}</span>`:'';
+}
+/* 家電採購清單 → 功率計算表。
+   客戶在上一個分頁已經填過電器名稱、位置、品牌與型號，功率表再叫他打第二次
+   只會讓人放棄填（2026-08-20 使用者需求）。這裡整批帶過來，只留瓦數要補。
+   ⚠ 以「名稱＋位置」判重，按第二次不會長出一模一樣的第二列；
+     已經在功率表裡的那幾筆完全不動，客戶自己改過的瓦數不會被蓋掉。 */
+async function importAppliancesToPower(){
+  const pid=getClientProjId();
+  const has=new Set(powData.map(r=>(r.name||'').trim()+'|'+(r.loc||'').trim()));
+  const added=[];
+  appData.forEach(a=>{
+    const name=(a.name||'').trim();
+    if(!name) return;                                   // 沒填名稱的空白列不帶
+    const loc=(a.loc||'客廳').trim();
+    if(has.has(name+'|'+loc)) return;
+    has.add(name+'|'+loc);
+    const note=[a.brand,a.model].map(x=>(x||'').trim()).filter(Boolean).join(' ');
+    const row={name,loc:LOC.includes(loc)?loc:'客廳',w:'',v:'110',qty:'1',note};
+    powData.push(row);added.push(row);
+  });
+  if(!added.length){
+    alert(appData.some(a=>(a.name||'').trim())
+      ? '功率計算表已經包含家電採購清單裡的每一項了，沒有新的可以帶入。'
+      : '家電採購清單還沒有填任何電器名稱。');
+    return;
+  }
+  renderPowTable();
+  if(pid){
+    for(const r of added){
+      try{ await dbSavePowerItem(pid,r); }catch(e){ console.warn('[power] 存檔失敗',e); }
+    }
+    renderPowTable();                                   // 拿到 dbId 之後重畫，之後編輯才會更新同一列
+  }
+  alert('已帶入 '+added.length+' 項電器。\n\n名稱、位置與品牌型號都填好了，只要補「瓦數 W」就會自動算出電流與迴路建議。');
 }
 function addRow(type){
   if(type==='app'){appData.push({name:'',brand:'',loc:'客廳',model:'',dims:'',status:'未採購'});renderAppTable('app',appData);}
