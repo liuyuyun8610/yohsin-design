@@ -3499,7 +3499,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
    客戶入口暫停開放，登入頁只顯示「系統正在更新中」。
    內部測試走臨時入口：網址加 ?staff=yohsin0901
    （通行證存在 sessionStorage，關掉分頁就失效；要改鑰匙改 MAINT_KEY 即可） */
-const MAINT_MODE = true;
+const MAINT_MODE = false;   // 2026-09-01 21:5x 恢復開放；要再次關閉改回 true 即可
 const MAINT_KEY  = 'yohsin0901';
 function maintPassed(){
   try{
