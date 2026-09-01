@@ -4150,9 +4150,9 @@ function _enterClient(c){
     await Promise.all([
       pid ? dbLoadLogs(pid).catch(e=>console.warn('load logs failed',e)) : Promise.resolve(),
       pid ? dbLoadChecklist(pid).catch(e=>console.warn('load checklist failed',e)) : Promise.resolve(),
-      dbLoadDocs(cid).catch(e=>console.warn('load docs failed',e)),
-      dbLoadMeetings(cid).catch(e=>console.warn('load meetings failed',e)),
-      dbLoadPendingItems(cid).catch(e=>console.warn('load pending failed',e)),
+      dbLoadDocs(pid, cid).catch(e=>console.warn('load docs failed',e)),
+      dbLoadMeetings(pid, cid).catch(e=>console.warn('load meetings failed',e)),
+      dbLoadPendingItems(pid, cid).catch(e=>console.warn('load pending failed',e)),
       loadDrawingViews(cid).catch(e=>console.warn('load drawing views failed',e)),
       loadSurprises(cid).catch(e=>console.warn('load surprises failed',e)),
     ]);
@@ -5276,35 +5276,46 @@ async function removeBossAccount(id){
 }
 
 
+// 由客戶 id 取回他的專案 id。docsData 的 key 用客戶 id，但查詢一律要用專案 id。
+function pidOfClient(cid){
+  const c=clients.find(x=>Number(x.id)===Number(cid));
+  const v=c?Number(c.projectId):NaN;
+  return Number.isFinite(v)?v:null;
+}
 // ========== DB: DOCS ==========
-async function dbLoadDocs(pid){
+async function dbLoadDocs(pid, storeKey){
+  /* pid＝查詢用的專案 id；storeKey＝存進 docsData 的 key。
+     客戶端一直用「客戶 id」當 docsData 的 key（renderClientDocs 讀 docsData[currentClientId]），
+     但查詢條件必須用專案 id——2026-09-01 前這兩者被混用，
+     客戶 id 3（Amanda&Eddie）會去查 project_id=3（織未來），讀到別的客戶的資料。 */
+  const key = (storeKey ?? pid);
   if(!pid||isNaN(pid)){console.warn('dbLoadDocs: invalid pid',pid);return;}
   try{
     const {data,error}=await sbClient.from('project_docs').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    if(!docsData[key]) docsData[key]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
     // Reset
-    docsData[pid].drawings={'平面施工圖':[],'立面施工圖':[],'效果圖':[]};
-    docsData[pid].contracts={design:[],construction:[]};
-    docsData[pid].quotes=[];
+    docsData[key].drawings={'平面施工圖':[],'立面施工圖':[],'效果圖':[]};
+    docsData[key].contracts={design:[],construction:[]};
+    docsData[key].quotes=[];
     (data||[]).forEach(r=>{
       const item={dbId:r.id,name:r.name,note:r.note||'',date:r.doc_date||'',isFinal:r.is_final,isCover:r.is_cover||false,fileUrl:r.file_url||'',size:r.file_size||'—',createdAt:r.created_at||null,updatedAt:r.updated_at||null,contractHtml:r.contract_html||'',contractData:r.contract_data||null,signatureUrl:r.signature_url||'',signedAt:r.signed_at||null,clientAddress:r.client_address||'',clientPhone:r.client_phone||'',
         // 圖紙最終版客戶確認欄位
         customerConfirmedAt:r.customer_confirmed_at||null, customerSignatureName:r.customer_signature_name||'', customerAcknowledgements:r.customer_acknowledgements||null};
       if(r.doc_type.startsWith('drawing_')){
         const dtype=r.doc_type.replace('drawing_','');
-        if(!docsData[pid].drawings[dtype])docsData[pid].drawings[dtype]=[];
-        docsData[pid].drawings[dtype].push(item);
+        if(!docsData[key].drawings[dtype])docsData[key].drawings[dtype]=[];
+        docsData[key].drawings[dtype].push(item);
       } else if(r.doc_type==='contract_design'){
-        docsData[pid].contracts.design.push(item);
+        docsData[key].contracts.design.push(item);
       } else if(r.doc_type==='contract_construction'||r.doc_type==='contract'){
         // 舊 doc_type='contract' 一律歸到工程合約
-        docsData[pid].contracts.construction.push(item);
+        docsData[key].contracts.construction.push(item);
       } else if(r.doc_type==='quote'){
-        docsData[pid].quotes.push(item);
+        docsData[key].quotes.push(item);
       } else if(r.doc_type==='furniture_plan'){
-        if(!docsData[pid].furniturePlans) docsData[pid].furniturePlans=[];
-        docsData[pid].furniturePlans.push(item);
+        if(!docsData[key].furniturePlans) docsData[key].furniturePlans=[];
+        docsData[key].furniturePlans.push(item);
       }
     });
   }catch(e){console.warn('dbLoadDocs failed:',e.message);}
@@ -5343,23 +5354,28 @@ function normalizeMeetingImages(arr){
   }).filter(x=>x);
 }
 
-async function dbLoadMeetings(pid){
+async function dbLoadMeetings(pid, storeKey){
+  /* pid＝查詢用的專案 id；storeKey＝存進 docsData 的 key。
+     客戶端一直用「客戶 id」當 docsData 的 key（renderClientDocs 讀 docsData[currentClientId]），
+     但查詢條件必須用專案 id——2026-09-01 前這兩者被混用，
+     客戶 id 3（Amanda&Eddie）會去查 project_id=3（織未來），讀到別的客戶的資料。 */
+  const key = (storeKey ?? pid);
   if(!pid||isNaN(pid)){console.warn('dbLoadMeetings: invalid pid',pid);return;}
   try{
     const {data,error}=await sbClient.from('meetings').select('*').eq('project_id',pid).order('id',{ascending:true});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
-    docsData[pid].lineScreenshots=[];
-    docsData[pid].formalMeetings=[];
-    docsData[pid].clientNotes=[];
+    if(!docsData[key]) docsData[key]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    docsData[key].lineScreenshots=[];
+    docsData[key].formalMeetings=[];
+    docsData[key].clientNotes=[];
     (data||[]).forEach(r=>{
       if(r.meet_type==='line'){
         // LINE 備注存在 title 欄位
-        docsData[pid].lineScreenshots.push({dbId:r.id, date:r.meet_date, note:r.title||'', images:normalizeMeetingImages(r.images)});
+        docsData[key].lineScreenshots.push({dbId:r.id, date:r.meet_date, note:r.title||'', images:normalizeMeetingImages(r.images)});
       } else if(r.meet_type==='client_note'){
-        docsData[pid].clientNotes.push({dbId:r.id, date:r.meet_date, title:r.title||'', content:r.content||'', images:normalizeMeetingImages(r.images)});
+        docsData[key].clientNotes.push({dbId:r.id, date:r.meet_date, title:r.title||'', content:r.content||'', images:normalizeMeetingImages(r.images)});
       } else {
-        docsData[pid].formalMeetings.push({dbId:r.id, date:r.meet_date, title:r.title, content:r.content, images:normalizeMeetingImages(r.images)});
+        docsData[key].formalMeetings.push({dbId:r.id, date:r.meet_date, title:r.title, content:r.content, images:normalizeMeetingImages(r.images)});
       }
     });
   }catch(e){console.warn('dbLoadMeetings failed:',e.message);}
@@ -5532,13 +5548,18 @@ async function dbDeleteMeeting(dbId){
 }
 
 // ========== PENDING ITEMS（待確認事項）==========
-async function dbLoadPendingItems(pid){
+async function dbLoadPendingItems(pid, storeKey){
+  /* pid＝查詢用的專案 id；storeKey＝存進 docsData 的 key。
+     客戶端一直用「客戶 id」當 docsData 的 key（renderClientDocs 讀 docsData[currentClientId]），
+     但查詢條件必須用專案 id——2026-09-01 前這兩者被混用，
+     客戶 id 3（Amanda&Eddie）會去查 project_id=3（織未來），讀到別的客戶的資料。 */
+  const key = (storeKey ?? pid);
   if(!pid||isNaN(pid)){return;}
   try{
     const {data,error}=await sbClient.from('pending_items').select('*').eq('project_id',pid).order('item_date',{ascending:false}).order('id',{ascending:false});
     if(error) throw error;
-    if(!docsData[pid]) docsData[pid]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
-    docsData[pid].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at,confirmationNote:r.confirmation_note||''}));
+    if(!docsData[key]) docsData[key]={drawings:{'空間與家具尺寸圖':[],'平面施工圖':[],'立面施工圖':[],'效果圖':[]},lineScreenshots:[],formalMeetings:[],clientNotes:[],pendingItems:[],contracts:{design:[],construction:[]},quotes:[],furniturePlans:[]};
+    docsData[key].pendingItems=(data||[]).map(r=>({dbId:r.id,date:r.item_date,title:r.title,content:r.content||'',status:r.status||'pending',confirmedAt:r.confirmed_at,confirmationNote:r.confirmation_note||''}));
   }catch(e){console.warn('dbLoadPendingItems failed:',e.message);}
 }
 
@@ -8493,7 +8514,7 @@ async function renderCliFurniturePlan(){
   if(!c) return;
   const cid=Number(c.id);
   if(!docsData[cid]||!docsData[cid].furniturePlans){
-    try{ await dbLoadDocs(cid); }catch(e){ console.warn(e); }
+    try{ await dbLoadDocs(pidOfClient(cid), cid); }catch(e){ console.warn(e); }
   }
   const items=(docsData[cid]?.furniturePlans)||[];
   const list=document.getElementById('cli-furniture-plan-list');
@@ -11578,7 +11599,7 @@ async function submitDrawingConfirmation(){
     closeConfirmDrawingModal();
     alert('✓ 已確認！感謝您的回覆。');
     // Reload docs + re-render
-    await dbLoadDocs(currentClientId);
+    await dbLoadDocs(pidOfClient(currentClientId), currentClientId);
     renderClientDocs();
   }catch(e){ alert('確認失敗：'+e.message); }
   showLoader(false);
