@@ -4188,9 +4188,12 @@ function _enterClient(c){
     await Promise.all([
       pid ? dbLoadLogs(pid).catch(e=>console.warn('load logs failed',e)) : Promise.resolve(),
       pid ? dbLoadChecklist(pid).catch(e=>console.warn('load checklist failed',e)) : Promise.resolve(),
-      dbLoadDocs(pid, cid).catch(e=>console.warn('load docs failed',e)),
-      dbLoadMeetings(pid, cid).catch(e=>console.warn('load meetings failed',e)),
-      dbLoadPendingItems(pid, cid).catch(e=>console.warn('load pending failed',e)),
+      /* ⚠ 這三張表的 project_id 欄位實際存的是 client.id（命名歷史包袱，
+         見 getAdminDocClientId 的註解）。傳 cid 才是對的——2026-09-01 我一度
+         把它「修正」成傳專案 id，結果合雄新站（專案id 5）撈到客戶id 5＝漾時光的資料。 */
+      dbLoadDocs(cid).catch(e=>console.warn('load docs failed',e)),
+      dbLoadMeetings(cid).catch(e=>console.warn('load meetings failed',e)),
+      dbLoadPendingItems(cid).catch(e=>console.warn('load pending failed',e)),
       loadDrawingViews(cid).catch(e=>console.warn('load drawing views failed',e)),
       loadSurprises(cid).catch(e=>console.warn('load surprises failed',e)),
     ]);
@@ -8552,7 +8555,7 @@ async function renderCliFurniturePlan(){
   if(!c) return;
   const cid=Number(c.id);
   if(!docsData[cid]||!docsData[cid].furniturePlans){
-    try{ await dbLoadDocs(pidOfClient(cid), cid); }catch(e){ console.warn(e); }
+    try{ await dbLoadDocs(cid); }catch(e){ console.warn(e); }
   }
   const items=(docsData[cid]?.furniturePlans)||[];
   const list=document.getElementById('cli-furniture-plan-list');
@@ -11637,7 +11640,7 @@ async function submitDrawingConfirmation(){
     closeConfirmDrawingModal();
     alert('✓ 已確認！感謝您的回覆。');
     // Reload docs + re-render
-    await dbLoadDocs(pidOfClient(currentClientId), currentClientId);
+    await dbLoadDocs(currentClientId);
     renderClientDocs();
   }catch(e){ alert('確認失敗：'+e.message); }
   showLoader(false);
