@@ -11662,7 +11662,7 @@ async function renderClientMaterials(){
   const caseByLibId=new Map();
   if(libraryIds.length){
     try{
-      const {data:libs}=await wsClient.from('material_library').select('id, photos').in('id', libraryIds);
+      const {data:libs}=await wsClient.from('material_library_public').select('id, photos').in('id', libraryIds);
       (libs||[]).forEach(l=>{
         const cases=Array.isArray(l.photos)?l.photos.filter(p=>p&&p.type==='case'):[];
         if(cases.length) caseByLibId.set(l.id, cases);

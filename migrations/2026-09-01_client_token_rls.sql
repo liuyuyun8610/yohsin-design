@@ -85,12 +85,24 @@ language sql stable security definer set search_path = public as $$
    where s.token = public.ys_token() and s.expires_at > now() limit 1
 $$;
 
--- payment_settings 用的是 ys_project_id（文字編號）不是 id。
--- 這裡用 SECURITY DEFINER 換算，避免 policy 內子查詢 projects 造成 RLS 遞迴。
+-- payment_settings 可能用文字編號（ys_project_id）而不是 id 關聯。
+-- ⚠ 用動態 SQL：projects 不一定有這個欄位，寫死的話 create function 當場就會失敗
+--   （2026-09-01 第一次執行就是踩到這點）。欄位不存在就回 null，讓 policy 自然不成立。
+-- SECURITY DEFINER 是為了避免 policy 內子查詢 projects 造成 RLS 遞迴。
 create or replace function public.ys_pcode() returns text
-language sql stable security definer set search_path = public as $$
-  select p.ys_project_id from public.projects p where p.id = public.ys_pid() limit 1
-$$;
+language plpgsql stable security definer set search_path = public as $$
+declare v text;
+begin
+  if not exists (select 1 from information_schema.columns
+                 where table_schema='public' and table_name='projects'
+                   and column_name='ys_project_id') then
+    return null;
+  end if;
+  execute 'select p.ys_project_id from public.projects p where p.id = public.ys_pid() limit 1'
+    into v;
+  return v;
+exception when others then return null;
+end $$;
 
 -- ── 3. 發 token（不動既有的 verify_client / verify_admin）────
 create or replace function public.ys_issue_client_token(p_username text, p_password text)
@@ -240,14 +252,44 @@ create policy "admin_all" on public.projects
 create policy "client_own" on public.projects
   for select to anon using (public.ys_is_client() and id = public.ys_pid());
 
--- payment_settings：關聯欄位是 ys_project_id（文字編號）
-drop policy if exists "admin_all"  on public.payment_settings;
-drop policy if exists "client_own" on public.payment_settings;
-create policy "admin_all" on public.payment_settings
-  for all to anon using (public.ys_is_admin()) with check (public.ys_is_admin());
-create policy "client_own" on public.payment_settings
-  for select to anon
-  using (public.ys_is_client() and ys_project_id = public.ys_pcode());
+-- payment_settings：關聯欄位不確定，偵測後決定怎麼隔離。
+-- 這張表在 work-system 那個庫也有一份，兩邊欄位不見得一樣，所以不寫死。
+do $$
+declare has_pid boolean; has_code boolean; proj_has_code boolean;
+begin
+  if to_regclass('public.payment_settings') is null then
+    raise notice '略過：payment_settings 不存在'; return;
+  end if;
+  select exists(select 1 from information_schema.columns where table_schema='public'
+                and table_name='payment_settings' and column_name='project_id') into has_pid;
+  select exists(select 1 from information_schema.columns where table_schema='public'
+                and table_name='payment_settings' and column_name='ys_project_id') into has_code;
+  select exists(select 1 from information_schema.columns where table_schema='public'
+                and table_name='projects' and column_name='ys_project_id') into proj_has_code;
+
+  drop policy if exists "admin_all"  on public.payment_settings;
+  drop policy if exists "client_own" on public.payment_settings;
+  drop policy if exists "sess_read"  on public.payment_settings;
+  create policy "admin_all" on public.payment_settings
+    for all to anon using (public.ys_is_admin()) with check (public.ys_is_admin());
+
+  if has_pid then
+    create policy "client_own" on public.payment_settings
+      for select to anon
+      using (public.ys_is_client() and project_id = public.ys_pid());
+    raise notice 'payment_settings：依 project_id 隔離';
+  elsif has_code and proj_has_code then
+    create policy "client_own" on public.payment_settings
+      for select to anon
+      using (public.ys_is_client() and ys_project_id = public.ys_pcode());
+    raise notice 'payment_settings：依 ys_project_id 隔離';
+  else
+    -- 找不到可用的關聯欄位：寧可讓客戶讀得到（付款頁要用），但記下來請你確認
+    create policy "sess_read" on public.payment_settings
+      for select to anon using (public.ys_kind() is not null);
+    raise notice '⚠ payment_settings：找不到 project_id / ys_project_id，降級為登入者可讀，請確認這張表是否含跨客戶資料';
+  end if;
+end $$;
 
 -- journey_surprises：客戶要能把驚喜標成已兌換，所以給 select + update
 drop policy if exists "admin_all"    on public.journey_surprises;
@@ -282,3 +324,13 @@ from pg_policies where schemaname='public'
   and tablename in ('projects','articles','system_settings','payment_settings',
                     'project_docs','client_signatures','profit_items','journey_surprises')
 group by tablename order by tablename;
+
+-- 順便把關聯欄位印出來，之後要再調 policy 不用猜
+select table_name, string_agg(column_name, ', ' order by column_name) as 關聯欄位
+from information_schema.columns
+where table_schema='public'
+  and column_name in ('id','project_id','ys_project_id','client_id')
+  and table_name in ('projects','payment_settings','project_docs','meetings','progress_items',
+                     'pending_items','checklist_items','change_orders','construction_logs',
+                     'client_signatures','storage_items','client_article_notes','materials')
+group by table_name order by table_name;
