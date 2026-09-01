@@ -3506,6 +3506,26 @@ const SITE_LOGO_B64='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAA
 // supabase init deferred to after SDK loads
 let sbClient = null;
 let wsClient = null; // work-system 專案的 Supabase client
+/* ── 客戶／管理員 token（2026-09-01）──────────────────────────
+   這個站沒有 Supabase Auth 使用者：客戶走 verify_client、admin 走 verify_admin，
+   兩者都是 anon 身分在打 API。2026-09-01 的資安鎖定把表鎖成只給 authenticated，
+   等於誰都讀不到（PostgREST 對「RLS 開著但無符合 policy」是安靜回 []，
+   所以前端不會報錯，直接變空白頁）。
+   修法：登入時向 DB 換一把 token，之後每個請求帶 x-ys-token，
+   RLS 依 token 判斷是 admin 還是哪一位客戶。沒 token 的路人仍然讀不到。 */
+let ysToken = null;
+function applyYsToken(t){
+  ysToken = t || null;
+  try{
+    if(t) localStorage.setItem('ys_token', t); else localStorage.removeItem('ys_token');
+    // 重建 client 才能換掉 global headers；auth session 存在 localStorage，重建後會自動還原
+    sbClient = window.supabase.createClient(SB_URL, SB_KEY,
+      t ? { global:{ headers:{ 'x-ys-token': t } } } : undefined);
+  }catch(e){ console.error('applyYsToken failed:', e); }
+}
+function restoreYsToken(){
+  try{ const t=localStorage.getItem('ys_token'); if(t) applyYsToken(t); }catch(e){}
+}
 // =============================================
 // SUPABASE WRAPPER
 // =============================================
@@ -3990,6 +4010,11 @@ async function doLogin(){
       const {data:ok,error}=await sbClient.rpc('verify_admin',{p_password:p});
       if(error){err.textContent='登入失敗：'+(authErr?.message||error.message);return;}
       if(u==='admin' && ok===true){
+        // 這條是 anon 身分的舊路徑，同樣要換 token 才讀得到資料
+        try{
+          const {data:tok}=await sbClient.rpc('ys_issue_admin_token',{p_password:p});
+          if(tok){ applyYsToken(tok); await loadAllData(); }
+        }catch(e){ console.warn('[ys_issue_admin_token] 失敗', e); }
         sessionStorage.setItem('ys_session', JSON.stringify({mode:'admin',u}));
         _enterAdmin();
       } else err.textContent='帳號或密碼錯誤';
@@ -3998,6 +4023,13 @@ async function doLogin(){
       if(error){err.textContent='登入失敗：'+error.message;return;}
       const row=Array.isArray(data)?data[0]:data;
       if(row){
+        /* 換 token，然後把資料重載一次——loadAllData() 是在登入前跑的，
+           那時沒有 token，projects／articles／system_settings 全被 RLS 擋成空。 */
+        try{
+          const {data:tok,error:tokErr}=await sbClient.rpc('ys_issue_client_token',{p_username:u,p_password:p});
+          if(tok){ applyYsToken(tok); await loadAllData(); }
+          else console.warn('[ys_issue_client_token] 沒拿到 token', tokErr);
+        }catch(e){ console.warn('[ys_issue_client_token] 失敗', e); }
         // 把驗證回傳的客戶資料映射成既有 clients 陣列項目（不含 pass 明碼）
         const c={
           id:row.id, user:row.username||u, pass:'', name:row.name||'',
@@ -4161,6 +4193,9 @@ function _resetClientState(){
 }
 
 function doLogout(){
+  // 先讓 DB 端把這把 token 刪掉，再清本機（順序反了就找不到 token 可刪）
+  try{ sbClient.rpc('ys_logout'); }catch(e){}
+  applyYsToken(null);
   localStorage.removeItem('ys_session');
   sessionStorage.removeItem('ys_session');
   // Phase B：若有 Supabase Auth session 一併清掉
@@ -14092,7 +14127,9 @@ document.addEventListener('DOMContentLoaded', function() {
   try {
     sbClient = window.supabase.createClient(SB_URL, SB_KEY);
     wsClient = window.supabase.createClient(WS_URL, WS_KEY);
-    console.log('✅ Supabase ready (sb + ws)');
+    // ⚠ 一定要在 loadAllData() 之前套用 token，否則首次載入會全部讀成空
+    restoreYsToken();
+    console.log('✅ Supabase ready (sb + ws)', ysToken ? '· token 已還原' : '· 未登入');
     // 客戶端模塊 toggle（不阻塞 boot）
     loadClientModules().catch(e=>console.warn('client modules load failed',e));
   } catch(e){ console.error('Supabase init failed:',e); }
