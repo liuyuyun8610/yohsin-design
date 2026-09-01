@@ -13407,7 +13407,8 @@ function spAutosave(){
     _spData._updated=new Date().toLocaleString('zh-TW');
     const statusEl=document.getElementById('sp-save-status');
     try{
-      await sbClient.from('system_settings').upsert({key:'survey_resp_'+_spToken,value:JSON.stringify(_spData)},{onConflict:'key'});
+      const {error}=await sbClient.rpc('survey_save',{p_token:_spToken,p_value:JSON.stringify(_spData)});
+      if(error) throw error;
       if(statusEl)statusEl.textContent='✓ 已自動儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
     }catch(e){if(statusEl)statusEl.textContent='⚠️ 儲存失敗，請檢查網路';console.warn(e);}
   },1200);
@@ -13418,7 +13419,8 @@ async function submitSurvey(){
   SP_SECTIONS.forEach(sec=>{const el=document.getElementById(sec.other);if(el)_spData[sec.otherKey]=el.value;});
   _spData._submitted=true;_spData._updated=new Date().toLocaleString('zh-TW');
   try{
-    await sbClient.from('system_settings').upsert({key:'survey_resp_'+_spToken,value:JSON.stringify(_spData)},{onConflict:'key'});
+    const {error}=await sbClient.rpc('survey_save',{p_token:_spToken,p_value:JSON.stringify(_spData)});
+    if(error) throw error;
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById('s-survey-done').classList.add('active');
   }catch(e){alert('送出失敗，請稍後再試：'+e.message);}
@@ -13427,9 +13429,11 @@ async function submitSurvey(){
 async function initPublicSurvey(token){
   _spToken=token;
   // Load existing response if any
+  /* 走 survey_get RPC：填問卷的人是未登入的 anon，沒有 ys token，
+     直接查 system_settings 會被 RLS 擋成空（2026-09-01）。 */
   try{
-    const {data}=await sbClient.from('system_settings').select('value').eq('key','survey_resp_'+token).single();
-    _spData=data?.value?JSON.parse(data.value):{};
+    const {data}=await sbClient.rpc('survey_get',{p_token:token});
+    _spData=data?JSON.parse(data):{};
   }catch(e){_spData={};}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-survey-public').classList.add('active');
