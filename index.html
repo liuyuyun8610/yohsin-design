@@ -14173,6 +14173,16 @@ document.addEventListener('DOMContentLoaded', function() {
       // 客戶端 session：先看 localStorage（新版），再 fallback sessionStorage（舊版過渡）
       const sess=localStorage.getItem('ys_session') || sessionStorage.getItem('ys_session');
       if(!sess) return;
+      /* ⚠ 2026-09-01：改用 token 通過 RLS 之後，改版前留下的舊 session 沒有 ys_token。
+         那種 session 還原後會變成「看起來已登入、但每張表都讀成空」——
+         畫面全白卻沒有任何錯誤訊息，最難查。
+         沒有 token 就直接清掉，請對方重新登入一次換發 token。 */
+      if(!localStorage.getItem('ys_token')){
+        localStorage.removeItem('ys_session');
+        sessionStorage.removeItem('ys_session');
+        console.info('[session] 舊版 session 沒有 token，已清除，請重新登入');
+        return;
+      }
       const parsed=JSON.parse(sess);
       const {mode,u,client,clientId}=parsed;
       if(mode==='admin' && u==='admin'){
