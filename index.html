@@ -1323,6 +1323,14 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
     </div>
     <button class="btn-enter" onclick="doLogin()">登　入</button>
     <div class="l-err" id="l-err"></div>
+    <!-- 維護模式遮罩（2026-09-01）：客戶入口暫停，只有帶通行參數的內部測試可登入 -->
+    <div id="maint-notice" style="display:none;margin-top:18px;padding:18px 16px;border-radius:12px;
+         background:#F3EDE4;border:1px solid #E0D5C6;text-align:center;line-height:1.9;">
+      <div style="font-size:15px;color:#6B5B48;letter-spacing:.08em;margin-bottom:6px;">系統正在更新中</div>
+      <div style="font-size:12px;color:#8A7A6B;letter-spacing:.04em;">
+        我們正在進行系統維護，暫時無法登入。<br>造成不便敬請見諒，完成後會盡快開放。
+      </div>
+    </div>
     <div id="db-status" style="display:none;margin-top:24px;font-size:11px;color:var(--persimmon);letter-spacing:0.1em;"></div>
   </div>
   <p class="login-foot">此頁面僅開放有心制作空間設計客戶使用，請與設計師索取專案帳號密碼，我等你。</p>
@@ -3487,6 +3495,30 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
 <input type="file" id="file-input" style="display:none;" accept="image/*" multiple onchange="handleFiles(event)">
 
 <script>
+/* ── 維護模式（2026-09-01 使用者指定）─────────────────────────
+   客戶入口暫停開放，登入頁只顯示「系統正在更新中」。
+   內部測試走臨時入口：網址加 ?staff=yohsin0901
+   （通行證存在 sessionStorage，關掉分頁就失效；要改鑰匙改 MAINT_KEY 即可） */
+const MAINT_MODE = true;
+const MAINT_KEY  = 'yohsin0901';
+function maintPassed(){
+  try{
+    const q = new URLSearchParams(location.search).get('staff');
+    if(q === MAINT_KEY){ sessionStorage.setItem('ys_staff_pass','1'); return true; }
+    return sessionStorage.getItem('ys_staff_pass') === '1';
+  }catch(e){ return false; }
+}
+function maintBlocked(){ return MAINT_MODE && !maintPassed(); }
+function applyMaintUI(){
+  if(!maintBlocked()) return;
+  const box=document.getElementById('maint-notice');
+  if(box) box.style.display='block';
+  ['l-user','l-pass'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.disabled=true; e.style.opacity='.45'; } });
+  const btn=document.querySelector('.btn-enter');
+  if(btn){ btn.disabled=true; btn.style.opacity='.4'; btn.style.cursor='not-allowed'; btn.textContent='暫停登入'; }
+  const foot=document.querySelector('.login-foot');
+  if(foot) foot.textContent='系統維護中，暫停開放登入。';
+}
 const SB_URL='https://vqxxaameifyvezvozvnf.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxeHhhYW1laWZ5dmV6dm96dm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjYwNjAsImV4cCI6MjA5MTYwMjA2MH0.RHCaYPLv8HDzUYvjqTwch-Xy5j0vQZCeE_ETcykr-Qk';
 // work-system Supabase（ERP 寫入的 DB；payment_settings + profit_items 從這邊讀）
@@ -3992,6 +4024,12 @@ function goAdminPageMobile(id,el){
 // ========== AUTH ==========
 function setMode(m,el){loginMode=m;document.querySelectorAll('.mdbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
 async function doLogin(){
+  if(maintBlocked()){
+    const e=document.getElementById('l-err');
+    if(e) e.textContent='系統正在更新中，暫時無法登入。';
+    applyMaintUI();
+    return;
+  }
   const u=document.getElementById('l-user').value.trim(), p=document.getElementById('l-pass').value.trim();
   const err=document.getElementById('l-err');err.textContent='';
   err.dataset.busy='1';
@@ -14149,9 +14187,18 @@ function renderAssignBody(){
 async function toggleAssign(cid,aid,btn){const c=clients.find(x=>x.id===cid);if(c.assigned.includes(aid)){c.assigned=c.assigned.filter(id=>id!==aid);btn.classList.remove('on');}else{c.assigned.push(aid);btn.classList.add('on');}renderAssignClist();if(selectedAssignC===cid)renderAssignBody();try{await dbUpdateClientArticles(cid,c.assigned);}catch(e){console.error('assign save failed',e);}}
 
 document.addEventListener('DOMContentLoaded', function() {
+  try { applyMaintUI(); } catch(e) {}
   try {
     sbClient = window.supabase.createClient(SB_URL, SB_KEY);
     wsClient = window.supabase.createClient(WS_URL, WS_KEY);
+    // 維護模式：先擋掉入口，並清掉既有 session（已登入的客戶重整即被登出）
+    if(maintBlocked()){
+      try{
+        localStorage.removeItem('ys_session'); sessionStorage.removeItem('ys_session');
+        localStorage.removeItem('ys_token');
+      }catch(e){}
+      applyMaintUI();
+    }
     // ⚠ 一定要在 loadAllData() 之前套用 token，否則首次載入會全部讀成空
     restoreYsToken();
     console.log('✅ Supabase ready (sb + ws)', ysToken ? '· token 已還原' : '· 未登入');
@@ -14191,6 +14238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _enterAdmin();
         return;
       }
+      if(maintBlocked()){ applyMaintUI(); return; }   // 維護中不還原任何登入狀態
       // 客戶端 session：先看 localStorage（新版），再 fallback sessionStorage（舊版過渡）
       const sess=localStorage.getItem('ys_session') || sessionStorage.getItem('ys_session');
       if(!sess) return;
