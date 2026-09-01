@@ -3551,9 +3551,25 @@ function applyYsToken(t){
   try{
     if(t) localStorage.setItem('ys_token', t); else localStorage.removeItem('ys_token');
     // 重建 client 才能換掉 global headers；auth session 存在 localStorage，重建後會自動還原
-    sbClient = window.supabase.createClient(SB_URL, SB_KEY,
-      t ? { global:{ headers:{ 'x-ys-token': t } } } : undefined);
+    const opts = t ? { global:{ headers:{ 'x-ys-token': t } } } : undefined;
+    sbClient = window.supabase.createClient(SB_URL, SB_KEY, opts);
+    // work-system（ERP 庫）也要帶同一把憑證，否則請款排程／追加減／選材全部讀不到
+    wsClient = window.supabase.createClient(WS_URL, WS_KEY, opts);
   }catch(e){ console.error('applyYsToken failed:', e); }
+}
+/* 把 ys-interior 簽發的憑證登記到 work-system。
+   簽章由 ys_link_sig 產生（密鑰只在資料庫函式內），work-system 驗章後才建立本地 session，
+   所以前端無法偽造成別的客戶。兩個庫是各自獨立的 Postgres，這是唯一能共用身分的方式。 */
+async function linkWorkSystem(t, cid, pid){
+  if(!t || !cid) return false;
+  try{
+    const { data: sig, error: e1 } = await sbClient.rpc('ys_link_sig', { p_token: t });
+    if(e1 || !sig){ console.warn('[link] 取不到簽章', e1); return false; }
+    const { data: ok, error: e2 } = await wsClient.rpc('ws_register_session',
+      { p_token: t, p_cid: Number(cid), p_pid: pid == null ? null : Number(pid), p_sig: sig });
+    if(e2 || ok !== true){ console.warn('[link] work-system 註冊失敗', e2, ok); return false; }
+    return true;
+  }catch(err){ console.warn('[link] 例外', err); return false; }
 }
 function restoreYsToken(){
   try{ const t=localStorage.getItem('ys_token'); if(t) applyYsToken(t); }catch(e){}
@@ -4065,7 +4081,11 @@ async function doLogin(){
            那時沒有 token，projects／articles／system_settings 全被 RLS 擋成空。 */
         try{
           const {data:tok,error:tokErr}=await sbClient.rpc('ys_issue_client_token',{p_username:u,p_password:p});
-          if(tok){ applyYsToken(tok); await loadAllData(); }
+          if(tok){
+            applyYsToken(tok);
+            await linkWorkSystem(tok, row.id, row.project_id);   // ERP 庫也要認得這個客戶
+            await loadAllData();
+          }
           else console.warn('[ys_issue_client_token] 沒拿到 token', tokErr);
         }catch(e){ console.warn('[ys_issue_client_token] 失敗', e); }
         // 把驗證回傳的客戶資料映射成既有 clients 陣列項目（不含 pass 明碼）
@@ -10269,7 +10289,7 @@ window.renderClientNextAction = async function(proj){
   // 6b. 追加減更新（ERP 端有改 change_orders.change_date 在近一週內）
   try {
     if (typeof wsClient !== 'undefined' && wsClient){
-      const { data: cos } = await wsClient.from('change_orders')
+      const { data: cos } = await wsClient.from('change_orders_client')
         .select('content, type, change_date')
         .eq('ys_project_id', ysPid)
         .not('change_date', 'is', null)
@@ -10669,7 +10689,7 @@ function goToMeetingTab(tab){
 async function loadClientChangeOrders(pid){
   try{
     const [coRes, psRes, tcRes] = await Promise.all([
-      wsClient.from('change_orders').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
+      wsClient.from('change_orders_client').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
       wsClient.from('payment_settings').select('co_supervision_pct').eq('ys_project_id',pid).maybeSingle(),
       wsClient.from('trade_categories').select('key, label, sort_order').eq('is_active', true).order('sort_order'),
     ]);
@@ -11000,7 +11020,7 @@ async function exportChangeOrdersPdf(){
   let tradeRows=[];
   try{
     const [coRes, psRes, tcRes] = await Promise.all([
-      wsClient.from('change_orders').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
+      wsClient.from('change_orders_client').select('*').eq('ys_project_id',pid).order('seq_no',{ascending:true}),
       wsClient.from('payment_settings').select('co_supervision_pct').eq('ys_project_id',pid).maybeSingle(),
       wsClient.from('trade_categories').select('key, label').eq('is_active', true),
     ]);
@@ -14260,6 +14280,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if(mode==='admin' && u==='admin'){
         _enterAdmin();
       } else if(mode==='client' && client){
+        // 憑證在 work-system 那邊可能已過期，重新登記一次（失敗不影響其他頁面）
+        if(ysToken) linkWorkSystem(ysToken, client.id, client.projectId).catch(()=>{});
         // 新版：直接用存好的 client 物件（不用查 DB，anon 也能 restore）
         const idx=clients.findIndex(x=>Number(x.id)===Number(client.id));
         if(idx>=0) clients[idx]=client; else clients.push(client);
