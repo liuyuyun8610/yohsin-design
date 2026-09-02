@@ -1748,23 +1748,23 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
             <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;color:var(--accent);margin-bottom:0.9rem;display:flex;align-items:center;gap:6px;"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>新增記事</div>
             <div class="cn-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
               <div>
-                <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">日期</div>
-                <input type="date" id="cn-date" style="width:100%;padding:8px 10px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;box-sizing:border-box;">
+                <label class="cn-field" for="cn-date">日期</label>
+                <input type="date" id="cn-date" class="cn-input">
               </div>
               <div>
-                <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">標題</div>
-                <input type="text" id="cn-title" placeholder="例：家電展考察筆記" style="width:100%;padding:8px 10px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;box-sizing:border-box;">
+                <label class="cn-field" for="cn-title">標題</label>
+                <input type="text" id="cn-title" class="cn-input" placeholder="例：家電展考察筆記">
               </div>
             </div>
             <div style="margin-bottom:10px;">
-              <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">內容</div>
-              <textarea id="cn-content" placeholder="記錄選品想法、展覽筆記、任何跟設計相關的備忘…" rows="4" style="width:100%;padding:9px 11px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);outline:none;resize:vertical;line-height:1.7;"></textarea>
+              <label class="cn-field" for="cn-content">內容</label>
+              <textarea id="cn-content" class="cn-ta" placeholder="記錄選品想法、展覽筆記、任何跟設計相關的備忘…" rows="4"></textarea>
             </div>
             <div style="margin-bottom:12px;">
-              <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">附圖（選填）</div>
+              <div class="cn-field" style="margin-bottom:7px;">附圖（選填）</div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <label style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;border:0.5px solid var(--border);border-radius:9px;font-size:12px;color:var(--ink-muted);cursor:pointer;">
-                  <span></span> 選擇圖片
+                  <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> 選擇圖片
                   <input type="file" id="cn-imgs" accept="image/*" multiple style="display:none;" onchange="previewClientNoteImgs(event)">
                 </label>
                 <span style="font-size:11px;color:var(--ink-light);">可多選</span>
@@ -1772,7 +1772,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
               <div id="cn-img-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
             </div>
             <div style="display:flex;justify-content:flex-end;">
-              <button onclick="addClientNote()" style="padding:9px 22px;background:#AB9E93;color:#fff;border:none;border-radius:10px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;cursor:pointer;letter-spacing:0.05em;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='#AB9E93'">儲存筆記</button>
+              <button onclick="addClientNote()" style="padding:9px 22px;background:#AB9E93;color:#fff;border:none;border-radius:10px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;cursor:pointer;letter-spacing:0.05em;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='#AB9E93'">儲存記事</button>
             </div>
           </div>
           <!-- 筆記列表 -->
@@ -15372,6 +15372,54 @@ function opPrint(){
       「2026年9月3日」跟標題各佔半寬在手機上都太窄。 */
 .meeting-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
   scrollbar-width:none;-ms-overflow-style:none}
+
+/* ── 分頁膠囊：拿掉新擬態的雙陰影 ──
+   原本是 box-shadow:4px 4px 10px var(--clay-dark), -4px -4px 10px var(--clay-light)。
+   四個膠囊並排時，那些亮色外光暈互相疊加，就在膠囊後面糊出一片「奇怪的背景色」。
+   新擬態本身也是低對比樣式（ui-ux-pro-max：Neumorphism → Accessibility ⚠ Low contrast）。
+
+   改成 segmented control：未選＝純文字、沒有任何陰影；選中＝實心底章。
+   選中的顏色跟底部導覽同一套（#F5EBD8 底 + #7A5C3A 字），整個客戶專區
+   只留一種「你在這裡」的語言，不再是底部一套、分頁另一套。
+   全部要 !important，因為既有那批新擬態規則本身就是 !important。 */
+#s-client .stab,#s-client .meeting-tab{
+  background:transparent!important;box-shadow:none!important;border:none!important;
+  color:var(--cli-muted,#6E5E4E)!important;
+  min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 16px!important;border-radius:999px;
+  transition:background-color .16s cubic-bezier(.32,.72,0,1),
+             color .16s cubic-bezier(.32,.72,0,1)!important;
+}
+#s-client .stab:hover,#s-client .meeting-tab:hover{
+  background:rgba(139,107,72,.06)!important;color:var(--cli-ink,#2C2218)!important;
+  transform:none!important;box-shadow:none!important;
+}
+#s-client .stab:active,#s-client .meeting-tab:active{
+  background:rgba(139,107,72,.12)!important;box-shadow:none!important;transform:none!important;
+}
+#s-client .stab.active,#s-client .meeting-tab.active{
+  background:#F5EBD8!important;color:var(--cli-accent,#7A5C3A)!important;
+  box-shadow:none!important;font-weight:500;
+}
+
+/* ── 記事簿表單 ──
+   原本三個欄位都是各自的 inline style（border:0.5px solid + 13px 字），
+   跟客戶專區其他輸入框長得不一樣，而且 13px 會讓 iOS 在聚焦時把整頁放大。 */
+.cn-field{display:block;font-size:11px;letter-spacing:.04em;
+  color:var(--cli-muted,#6E5E4E);margin-bottom:5px}
+.cn-input,.cn-ta{
+  width:100%;box-sizing:border-box;
+  font-family:'NumQuicksand','Noto Sans TC',sans-serif;
+  font-size:16px;                      /* 低於 16px 時 iOS 聚焦會放大整頁 */
+  padding:11px 13px;background:#fff;color:var(--cli-ink,#2C2218);
+  border:none;border-radius:11px;outline:none;
+  box-shadow:inset 0 0 0 1px rgba(139,107,72,.13);
+  transition:box-shadow .18s cubic-bezier(.32,.72,0,1);
+}
+.cn-input:focus,.cn-ta:focus{box-shadow:inset 0 0 0 1.5px var(--cli-accent2,#B8936A)}
+.cn-ta{line-height:1.75;resize:vertical;min-height:112px}
+/* iOS 的日期控制項預設置中，跟旁邊靠左的欄位對不齊 */
+input.cn-input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left}
 .meeting-tabs::-webkit-scrollbar{display:none;width:0;height:0}
 .meeting-tabs>*{flex-shrink:0}
 .cn-form-row>div{min-width:0}
@@ -15379,7 +15427,11 @@ function opPrint(){
   #s-client .meeting-tabs{margin-left:-1rem;margin-right:-1rem;
     padding:4px 1rem 6px;gap:8px}
   #s-client .meeting-tab{padding:9px 16px!important}
-  .cn-form-row{grid-template-columns:1fr!important}
+  /* ⚠ 既有的 #meeting-client-note-panel .cn-form-row{grid-template-columns:130px 1fr!important}
+     權重是 (1,1,0)，單靠 .cn-form-row (0,1,0) 蓋不掉——日期欄被鎖在 130px，
+     而 iOS 原生的「2026年9月3日」畫不進 130px，就溢出去壓在標題框上。
+     這裡用同樣的權重、排在後面取勝。 */
+  #meeting-client-note-panel .cn-form-row,.cn-form-row{grid-template-columns:1fr!important}
 }
 </style>
 <style id="cal-mobile-css">
