@@ -15426,20 +15426,26 @@ function opPrint(){
     -webkit-backdrop-filter:blur(9px) saturate(1.05);backdrop-filter:blur(9px) saturate(1.05);
     opacity:0;pointer-events:none;transition:opacity .26s cubic-bezier(.32,.72,0,1)}
   #cli-more.open{opacity:1;pointer-events:auto}
+  /* 一塊純色面板 + 陰影，沒有外框、沒有第二層底色。
+     ⚠ 之前照 high-end-visual-design 的 double-bezel 加了一圈外殼，結果就是
+       一個卡其色外框——那正是使用者明確說過不要的兩件事。skill 的建議
+       不覆蓋使用者自己的規則。 */
   #cli-more-panel{position:absolute;left:10px;right:10px;
     bottom:calc(env(safe-area-inset-bottom) + 64px);
-    background:rgba(240,233,222,0.72);padding:6px;border-radius:28px;
+    background:var(--cli-card,#FBF8F4);border-radius:26px;
     box-shadow:0 1px 2px rgba(60,45,30,.05),0 10px 24px rgba(60,45,30,.10),
                0 30px 64px rgba(60,45,30,.16);
     max-height:calc(100dvh - 190px);
     transform:translateY(18px) scale(.985);
     transition:transform .34s cubic-bezier(.32,.72,0,1)}
   #cli-more.open #cli-more-panel{transform:translateY(0) scale(1)}
-  .cli-more-core{background:var(--cli-card,#FBF8F4);border-radius:22px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
-    padding:2px 0 6px;overflow-y:auto;max-height:calc(100dvh - 202px)}
+  .cli-more-core{padding:2px 6px 8px;overflow-y:auto;max-height:calc(100dvh - 216px)}
+  /* 分組標題原本完全沒有 CSS，等於瀏覽器預設樣式、跟項目一樣大 */
+  .cli-more-h{font-size:10px;letter-spacing:.2em;color:var(--cli-light,#A09080);
+    padding:14px 14px 6px;line-height:1}
+  .cli-more-h:first-child{padding-top:6px}
   .cli-more-item{display:flex;align-items:center;gap:11px;width:100%;
-    min-height:48px;padding:0 18px;background:none;border:none;cursor:pointer;
+    min-height:46px;padding:0 12px;background:none;border:none;cursor:pointer;
     font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14.5px;
     color:var(--cli-ink,#2C2218);text-align:left;text-decoration:none;
     letter-spacing:.03em;border-radius:13px;
@@ -15456,10 +15462,10 @@ function opPrint(){
   /* 外連標記貼在文字旁邊，不要甩到最右邊；顏色也要看得見 */
   .cli-more-ext .ext-mark{margin-left:5px;color:var(--cli-accent2,#B8936A);font-size:12px}
   /* 面板頂端的抓手：讓人一眼看出這是可以關掉的浮層 */
-  .cli-more-grab{width:36px;height:4px;border-radius:999px;margin:7px auto 3px;
-    background:rgba(139,107,72,.24)}
+  .cli-more-grab{width:36px;height:4px;border-radius:999px;margin:9px auto 2px;
+    background:rgba(139,107,72,.20)}
   #cli-more-panel:focus{outline:none}
-  .cli-more-sep{height:1px;background:var(--cli-border,rgba(139,107,72,.13));margin:6px 18px}
+  .cli-more-sep{height:1px;background:var(--cli-border,rgba(139,107,72,.13));margin:6px 12px}
   .cli-more-out{color:#A63B26}
 
   /* 內容要讓出底部列的高度，否則最後一張卡片會被蓋住 */
