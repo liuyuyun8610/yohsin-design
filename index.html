@@ -15492,6 +15492,13 @@ function opPrint(){
 }
 /* 滑鼠使用者維持原樣 */
 :focus:not(:focus-visible){outline:none}
+/* tabindex="-1" 的元素只可能被程式碼 focus（例如打開浮層時把焦點帶進面板），
+   使用者並沒有用鍵盤走到那裡，不該畫鍵盤焦點框。Safari 會對程式化 focus 套用
+   :focus-visible，結果就是「更多」面板外緣多出一圈 #8B6B48 的線，看起來像
+   我加了外框。上面那條有 !important，所以這裡也要 !important 才蓋得掉
+   （id+pseudo 的權重比較高，同為 !important 時這條勝出）。 */
+[tabindex="-1"]:focus{outline:none!important;box-shadow:none}
+#cli-more-panel:focus{outline:none!important}
 
 /* ── 減少動態（2026-09-03）──
    原本 8 組動畫裡只有換頁淡入被 prefers-reduced-motion 保護，其餘 4 組是
