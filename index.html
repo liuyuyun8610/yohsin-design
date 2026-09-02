@@ -12,6 +12,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5/index.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+/* 內文行內圖示：一律用 SVG，不用 emoji（emoji 在 Android／Windows 上會換成
+   各家自己的畫風，也無法跟著文字顏色走）。stroke 用 currentColor，圖示永遠
+   跟旁邊的字同色，不會多出一個要維護的顏色。 */
+.ic{display:inline-block;vertical-align:-0.16em;flex-shrink:0}
 /* Quicksand for digits only — defined with narrow unicode-range so it
    ONLY renders 0-9; everything else (中文/英文字母/符號) falls through
    to the next family in each element's font stack. */
@@ -53,13 +57,13 @@ table{max-width:100%;}
 
 .screen{display:none;}
 .screen.active{display:block;}
-#s-login.active{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:2rem;}
+#s-login.active{display:flex;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;padding:2rem;}
 
 /* LOGIN — 黏土／新擬態：背景色維持 --paper 不變，層次全部靠柔性陰影，按鈕奶茶色 */
 #s-login.active{padding:60px 24px;flex-direction:column;}
 /* 卡片外的備註：灰字，跟卡片同寬對齊 */
 /* text-wrap:balance 讓兩行長度接近，不會出現「你。」單獨掉到第二行 */
-.login-foot{width:100%;max-width:430px;margin:24px auto 0;font-size:12px;font-weight:300;line-height:1.95;letter-spacing:0.06em;color:#8B8480;text-align:center;text-wrap:balance;}
+.login-foot{width:100%;max-width:430px;margin:24px auto 0;font-size:13px;font-weight:400;line-height:1.9;letter-spacing:0.04em;color:#6E6560;text-align:center;text-wrap:balance;}
 .login-wrap{background:var(--paper);border:none;border-radius:34px;padding:52px 40px 46px;width:100%;max-width:460px;text-align:center;
   box-shadow:15px 15px 32px var(--clay-dark), -15px -15px 32px var(--clay-light);}
 .logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:0;}
@@ -75,14 +79,14 @@ table{max-width:100%;}
 .login-line{border:none;height:3px;background:transparent;margin:34px 0 30px;width:100%;border-radius:3px;
   box-shadow:inset 2px 2px 4px var(--clay-dark), inset -2px -2px 4px var(--clay-light);}
 .mode-switch{display:flex;background:transparent;border-top:0.5px solid var(--line);border-bottom:0.5px solid var(--line);border-radius:0;padding:0;margin-bottom:40px;}
-.mdbtn{flex:1;padding:32px 16px;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:16px;font-weight:300;letter-spacing:0.45em;border:none;border-radius:0;cursor:pointer;background:transparent;color:var(--ink-muted);transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.mdbtn{flex:1;padding:32px 16px;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:16px;font-weight:300;letter-spacing:0.45em;border:none;border-radius:0;cursor:pointer;background:transparent;color:var(--ink-muted);transition:background-color .25s,color .25s,border-color .25s,box-shadow .25s,opacity .25s,transform .25s;display:flex;flex-direction:column;align-items:center;gap:6px;}
 .mdbtn + .mdbtn{border-left:0.5px solid var(--line);}
 .mdbtn:hover{color:var(--ink);background:var(--paper-soft);}
 .mdbtn.active{color:var(--ink);font-weight:400;background:transparent;}
 .mdbtn.active::after{content:'';width:20px;height:1px;background:var(--ink);}
 .fl{display:block;font-size:11px;letter-spacing:0.3em;color:var(--ink-muted);text-align:left;margin:0 0 10px 6px;text-transform:uppercase;}
 /* 輸入框：壓進去的凹槽（陰影方向跟凸起的卡片相反） */
-.fi{width:100%;padding:15px 18px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;font-weight:300;letter-spacing:0.05em;border:none;border-radius:15px;background:var(--paper);color:var(--ink);outline:none;margin-bottom:22px;
+.fi{width:100%;padding:15px 18px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:16px;font-weight:300;letter-spacing:0.05em;border:none;border-radius:15px;background:var(--paper);color:var(--ink);outline:none;margin-bottom:22px;
   box-shadow:inset 5px 5px 10px var(--clay-dark), inset -5px -5px 10px var(--clay-light);transition:box-shadow .25s;}
 .fi:focus{box-shadow:inset 6px 6px 12px var(--clay-dark), inset -6px -6px 12px var(--clay-light), 0 0 0 2.5px var(--milktea-pale);}
 .fi::placeholder{color:var(--ink-light);font-weight:300;letter-spacing:0.05em;}
@@ -93,7 +97,15 @@ table{max-width:100%;}
 .btn-enter:active{transform:translateY(1px);box-shadow:inset 6px 6px 13px rgba(120,102,84,.45), inset -4px -4px 10px rgba(255,255,255,.32);}
 .btn-enter:disabled{background:var(--clay-flat);color:var(--ink-light);cursor:not-allowed;
   box-shadow:inset 4px 4px 9px var(--clay-dark), inset -4px -4px 9px var(--clay-light);}
-.l-err{font-size:12px;color:var(--persimmon);margin-top:18px;letter-spacing:0.1em;min-height:18px;}
+.l-err{font-size:13px;color:var(--persimmon);margin-top:18px;letter-spacing:0.04em;min-height:18px;line-height:1.7;}
+/* 有錯誤時才變成一塊看得見的提示；沒錯誤時保持空白、不佔位 */
+.l-err:not(:empty){background:rgba(190,90,60,0.07);border-radius:12px;padding:11px 15px;text-align:left;}
+/* 密碼欄的「顯示／隱藏」按鈕：44px 以上才好按 */
+.fi-pw{position:relative;}
+.fi-pw .fi{padding-right:56px;}
+.fi-pw-toggle{position:absolute;top:0;bottom:22px;right:5px;width:46px;display:flex;align-items:center;justify-content:center;
+  background:none;border:none;padding:0;margin:0;color:var(--ink-light);cursor:pointer;border-radius:13px;}
+.fi-pw-toggle:hover{color:var(--ink);}
 .l-hint{margin-top:1rem;font-size:11px;color:var(--ink-light);line-height:1.9;background:transparent;border-radius:0;padding:0;}
 
 /* TOPBAR */
@@ -104,20 +116,20 @@ table{max-width:100%;}
 .tb-sub{font-size:10px;letter-spacing:0.14em;color:var(--ink-light);}
 .tb-nav{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
 .tb-nav::-webkit-scrollbar{display:none;width:0;height:0;}
-.tnav{font-size:12px;letter-spacing:0.05em;color:var(--ink-muted);padding:6px 11px;cursor:pointer;border-radius:8px;border:none;background:none;font-family:'NumQuicksand','Noto Sans TC',sans-serif;transition:all 0.15s;white-space:nowrap;flex-shrink:0;}
+.tnav{font-size:12px;letter-spacing:0.05em;color:var(--ink-muted);padding:6px 11px;cursor:pointer;border-radius:8px;border:none;background:none;font-family:'NumQuicksand','Noto Sans TC',sans-serif;transition:background-color 0.15s,color 0.15s,border-color 0.15s,box-shadow 0.15s,opacity 0.15s,transform 0.15s;white-space:nowrap;flex-shrink:0;}
 .tnav:hover{background:var(--sand);color:var(--ink);}
 .tnav.active{background:#AB9E93;color:#fff;}
 .tb-spacer{flex:1;}
 .tb-user{font-size:12px;color:var(--ink-muted);margin-right:0.8rem;white-space:nowrap;}
 .btn-out{font-size:11px;color:var(--ink-light);background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;white-space:nowrap;flex-shrink:0;}
 .btn-out:hover{color:var(--ink);background:var(--sand);}
-.btn-sync{font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent-light);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;white-space:nowrap;margin-right:6px;transition:all 0.15s;flex-shrink:0;}
+.btn-sync{font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent-light);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'NumQuicksand','Noto Sans TC',sans-serif;white-space:nowrap;margin-right:6px;transition:background-color 0.15s,color 0.15s,border-color 0.15s,box-shadow 0.15s,opacity 0.15s,transform 0.15s;flex-shrink:0;}
 .btn-sync:hover{background:var(--accent-pale);}
 .btn-sync.syncing{opacity:0.6;}
 
 /* MOBILE NAV — hamburger */
 .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border:none;background:none;flex-shrink:0;}
-.hamburger span{display:block;width:20px;height:2px;background:var(--ink);border-radius:2px;transition:all 0.2s;}
+.hamburger span{display:block;width:20px;height:2px;background:var(--ink);border-radius:2px;transition:background-color 0.2s,color 0.2s,border-color 0.2s,box-shadow 0.2s,opacity 0.2s,transform 0.2s;}
 .mobile-menu{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(42,37,32,0.35);z-index:199;}
 .mobile-menu.open{display:block;}
 .mobile-menu-inner{background:#fff;padding:0.8rem 0;border-bottom:0.5px solid var(--border);max-height:calc(100vh - 56px);overflow-y:auto;}
@@ -371,7 +383,7 @@ table{max-width:100%;}
 .survey-ta:focus{border-color:var(--cli-accent2,#B8936A);background:#fff;}
 .survey-input{width:100%;padding:8px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:9px;background:var(--cli-card-alt,#F5EFE7);color:#4A4A4A;outline:none;box-sizing:border-box;}
 .survey-input:focus{border-color:var(--cli-accent2,#B8936A);background:#fff;}
-.sv-checkbox{display:flex;align-items:center;gap:8px;padding:7px 10px;border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:8px;cursor:pointer;font-size:12px;color:#4A4A4A;background:var(--cli-card-alt,#F5EFE7);transition:all .15s;user-select:none;}
+.sv-checkbox{display:flex;align-items:center;gap:8px;padding:7px 10px;border:0.5px solid var(--cli-border,rgba(139,107,72,0.13));border-radius:8px;cursor:pointer;font-size:12px;color:#4A4A4A;background:var(--cli-card-alt,#F5EFE7);transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;user-select:none;}
 .sv-checkbox:hover{border-color:var(--cli-accent2,#B8936A);}
 .sv-checkbox.checked{background:rgba(184,147,106,0.12);border-color:var(--cli-accent2,#B8936A);color:var(--cli-accent,#7A5C3A);font-weight:500;}
 .sv-checkbox input{width:15px;height:15px;accent-color:var(--cli-accent,#7A5C3A);flex-shrink:0;}
@@ -381,7 +393,7 @@ table{max-width:100%;}
 .sv-view-val{font-size:13px;color:var(--ink);background:var(--sand);border-radius:8px;padding:8px 12px;white-space:pre-wrap;line-height:1.7;}
 .sv-view-tags{display:flex;flex-wrap:wrap;gap:6px;}
 .rte-toolbar{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;background:var(--sand);border:0.5px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;}
-.rte-btn{padding:4px 10px;font-size:12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:all .12s;white-space:nowrap;}
+.rte-btn{padding:4px 10px;font-size:12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:background-color .12s,color .12s,border-color .12s,box-shadow .12s,opacity .12s,transform .12s;white-space:nowrap;}
 .rte-btn:hover{background:var(--accent-pale);border-color:var(--accent-light);color:var(--accent);}
 .rte-btn-danger{color:var(--red);border-color:#EDB8B0;}
 .rte-btn-danger:hover{background:#FCEBEB;border-color:var(--red);}
@@ -411,7 +423,7 @@ table{max-width:100%;}
 .rte-body u{text-decoration:underline;}
 .rte-body i{font-style:italic;}
 .art-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;background:var(--sand);border:0.5px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;}
-.art-tb-btn{padding:4px 9px;font-size:11px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:all 0.12s;white-space:nowrap;}
+.art-tb-btn{padding:4px 9px;font-size:11px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);transition:background-color 0.12s,color 0.12s,border-color 0.12s,box-shadow 0.12s,opacity 0.12s,transform 0.12s;white-space:nowrap;}
 .art-tb-btn:hover{background:var(--accent-pale);border-color:var(--accent-light);color:var(--accent);}
 .art-tb-sep{width:0.5px;background:var(--border);margin:2px 2px;}
 .art-editor-wrap textarea{border-radius:0 0 10px 10px!important;border-top:0.5px solid var(--border)!important;}
@@ -425,7 +437,7 @@ table{max-width:100%;}
 .cal-wrap{background:var(--sand);border-radius:16px;padding:14px;margin-bottom:1rem;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cdl{font-size:10px;letter-spacing:0.06em;color:var(--ink-light);text-align:center;padding:4px 0;text-transform:uppercase;}
-.cday{min-height:64px;background:#fff;border:0.5px solid transparent;border-radius:10px;padding:6px 7px;cursor:pointer;transition:all 0.12s;display:flex;flex-direction:column;}
+.cday{min-height:64px;background:#fff;border:0.5px solid transparent;border-radius:10px;padding:6px 7px;cursor:pointer;transition:background-color 0.12s,color 0.12s,border-color 0.12s,box-shadow 0.12s,opacity 0.12s,transform 0.12s;display:flex;flex-direction:column;}
 .cday:hover{border-color:var(--accent-light);}
 .cday.om{background:transparent;cursor:default;}.cday.om:hover{border-color:transparent;}
 .cday.today{border-color:var(--accent);border-width:1.5px;}
@@ -466,7 +478,7 @@ table{max-width:100%;}
 
 /* CHECKLIST */
 .stabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
-.stab{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);font-family:'NumQuicksand','Noto Sans TC',sans-serif;transition:all 0.15s;}
+.stab{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);font-family:'NumQuicksand','Noto Sans TC',sans-serif;transition:background-color 0.15s,color 0.15s,border-color 0.15s,box-shadow 0.15s,opacity 0.15s,transform 0.15s;}
 .stab:hover{background:var(--sand);}
 .stab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 .tbl-wrap{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow-x:auto;}
@@ -580,7 +592,7 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 
 
 /* Drag-drop zone for 效果圖 */
-#drawing-drop-zone{border:1.5px dashed var(--accent-light);border-radius:14px;padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--sand);}
+#drawing-drop-zone{border:1.5px dashed var(--accent-light);border-radius:14px;padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;background:var(--sand);}
 #drawing-drop-zone.dz-hover{border-color:var(--accent);background:var(--accent-pale);}
 .dz-icon{font-size:32px;margin-bottom:8px;}
 .dz-text{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;}
@@ -595,7 +607,7 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 
 /* meeting records */
 .meeting-tabs{display:flex;gap:6px;margin-bottom:1.2rem;}
-.meeting-tab{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);font-family:'NumQuicksand','Noto Sans TC',sans-serif;transition:all 0.15s;}
+.meeting-tab{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-muted);font-family:'NumQuicksand','Noto Sans TC',sans-serif;transition:background-color 0.15s,color 0.15s,border-color 0.15s,box-shadow 0.15s,opacity 0.15s,transform 0.15s;}
 .meeting-tab:hover{background:var(--sand);}
 .meeting-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 .meeting-record{background:#fff;border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
@@ -645,7 +657,7 @@ table.resizable-table .cs{overflow:hidden;text-overflow:ellipsis;white-space:now
 .eye-btn:hover{background:var(--sand);}
 
 /* upload zone */
-.upload-zone{border:1.5px dashed var(--accent-light);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all .15s;background:transparent;}
+.upload-zone{border:1.5px dashed var(--accent-light);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;background:transparent;}
 .upload-zone.dz-hover{border-color:var(--accent);background:var(--accent-pale);}
 .upload-zone:hover{background:var(--accent-pale);}
 .upload-zone-icon{font-size:32px;color:var(--accent-light);margin-bottom:0.5rem;}
@@ -849,9 +861,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 /* ---- Buttons: primary = black serif; secondary = text + hairline ---- */
 .btn-ink,#s-client .btn-ink{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:12px;font-weight:400;letter-spacing:0.4em;background:var(--ink);color:var(--paper);padding:11px 26px;border:none;border-radius:0;cursor:pointer;transition:background .25s;}
 .btn-ink:hover,#s-client .btn-ink:hover{background:var(--ink-muted);}
-.btn-ghost,#s-client .btn-ghost{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:12px;letter-spacing:0.3em;background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;color:var(--ink-muted);padding:8px 4px;cursor:pointer;transition:all .2s;}
+.btn-ghost,#s-client .btn-ghost{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:12px;letter-spacing:0.3em;background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;color:var(--ink-muted);padding:8px 4px;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s,box-shadow .2s,opacity .2s,transform .2s;}
 .btn-ghost:hover,#s-client .btn-ghost:hover{color:var(--ink);border-bottom-color:var(--ink);}
-.btn-sm,#s-client .btn-sm,.act-btn{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:11px;letter-spacing:0.18em;background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;color:var(--ink-muted);padding:5px 4px;margin-right:14px;cursor:pointer;transition:all .2s;}
+.btn-sm,#s-client .btn-sm,.act-btn{font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:11px;letter-spacing:0.18em;background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;color:var(--ink-muted);padding:5px 4px;margin-right:14px;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s,box-shadow .2s,opacity .2s,transform .2s;}
 .btn-sm:hover,.act-btn:hover{color:var(--ink);border-bottom-color:var(--ink);}
 .act-btn.danger{color:var(--persimmon);}
 .act-btn.danger:hover{color:var(--persimmon);border-bottom-color:var(--persimmon);}
@@ -865,7 +877,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .pill-gray,#s-client .pill-gray{background:transparent !important;color:var(--ink-light);}
 
 /* ---- Top nav (admin + client): serif + hairline underline ---- */
-.tnav,#s-client .tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;letter-spacing:0.3em;color:var(--ink-muted);padding:6px 0;margin:0 12px;border:none;border-bottom:0.5px solid transparent;border-radius:0;background:transparent !important;transition:all .2s;}
+.tnav,#s-client .tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:13px;font-weight:500;letter-spacing:0.3em;color:var(--ink-muted);padding:6px 0;margin:0 12px;border:none;border-bottom:0.5px solid transparent;border-radius:0;background:transparent !important;transition:background-color .2s,color .2s,border-color .2s,box-shadow .2s,opacity .2s,transform .2s;}
 .tnav:hover,#s-client .tnav:hover{color:var(--ink);background:transparent !important;}
 .tnav.active,#s-client .tnav.active{color:var(--ink);background:transparent !important;border-bottom-color:var(--ink);font-weight:500;}
 .mobile-tnav,#s-client .mobile-tnav{font-family:'NumQuicksand','Noto Serif TC',serif;font-size:14px;font-weight:500;letter-spacing:0.2em;background:transparent;border-color:var(--line);color:var(--ink-muted);}
@@ -1239,7 +1251,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
     <!-- 填寫人姓名（選填）-->
     <div style="background:#FBF8F4;border:0.5px solid rgba(139,107,72,0.13);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
       <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B8936A;font-weight:500;margin-bottom:8px;">您的姓名（選填）</div>
-      <input id="sp-name" class="survey-input" placeholder="方便設計師稱呼您" oninput="spAutosave()">
+      <input id="sp-name" autocomplete="name" class="survey-input" placeholder="方便設計師稱呼您" oninput="spAutosave()">
     </div>
 
     <!-- Step 1 -->
@@ -1302,7 +1314,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
 <!-- 表單送出成功畫面 -->
 <div id="s-survey-done" class="screen" style="background:#F7F3EE;min-height:100vh;">
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem;">
-    <div style="font-size:48px;margin-bottom:1rem;">✅</div>
+    <div style="margin-bottom:1rem;color:#6B8F4D;line-height:0;"><svg class="ic" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.8 10A10 10 0 1 1 17 3.34"/><path d="m9 11 3 3L22 4"/></svg></div>
     <div style="font-family:'NumQuicksand','Noto Serif TC',serif;font-size:22px;color:#2C2218;margin-bottom:0.8rem;">感謝您的填寫！</div>
     <div style="font-size:14px;color:#6E5E4E;line-height:1.8;">設計師收到您的需求表單後，<br>會盡快與您聯繫安排後續討論。</div>
   </div>
@@ -1317,12 +1329,19 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
     <hr class="login-line">
     <div style="text-align:left;">
       <label class="fl">帳　號</label>
-      <input class="fi" id="l-user" placeholder="請輸入帳號">
+      <input class="fi" id="l-user" placeholder="請輸入帳號" autocomplete="username"
+             autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('l-pass').focus();}">
       <label class="fl">密　碼</label>
-      <input class="fi" type="password" id="l-pass" placeholder="請輸入密碼">
+      <div class="fi-pw">
+        <input class="fi" type="password" id="l-pass" placeholder="請輸入密碼" autocomplete="current-password" enterkeyhint="go"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}">
+        <button type="button" class="fi-pw-toggle" id="l-pass-toggle" onclick="toggleLoginPw()"
+                aria-label="顯示密碼" aria-pressed="false"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
     </div>
     <button class="btn-enter" onclick="doLogin()">登　入</button>
-    <div class="l-err" id="l-err"></div>
+    <div class="l-err" id="l-err" role="alert" aria-live="polite"></div>
     <!-- 維護模式遮罩（2026-09-01）：客戶入口暫停，只有帶通行參數的內部測試可登入 -->
     <div id="maint-notice" style="display:none;margin-top:18px;padding:18px 16px;border-radius:12px;
          background:#F3EDE4;border:1px solid #E0D5C6;text-align:center;line-height:1.9;">
@@ -1456,7 +1475,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         <!-- 家具尺寸圖：客戶最常用，置首 + 全寬強調樣式 -->
         <div onclick="goToDrawingType('空間與家具尺寸圖')" style="position:relative;grid-column:span 3;background:linear-gradient(135deg,#FBF6EC 0%,#F5EBD8 100%);border:1px solid #D9C9A8;border-radius:14px;padding:14px 16px;text-align:left;cursor:pointer;transition:box-shadow .15s,transform .15s;box-shadow:0 4px 16px rgba(120,90,40,0.1);display:flex;align-items:center;gap:14px;" onmouseover="this.style.boxShadow='0 8px 24px rgba(120,90,40,0.18)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 16px rgba(120,90,40,0.1)';this.style.transform='translateY(0)'">
           <span id="badge-furniture" style="display:none;position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;background:#E63946;color:#fff;font-size:11px;font-weight:600;border-radius:10px;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,57,70,0.4);font-family:'NumQuicksand','Noto Sans TC',sans-serif;line-height:1;">1</span>
-          <div style="font-size:28px;flex-shrink:0;">📐</div>
+          <div style="flex-shrink:0;color:#A07A38;line-height:0;"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg></div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:600;color:var(--cli-ink,#2C2218);letter-spacing:.04em;margin-bottom:2px;">空間與家具尺寸圖</div>
             <div style="font-size:10px;color:#7A6240;line-height:1.5;">買家具量尺寸時直接看這份｜含已預留的家具位置</div>
@@ -1543,7 +1562,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         <!-- 下一步預定收款 -->
         <div id="dash-next-pay" style="display:none;background:#FFFFFF;border:0.5px solid var(--cli-border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
           <!-- 圓形 icon -->
-          <div style="width:42px;height:42px;border-radius:50%;background:#EFE9DD;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">💰</div>
+          <div style="width:42px;height:42px;border-radius:50%;background:#EFE9DD;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent,#8B6B48);"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></div>
           <!-- 中間：標題 + 期數 + 日期 -->
           <div style="flex:1;min-width:0;">
             <div style="font-size:10px;letter-spacing:.12em;color:var(--cli-light,#A09080);margin-bottom:4px;">下一步預定收款</div>
@@ -1572,20 +1591,20 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       </div></div>
       <div style="text-align:right;margin-bottom:1.2rem;"><button class="btn-export-pdf" onclick="exportWarrantyPdf()">⬇ 下載保固書 PDF</button></div>
       <div class="doc-section">
-        <div class="doc-section-title">🛡️ 保固範圍與責任</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg> 保固範圍與責任</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
           <p style="margin:0 0 10px;"><strong style="color:var(--ink);">保固範圍：</strong>保固期間內，凡屬本公司實際施作之工程項目，若因施工不良、工法不當或材料本身瑕疵，導致功能失效或異常者，本公司負<strong style="color:var(--ink);">無償修復</strong>責任。</p>
           <p style="margin:0;"><strong style="color:var(--ink);">修繕義務：</strong>您發現瑕疵時請通知我們，本公司將於接獲通知後 <strong style="color:var(--ink);">3 個工作日內</strong>派員勘查，並於雙方協議之合理期限內完成修復。</p>
         </div>
       </div>
       <div class="doc-section">
-        <div class="doc-section-title">🔧 如何報修</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> 如何報修</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
           發現問題時，<strong style="color:var(--ink);">直接在 LINE 聯繫您的設計師最快</strong>，並附上照片與簡單說明（位置、狀況）。我們收到後會在 3 個工作日內安排勘查。緊急狀況（如漏水）請立即來電告知。
         </div>
       </div>
       <div class="doc-section">
-        <div class="doc-section-title">📋 非保固範圍</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> 非保固範圍</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
           <p style="margin:0 0 6px;">下列情形非屬本公司施工瑕疵，不在保固及無償修繕範圍：</p>
           <p style="margin:8px 0 2px;color:var(--ink);"><strong>結構性與環境裂縫</strong></p>
@@ -1602,7 +1621,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         </div>
       </div>
       <div class="doc-section">
-        <div class="doc-section-title">🎁 年度贈送：油漆修補服務</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg> 年度贈送：油漆修補服務</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
           本公司額外贈送您<strong style="color:var(--ink);">完工後一年內乙次「年度油漆修補」</strong>服務：
           <ul style="margin:6px 0 0;padding-left:30px;">
@@ -1614,7 +1633,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         </div>
       </div>
       <div class="doc-section">
-        <div class="doc-section-title">📌 其他約定</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg> 其他約定</div>
         <ul style="margin:0;padding-left:32px;font-size:13px;line-height:1.85;color:var(--ink-light);">
           <li>本保固書與原裝修承攬契約具有同等法律效力。</li>
           <li>保固期滿後仍可提供修繕服務，惟須另行酌收工料費用。</li>
@@ -1632,7 +1651,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       <div id="docs-panel-drawings">
         <!-- 3D 漫遊區塊（VR Tour）— 置頂，客戶最常看 -->
         <div class="doc-section" id="client-vr-tour-section" style="display:none;">
-          <div class="doc-section-title">🪟 進入您的空間漫遊</div>
+          <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> 進入您的空間漫遊</div>
           <div id="client-vr-tour-list" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
         <!-- 3D 空間效果圖 — 次置頂 -->
@@ -1644,7 +1663,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         </div>
         <!-- 空間與家具尺寸圖（買家具最常用）-->
         <div class="doc-section" id="client-furniture-section" style="display:none;">
-          <div class="doc-section-title">📐 空間與家具尺寸圖</div>
+          <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg> 空間與家具尺寸圖</div>
           <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.7;">買家具量尺寸時直接看這份。包含整體空間尺寸與已預留的家具位置標註。</div>
           <div id="client-furniture-gallery"></div>
         </div>
@@ -1760,7 +1779,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       <div class="notice-desc">這裡是您專屬的客戶頁。從簽約到驗收完工，所有跟您家有關的資料都會集中在這。以下是快速入門指南，看一次就上手。</div>
 
       <div class="doc-section">
-        <div class="doc-section-title">📍 您會在這裡看到什麼</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> 您會在這裡看到什麼</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink);">
           <p style="margin:14px 0 4px;"><strong>裝修旅程（首頁最上方）</strong></p>
           <p style="margin:0 0 14px;color:var(--ink-light);">顯示您目前的階段：簽約 → 設計 → 施工 → 驗收 → 保固。一眼就能知道專案走到哪、下一步是什麼。</p>
@@ -1793,7 +1812,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       </div>
 
       <div class="doc-section">
-        <div class="doc-section-title">📝 您需要做什麼</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg> 您需要做什麼</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink);">
           <p style="margin:14px 0 4px;"><strong>1. 確認重要決定</strong></p>
           <p style="margin:0 0 14px;color:var(--ink-light);">需要您拍板的事項（材料選擇、變更⋯）會出現在<strong style="color:var(--ink);">專案總覽的「待您確認」區</strong>。請點進去確認後我們才會繼續下一步——這一步是避免施工偏離您的需求。</p>
@@ -1807,7 +1826,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       </div>
 
       <div class="doc-section">
-        <div class="doc-section-title">💬 需要協助時</div>
+        <div class="doc-section-title"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg> 需要協助時</div>
         <div style="font-size:13px;line-height:1.85;color:var(--ink-light);">
           <p style="margin:14px 0 8px;">若有設計或工程相關問題，<strong style="color:var(--ink);">直接在 LINE 找您的設計師最快</strong>。</p>
           <p style="margin:0 0 14px;">若登入或查看資料時遇到問題，也可以直接告訴我們，我們會協助您處理。</p>
@@ -2135,7 +2154,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
 
       <!-- 追加減原則（客戶端可隨時點開閱讀）-->
       <details style="margin-top:1.4rem;background:#FBF8F4;border:0.5px solid var(--accent-light,rgba(139,107,72,0.3));border-radius:12px;overflow:hidden;">
-        <summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:13px;font-weight:500;color:var(--accent);display:flex;align-items:center;justify-content:space-between;gap:8px;">📋 追加減原則（點開閱讀）<span style="font-size:11px;color:var(--ink-light);">▾</span></summary>
+        <summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:13px;font-weight:500;color:var(--accent);display:flex;align-items:center;justify-content:space-between;gap:8px;"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> 追加減原則（點開閱讀）<span style="font-size:11px;color:var(--ink-light);">▾</span></summary>
         <div style="padding:2px 16px 16px;font-size:13px;line-height:1.85;color:var(--ink-light);">
           <p style="margin:0 0 12px;">裝修過程中，因現場狀況變動或使用需求調整，常會出現「追加減項目」。為避免後續雙方誤會或爭議，我們的處理方式如下，也請您配合：</p>
           <p style="margin:10px 0 2px;"><strong style="color:var(--ink);">1. 追加項目皆會另外報價</strong></p>
@@ -2451,7 +2470,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
                 <td style="padding:10px 12px;text-align:right;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:14px;font-weight:500;" id="pay-construction-total">$0</td>
                 <td style="padding:6px 8px;text-align:center;">
                   <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
-                    <input type="number" id="pay-construction-pct" min="0" max="100" step="0.1" placeholder="8" style="width:72px;padding:6px 8px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield;" oninput="calcPayment()">
+                    <input type="number" inputmode="decimal" id="pay-construction-pct" min="0" max="100" step="0.1" placeholder="8" style="width:72px;padding:6px 8px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield;" oninput="calcPayment()">
                     <span style="font-size:12px;color:var(--ink-muted);">%</span>
                   </div>
                 </td>
@@ -2467,7 +2486,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
                 <td style="padding:10px 12px;text-align:right;font-family:'NumQuicksand','Noto Serif TC',serif;font-size:14px;font-weight:500;" id="pay-equip-total">$0</td>
                 <td style="padding:6px 8px;text-align:center;">
                   <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
-                    <input type="number" id="pay-equip-pct" min="0" max="100" step="0.1" value="3" placeholder="3" style="width:72px;padding:6px 8px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield;" oninput="calcPayment()">
+                    <input type="number" inputmode="decimal" id="pay-equip-pct" min="0" max="100" step="0.1" value="3" placeholder="3" style="width:72px;padding:6px 8px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:var(--sand);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield;" oninput="calcPayment()">
                     <span style="font-size:12px;color:var(--ink-muted);">%</span>
                   </div>
                 </td>
@@ -2570,7 +2589,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         <div class="card" style="margin-bottom:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <label style="font-size:13px;color:var(--ink);">追加減監工費率：</label>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" id="co-sup-pct" value="8" min="0" max="100" step="0.1"
+            <input type="number" inputmode="decimal" id="co-sup-pct" value="8" min="0" max="100" step="0.1"
               style="width:70px;padding:7px 10px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;border:0.5px solid var(--border);border-radius:9px;background:var(--sand);color:var(--ink);outline:none;text-align:center;"
               oninput="updateCoStats()">
             <span style="font-size:13px;color:var(--ink-muted);">%</span>
@@ -2773,10 +2792,10 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       <div class="card" style="margin-bottom:1rem;">
         <!-- 軟性提醒：已搬移到 work-system，但這裡仍可用（過渡期備援） -->
         <div style="margin-bottom:1rem;padding:12px 14px;background:#FFF7E6;border:1px solid #F0DDA0;border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
-          <span style="font-size:18px;flex-shrink:0;">📐</span>
+          <span style="flex-shrink:0;color:var(--accent,#8B6B48);line-height:0;"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg></span>
           <div style="flex:1;font-size:12px;line-height:1.7;color:#7A5218;">
             <strong>圖紙文件管理已搬到 work-system</strong>（更穩定、跟客戶帳號對應更精準）<br>
-            未來請改在 work-system → 專案詳細頁 → <strong>📐 圖紙文件</strong> tab 上傳。<br>
+            未來請改在 work-system → 專案詳細頁 → <strong><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg> 圖紙文件</strong> tab 上傳。<br>
             <span style="color:#A07A38;font-size:11px;">（這裡暫時保留作為備援，預計 1-2 週後移除入口）</span>
           </div>
         </div>
@@ -2796,7 +2815,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         <!-- AI 生活情境預覽：每位客戶開關（只在效果圖 tab 顯示，置頂好找）-->
         <div id="ai-admin-box" style="display:none;margin-bottom:14px;padding:14px 16px;background:#FAF7F2;border:0.5px solid var(--border);border-radius:12px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span style="font-size:13px;font-weight:600;color:var(--accent);">🪄 AI 生活情境預覽</span>
+            <span style="font-size:13px;font-weight:600;color:var(--accent);"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M3 8h4"/><path d="M17 16h4"/></svg> AI 生活情境預覽</span>
             <span style="font-size:11px;color:var(--ink-light);">讓這位客戶能在效果圖上請 AI 生成「改光線／加生活感」的情境圖（不覆蓋原圖）</span>
           </div>
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;">
@@ -2806,7 +2825,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
             </label>
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);">
               每日次數上限
-              <input type="number" id="ai-admin-limit" min="1" max="30" value="3" style="width:62px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;" onchange="aiAdminSave()">
+              <input type="number" inputmode="numeric" id="ai-admin-limit" min="1" max="30" value="3" style="width:62px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;" onchange="aiAdminSave()">
             </label>
             <span id="ai-admin-used" style="font-size:12px;color:var(--ink-light);"></span>
             <span id="ai-admin-status" style="font-size:12px;color:#3D5C24;"></span>
@@ -2897,7 +2916,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
           </div>
           <div class="form-group" style="margin-bottom:0.6rem;">
             <label class="form-label">型號 / 編號</label>
-            <input class="form-input" id="material-model" placeholder="例：FB-2301" style="margin-bottom:0;">
+            <input class="form-input" id="material-model" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="例：FB-2301" style="margin-bottom:0;">
           </div>
           <div class="form-group" style="margin-bottom:0.6rem;">
             <label class="form-label">圖片</label>
@@ -3126,9 +3145,9 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
 
       <!-- 設定分類 Tab -->
       <div style="display:flex;gap:6px;margin-bottom:1.4rem;background:var(--sand);border-radius:12px;padding:4px;">
-        <button id="stab-auth"    onclick="switchSettingsTab('auth')"    style="flex:1;padding:8px 4px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:#AB9E93;color:#fff;font-weight:500;letter-spacing:.03em;">權限設定</button>
-        <button id="stab-brand"   onclick="switchSettingsTab('brand')"   style="flex:1;padding:8px 4px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">品牌外觀</button>
-        <button id="stab-ai"      onclick="switchSettingsTab('ai')"      style="flex:1;padding:8px 4px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:all .15s;background:none;color:var(--ink-muted);">✦ AI 功能</button>
+        <button id="stab-auth"    onclick="switchSettingsTab('auth')"    style="flex:1;padding:8px 4px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;background:#AB9E93;color:#fff;font-weight:500;letter-spacing:.03em;">權限設定</button>
+        <button id="stab-brand"   onclick="switchSettingsTab('brand')"   style="flex:1;padding:8px 4px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;background:none;color:var(--ink-muted);">品牌外觀</button>
+        <button id="stab-ai"      onclick="switchSettingsTab('ai')"      style="flex:1;padding:8px 4px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:12px;border:none;border-radius:9px;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;background:none;color:var(--ink-muted);">✦ AI 功能</button>
       </div>
 
       <!-- ─── 權限設定 ─── -->
@@ -3137,8 +3156,8 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         <div class="card" style="margin-bottom:1rem;">
           <div class="card-title">後台登入密碼</div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input type="password" class="form-input" id="settings-new-pw" style="max-width:200px;margin-bottom:0;" placeholder="輸入新密碼">
-            <input type="password" class="form-input" id="settings-new-pw2" style="max-width:200px;margin-bottom:0;" placeholder="再次確認">
+            <input type="password" class="form-input" id="settings-new-pw" style="max-width:200px;margin-bottom:0;" placeholder="輸入新密碼" autocomplete="new-password">
+            <input type="password" class="form-input" id="settings-new-pw2" style="max-width:200px;margin-bottom:0;" placeholder="再次確認" autocomplete="new-password">
             <button class="btn-ink" onclick="applyPassword()">更新密碼</button>
           </div>
           <div style="font-size:12px;color:var(--ink-light);margin-top:0.5rem;">目前帳號：admin　｜　密碼已加密儲存（bcrypt），無法顯示明碼。如需更改請輸入新密碼後按「更新密碼」。</div>
@@ -3150,8 +3169,8 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
           <div id="boss-accounts-list" style="margin-bottom:1rem;"></div>
           <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
             <div><label class="form-label">帳號名稱</label><input class="form-input" id="boss-name" placeholder="例：老闆" style="margin-bottom:0;width:140px;"></div>
-            <div><label class="form-label">登入帳號</label><input class="form-input" id="boss-user" placeholder="例：boss" style="margin-bottom:0;width:130px;"></div>
-            <div><label class="form-label">登入密碼</label><input class="form-input" id="boss-pass" placeholder="設定密碼" style="margin-bottom:0;width:130px;"></div>
+            <div><label class="form-label">登入帳號</label><input class="form-input" id="boss-user" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="例：boss" style="margin-bottom:0;width:130px;"></div>
+            <div><label class="form-label">登入密碼</label><input class="form-input" id="boss-pass" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="設定密碼" style="margin-bottom:0;width:130px;"></div>
             <button class="btn-ink" onclick="addBossAccount()">＋ 新增</button>
           </div>
         </div>
@@ -3187,7 +3206,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
               <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="previewNewLogo(event)">
               <div id="new-logo-preview" style="display:none;margin-top:1rem;">
                 <div style="font-size:12px;color:var(--ink-muted);margin-bottom:0.5rem;">新 Logo 預覽</div>
-                <img id="new-logo-img" src="" style="width:100px;height:100px;object-fit:contain;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);padding:8px;">
+                <img id="new-logo-img" src="" alt="目前的公司 Logo" style="width:100px;height:100px;object-fit:contain;border:0.5px solid var(--border);border-radius:12px;background:var(--sand);padding:8px;">
                 <div style="display:flex;gap:8px;margin-top:0.8rem;">
                   <button class="btn-ink" onclick="applyNewLogo()">套用 Logo</button>
                   <button class="btn-ghost" onclick="cancelNewLogo()">取消</button>
@@ -3220,10 +3239,10 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
           <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端財務紀錄頁，展開「設計費 匯款資訊」時顯示的內容。</div>
           <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;align-items:center;font-size:13px;">
             <label style="color:var(--ink-muted);">戶　　名</label><input class="form-input" id="bd-design-holder" style="margin:0;" placeholder="有心制作室內裝修設計有限公司">
-            <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-design-code" style="margin:0;" placeholder="007">
+            <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-design-code" inputmode="numeric" style="margin:0;" placeholder="007">
             <label style="color:var(--ink-muted);">銀行名稱</label><input class="form-input" id="bd-design-bank" style="margin:0;" placeholder="第一商業銀行">
             <label style="color:var(--ink-muted);">分　　行</label><input class="form-input" id="bd-design-branch" style="margin:0;" placeholder="林口分行">
-            <label style="color:var(--ink-muted);">銀行帳號</label><input class="form-input" id="bd-design-account" style="margin:0;" placeholder="29010013031">
+            <label style="color:var(--ink-muted);">銀行帳號</label><input class="form-input" id="bd-design-account" inputmode="tel" style="margin:0;" placeholder="29010013031">
           </div>
           <div style="margin-top:1rem;text-align:right;"><button class="btn-ink" onclick="saveBankInfo('design')">儲存設計費帳戶</button></div>
         </div>
@@ -3233,10 +3252,10 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
           <div style="font-size:12px;color:var(--ink-muted);margin-bottom:1rem;">客戶端財務紀錄頁，展開「工程款 匯款資訊」時顯示的內容。</div>
           <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;align-items:center;font-size:13px;">
             <label style="color:var(--ink-muted);">戶　　名</label><input class="form-input" id="bd-construction-holder" style="margin:0;" placeholder="劉郁筠">
-            <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-construction-code" style="margin:0;" placeholder="822">
+            <label style="color:var(--ink-muted);">銀行代碼</label><input class="form-input" id="bd-construction-code" inputmode="numeric" style="margin:0;" placeholder="822">
             <label style="color:var(--ink-muted);">銀行名稱</label><input class="form-input" id="bd-construction-bank" style="margin:0;" placeholder="中國信託銀行">
             <label style="color:var(--ink-muted);">分　　行</label><input class="form-input" id="bd-construction-branch" style="margin:0;" placeholder="中壢分行">
-            <label style="color:var(--ink-muted);">銀行帳號</label><input class="form-input" id="bd-construction-account" style="margin:0;" placeholder="12951-09168-82">
+            <label style="color:var(--ink-muted);">銀行帳號</label><input class="form-input" id="bd-construction-account" inputmode="tel" style="margin:0;" placeholder="12951-09168-82">
           </div>
           <div style="margin-top:1rem;text-align:right;"><button class="btn-ink" onclick="saveBankInfo('construction')">儲存工程款帳戶</button></div>
         </div>
@@ -3315,7 +3334,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
       <div style="font-family:'Noto Serif TC',serif;font-size:15px;font-weight:600;color:var(--ink);flex:1;min-width:0;" id="contract-modal-title">合約</div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="btn-ghost" onclick="printContractForClient()" style="font-size:12px;padding:6px 14px;border:0.5px solid var(--line);">
-          <span style="margin-right:4px;">🖨</span>列印 / 下載 PDF
+          <span style="margin-right:5px;line-height:0;"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></span>列印 / 下載 PDF
         </button>
         <button class="btn-ghost" onclick="closeContractViewer()" style="font-size:13px;">關閉</button>
       </div>
@@ -3407,7 +3426,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
     <div class="render-lb-counter" id="render-lb-counter"></div>
     <!-- AI 生活情境預覽（僅效果圖、客戶端顯示）-->
     <div id="ai-lb-tools" style="display:none;margin-top:10px;gap:8px;justify-content:center;flex-wrap:wrap;" onclick="event.stopPropagation()">
-      <button class="ai-lb-btn" onclick="aiTogglePanel(event)">🪄 AI 生活情境預覽</button>
+      <button class="ai-lb-btn" onclick="aiTogglePanel(event)"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M3 8h4"/><path d="M17 16h4"/></svg> AI 生活情境預覽</button>
     </div>
     <div id="ai-lb-panel" style="display:none;" onclick="event.stopPropagation()"></div>
   </div>
@@ -3438,13 +3457,13 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         <div class="fg">
           <label>登入帳號</label>
           <div style="display:flex;gap:6px;">
-            <input id="cm-user" placeholder="例：fengyi" style="flex:1;padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
+            <input id="cm-user" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="例：fengyi" style="flex:1;padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
           </div>
         </div>
         <div class="fg">
           <label>登入密碼</label>
           <div style="display:flex;gap:6px;">
-            <input id="cm-pass" placeholder="例：pass1234" style="flex:1;padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
+            <input id="cm-pass" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="例：pass1234" style="flex:1;padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;">
             <button onclick="genPass()" style="padding:9px 12px;background:var(--sand-dark);border:0.5px solid var(--border);border-radius:10px;font-size:12px;cursor:pointer;color:var(--ink-muted);white-space:nowrap;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">自動產生</button>
           </div>
         </div>
@@ -3465,7 +3484,7 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
     <div class="modal">
       <div class="modal-ttl" id="pm-ttl">新增專案</div>
       <div class="fg"><label>專案名稱</label><input id="pm-name" placeholder="例：豐邑氧森設計專案"></div>
-      <div class="fg"><label>地址</label><input id="pm-address" placeholder="例：台北市大安區信義路四段 100 號"></div>
+      <div class="fg"><label>地址</label><input id="pm-address" autocomplete="street-address" placeholder="例：台北市大安區信義路四段 100 號"></div>
       <div class="fg"><label>戶號 / 樓層</label><input id="pm-unit" placeholder="例：B5-10F、A棟3樓" autocomplete="off"></div>
       <div class="fg-2">
         <div class="fg"><label>開案日期</label><input type="date" id="pm-date"></div>
@@ -3477,10 +3496,10 @@ body.presale-mode #pay-acc-construction>summary .pay-acc-arrow{visibility:hidden
         </select>
       </div>
       <div class="fg-2">
-        <div class="fg"><label>合約總金額（元）</label><input type="number" id="pm-contract-amount" placeholder="0" style="padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;width:100%;"></div>
-        <div class="fg"><label>已收款金額（元）</label><input type="number" id="pm-received-amount" placeholder="0" style="padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;width:100%;"></div>
+        <div class="fg"><label>合約總金額（元）</label><input type="number" inputmode="decimal" id="pm-contract-amount" placeholder="0" style="padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;width:100%;"></div>
+        <div class="fg"><label>已收款金額（元）</label><input type="number" inputmode="decimal" id="pm-received-amount" placeholder="0" style="padding:9px 12px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:13px;border:0.5px solid var(--border);border-radius:10px;background:var(--sand);color:var(--ink);outline:none;width:100%;"></div>
       </div>
-      <div class="fg"><label>LINE 客戶群組 ID（選填，留空則不推播）</label><input id="pm-line-group-id" placeholder="例：C9b025a281b067598476f517a95fc6b32" autocomplete="off" style="font-family:'NumQuicksand',monospace;font-size:12px;"></div>
+      <div class="fg"><label>LINE 客戶群組 ID（選填，留空則不推播）</label><input id="pm-line-group-id" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="例：C9b025a281b067598476f517a95fc6b32" autocomplete="off" style="font-family:'NumQuicksand',monospace;font-size:12px;"></div>
       <div style="font-size:11px;color:var(--ink-light);margin:-8px 0 14px;line-height:1.7;">在客戶 LINE 群組裡邀請 OA「有心制作通知中心」進群，bot 會自動回覆群組 ID（也可在群組打 <code style="background:var(--sand);padding:1px 5px;border-radius:3px;">/id</code> 查詢）。設定後，新增施工日誌時可一鍵推播照片到該群。</div>
       <div class="modal-actions">
         <button class="btn-ghost" onclick="closePM()">取消</button>
@@ -4039,6 +4058,19 @@ function goAdminPageMobile(id,el){
 
 // ========== AUTH ==========
 function setMode(m,el){loginMode=m;document.querySelectorAll('.mdbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+/* 帳密是設計師給客戶的（例如 pass1234），在手機上盲打錯誤率很高，
+   所以給一個顯示／隱藏的切換。 */
+function toggleLoginPw(){
+  const input=document.getElementById('l-pass'), btn=document.getElementById('l-pass-toggle');
+  if(!input||!btn) return;
+  const show = input.type==='password';
+  input.type = show ? 'text' : 'password';
+  btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+  btn.setAttribute('aria-label', show ? '隱藏密碼' : '顯示密碼');
+  btn.innerHTML = show ? '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.8 10.8 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>' : '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
+  input.focus();
+}
+
 async function doLogin(){
   if(maintBlocked()){
     const e=document.getElementById('l-err');
@@ -4049,6 +4081,12 @@ async function doLogin(){
   const u=document.getElementById('l-user').value.trim(), p=document.getElementById('l-pass').value.trim();
   const err=document.getElementById('l-err');err.textContent='';
   err.dataset.busy='1';
+  /* 送出中要看得出來。Supabase RPC 在手機網路上可能等 1–3 秒，原本畫面完全
+     沒有變化，客戶會以為沒按到而重複點。維護模式已經把按鈕停用並改成
+     「暫停登入」，所以只有在按鈕還能按的時候才接手。 */
+  const _btn=document.querySelector('.btn-enter');
+  const _btnText=_btn?_btn.textContent:'';
+  if(_btn && !_btn.disabled){ _btn.disabled=true; _btn.textContent='登入中…'; }
   try{
     if(loginMode==='admin'){
       // Phase B：先試 Supabase Auth（成功後 sbClient 會自動帶 JWT，RLS 通過）
@@ -4071,7 +4109,7 @@ async function doLogin(){
         }catch(e){ console.warn('[ys_issue_admin_token] 失敗', e); }
         sessionStorage.setItem('ys_session', JSON.stringify({mode:'admin',u}));
         _enterAdmin();
-      } else err.textContent='帳號或密碼錯誤';
+      } else err.textContent='帳號或密碼不對，請再確認一次。';
     } else {
       const {data,error}=await sbClient.rpc('verify_client',{p_username:u,p_password:p});
       if(error){err.textContent='登入失敗：'+error.message;return;}
@@ -4106,9 +4144,12 @@ async function doLogin(){
           await sbClient.rpc('record_client_login', { p_client_id: c.id, p_skip: skip });
         }catch(e){ console.warn('[record_client_login] 失敗（不影響登入）', e); }
         _enterClient(c);
-      } else err.textContent='帳號或密碼錯誤，請再試一次';
+      } else err.textContent='帳號或密碼不對。帳號密碼由您的設計師提供，可以再跟設計師確認一次。';
     }
-  } finally { delete err.dataset.busy; }
+  } finally {
+    delete err.dataset.busy;
+    if(_btn && _btn.textContent==='登入中…'){ _btn.disabled=false; _btn.textContent=_btnText; }
+  }
 }
 
 // 設計師備註：cid|aid -> note 文字（admin 端用，渲染指派頁的備註欄）
@@ -4350,7 +4391,7 @@ function renderElevSlideshow(){
         const thumbIsImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(it.fileUrl||'');
         return `<button onclick="goElevSlide(${realIdx})" style="flex-shrink:0;width:50px;height:50px;border:2px solid ${active?'#fff':'transparent'};border-radius:4px;overflow:hidden;background:${thumbIsImg?'#fff':'#FBF8F4'};cursor:pointer;padding:0;opacity:${active?'1':'0.6'};transition:opacity .15s;">
           ${thumbIsImg
-            ? `<img src="${it.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+            ? `<img src="${it.fileUrl}" alt="立面圖縮圖" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;">`
             : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#A07A38;">PDF</div>`}
         </button>`;
       }).join('')}
@@ -4402,7 +4443,7 @@ function openDocViewer(url, name, note){
   // ⚠️ iOS Safari iframe PDF pinch-zoom 會干擾整個 app（bug）→ 手機直接走裝置內建 PDF viewer
   //    桌機才用 modal iframe 嵌入；如果有設計師備註則 alert 提醒（避免漏看）
   if(isPdf && isMobile){
-    if(note && note.trim()) alert('💡 設計師備註：\n\n' + note);
+    if(note && note.trim()) alert('設計師備註：\n\n' + note);
     window.open(url, '_blank');
     return;
   }
@@ -4416,7 +4457,7 @@ function openDocViewer(url, name, note){
   }
   const noteBanner = note && note.trim()
     ? `<div style="flex-shrink:0;padding:10px 16px;background:#FFF7E6;border-bottom:1px solid #F0DDA0;color:#7A5218;font-size:13px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;">
-        <span style="font-size:18px;flex-shrink:0;line-height:1.2;">💡</span>
+        <span style="flex-shrink:0;line-height:1.2;"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span>
         <div style="flex:1;"><strong>設計師備註：</strong>${note.replace(/\n/g,'<br>')}</div>
       </div>`
     : '';
@@ -5116,9 +5157,9 @@ function previewNewLogo(e){
 // ── 效果圖 Icon（從 Supabase Storage 載入，不用 base64）──
 function applyGalleryIcon(url){
   const wrap=document.getElementById('ov-gallery-icon-wrap');
-  if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
+  if(wrap) wrap.innerHTML=`<img src="${url}" alt="效果圖圖示" style="width:36px;height:36px;object-fit:contain;">`;
   const preview=document.getElementById('gallery-icon-preview');
-  if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
+  if(preview) preview.innerHTML=`<img src="${url}" alt="效果圖圖示預覽" style="width:52px;height:52px;object-fit:contain;">`;
 }
 async function uploadGalleryIcon(e){
   const file=e.target.files[0];if(!file)return;
@@ -5136,9 +5177,9 @@ async function uploadGalleryIcon(e){
 // ── 立面施工圖 Icon ──
 function applyElevIcon(url){
   const wrap=document.getElementById('ov-elev-icon-wrap');
-  if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
+  if(wrap) wrap.innerHTML=`<img src="${url}" alt="立面施工圖圖示" style="width:36px;height:36px;object-fit:contain;">`;
   const preview=document.getElementById('elev-icon-preview');
-  if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
+  if(preview) preview.innerHTML=`<img src="${url}" alt="立面施工圖圖示預覽" style="width:52px;height:52px;object-fit:contain;">`;
 }
 async function uploadElevIcon(e){
   const file=e.target.files[0];if(!file)return;
@@ -5154,9 +5195,9 @@ async function uploadElevIcon(e){
 }
 function applyPlanIcon(url){
   const wrap=document.getElementById('ov-plan-icon-wrap');
-  if(wrap) wrap.innerHTML=`<img src="${url}" style="width:36px;height:36px;object-fit:contain;">`;
+  if(wrap) wrap.innerHTML=`<img src="${url}" alt="平面施工圖圖示" style="width:36px;height:36px;object-fit:contain;">`;
   const preview=document.getElementById('plan-icon-preview');
-  if(preview) preview.innerHTML=`<img src="${url}" style="width:52px;height:52px;object-fit:contain;">`;
+  if(preview) preview.innerHTML=`<img src="${url}" alt="平面施工圖圖示預覽" style="width:52px;height:52px;object-fit:contain;">`;
 }
 async function uploadPlanIcon(e){
   const file=e.target.files[0];if(!file)return;
@@ -5225,7 +5266,7 @@ async function saveBankInfo(type){
 function applyReceiptLogo(url){
   window._receiptLogoSrc=url;
   const preview=document.getElementById('receipt-logo-preview');
-  if(preview) preview.innerHTML=`<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+  if(preview) preview.innerHTML=`<img src="${url}" alt="收據 Logo" style="max-width:100%;max-height:100%;object-fit:contain;">`;
 }
 async function uploadReceiptLogo(e){
   const file=e.target.files[0];if(!file)return;
@@ -5469,7 +5510,7 @@ function renderMaterials(pid){
     parts.push('<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">');
     items.forEach(m=>{
       const imgHtml=m.image_url
-        ? `<img src="${m.image_url}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;cursor:zoom-in;" onclick="window.open('${m.image_url.replace(/'/g,"&#39;")}','_blank')">`
+        ? `<img src="${m.image_url}" alt="材料照片" loading="lazy" decoding="async" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;cursor:zoom-in;" onclick="window.open('${m.image_url.replace(/'/g,"&#39;")}','_blank')">`
         : `<div style="width:100%;height:120px;background:var(--sand);border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-light);font-size:24px;"></div>`;
       parts.push(`
         <div style="background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:10px;">
@@ -5557,7 +5598,7 @@ function editMaterial(id){
   document.getElementById('material-note').value=m.note||'';
   pendingMaterialImage=null;
   const pv=document.getElementById('material-img-preview');
-  pv.innerHTML=m.image_url?`<img src="${m.image_url}" style="width:120px;height:120px;object-fit:cover;border-radius:6px;"><div style="font-size:10px;color:var(--ink-light);margin-left:6px;align-self:center;">（上傳新圖可取代）</div>`:'';
+  pv.innerHTML=m.image_url?`<img src="${m.image_url}" alt="材料照片" style="width:120px;height:120px;object-fit:cover;border-radius:6px;"><div style="font-size:10px;color:var(--ink-light);margin-left:6px;align-self:center;">（上傳新圖可取代）</div>`:'';
   // scroll to form
   document.getElementById('material-form-section')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
@@ -5711,7 +5752,7 @@ function renderProgressTable(){
                onblur="this.style.borderColor='var(--border)';this.style.background='var(--sand)'">
       </td>
       <td style="padding:10px 8px;text-align:center;">
-        <button onclick="removeProgressRow(${i})" style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:var(--ink-light);font-size:16px;border-radius:6px;" onmouseover="this.style.background='var(--red-pale)';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button>
+        <button class="tap-lg" onclick="removeProgressRow(${i})" style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:var(--ink-light);font-size:16px;border-radius:6px;" onmouseover="this.style.background='var(--red-pale)';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button>
       </td>`;
     tb.appendChild(tr);
   });
@@ -6049,7 +6090,7 @@ async function renderSchedule(){
            <input style="${inpAuto}" value="${r.amount||0}" readonly title="自動帶入追加減含監工費總計">
            <div style="font-size:9px;color:#378ADD;margin-top:2px;text-align:right;">↑ 追加減自動帶入</div>
          </td>`
-      : `<td style="padding:6px 8px;"><input type="number" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;updateSchStats(${pid})"></td>`;
+      : `<td style="padding:6px 8px;"><input type="number" inputmode="decimal" style="${inp}text-align:right;" value="${r.amount||''}" placeholder="0" oninput="scheduleData[${pid}][${i}].amount=parseFloat(this.value)||0;updateSchStats(${pid})"></td>`;
 
     const nameCell=isLast
       ? `<td style="padding:6px 10px;font-size:13px;font-weight:500;color:#185FA5;">追加減</td>`
@@ -6081,7 +6122,7 @@ async function renderSchedule(){
         </select>
       </td>
       <td style="padding:6px 8px;"><input type="date" style="${inp}" value="${toDateVal(r.received)}" onchange="scheduleData[${pid}][${i}].received=this.value"></td>
-      <td style="padding:4px 6px;text-align:center;"><button onclick="scheduleData[${pid}].splice(${i},1);renderSchedule()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='#A32D2D'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
+      <td style="padding:4px 6px;text-align:center;"><button class="tap-lg" onclick="scheduleData[${pid}].splice(${i},1);renderSchedule()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='#A32D2D'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
     tb.appendChild(tr);
   });
 }
@@ -6226,11 +6267,11 @@ function renderCoTable(){
           <option ${r.type==='減項'?'selected':''}>減項</option>
         </select>
       </td>
-      <td style="padding:4px 6px;"><input type="number" style="${inp}text-align:right;" value="${r.unitPrice||''}" placeholder="0" oninput="changeOrders[${pid}][${i}].unitPrice=parseFloat(this.value)||0;updateCoRow(${pid},${i},this.closest('tr'))"></td>
-      <td style="padding:4px 6px;"><input type="number" style="${inp}text-align:right;" value="${r.qty||1}" min="0.01" step="0.01" oninput="changeOrders[${pid}][${i}].qty=parseFloat(this.value)||1;updateCoRow(${pid},${i},this.closest('tr'))"></td>
+      <td style="padding:4px 6px;"><input type="number" inputmode="decimal" style="${inp}text-align:right;" value="${r.unitPrice||''}" placeholder="0" oninput="changeOrders[${pid}][${i}].unitPrice=parseFloat(this.value)||0;updateCoRow(${pid},${i},this.closest('tr'))"></td>
+      <td style="padding:4px 6px;"><input type="number" inputmode="decimal" style="${inp}text-align:right;" value="${r.qty||1}" min="0.01" step="0.01" oninput="changeOrders[${pid}][${i}].qty=parseFloat(this.value)||1;updateCoRow(${pid},${i},this.closest('tr'))"></td>
       <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:500;${subColor}" id="co-sub-${i}">${subStr}</td>
       <td style="padding:4px 4px;text-align:center;">
-        <button onclick="removeCoRow(${pid},${i})" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button>
+        <button class="tap-lg" onclick="removeCoRow(${pid},${i})" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button>
       </td>`;
     tb.appendChild(tr);
   });
@@ -6756,8 +6797,8 @@ async function renderProfitTable(){
     if(it.type==='equip')tr.style.background='#EBF2F5';
     tr.innerHTML=`
       <td style="padding:6px 12px;font-size:13px;font-family:'NumQuicksand','Noto Sans TC',sans-serif;">${it.label}${it.type==='equip'?'<span style="font-size:10px;color:var(--blue);background:var(--blue-pale);padding:1px 6px;border-radius:4px;margin-left:6px;font-family:\'NumQuicksand\',\'Noto Sans TC\',sans-serif;">設備空調</span>':''}</td>
-      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.vendor||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','vendor',this.value)" onblur="dbSaveProfitItem('${pid}','${it.key}',profitData['${pid}']['${it.key}'].vendor,profitData['${pid}']['${it.key}'].client)"></td>
-      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${d.client||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','client',this.value)" onblur="dbSaveProfitItem('${pid}','${it.key}',profitData['${pid}']['${it.key}'].vendor,profitData['${pid}']['${it.key}'].client)"></td>
+      <td style="padding:4px 8px;"><input type="number" inputmode="decimal" class="profit-input" value="${d.vendor||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','vendor',this.value)" onblur="dbSaveProfitItem('${pid}','${it.key}',profitData['${pid}']['${it.key}'].vendor,profitData['${pid}']['${it.key}'].client)"></td>
+      <td style="padding:4px 8px;"><input type="number" inputmode="decimal" class="profit-input" value="${d.client||''}" placeholder="0" oninput="updateProfit('${pid}','${it.key}','client',this.value)" onblur="dbSaveProfitItem('${pid}','${it.key}',profitData['${pid}']['${it.key}'].vendor,profitData['${pid}']['${it.key}'].client)"></td>
       <td><div class="profit-auto ${profit>=0?'positive':'negative'}">${d.vendor>0||d.client>0?fmtN(profit):'—'}</div></td>
       <td><div class="profit-auto ${pct!==null&&pct>=0?'positive':'negative'}">${pct!==null?pct.toFixed(1)+'%':'—'}</div></td>
       <td style="padding:6px 12px;font-size:11px;color:var(--ink-light);">${it.type==='equip'?'設備空調類':'裝修工程類'}</td>`;
@@ -6772,11 +6813,11 @@ async function renderProfitTable(){
     tr.style.background='#FFF9F0';
     tr.innerHTML=`
       <td style="padding:4px 8px;"><input class="profit-input" style="width:100%;text-align:left;" value="${r.label||''}" placeholder="工種名稱" oninput="customProfitRows['${pid}'][${i}].label=this.value" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
-      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${r.vendor||''}" placeholder="0" oninput="customProfitRows['${pid}'][${i}].vendor=parseFloat(this.value)||0;updateCustomProfit('${pid}')" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
-      <td style="padding:4px 8px;"><input type="number" class="profit-input" value="${r.client||''}" placeholder="0" oninput="customProfitRows['${pid}'][${i}].client=parseFloat(this.value)||0;updateCustomProfit('${pid}')" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
+      <td style="padding:4px 8px;"><input type="number" inputmode="decimal" class="profit-input" value="${r.vendor||''}" placeholder="0" oninput="customProfitRows['${pid}'][${i}].vendor=parseFloat(this.value)||0;updateCustomProfit('${pid}')" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
+      <td style="padding:4px 8px;"><input type="number" inputmode="decimal" class="profit-input" value="${r.client||''}" placeholder="0" oninput="customProfitRows['${pid}'][${i}].client=parseFloat(this.value)||0;updateCustomProfit('${pid}')" onblur="dbSaveCustomProfitRow('${pid}',${i})"></td>
       <td><div class="profit-auto ${profit>=0?'positive':'negative'}">${r.vendor>0||r.client>0?fmtN(profit):'—'}</div></td>
       <td><div class="profit-auto ${pct!==null&&pct>=0?'positive':'negative'}">${pct!==null?pct.toFixed(1)+'%':'—'}</div></td>
-      <td style="padding:4px 8px;text-align:center;"><button onclick="removeCustomProfitRow('${pid}',${i})" style="width:26px;height:26px;border:none;background:none;cursor:pointer;font-size:14px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
+      <td style="padding:4px 8px;text-align:center;"><button class="tap-lg" onclick="removeCustomProfitRow('${pid}',${i})" style="width:26px;height:26px;border:none;background:none;cursor:pointer;font-size:14px;color:var(--ink-light);border-radius:6px;" onmouseover="this.style.background='#FCEBEB';this.style.color='var(--red)'" onmouseout="this.style.background='none';this.style.color='var(--ink-light)'">×</button></td>`;
     tbody.appendChild(tr);
   });
   // 新增按鈕行
@@ -7152,7 +7193,7 @@ function renderClientDocs(){
   else d.quotes.forEach(q=>{
     const r=document.createElement('div');r.className='fi-item';
     // note = 設計師填的「此次更新重點備註」，未打開檔案前先讓客戶知道內容
-    r.innerHTML=`<div class="ficon">PDF</div><div style="flex:1;min-width:0;"><div>${q.name}</div>${q.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.6;white-space:pre-wrap;">📌 ${q.note}</div>`:''}</div><span class="fsize">${q.size}</span><span class="fdate" style="margin-left:8px;">${q.date}</span>`;
+    r.innerHTML=`<div class="ficon">PDF</div><div style="flex:1;min-width:0;"><div>${q.name}</div>${q.note?`<div style="font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.6;white-space:pre-wrap;"><svg class="ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg> ${q.note}</div>`:''}</div><span class="fsize">${q.size}</span><span class="fdate" style="margin-left:8px;">${q.date}</span>`;
     if(q.fileUrl) r.onclick=()=>window.open(q.fileUrl,'_blank');
     ql.appendChild(r);
   });
@@ -7269,12 +7310,12 @@ function renderClientAlbumGallery(d, opts){
       const badge = v.customerConfirmedAt
         ? `<span style="font-size:9px;font-weight:500;background:#E8F0E2;color:#3D5C24;padding:2px 7px;border-radius:5px;margin-left:6px;">✓ 已確認</span>`
         : v.isFinal
-          ? `<span style="font-size:9px;font-weight:500;background:#FAF0DE;color:#7A5218;padding:2px 7px;border-radius:5px;margin-left:6px;">🏁 最終版</span>`
+          ? `<span style="font-size:9px;font-weight:500;background:#FAF0DE;color:#7A5218;padding:2px 7px;border-radius:5px;margin-left:6px;"><svg class="ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg> 最終版</span>`
           : '';
       const fileName=escapeHtml(v.name||v.note||`${name}（第 ${i+1} 張）`);
       const uploadDate=fmtMDate(v.createdAt||v.date||'');
       // 設計師填的「此版修改備註」：有 name 時 note 是獨立備註，未打開圖前先顯示重點
-      const noteLine=(v.note&&v.name)?`<span style="display:block;font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.6;white-space:pre-wrap;">📌 ${escapeHtml(v.note)}</span>`:'';
+      const noteLine=(v.note&&v.name)?`<span style="display:block;font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.6;white-space:pre-wrap;"><svg class="ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg> ${escapeHtml(v.note)}</span>`:'';
       const row=document.createElement('div');
       row.style.cssText='display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:0.5px solid var(--border);cursor:pointer;background:#fff;transition:background .12s;';
       row.onmouseover=()=>row.style.background='#FBF8F4';
@@ -7500,7 +7541,7 @@ function aiTogglePanel(e){
 }
 function _aiBuildPanel(p){
   p.innerHTML='<div class="ai-card">'+
-    '<div style="font-size:12px;font-weight:600;color:#8A6B48;margin-bottom:4px;">🪄 AI 生活情境預覽</div>'+
+    '<div style="font-size:12px;font-weight:600;color:#8A6B48;margin-bottom:4px;"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M3 8h4"/><path d="M17 16h4"/></svg> AI 生活情境預覽</div>'+
     '<div style="font-size:11.5px;color:#7C6A55;line-height:1.6;margin-bottom:10px;">選一個生活情境，讓 AI 幫你把這張效果圖轉成更接近入住後的畫面。僅作情境輔助，不代表正式設計變更。</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:7px;">'+AI_SCENES.map(function(s){return '<button class="ai-chip" onclick="aiGenScene(\''+s[0]+'\',event)">'+s[1]+'</button>';}).join('')+'</div>'+
     '<div style="display:flex;gap:7px;margin-top:10px;">'+
@@ -7516,7 +7557,7 @@ function aiGenCustom(e){
   if(e)e.stopPropagation();
   const inp=document.getElementById('ai-custom-input');
   const v=(inp&&inp.value||'').trim();
-  if(!v){_aiStatus('請先輸入想看的情境 🙂');return;}
+  if(!v){_aiStatus('請先輸入想看的情境');return;}
   _aiGenerate({sceneKey:'custom',customPrompt:v});
 }
 async function _aiGenerate(opts){
@@ -7541,7 +7582,7 @@ function _aiStatus(msg,loading,warn){
 }
 function _aiThumb(item){
   return '<a href="'+item.result_image_url+'" target="_blank" style="display:block;position:relative;border-radius:10px;overflow:hidden;border:0.5px solid rgba(139,107,72,0.2);">'+
-    '<img src="'+item.result_image_url+'" loading="lazy" style="width:100%;display:block;">'+
+    '<img src="'+item.result_image_url+'" alt="AI 生成的生活情境圖" loading="lazy" style="width:100%;display:block;">'+
     '<div style="position:absolute;left:6px;bottom:6px;"><span class="ai-result-tag">AI 情境預覽 · 非正式設計圖</span></div>'+
     (item.scene_label?'<div style="position:absolute;right:6px;top:6px;font-size:9.5px;color:#fff;background:rgba(0,0,0,.45);padding:2px 7px;border-radius:5px;">'+_aiEsc(item.scene_label)+'</div>':'')+
   '</a>';
@@ -7599,7 +7640,7 @@ async function aiAdminToggleHistory(){
     box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">'+
       d.items.map(function(x){
         return '<div style="border:0.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;">'+
-          '<a href="'+x.result_image_url+'" target="_blank"><img src="'+x.result_image_url+'" loading="lazy" style="width:100%;display:block;"></a>'+
+          '<a href="'+x.result_image_url+'" target="_blank"><img src="'+x.result_image_url+'" alt="AI 生成的生活情境圖" loading="lazy" style="width:100%;display:block;"></a>'+
           '<div style="padding:7px 9px;">'+
             '<div style="font-size:11px;color:var(--ink);font-weight:500;">'+_aiEsc(x.scene_label||'自訂情境')+'</div>'+
             '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">'+_aiEsc((x.created_at||'').slice(0,16).replace('T',' '))+'</div>'+
@@ -7657,7 +7698,7 @@ function renderClientLineScreenshots(d){
     const titleText=s.note&&s.note.trim()?s.note:`${count} 張截圖`;
     const countBadge=s.note?`<span style="font-size:10px;background:var(--sand-dark);color:var(--ink-muted);padding:2px 7px;border-radius:6px;margin-left:6px;">${count} 張</span>`:'';
     const imgHtml=imgs.length
-      ?`<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;">${imgs.map(src=>`<img src="${src}" style="height:110px;border-radius:9px;object-fit:cover;border:0.5px solid var(--border);cursor:pointer;" onclick="window.open('${src}','_blank')">`).join('')}</div>`
+      ?`<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;">${imgs.map(src=>`<img src="${src}" alt="對話截圖" loading="lazy" decoding="async" style="height:110px;border-radius:9px;object-fit:cover;border:0.5px solid var(--border);cursor:pointer;" onclick="window.open('${src}','_blank')">`).join('')}</div>`
       :'<div style="padding:12px 14px;font-size:12px;color:var(--ink-light);">（截圖未載入）</div>';
     const item=document.createElement('div');item.className='meeting-record';
     item.innerHTML=`<div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
@@ -7694,7 +7735,7 @@ function renderClientFormalMeetings(d){
       const url = typeof src==='string' ? src : (src && src.url) || '';
       const cap = typeof src==='object' && src && src.caption ? src.caption : '';
       if(!url) return '';
-      return `<div style="display:flex;flex-direction:column;gap:4px;"><img src="${url}" style="width:100%;height:120px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);cursor:zoom-in;" onclick="window.open('${url.replace(/'/g,"&#39;")}','_blank')">${cap?`<div style="font-size:11px;color:var(--ink-muted);text-align:center;line-height:1.3;">${cap}</div>`:''}</div>`;
+      return `<div style="display:flex;flex-direction:column;gap:4px;"><img src="${url}" alt="會議紀錄附圖" loading="lazy" decoding="async" style="width:100%;height:120px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);cursor:zoom-in;" onclick="window.open('${url.replace(/'/g,"&#39;")}','_blank')">${cap?`<div style="font-size:11px;color:var(--ink-muted);text-align:center;line-height:1.3;">${cap}</div>`:''}</div>`;
     }).join('')}</div>`:'';
     const item=document.createElement('div');item.className='meeting-record';
     // 判斷是 HTML 富文字還是純文字
@@ -7753,7 +7794,7 @@ function renderClientNotes(){
   }
   notes.forEach(n=>{
     const imgHtml=(n.images&&n.images.length)
-      ?`<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;">${n.images.map(src=>`<img src="${src}" style="height:100px;width:100px;object-fit:cover;border-radius:9px;border:0.5px solid var(--border);cursor:pointer;" onclick="window.open('${src}','_blank')">`).join('')}</div>`:'';
+      ?`<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;">${n.images.map(src=>`<img src="${src}" alt="想法紀錄附圖" loading="lazy" decoding="async" style="height:100px;width:100px;object-fit:cover;border-radius:9px;border:0.5px solid var(--border);cursor:pointer;" onclick="window.open('${src}','_blank')">`).join('')}</div>`:'';
     const item=document.createElement('div');
     item.className='meeting-record';
     item.innerHTML=`
@@ -7996,7 +8037,7 @@ function renderAdminDrawingList(cid){
           imgArea.style.cssText='position:relative;aspect-ratio:1;overflow:hidden;flex-shrink:0;';
           // 「封面」概念只對 效果圖 有意義；立面圖不顯示
           const showCover=currentDrawingType==='效果圖';
-          imgArea.innerHTML=`<img src="${v.fileUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
+          imgArea.innerHTML=`<img src="${v.fileUrl}" alt="圖面預覽" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
             ${showCover&&v.isCover?'<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.04em;">封面</div>':''}
             <div class="cell-overlay" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(transparent,rgba(0,0,0,0.55));opacity:0;transition:opacity .15s;">
               <div style="display:flex;gap:4px;padding:6px;">
@@ -8064,7 +8105,7 @@ function renderAdminDrawingList(cid){
       const dzPrompt=isElevation?'拖曳 PDF 或照片到這裡，或點擊選取（可多檔）':'拖曳照片到這裡，或點擊選取（可多張）';
       addZone.innerHTML=`
         <div id="album-dropzone-${safeId}"
-          style="margin:10px 12px;border:1.5px dashed var(--accent-light);border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .15s;background:var(--sand);"
+          style="margin:10px 12px;border:1.5px dashed var(--accent-light);border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;background:var(--sand);"
           ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-pale)'"
           ondragleave="this.style.borderColor='var(--accent-light)';this.style.background='var(--sand)'"
           ondrop="handleAlbumDrop(event,${cid},'${albumName.replace(/'/g,"\\'")}','${safeId}')"
@@ -8101,7 +8142,7 @@ function renderAdminDrawingList(cid){
       const r=document.createElement('div');r.className='ufile-row';
       const isImg=/\.(jpg|jpeg|png|webp|gif)$/i.test(v.fileUrl||'');
       const dispName=v.name||v.note||'(未命名)';
-      r.innerHTML=`${isImg&&v.fileUrl?`<img src="${v.fileUrl}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;flex-shrink:0;">`:`<div class="ufile-icon">PDF</div>`}
+      r.innerHTML=`${isImg&&v.fileUrl?`<img src="${v.fileUrl}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:5px;flex-shrink:0;">`:`<div class="ufile-icon">PDF</div>`}
         <div class="ufile-name">${dispName}${v.isFinal?'<span class="ufile-final-badge">最終版</span>':''}</div>
         <div class="ufile-meta">${v.date}</div>
         <button class="btn-sm" onclick="renameDrawingFile(${cid},'${currentDrawingType}',${i})">改檔名</button>
@@ -8235,7 +8276,7 @@ async function uploadAlbumFiles(files,cid,albumName,safeId){
     previewEl.innerHTML=files.map(f=>{
       const isPdf=f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf');
       if(isPdf) return `<div style="width:54px;height:54px;border-radius:7px;border:0.5px solid var(--border);background:#FBF8F4;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:11px;font-weight:600;">PDF</div>`;
-      return `<img src="${URL.createObjectURL(f)}" style="width:54px;height:54px;object-fit:cover;border-radius:7px;border:0.5px solid var(--border);">`;
+      return `<img src="${URL.createObjectURL(f)}" alt="待上傳的圖片" style="width:54px;height:54px;object-fit:cover;border-radius:7px;border:0.5px solid var(--border);">`;
     }).join('');
   }
   showLoader(true);
@@ -8319,7 +8360,7 @@ function handleDrawingDrop(e){
   if(preview){
     preview.style.display='block';
     preview.innerHTML=`<div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px;">已選擇 ${files.length} 張圖片</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">${files.map(f=>`<img src="${URL.createObjectURL(f)}" style="height:64px;width:64px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);">`).join('')}</div>`;
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="待上傳的圖片" style="height:64px;width:64px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);">`).join('')}</div>`;
   }
 }
 function previewDrawingImgs(e){
@@ -8602,7 +8643,7 @@ async function renderCliFurniturePlan(){
             onblur="this.style.borderBottomColor='transparent';updateCliFurPhotoName(${cid},${idx},this.value)"
             oninput="this.style.borderBottomColor='var(--accent)'">
         </div>
-        <button onclick="deleteCliFurPhoto(${cid},${idx})" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.45);color:#fff;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>`;
+        <button class="tap-sm" onclick="deleteCliFurPhoto(${cid},${idx})" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.45);color:#fff;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>`;
     } else {
       card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;">
         <a href="${item.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--cli-ink,#2C2218);flex:1;min-width:0;">
@@ -8613,7 +8654,7 @@ async function renderCliFurniturePlan(){
             onblur="this.style.borderBottomColor='transparent';updateCliFurPhotoName(${cid},${idx},this.value)"
             onclick="event.stopPropagation()">
         </a>
-        <button onclick="deleteCliFurPhoto(${cid},${idx})" style="width:22px;height:22px;border-radius:50%;background:rgba(160,100,60,0.2);color:var(--cli-muted);border:none;cursor:pointer;font-size:13px;flex-shrink:0;">×</button>
+        <button class="tap-sm" onclick="deleteCliFurPhoto(${cid},${idx})" style="width:22px;height:22px;border-radius:50%;background:rgba(160,100,60,0.2);color:var(--cli-muted);border:none;cursor:pointer;font-size:13px;flex-shrink:0;">×</button>
       </div>`;
     }
     grid.appendChild(card);
@@ -8695,7 +8736,7 @@ function renderAdminClientNotesList(cid){
   if(!notes.length){el.innerHTML='<div class="empty-state" style="padding:0.5rem 0;">業主尚未新增筆記</div>';return;}
   const wrap=document.createElement('div');wrap.style.cssText='background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;';
   notes.forEach((n,i)=>{
-    const imgHtml=(n.images&&n.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${n.images.map(src=>`<img src="${src}" style="height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
+    const imgHtml=(n.images&&n.images.length)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${n.images.map(src=>`<img src="${src}" alt="筆記附圖" loading="lazy" decoding="async" style="height:80px;border-radius:8px;object-fit:cover;border:0.5px solid var(--border);">`).join('')}</div>`:'';
     const item=document.createElement('div');item.className='meeting-record';item.style.borderRadius='0';item.style.borderBottom='0.5px solid var(--border)';
     item.innerHTML=`
       <div class="meeting-record-hd" onclick="toggleMeetingRecord(this)">
@@ -8961,8 +9002,8 @@ function renderAdminLineList(cid){
         <div id="line-edit-imgs-${cid}-${i}" style="display:flex;flex-wrap:wrap;gap:6px;">
           ${(s.images||[]).map((src,j)=>`
             <div style="position:relative;flex-shrink:0;">
-              <img src="${src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);display:block;">
-              <button onclick="removeLineShotImage(${cid},${i},${j})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
+              <img src="${src}" alt="對話截圖" loading="lazy" decoding="async" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);display:block;">
+              <button class="tap-sm" onclick="removeLineShotImage(${cid},${i},${j})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
             </div>`).join('')}
           ${!(s.images||[]).length?'<div style="font-size:12px;color:var(--ink-light);">無圖片</div>':''}
         </div>
@@ -9030,8 +9071,8 @@ function removeLineShotImage(cid,i,imgIdx){
   if(imgWrap){
     imgWrap.innerHTML=(s.images||[]).map((src,j)=>`
       <div style="position:relative;flex-shrink:0;">
-        <img src="${src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);display:block;">
-        <button onclick="removeLineShotImage(${cid},${i},${j})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
+        <img src="${src}" alt="對話截圖" loading="lazy" decoding="async" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);display:block;">
+        <button class="tap-sm" onclick="removeLineShotImage(${cid},${i},${j})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
       </div>`).join('')
       ||(s.images.length?'':'<div style="font-size:12px;color:var(--ink-light);">無圖片</div>');
   }
@@ -9734,16 +9775,16 @@ function renderEditLogPhotos(key,photos){
   // 現有照片
   (photos||[]).forEach((src,i)=>{
     const wrap=document.createElement('div');wrap.style.cssText='position:relative;display:inline-block;';
-    wrap.innerHTML=`<img src="${src}" style="width:72px;height:60px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);">
-      <button onclick="removeEditLogPhoto('${key}',${i})" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0;">×</button>`;
+    wrap.innerHTML=`<img src="${src}" alt="施工照片" loading="lazy" decoding="async" style="width:72px;height:60px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);">
+      <button class="tap-sm" onclick="removeEditLogPhoto('${key}',${i})" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0;">×</button>`;
     container.appendChild(wrap);
   });
   // 待上傳預覽
   (_editLogPendingPhotos[key]||[]).forEach((file,i)=>{
     const wrap=document.createElement('div');wrap.style.cssText='position:relative;display:inline-block;';
     const url=URL.createObjectURL(file);
-    wrap.innerHTML=`<img src="${url}" style="width:72px;height:60px;object-fit:cover;border-radius:6px;border:2px dashed var(--accent);">
-      <button onclick="removePendingEditPhoto('${key}',${i})" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0;">×</button>`;
+    wrap.innerHTML=`<img src="${url}" alt="待上傳的施工照片" style="width:72px;height:60px;object-fit:cover;border-radius:6px;border:2px dashed var(--accent);">
+      <button class="tap-sm" onclick="removePendingEditPhoto('${key}',${i})" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0;">×</button>`;
     container.appendChild(wrap);
   });
 }
@@ -9859,7 +9900,7 @@ async function renderAdminLogs(){
       <div>
         <div style="font-size:11px;color:var(--ink-muted);margin-bottom:6px;">補充照片</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;" id="edit-photos-${key}"></div>
-        <div style="border:1.5px dashed var(--accent-light);border-radius:9px;padding:10px 14px;text-align:center;cursor:pointer;background:#fff;transition:all .15s;"
+        <div style="border:1.5px dashed var(--accent-light);border-radius:9px;padding:10px 14px;text-align:center;cursor:pointer;background:#fff;transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;"
           ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-pale)'"
           ondragleave="this.style.borderColor='var(--accent-light)';this.style.background='#fff'"
           ondrop="event.preventDefault();this.style.borderColor='var(--accent-light)';this.style.background='#fff';editLogAddPhotos({target:{files:event.dataTransfer.files},value:''},'${key}')"
@@ -10006,11 +10047,14 @@ async function renderClientPhaseTimeline(proj) {
     const imgFilter = isDone ? 'filter:grayscale(0.2);' : '';
     const visual = p.image_url
       ? `<img src="${p.image_url}" alt="${p.name}" style="width:58px;height:58px;object-fit:contain;${imgFilter}">`
-      : `<div style="font-size:24px;line-height:1;">${p.emoji || '📍'}</div>`;
-    return `<div ${isCurrent ? 'data-current-phase="1"' : ''} style="flex-shrink:0;width:72px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:6px 2px;background:transparent;opacity:${op2};${scale2}transition:all .15s;">
+      : (p.emoji
+          ? `<div style="font-size:24px;line-height:1;">${p.emoji}</div>`
+          /* 後台沒設圖也沒設 emoji 時的預設圖示（原本是 📍 emoji） */
+          : `<div style="line-height:0;color:#A08E7A;"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></div>`);
+    return `<div ${isCurrent ? 'data-current-phase="1"' : ''} style="flex-shrink:0;width:72px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:6px 2px;background:transparent;opacity:${op2};${scale2}transition:background-color .15s,color .15s,border-color .15s,box-shadow .15s,opacity .15s,transform .15s;">
       ${visual}
       <div style="font-size:10px;line-height:1.25;text-align:center;margin-top:5px;color:#6E665F;font-weight:400;">${p.name}</div>
-      ${isCurrent ? `<div style="font-size:9px;margin-top:3px;color:#B0A7A2;">📍 NOW</div>` : ''}
+      ${isCurrent ? `<div style="font-size:9px;margin-top:3px;color:#A07A38;display:flex;align-items:center;gap:3px;justify-content:center;"><svg class="ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>NOW</div>` : ''}
     </div>`;
   }).join('<div style="width:4px;flex-shrink:0;margin-top:38px;height:2px;background:#D9D2D0;border-radius:999px;"></div>');
 
@@ -10335,22 +10379,36 @@ window.renderClientNextAction = async function(proj){
 
   if(!rows.length){ card.style.display = 'none'; return; }
 
+  /* 「等您確認」必須排在通知前面。卡片只顯示前 3 列，而 rows 是照程式碼的
+     push 順序排的——材料等您確認在 3D 漫遊更新之後才 push，所以客戶真正要做的事
+     會被純通知擠進「還有 N 項」裡看不到。依 action → progress → update 重排，
+     同類之間保持原順序（stable）。 */
+  const KIND_ORDER = { action: 0, progress: 1, update: 2 };
+  rows.forEach((r, i) => { r._seq = i; });
+  rows.sort((a, b) =>
+    (KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9) || a._seq - b._seq);
+
   card.style.display = 'block';
   const MAX_VISIBLE = 3;
   const renderRow = (r, i, isHidden) => {
-    const dotColor = r.kind === 'action' ? '#C4A882'
-                   : r.kind === 'progress' ? '#9DB59D'
-                   : '#D9C9A8';
+    /* 用「實心 vs 空心」分辨要不要客戶動作，而不是只靠顏色——原本 action 的
+       #C4A882 跟 update 的 #D9C9A8 是兩個幾乎一樣的卡其色，三列看起來一樣重。 */
+    const dotStyle = r.kind === 'action'
+                     ? 'background:#B26B32;box-shadow:0 0 0 3px rgba(178,107,50,0.13);'
+                   : r.kind === 'progress'
+                     ? 'background:#7E9B7E;'
+                     : 'background:transparent;border:1.5px solid #C9B48C;';
     const labelColor = r.kind === 'action' ? '#3A2E18'
                      : r.kind === 'progress' ? '#3D5A3D'
-                     : '#5A4632';
+                     : '#6B573D';
+    const labelWeight = r.kind === 'action' ? 600 : 500;
     return `
     <div data-idx="${i}" class="next-action-row"
          style="display:${isHidden?'none':'flex'};align-items:center;gap:11px;padding:11px 4px;border-bottom:0.5px solid rgba(217,201,168,0.45);cursor:pointer;transition:background .12s;border-radius:6px;"
          onmouseover="this.style.background='rgba(255,255,255,0.45)'" onmouseout="this.style.background=''">
-      <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;${dotStyle}flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
-        <div style="font-family:'Noto Serif TC',serif;font-size:14px;color:${labelColor};font-weight:500;line-height:1.45;">${escapeHtml(r.label)}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:14px;color:${labelColor};font-weight:${labelWeight};line-height:1.45;">${escapeHtml(r.label)}</div>
         <div style="font-size:12px;color:#7A6240;line-height:1.5;margin-top:2px;">${escapeHtml(r.sub)}</div>
       </div>
       <div style="font-size:14px;color:#A07A38;flex-shrink:0;">→</div>
@@ -10914,7 +10972,7 @@ async function exportMaterialsPdf(){
       const photoUrl = selMainPhoto(r.photos);
       const ph = `<div style="width:74px;height:74px;background:linear-gradient(135deg,#F4F1EB,#EAE3D2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#A09080;font-size:9px;letter-spacing:0.08em;">無樣板</div>`;
       const photoCell = photoUrl
-        ? `<div style="position:relative;width:74px;height:74px;">${ph}<img src="${esc(photoUrl)}" referrerpolicy="no-referrer" onload="this.style.opacity=1" onerror="this.remove()" style="position:absolute;top:0;left:0;width:74px;height:74px;object-fit:cover;border-radius:4px;border:0.5px solid #D9CFC1;opacity:0;transition:opacity 0.2s;background:#fff;"></div>`
+        ? `<div style="position:relative;width:74px;height:74px;">${ph}<img src="${esc(photoUrl)}" alt="" referrerpolicy="no-referrer" onload="this.style.opacity=1" onerror="this.remove()" style="position:absolute;top:0;left:0;width:74px;height:74px;object-fit:cover;border-radius:4px;border:0.5px solid #D9CFC1;opacity:0;transition:opacity 0.2s;background:#fff;"></div>`
         : ph;
       rowsHtml += `<tr>
         <td style="text-align:center;padding:8px 4px;color:#6E5E4E;font-size:11px;vertical-align:middle;">${idx+1}</td>
@@ -11339,14 +11397,14 @@ function openMaterialDetail(matId){
       <button onclick="closeMaterialDetail()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.95);border:1px solid var(--accent-pale);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;z-index:2;line-height:1;">×</button>
 
       ${photo
-        ? `<img src="${photo}" style="width:100%;max-height:48vh;object-fit:cover;display:block;border-radius:12px 12px 0 0;background:var(--sand);cursor:zoom-in;" onclick="window.open(this.src,'_blank')">`
+        ? `<img src="${photo}" alt="材料照片" style="width:100%;max-height:48vh;object-fit:cover;display:block;border-radius:12px 12px 0 0;background:var(--sand);cursor:zoom-in;" onclick="window.open(this.src,'_blank')">`
         : `<div style="height:200px;background:linear-gradient(135deg,#F4F1EB 0%,#EAE3D2 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#A09080;font-size:13px;letter-spacing:0.12em;border-radius:12px 12px 0 0;">
             <span style="font-size:22px;color:#C4A882;">✦</span>
             <span>材質圖片整理中</span>
           </div>`
       }
 
-      ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:13px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:9px 8px;line-height:1.55;">🛒 本項目由客人自行採購${it.client_purchase_due?`<div style="font-size:11px;font-weight:500;margin-top:2px;">請於 ${fmtMDate(it.client_purchase_due)} 前送到案場</div>`:''}</div>`:''}
+      ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:13px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:9px 8px;line-height:1.55;"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> 本項目由客人自行採購${it.client_purchase_due?`<div style="font-size:11px;font-weight:500;margin-top:2px;">請於 ${fmtMDate(it.client_purchase_due)} 前送到案場</div>`:''}</div>`:''}
       <div style="padding:1.2rem 1.4rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
           <div style="font-size:18px;font-weight:500;color:var(--ink);letter-spacing:0.04em;">${it.item}</div>
@@ -11358,9 +11416,9 @@ function openMaterialDetail(matId){
         </div>
 
         ${lines?`<div style="font-size:13px;color:var(--ink-muted);margin-bottom:6px;line-height:1.6;">${lines}</div>`:''}
-        ${it.location?`<div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px;">📍 ${it.location}</div>`:''}
+        ${it.location?`<div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px;"><svg class="ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> ${it.location}</div>`:''}
 
-        ${it.designer_advice?`<div style="font-size:12px;color:var(--accent);background:var(--sand);padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.7;">💡 ${it.designer_advice}</div>`:''}
+        ${it.designer_advice?`<div style="font-size:12px;color:var(--accent);background:var(--sand);padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.7;"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> ${it.designer_advice}</div>`:''}
         ${it.caveats?`<div style="font-size:12px;color:#7A5E1A;background:#FBF4E8;padding:10px 12px;border-radius:8px;margin-top:8px;line-height:1.7;">小提醒｜${it.caveats}</div>`:''}
 
         ${cases.length ? `
@@ -11370,7 +11428,7 @@ function openMaterialDetail(matId){
               <div style="font-size:10px;color:var(--ink-light);margin-top:3px;">⚠️ 樣本與實際完工會因光線、批次有色差，請以親自確認的樣本為準</div>
             </div>
             <button onclick="openCaseLightbox('${it.library_id}',0)" style="width:100%;padding:10px 14px;background:#fff;border:1px solid var(--accent);color:var(--accent);border-radius:8px;font-size:13px;cursor:pointer;letter-spacing:0.1em;display:flex;align-items:center;justify-content:center;gap:8px;">
-              📷 看看實際完成照（${cases.length} 張）
+              <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> 看看實際完成照（${cases.length} 張）
             </button>
           </div>
         ` : ''}
@@ -11414,7 +11472,7 @@ function openCaseLightbox(libId, startIdx){
       <div id="case-lb-counter" style="position:absolute;top:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;letter-spacing:0.1em;"></div>
       <button onclick="navCaseLightbox(-1)" id="case-lb-prev" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;">‹</button>
       <button onclick="navCaseLightbox(1)" id="case-lb-next" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;">›</button>
-      <img id="case-lb-img" style="max-width:90vw;max-height:70vh;object-fit:contain;border-radius:8px;background:#222;">
+      <img id="case-lb-img" alt="實際完成案例照片" style="max-width:90vw;max-height:70vh;object-fit:contain;border-radius:8px;background:#222;">
       <div id="case-lb-meta" style="margin-top:1.2rem;color:#fff;text-align:center;max-width:90vw;line-height:1.7;font-size:13px;"></div>
     `;
     lb.addEventListener('click', e=>{ if(e.target===lb) closeCaseLightbox(); });
@@ -11440,9 +11498,9 @@ function renderCaseLightbox(){
   if(next) next.style.visibility = cases.length>1 ? 'visible' : 'hidden';
   if(meta){
     const tags = [];
-    if(cp.project_name) tags.push(`<span style="background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;">📍 ${cp.project_name}</span>`);
-    if(cp.room) tags.push(`<span style="background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;">🏠 ${cp.room}</span>`);
-    if(cp.lighting) tags.push(`<span style="background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;">💡 ${cp.lighting}</span>`);
+    if(cp.project_name) tags.push(`<span style="background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;"><svg class="ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> ${cp.project_name}</span>`);
+    if(cp.room) tags.push(`<span style="background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;"><svg class="ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> ${cp.room}</span>`);
+    if(cp.lighting) tags.push(`<span style="background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;"><svg class="ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> ${cp.lighting}</span>`);
     meta.innerHTML = tags.length
       ? `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">${tags.join('')}</div>`
       : '<div style="color:rgba(255,255,255,0.5);">無附註</div>';
@@ -11572,7 +11630,7 @@ function openConfirmDrawingModal(docId, drawingType, note){
         </label>
 
         <label style="display:block;font-size:12px;color:var(--ink-muted);margin-bottom:4px;">姓名 <span style="color:var(--red);">*</span></label>
-        <input id="dr-confirm-name-input" value="${(c?.name || '').replace(/"/g,'&quot;')}" placeholder="請輸入您的姓名" style="width:100%;padding:8px 10px;border:1px solid var(--accent-pale);border-radius:6px;font-size:13px;font-family:inherit;margin-bottom:1rem;outline:none;">
+        <input id="dr-confirm-name-input" autocomplete="name" value="${(c?.name || '').replace(/"/g,'&quot;')}" placeholder="請輸入您的姓名" style="width:100%;padding:8px 10px;border:1px solid var(--accent-pale);border-radius:6px;font-size:13px;font-family:inherit;margin-bottom:1rem;outline:none;">
 
         <label style="display:block;font-size:12px;color:var(--ink-muted);margin-bottom:4px;">手寫簽名 <span style="color:var(--red);">*</span></label>
         <canvas id="dr-sig-canvas" width="500" height="160" style="width:100%;height:160px;border:1px solid var(--accent-pale);border-radius:6px;background:#fff;display:block;cursor:crosshair;"></canvas>
@@ -11801,7 +11859,7 @@ async function renderClientMaterials(){
             window._selectionsCache = window._selectionsCache || {};
             window._selectionsCache[it.id] = it;
             const photoBlock = photo
-              ? `<img src="${photo}" style="width:100%;height:140px;object-fit:cover;display:block;">`
+              ? `<img src="${photo}" alt="材料照片" loading="lazy" decoding="async" style="width:100%;height:140px;object-fit:cover;display:block;">`
               : `<div style="height:140px;background:linear-gradient(135deg,#F4F1EB 0%,#EAE3D2 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#A09080;font-size:11px;letter-spacing:0.12em;gap:4px;">
                   <span style="font-size:18px;color:#C4A882;">✦</span>
                   <span>材質圖片整理中</span>
@@ -11811,15 +11869,15 @@ async function renderClientMaterials(){
                 ${photoBlock}
                 ${photo?`<div style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.92);color:var(--accent);font-size:10px;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px);letter-spacing:0.06em;">放大查看</div>`:''}
               </div>
-              ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:12px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:7px 8px;line-height:1.5;">🛒 本項目由客人自行採購${it.client_purchase_due?`<div style="font-size:10px;font-weight:500;margin-top:1px;">請於 ${fmtMDate(it.client_purchase_due)} 前送到案場</div>`:''}</div>`:''}
+              ${it.client_can_purchase?`<div style="background:#F0DBB1;color:#6B4E16;font-size:12px;font-weight:600;letter-spacing:0.08em;text-align:center;padding:7px 8px;line-height:1.5;"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> 本項目由客人自行採購${it.client_purchase_due?`<div style="font-size:10px;font-weight:500;margin-top:1px;">請於 ${fmtMDate(it.client_purchase_due)} 前送到案場</div>`:''}</div>`:''}
               <div style="padding:10px 12px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">
                   <div style="font-size:13px;font-weight:500;color:var(--ink);">${it.item}</div>
                   ${statusPill(it.status)}
                 </div>
                 ${lines?`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">${lines}</div>`:''}
-                ${it.location?`<div style="font-size:11px;color:var(--ink-muted);">📍 ${it.location}</div>`:''}
-                ${it.designer_advice?`<div style="font-size:11px;color:var(--accent);background:var(--sand);padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">💡 ${it.designer_advice}</div>`:''}
+                ${it.location?`<div style="font-size:11px;color:var(--ink-muted);"><svg class="ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> ${it.location}</div>`:''}
+                ${it.designer_advice?`<div style="font-size:11px;color:var(--accent);background:var(--sand);padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;"><svg class="ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> ${it.designer_advice}</div>`:''}
                 ${it.caveats?`<div style="font-size:11px;color:#7A5E1A;background:#FBF4E8;padding:6px 8px;border-radius:6px;margin-top:6px;line-height:1.6;">小提醒｜${it.caveats}</div>`:''}
                 ${isConfirmed?`<div style="margin-top:8px;padding:8px;background:#F0F5EC;border-left:3px solid #6B8F4D;border-radius:4px;font-size:11px;color:#3D5C24;">
                   ✓ 已確認 by <strong>${it.customer_signature_name||'客戶'}</strong><br>
@@ -12440,7 +12498,7 @@ function renderStorageList(kind){
 }
 function sgClientCardHtml(it){
   const d=it.data||{};
-  const reminder=(it.status==='need_more')?`<div style="font-size:11px;color:#9A4530;margin-top:6px;">🔔 設計師希望您再補充一下這項的資訊</div>`:'';
+  const reminder=(it.status==='need_more')?`<div style="font-size:11px;color:#9A4530;margin-top:6px;"><svg class="ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> 設計師希望您再補充一下這項的資訊</div>`:'';
   let rows='';
   if(it.kind==='have'){
     rows=`<div class="sg-row"><span class="sg-tag">${escapeHtml(d.space||'—')}</span><span class="sg-field"><b>${escapeHtml(d.category||'')}</b></span>`
@@ -12797,7 +12855,7 @@ function renderKnowledgeTools(){
     <div style="margin-bottom:20px;">
       <div style="font-size:12px;color:var(--ink-muted);letter-spacing:0.08em;margin-bottom:10px;">小工具 · TOOLS</div>
       ${tools.map(t => `
-        <div class="know-tool-card" onclick="${t.onClick}" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fff;border:0.5px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:all 0.2s;">
+        <div class="know-tool-card" onclick="${t.onClick}" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fff;border:0.5px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:background-color 0.2s,color 0.2s,border-color 0.2s,box-shadow 0.2s,opacity 0.2s,transform 0.2s;">
           <div style="font-size:24px;width:44px;height:44px;background:var(--cli-card-alt);border-radius:10px;display:flex;align-items:center;justify-content:center;">${t.emoji}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:14px;font-weight:500;color:var(--cli-ink);">${t.name}</div>
@@ -13008,7 +13066,7 @@ function _contractInjectIframe(){
   const sigEl=doc.querySelector('[data-field="partyA-signature-img"]');
   if(sigEl){
     if(c?.signatureUrl){
-      sigEl.innerHTML=`<img src="${c.signatureUrl}" style="height:50px;vertical-align:middle;">`;
+      sigEl.innerHTML=`<img src="${c.signatureUrl}" alt="業主簽名" style="height:50px;vertical-align:middle;">`;
     }
   }
 }
@@ -13708,7 +13766,7 @@ function updateAnthropicKeyStatus(){
   const key=anthropicApiKey;
   if(key){
     const masked=key.slice(0,18)+'…'+key.slice(-4);
-    el.innerHTML=`✅ 目前 Key：<span style="font-family:'NumQuicksand',monospace;font-size:12px;color:var(--ink);">${masked}</span>`;
+    el.innerHTML=`<svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.8 10A10 10 0 1 1 17 3.34"/><path d="m9 11 3 3L22 4"/></svg> 目前 Key：<span style="font-family:'NumQuicksand',monospace;font-size:12px;color:var(--ink);">${masked}</span>`;
     el.style.color='var(--green)';
   } else {
     el.textContent='⚠️ 尚未設定，AI 查尺寸功能無法使用';
@@ -14006,7 +14064,7 @@ async function loadAdminSignersForArticle(articleId){
       const row=document.createElement('div');
       row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px;background:#fff;border:0.5px solid var(--border);border-radius:6px;';
       row.innerHTML=`
-        <img src="${s.signature_url}" style="width:80px;height:50px;object-fit:contain;background:#fff;border:0.5px solid var(--border);border-radius:4px;flex-shrink:0;">
+        <img src="${s.signature_url}" alt="業主簽名" style="width:80px;height:50px;object-fit:contain;background:#fff;border:0.5px solid var(--border);border-radius:4px;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:500;color:var(--ink);">${cliName}</div>
           <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${dtStr}</div>
@@ -14199,7 +14257,7 @@ function renderAssignBody(){
       const noteWrap=document.createElement('div');
       noteWrap.style.cssText='margin:-2px 0 10px 46px;';
       noteWrap.innerHTML=`
-        <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">📝 此客戶專屬備註（顯示在這篇切結書內文下方）</div>
+        <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg> 此客戶專屬備註（顯示在這篇切結書內文下方）</div>
         <textarea placeholder="例：本案已贈送免費空調監工服務。" style="width:100%;font-family:inherit;font-size:12.5px;line-height:1.7;padding:8px 10px;border:0.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);outline:none;resize:vertical;min-height:52px;box-sizing:border-box;">${noteVal.replace(/</g,'&lt;')}</textarea>`;
       const ta=noteWrap.querySelector('textarea');
       ta.addEventListener('blur',()=>{ if((ta.value||'').trim()!==noteVal.trim()) saveArticleNote(c.id,a.id,ta.value); });
@@ -14343,7 +14401,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:12px;color:var(--ink-muted);margin-bottom:6px;">姓名</label>
-        <input id="confirm-name-input" placeholder="您的姓名" style="width:100%;padding:9px 12px;border:1px solid #DBD2C2;border-radius:6px;font-size:14px;font-family:inherit;">
+        <input id="confirm-name-input" autocomplete="name" placeholder="您的姓名" style="width:100%;padding:9px 12px;border:1px solid #DBD2C2;border-radius:6px;font-size:14px;font-family:inherit;">
       </div>
 
       <div style="margin-bottom:14px;">
@@ -14719,13 +14777,13 @@ window.closeVRViewer = function(){
       <h2>插座評估工具</h2>
     </div>
     <div class="op-toolbar">
-      <label class="op-tool-btn" style="display:inline-flex;align-items:center;gap:6px;">📷 換平面圖
+      <label class="op-tool-btn" style="display:inline-flex;align-items:center;gap:6px;"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> 換平面圖
         <input type="file" accept="image/*" style="display:none;" onchange="opHandleUpload(event)">
       </label>
-      <button id="op-scale-btn" class="op-tool-btn" onclick="opToggleScale()" title="點圖上兩個已知距離的點來校準">📐 設比例尺</button>
+      <button id="op-scale-btn" class="op-tool-btn" onclick="opToggleScale()" title="點圖上兩個已知距離的點來校準"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg> 設比例尺</button>
       <span id="op-scale-display" style="font-size:11px;color:#8E8474;"></span>
-      <button id="op-measure-btn" class="op-tool-btn" onclick="opToggleMeasure()">📏 量距</button>
-      <button class="op-tool-btn" onclick="opPrint()">📄 列印</button>
+      <button id="op-measure-btn" class="op-tool-btn" onclick="opToggleMeasure()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18"/><path d="m6 9-3 3 3 3"/><path d="m18 9 3 3-3 3"/><path d="M12 4v4"/><path d="M12 16v4"/></svg> 量距</button>
+      <button class="op-tool-btn" onclick="opPrint()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg> 列印</button>
       <button class="op-tool-btn danger" onclick="opClear()">清空</button>
       <button class="op-tool-btn" onclick="closeOutletPlanner()" style="width:32px;height:32px;border-radius:50%;padding:0;font-size:16px;">×</button>
     </div>
@@ -14751,7 +14809,7 @@ window.closeVRViewer = function(){
       </div>
       <div class="op-canvas-wrap" id="op-canvas-wrap">
         <div id="op-stage">
-          <img id="op-img" src="">
+          <img id="op-img" src="" alt="平面圖底圖">
           <svg id="op-svg"></svg>
         </div>
         <div class="op-canvas-foot">從左側清單拖物件到平面圖上 · 點物件選中後拖移或按 × 刪除 · 點圖外取消選取</div>
@@ -15121,7 +15179,7 @@ function opPrint(){
     <div class="sub">OUTLET PLANNER</div>
     <h1>插座與家電規劃</h1>
     <div class="sub">匯出於 ${now}</div>
-    <div class="stage"><img src="${opState.image}"><svg viewBox="0 0 ${W} ${H}">${svgMeasure}${svgObjects}</svg></div>
+    <div class="stage"><img src="${opState.image}" alt="插座與家電規劃平面圖"><svg viewBox="0 0 ${W} ${H}">${svgMeasure}${svgObjects}</svg></div>
     <div class="total"><strong>共 ${opState.objects.length} 個物件</strong>${summary ? '　|　' + summary : ''}${opState.scale ? '　|　比例：100px = ' + opState.scale + ' cm' : ''}</div>
     <table><thead><tr><th>#</th><th>類型</th></tr></thead><tbody>${rows}</tbody></table>
     <div style="text-align:center;margin-top:20px;font-size:10px;color:#aaa;letter-spacing:0.4em;">YOSHIN DESIGN</div>
@@ -15132,5 +15190,58 @@ function opPrint(){
 </script>
 
 
+<style id="a11y-focus">
+/* 鍵盤焦點指示（2026-09-03）
+   問題：全站幾乎每個輸入框都寫了 outline:none，而只有 10 條 :focus 規則、
+   且都只是換邊框顏色——顏色單獨當指示不夠，按鈕／連結／分頁更是完全沒有。
+   用鍵盤 Tab 或輔助工具操作時，看不出游標停在哪。
+
+   :focus-visible 只在鍵盤操作時才出現，滑鼠點擊完全不受影響，所以視覺上沒有
+   任何回退風險。outline 必須 !important，因為有一批輸入框的 outline:none 是
+   寫在 inline style 裡的，樣式表蓋不過去。
+
+   box-shadow 這條刻意不加 !important：像 .fi:focus (0-2-0) 這種本來就有自己
+   一圈焦點光暈的，讓它繼續贏；其餘元素才吃這圈白色外環——白環是為了讓咖啡色
+   外框在深色底（燈箱、深色頁首）上也看得見。 */
+:focus-visible{
+  outline:2px solid var(--accent,#8B6B48)!important;
+  outline-offset:2px!important;
+  box-shadow:0 0 0 4px rgba(255,255,255,0.7);
+}
+/* 滑鼠使用者維持原樣 */
+:focus:not(:focus-visible){outline:none}
+
+/* ── 減少動態（2026-09-03）──
+   原本 8 組動畫裡只有換頁淡入被 prefers-reduced-motion 保護，其餘 4 組是
+   infinite 無限循環（禮物卡發光、3D 漫遊的兩個脈動、載入轉圈）。對前庭敏感
+   的人來說，畫面上一直在動的東西會誘發不適，而他們在系統裡已經表明不要了。 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:0.01ms!important;
+    scroll-behavior:auto!important;
+  }
+  /* 唯一例外：載入轉圈是「還在處理中」的唯一提示，停掉會讓人以為當掉了。
+     不停，改成慢轉。 */
+  [style*="animation:spin"]{
+    animation-duration:1.6s!important;
+    animation-iteration-count:infinite!important;
+  }
+}
+
+/* ── 觸控目標（2026-09-03）──
+   標準是 44×44px。主導覽 .tnav 原本只有約 28px 高，而那是客戶每天在點的東西。
+   .topbar 固定 56px，塞得下 44px。 */
+.tnav{min-height:44px;display:inline-flex;align-items:center;}
+.op-tool-btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+
+/* 小圖示鈕（刪除的 ×）：外觀完全不變，只用一個看不見的 ::after 把可點範圍撐大。
+   照片角落那些用 32px 而不是 44px——44px 會蓋掉大半張縮圖，反而點不到照片本身。 */
+.tap-lg,.tap-sm{position:relative;}
+.tap-lg::after,.tap-sm::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+.tap-lg::after{width:44px;height:44px;}
+.tap-sm::after{width:32px;height:32px;}
+</style>
 </body>
 </html>
