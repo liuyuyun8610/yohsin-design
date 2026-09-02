@@ -1225,7 +1225,15 @@ body.presale-mode #s-client .tnav[onclick*="p-construction"],
 body.presale-mode #s-client .tnav[onclick*="p-storage"],
 body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-materials"],
 body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-construction"],
-body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"]{display:none!important;}
+body.presale-mode #mobile-menu-client .mobile-tnav[onclick*="p-storage"],
+/* 手機底部導覽列與「更多」島型清單（2026-09-03 新增）也走同一套遮蔽規則。
+   漏掉的話，預售客戶會在底部列直接看到「進度」而點得進去。 */
+body.presale-mode #s-client .cli-tab[onclick*="p-materials"],
+body.presale-mode #s-client .cli-tab[onclick*="p-construction"],
+body.presale-mode #s-client .cli-tab[onclick*="p-storage"],
+body.presale-mode #cli-more .cli-more-item[onclick*="p-materials"],
+body.presale-mode #cli-more .cli-more-item[onclick*="p-construction"],
+body.presale-mode #cli-more .cli-more-item[onclick*="p-storage"]{display:none!important;}
 /* 預售屋（客變）：工程款的「期別明細」不適用，但摘要要留著——
    總額裡本來就含工程款，整區藏掉會讓客戶對不起來（2026-08-18 修正）。 */
 body.presale-mode #pay-acc-construction .pay-acc-body{display:none!important}
@@ -4923,17 +4931,20 @@ function goBackToOverview(){
      改成 data-* 或 addEventListener 會讓那些選擇器靜默失效，
      預售客戶就會看到不該看到的分頁。
    ⚠ 原本的靜態 11 項清單留在 HTML 裡當 fallback，這支渲染器會蓋掉它。 */
+/* tab:{...} = 這一項要出現在手機底部導覽列。四格是拇指範圍內的常用入口，
+   其餘全部收進「更多」。群組型（children）的 tab 需自己指定 page，點下去
+   直接到最常看的那一頁，另一頁留在「更多」裡。 */
 const CLIENT_NAV=[
-  {id:'home',label:'專案首頁',page:'p-overview'},
-  {id:'docs',label:'圖面文件',children:[
+  {id:'home',label:'專案首頁',page:'p-overview',tab:{label:'首頁',icon:'house'}},
+  {id:'docs',label:'圖面文件',tab:{label:'圖面',icon:'layers',page:'p-docs'},children:[
     {label:'設計圖面',page:'p-docs'},{label:'合約報價',page:'p-contracts'}]},
   {id:'comm',label:'溝通確認',children:[
     {label:'會議紀錄',page:'p-meetings'},{label:'選材紀錄',page:'p-materials'}]},
   /* 工程進度目前只有行事曆一個 route（施工照片是 p-construction 頁內的區塊，
      沒有獨立 route）→ 依規格 6.4 做成直接連結，不做只有一項的下拉。
      這樣預售模式藏 p-construction 時，這個第一層入口也會跟著自動消失。 */
-  {id:'progress',label:'工程進度',page:'p-construction'},
-  {id:'cost',label:'費用',page:'p-payment'},
+  {id:'progress',label:'工程進度',page:'p-construction',tab:{label:'進度',icon:'helmet'}},
+  {id:'cost',label:'費用',page:'p-payment',tab:{label:'費用',icon:'wallet'}},
   {id:'mylist',label:'我的清單',page:'p-checklist'},
   /* 「裝修知識」改成外連公司的公開文章站（2026-08-17 使用者決定）。
      ⚠ 原本的 p-knowledge 不能拿掉：它顯示的是設計師「指派給這位客戶」的文章，
@@ -4945,6 +4956,97 @@ const CLIENT_NAV=[
     {label:'我的閱讀資料',page:'p-knowledge'},
     {label:'裝修知識',href:'https://yohsin-articles.vercel.app/',external:true}]},
 ];
+
+/* ══════ 手機底部導覽 + 「更多」島型清單（2026-09-03）══════
+   跟桌機列共用 CLIENT_NAV，不另存第二份清單。
+   ⚠ 葉節點 onclick 一定要保留 goPage('p-xxx',this) 這個字面字串：預售模式
+     與全站 15+ 處反查都靠 [onclick*="p-xxx"]，改寫法會靜默失效。 */
+const NAV_ICON={
+  house:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
+  helmet:'<path d="M2 18a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 17v-5a6 6 0 0 1 6-6"/><path d="M14 6a6 6 0 0 1 6 6v5"/>',
+  wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  more:'<circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/><circle cx="5" cy="12" r="1.4"/>'
+};
+function navIcon(name,size){
+  const d=NAV_ICON[name]; if(!d) return '';
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+    +' stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+}
+/* 一個 tab 對應到哪些頁：群組型的 tab 只連到其中一頁，但只要停在同組任一頁
+   都應該亮著，否則客戶在「合約報價」時底下四格全暗，不知道自己在哪。 */
+function navTabPages(it){
+  return (it.children ? it.children.map(c=>c.page) : [it.page]).filter(Boolean);
+}
+function renderClientTabbar(){
+  const shell=document.getElementById('s-client'); if(!shell) return;
+  let bar=document.getElementById('cli-tabbar');
+  if(!bar){
+    bar=document.createElement('nav'); bar.id='cli-tabbar';
+    bar.setAttribute('aria-label','主要導覽'); shell.appendChild(bar);
+  }
+  bar.innerHTML=CLIENT_NAV.filter(it=>it.tab).map(it=>{
+    const page=it.tab.page||it.page;
+    return '<button class="cli-tab" data-nav="'+it.id+'" data-pages="'+navTabPages(it).join(',')+'"'
+      +' onclick="goPage(\''+page+'\',this)">'
+      +'<span class="cli-tab-ic">'+navIcon(it.tab.icon,19)+'</span>'
+      +'<span class="cli-tab-lb">'+navEsc(it.tab.label)+'</span></button>';
+  }).join('')
+  +'<button type="button" class="cli-tab" id="cli-tab-more" aria-expanded="false" aria-label="更多選單"'
+  +' onclick="toggleMoreSheet(event)"><span class="cli-tab-ic">'+navIcon('more',19)+'</span>'
+  +'<span class="cli-tab-lb">更多</span></button>';
+}
+function renderClientMoreSheet(){
+  const shell=document.getElementById('s-client'); if(!shell) return;
+  let el=document.getElementById('cli-more');
+  if(!el){
+    el=document.createElement('div'); el.id='cli-more';
+    el.innerHTML='<div id="cli-more-panel" role="menu"></div>';
+    el.addEventListener('click',ev=>{ if(ev.target===el) closeMoreSheet(); });
+    shell.appendChild(el);
+  }
+  /* 底部四格已經到得了的頁不重複列出來；其餘依 CLIENT_NAV 原順序攤平。 */
+  const onBar=new Set(CLIENT_NAV.filter(i=>i.tab).map(i=>i.tab.page||i.page));
+  const rows=[];
+  for(const it of CLIENT_NAV){
+    for(const c of (it.children||[{label:it.label,page:it.page,href:it.href,external:it.external}])){
+      if(c.page && onBar.has(c.page)) continue;
+      rows.push(c);
+    }
+  }
+  el.querySelector('#cli-more-panel').innerHTML =
+    rows.map(c=>c.external
+      ? '<a class="cli-more-item" role="menuitem" href="'+c.href+'" target="_blank" rel="noopener"'
+        +' onclick="closeMoreSheet()">'+navEsc(c.label)+'<span class="ext-mark">↗</span></a>'
+      : '<button class="cli-more-item" role="menuitem" onclick="goPage(\''+c.page+'\',this)">'
+        +navEsc(c.label)+'</button>').join('')
+    + '<div class="cli-more-sep"></div>'
+    + '<button class="cli-more-item cli-more-out" role="menuitem" onclick="doLogout()">登出</button>';
+}
+function openMoreSheet(){
+  const el=document.getElementById('cli-more'); if(!el) return;
+  el.classList.add('open');
+  const b=document.getElementById('cli-tab-more');
+  if(b){ b.classList.add('active'); b.setAttribute('aria-expanded','true'); }
+  document.body.style.overflow='hidden';
+}
+function closeMoreSheet(){
+  const el=document.getElementById('cli-more'); if(!el) return;
+  /* goPage() 每次換頁都會呼叫這支。沒開的時候直接返回，不然會把 body 的
+     捲動鎖定清掉——那個鎖定可能是別的 modal（燈箱、禮物）正在用的。 */
+  if(!el.classList.contains('open')) return;
+  el.classList.remove('open');
+  const b=document.getElementById('cli-tab-more');
+  if(b){ b.classList.remove('active'); b.setAttribute('aria-expanded','false'); }
+  document.body.style.overflow='';
+}
+function toggleMoreSheet(ev){
+  if(ev) ev.stopPropagation();
+  const el=document.getElementById('cli-more');
+  if(el && el.classList.contains('open')) closeMoreSheet(); else openMoreSheet();
+}
+document.addEventListener('keydown',ev=>{ if(ev.key==='Escape') closeMoreSheet(); });
+
 const navEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function renderClientNav(){
   const bar=document.querySelector('#s-client .tb-nav');
@@ -4976,6 +5078,8 @@ function renderClientNav(){
         +`</div></div>`;
     }).join(''));
   }
+  renderClientTabbar();
+  renderClientMoreSheet();
   syncNavGroupVisibility();
   const cur=document.querySelector('#s-client .page.active');
   syncClientNavActive(cur?cur.id:'p-overview');
@@ -4993,6 +5097,13 @@ function syncNavGroupVisibility(){
    這樣 goPage('p-warranty',null) 之類的呼叫不會讓整排 nav 都沒有 active，
    桌機切頁後手機清單的 active 也會跟著對（原本只有手機會回寫桌機，反向沒做）。 */
 function syncClientNavActive(id){
+  /* 底部導覽：用 data-pages 判斷，群組型 tab 停在同組任一頁都要亮著 */
+  document.querySelectorAll('#s-client .cli-tab').forEach(t=>{
+    if(t.id==='cli-tab-more') return;
+    t.classList.toggle('active',(t.dataset.pages||'').split(',').includes(id));
+  });
+  document.querySelectorAll('#cli-more .cli-more-item').forEach(t=>
+    t.classList.toggle('active',(t.getAttribute('onclick')||'').includes("'"+id+"'")));
   document.querySelectorAll('#s-client .tnav,#mobile-menu-client .mobile-tnav')
     .forEach(t=>t.classList.remove('active'));
   document.querySelectorAll(`#s-client .tb-nav .tnav[onclick*="'${id}'"],#mobile-menu-client .mobile-tnav[onclick*="'${id}'"]`)
@@ -5080,6 +5191,7 @@ function goPage(id,el){
   syncClientNavActive(id);          // 桌機／手機／父群組一起算，不看傳進來的 el
   closeNavDropdown();
   closeMobileMenu('client');        // 規格 5.2：點到實際 route 後抽屜要自己關
+  closeMoreSheet();                 // 底部「更多」島型清單同理
   window.scrollTo({top:0,behavior:'smooth'});
   const backBtn=document.getElementById('cli-back-btn');
   if(backBtn) backBtn.style.display=(id==='p-overview')?'none':'flex';
@@ -15190,6 +15302,65 @@ function opPrint(){
 </script>
 
 
+<style id="cli-tabbar-css">
+/* 手機底部導覽（2026-09-03）
+   原本手機只有右上角的漢堡抽屜：入口在螢幕最上緣，單手握手機時拇指構不到，
+   而且每換一頁都要「開抽屜 → 找 → 點」。把常用的四個入口放進拇指範圍，
+   其餘收進「更多」的島型清單。選單定義仍然只有一份（CLIENT_NAV）。 */
+#cli-tabbar,#cli-more{display:none}
+
+@media(max-width:720px){
+  /* 舊的漢堡與頁首登出換掉，不留兩套選單。登出移進「更多」——它原本就在
+     漢堡選單的頁尾，而且緊鄰漢堡很容易誤點，客戶被登出後得再跟設計師要帳密。 */
+  #s-client .hamburger,#s-client .btn-out{display:none!important}
+
+  #cli-tabbar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:207;
+    background:var(--cli-card,#FBF8F4);
+    box-shadow:0 -6px 20px rgba(90,70,50,0.10);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .cli-tab{
+    flex:1;min-width:0;height:56px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3px;
+    background:none;border:none;padding:0;cursor:pointer;
+    color:var(--cli-light,#A09080);
+    font-family:'NumQuicksand','Noto Sans TC',sans-serif;
+    transition:color .15s;
+  }
+  .cli-tab-ic{display:flex;align-items:center;justify-content:center;
+    width:42px;height:25px;border-radius:999px;transition:background-color .15s}
+  .cli-tab-lb{font-size:10.5px;line-height:1;letter-spacing:.03em;padding:0 2px;
+    max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cli-tab.active{color:var(--cli-accent,#7A5C3A)}
+  .cli-tab.active .cli-tab-ic{background:#F5EBD8}
+
+  /* 「更多」島型清單：浮在底部列上方的圓角面板，四周留白、只用陰影不用外框 */
+  #cli-more{display:block;position:fixed;inset:0;z-index:205;
+    background:rgba(42,37,32,0.38);opacity:0;pointer-events:none;transition:opacity .2s}
+  #cli-more.open{opacity:1;pointer-events:auto}
+  #cli-more-panel{position:absolute;left:10px;right:10px;
+    bottom:calc(env(safe-area-inset-bottom) + 64px);
+    background:var(--cli-card,#FBF8F4);border-radius:22px;
+    box-shadow:0 18px 44px rgba(60,45,30,0.28);
+    max-height:calc(100dvh - 150px);overflow-y:auto;padding:6px 0 8px;
+    transform:translateY(14px);transition:transform .22s cubic-bezier(.22,.61,.36,1)}
+  #cli-more.open #cli-more-panel{transform:translateY(0)}
+  .cli-more-item{display:flex;align-items:center;gap:10px;width:100%;
+    min-height:48px;padding:0 20px;background:none;border:none;cursor:pointer;
+    font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;
+    color:var(--cli-ink,#2C2218);text-align:left;text-decoration:none;
+    letter-spacing:.03em;transition:background-color .12s}
+  .cli-more-item:hover,.cli-more-item:active{background:rgba(139,107,72,.07)}
+  .cli-more-item.active{color:var(--cli-accent,#7A5C3A);background:#F5EBD8}
+  .cli-more-item .ext-mark{margin-left:auto;color:var(--cli-light,#A09080);font-size:12px}
+  .cli-more-sep{height:1px;background:var(--cli-border,rgba(139,107,72,.13));margin:7px 20px}
+  .cli-more-out{color:#A63B26}
+
+  /* 內容要讓出底部列的高度，否則最後一張卡片會被蓋住 */
+  #s-client .pb{padding-bottom:calc(84px + env(safe-area-inset-bottom))!important}
+}
+</style>
 <style id="a11y-focus">
 /* 鍵盤焦點指示（2026-09-03）
    問題：全站幾乎每個輸入框都寫了 outline:none，而只有 10 條 :focus 規則、
