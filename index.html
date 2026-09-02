@@ -15430,7 +15430,10 @@ function opPrint(){
      ⚠ 之前照 high-end-visual-design 的 double-bezel 加了一圈外殼，結果就是
        一個卡其色外框——那正是使用者明確說過不要的兩件事。skill 的建議
        不覆蓋使用者自己的規則。 */
-  #cli-more-panel{position:absolute;left:10px;right:10px;
+  /* 靠左、寬度只取內容需要的量（不是整個螢幕寬）。配 white-space:nowrap，
+     文字不會斷行，面板也不會為了塞滿寬度而顯得肥。 */
+  #cli-more-panel{position:absolute;left:10px;right:auto;
+    width:max-content;min-width:172px;max-width:calc(100vw - 20px);
     bottom:calc(env(safe-area-inset-bottom) + 64px);
     background:var(--cli-card,#FBF8F4);border-radius:26px;
     box-shadow:0 1px 2px rgba(60,45,30,.05),0 10px 24px rgba(60,45,30,.10),
@@ -15442,13 +15445,13 @@ function opPrint(){
   .cli-more-core{padding:2px 6px 8px;overflow-y:auto;max-height:calc(100dvh - 216px)}
   /* 分組標題原本完全沒有 CSS，等於瀏覽器預設樣式、跟項目一樣大 */
   .cli-more-h{font-size:10px;letter-spacing:.2em;color:var(--cli-light,#A09080);
-    padding:14px 14px 6px;line-height:1}
+    padding:14px 14px 6px;line-height:1;white-space:nowrap}
   .cli-more-h:first-child{padding-top:6px}
   .cli-more-item{display:flex;align-items:center;gap:11px;width:100%;
     min-height:46px;padding:0 12px;background:none;border:none;cursor:pointer;
     font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14.5px;
     color:var(--cli-ink,#2C2218);text-align:left;text-decoration:none;
-    letter-spacing:.03em;border-radius:13px;
+    letter-spacing:.03em;border-radius:13px;white-space:nowrap;
     transition:background-color .16s cubic-bezier(.32,.72,0,1),
                transform .3s cubic-bezier(.32,.72,0,1),opacity .3s cubic-bezier(.32,.72,0,1);
     opacity:0;transform:translateY(7px);transition-delay:calc(var(--i,0) * 24ms)}
