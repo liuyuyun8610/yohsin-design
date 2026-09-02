@@ -4941,25 +4941,25 @@ function goBackToOverview(){
    直接到最常看的那一頁，另一頁留在「更多」裡。 */
 const CLIENT_NAV=[
   {id:'home',label:'專案首頁',page:'p-overview',tab:{label:'首頁',icon:'house'}},
-  {id:'docs',label:'圖面文件',tab:{label:'圖面',icon:'layers',page:'p-docs'},children:[
-    {label:'設計圖面',page:'p-docs'},{label:'合約報價',page:'p-contracts'}]},
-  {id:'comm',label:'溝通確認',children:[
-    {label:'會議紀錄',page:'p-meetings'},{label:'選材紀錄',page:'p-materials'}]},
+  {id:'docs',label:'圖面文件',sheet:'專案資料',tab:{label:'圖面',icon:'layers',page:'p-docs'},children:[
+    {label:'設計圖面',page:'p-docs',icon:'sheet'},{label:'合約報價',page:'p-contracts',icon:'doc'}]},
+  {id:'comm',label:'溝通確認',sheet:'專案資料',children:[
+    {label:'會議紀錄',page:'p-meetings',icon:'chat'},{label:'選材紀錄',page:'p-materials',icon:'swatch'}]},
   /* 工程進度目前只有行事曆一個 route（施工照片是 p-construction 頁內的區塊，
      沒有獨立 route）→ 依規格 6.4 做成直接連結，不做只有一項的下拉。
      這樣預售模式藏 p-construction 時，這個第一層入口也會跟著自動消失。 */
   {id:'progress',label:'工程進度',page:'p-construction',tab:{label:'進度',icon:'helmet'}},
   {id:'cost',label:'費用',page:'p-payment',tab:{label:'費用',icon:'wallet'}},
-  {id:'mylist',label:'我的清單',page:'p-checklist'},
+  {id:'mylist',label:'我的清單',sheet:'專案資料',page:'p-checklist',icon:'checklist'},
   /* 「裝修知識」改成外連公司的公開文章站（2026-08-17 使用者決定）。
      ⚠ 原本的 p-knowledge 不能拿掉：它顯示的是設計師「指派給這位客戶」的文章，
        其中含必讀與需要客戶線上簽署的切結書（requires_signature）。
        所以內部頁保留、改名為「我的閱讀資料」，外連另開一項。 */
-  {id:'more',label:'更多',children:[
-    {label:'工具',page:'p-storage'},
-    {label:'使用說明',page:'p-usage'},
-    {label:'我的閱讀資料',page:'p-knowledge'},
-    {label:'裝修知識',href:'https://yohsin-articles.vercel.app/',external:true}]},
+  {id:'more',label:'更多',sheet:'說明與工具',children:[
+    {label:'工具',page:'p-storage',icon:'wrench'},
+    {label:'使用說明',page:'p-usage',icon:'book'},
+    {label:'我的閱讀資料',page:'p-knowledge',icon:'bookmark'},
+    {label:'裝修知識',href:'https://yohsin-articles.vercel.app/',external:true,icon:'news'}]},
 ];
 
 /* ══════ 手機底部導覽 + 「更多」島型清單（2026-09-03）══════
@@ -4971,12 +4971,22 @@ const NAV_ICON={
   layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
   helmet:'<path d="M2 18a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 17v-5a6 6 0 0 1 6-6"/><path d="M14 6a6 6 0 0 1 6 6v5"/>',
   wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
-  more:'<circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/><circle cx="5" cy="12" r="1.4"/>'
+  more:'<circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/><circle cx="5" cy="12" r="1.4"/>',
+  sheet:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+  doc:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 13h6"/><path d="M9 17h4"/>',
+  chat:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>',
+  swatch:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  checklist:'<path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2"/>',
+  bookmark:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+  news:'<path d="M15 18h-9a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v11a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9a1 1 0 0 0-1-1h-3"/><path d="M8 9h6"/><path d="M8 13h4"/>',
+  logout:'<path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>'
 };
 function navIcon(name,size){
   const d=NAV_ICON[name]; if(!d) return '';
   return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
-    +' stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+    +' stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
 }
 /* 一個 tab 對應到哪些頁：群組型的 tab 只連到其中一頁，但只要停在同組任一頁
    都應該亮著，否則客戶在「合約報價」時底下四格全暗，不知道自己在哪。 */
@@ -5006,34 +5016,52 @@ function renderClientMoreSheet(){
   let el=document.getElementById('cli-more');
   if(!el){
     el=document.createElement('div'); el.id='cli-more';
-    el.innerHTML='<div id="cli-more-panel" role="menu"></div>';
+    el.innerHTML='<div id="cli-more-panel" role="dialog" aria-modal="true" aria-label="更多選單" tabindex="-1">'
+      +'<div class="cli-more-grab" aria-hidden="true"></div>'
+      +'<div class="cli-more-core"></div></div>';
     el.addEventListener('click',ev=>{ if(ev.target===el) closeMoreSheet(); });
     shell.appendChild(el);
   }
   /* 底部四格已經到得了的頁不重複列出來；其餘依 CLIENT_NAV 原順序攤平。 */
   const onBar=new Set(CLIENT_NAV.filter(i=>i.tab).map(i=>i.tab.page||i.page));
-  const rows=[];
+  /* 依 CLIENT_NAV 的 sheet 欄位分組。八項平鋪的話，「合約報價／會議紀錄」這種
+     專案資料會跟「使用說明／裝修知識」這種輔助功能混在一起，掃不出層次。 */
+  const groups=[];
   for(const it of CLIENT_NAV){
-    for(const c of (it.children||[{label:it.label,page:it.page,href:it.href,external:it.external}])){
-      if(c.page && onBar.has(c.page)) continue;
-      rows.push(c);
-    }
+    /* 沒有 children 的項目要自己組一個替身。icon 一定要一起帶，漏掉的話
+       「我的清單」這種單層項目會變成空的圖示欄位、跟其他列對不齊。 */
+    const kids=it.children||[{label:it.label,page:it.page,href:it.href,external:it.external,icon:it.icon}];
+    const rest=kids.filter(c=>!(c.page&&onBar.has(c.page)));
+    if(!rest.length) continue;
+    const name=it.sheet||'其他';
+    let g=groups.find(x=>x.name===name);
+    if(!g){ g={name,items:[]}; groups.push(g); }
+    g.items.push(...rest);
   }
-  el.querySelector('#cli-more-panel').innerHTML =
-    rows.map(c=>c.external
-      ? '<a class="cli-more-item" role="menuitem" href="'+c.href+'" target="_blank" rel="noopener"'
-        +' onclick="closeMoreSheet()">'+navEsc(c.label)+'<span class="ext-mark">↗</span></a>'
-      : '<button class="cli-more-item" role="menuitem" onclick="goPage(\''+c.page+'\',this)">'
-        +navEsc(c.label)+'</button>').join('')
+  let _i=0;
+  const itemHtml=c=>{ const st=' style="--i:'+(_i++)+'"'; return c.external
+    /* 外連會離開客戶專區，講清楚——原本 ↗ 貼在最右邊、顏色又最淡，等於沒說 */
+    ? '<a class="cli-more-item cli-more-ext" href="'+c.href+'" target="_blank" rel="noopener"'
+      +st+' aria-label="'+navEsc(c.label)+'（另開新視窗）" onclick="closeMoreSheet()">'
+      +'<span class="cli-more-ic">'+navIcon(c.icon,17)+'</span>'
+      +navEsc(c.label)+'<span class="ext-mark" aria-hidden="true">↗</span></a>'
+    : '<button class="cli-more-item"'+st+' onclick="goPage(\''+c.page+'\',this)">'
+      +'<span class="cli-more-ic">'+navIcon(c.icon,17)+'</span>'+navEsc(c.label)+'</button>'; };
+  el.querySelector('.cli-more-core').innerHTML =
+    groups.map(g=>'<div class="cli-more-h">'+navEsc(g.name)+'</div>'+g.items.map(itemHtml).join('')).join('')
     + '<div class="cli-more-sep"></div>'
-    + '<button class="cli-more-item cli-more-out" role="menuitem" onclick="doLogout()">登出</button>';
+    + '<button class="cli-more-item cli-more-out" onclick="doLogout()">'
+      + '<span class="cli-more-ic">'+navIcon('logout',17)+'</span>登出</button>';
 }
 function openMoreSheet(){
   const el=document.getElementById('cli-more'); if(!el) return;
   el.classList.add('open');
   const b=document.getElementById('cli-tab-more');
-  if(b){ b.classList.add('active'); b.setAttribute('aria-expanded','true'); }
+  if(b){ b.classList.add('open'); b.setAttribute('aria-expanded','true'); }
   document.body.style.overflow='hidden';
+  /* 焦點帶進面板，關閉時再還回「更多」按鈕，否則用鍵盤或輔助工具的人
+     會停在面板後面的頁面上，完全不知道跳出了什麼。 */
+  el.querySelector('#cli-more-panel')?.focus();
 }
 function closeMoreSheet(){
   const el=document.getElementById('cli-more'); if(!el) return;
@@ -5042,7 +5070,7 @@ function closeMoreSheet(){
   if(!el.classList.contains('open')) return;
   el.classList.remove('open');
   const b=document.getElementById('cli-tab-more');
-  if(b){ b.classList.remove('active'); b.setAttribute('aria-expanded','false'); }
+  if(b){ b.classList.remove('open'); b.setAttribute('aria-expanded','false'); b.focus({preventScroll:true}); }
   document.body.style.overflow='';
 }
 function toggleMoreSheet(ev){
@@ -15379,29 +15407,59 @@ function opPrint(){
     width:42px;height:25px;border-radius:999px;transition:background-color .15s}
   .cli-tab-lb{font-size:10.5px;line-height:1;letter-spacing:.03em;padding:0 2px;
     max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 「你在哪一頁」只能有一個答案。米色底章保留給目前所在的分頁；
+     「更多」只是暫時開著的面板，開啟時只加深字色、不上底色，否則畫面上
+     會同時出現兩個一樣的高亮，客戶分不出自己在哪。 */
   .cli-tab.active{color:var(--cli-accent,#7A5C3A)}
   .cli-tab.active .cli-tab-ic{background:#F5EBD8}
+  .cli-tab.open{color:var(--cli-ink,#2C2218)}
 
-  /* 「更多」島型清單：浮在底部列上方的圓角面板，四周留白、只用陰影不用外框 */
+  /* 「更多」島型清單
+     第一版是「圓角白方塊 + 一道 rgba(60,45,30,.28) 的硬陰影 + 一串純文字」，
+     那正是 bootstrap modal 的長相。三個地方換掉：
+       1. 遮罩加 backdrop-filter，讓底下的頁面真的退到後面，而不是蓋一層平灰
+       2. 陰影從一道硬的換成三層擴散的環境光，並補一條頂緣的內highlight
+       3. 面板做成「外殼＋內核」的雙層結構，圓角同心（外 28 / 內 22），
+          看起來像一塊嵌在托盤裡的面板，而不是貼上去的白方塊 */
   #cli-more{display:block;position:fixed;inset:0;z-index:205;
-    background:rgba(42,37,32,0.38);opacity:0;pointer-events:none;transition:opacity .2s}
+    background:rgba(44,34,24,0.26);
+    -webkit-backdrop-filter:blur(9px) saturate(1.05);backdrop-filter:blur(9px) saturate(1.05);
+    opacity:0;pointer-events:none;transition:opacity .26s cubic-bezier(.32,.72,0,1)}
   #cli-more.open{opacity:1;pointer-events:auto}
   #cli-more-panel{position:absolute;left:10px;right:10px;
     bottom:calc(env(safe-area-inset-bottom) + 64px);
-    background:var(--cli-card,#FBF8F4);border-radius:22px;
-    box-shadow:0 18px 44px rgba(60,45,30,0.28);
-    max-height:calc(100dvh - 150px);overflow-y:auto;padding:6px 0 8px;
-    transform:translateY(14px);transition:transform .22s cubic-bezier(.22,.61,.36,1)}
-  #cli-more.open #cli-more-panel{transform:translateY(0)}
-  .cli-more-item{display:flex;align-items:center;gap:10px;width:100%;
-    min-height:48px;padding:0 20px;background:none;border:none;cursor:pointer;
-    font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14px;
+    background:rgba(240,233,222,0.72);padding:6px;border-radius:28px;
+    box-shadow:0 1px 2px rgba(60,45,30,.05),0 10px 24px rgba(60,45,30,.10),
+               0 30px 64px rgba(60,45,30,.16);
+    max-height:calc(100dvh - 190px);
+    transform:translateY(18px) scale(.985);
+    transition:transform .34s cubic-bezier(.32,.72,0,1)}
+  #cli-more.open #cli-more-panel{transform:translateY(0) scale(1)}
+  .cli-more-core{background:var(--cli-card,#FBF8F4);border-radius:22px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+    padding:2px 0 6px;overflow-y:auto;max-height:calc(100dvh - 202px)}
+  .cli-more-item{display:flex;align-items:center;gap:11px;width:100%;
+    min-height:48px;padding:0 18px;background:none;border:none;cursor:pointer;
+    font-family:'NumQuicksand','Noto Sans TC',sans-serif;font-size:14.5px;
     color:var(--cli-ink,#2C2218);text-align:left;text-decoration:none;
-    letter-spacing:.03em;transition:background-color .12s}
-  .cli-more-item:hover,.cli-more-item:active{background:rgba(139,107,72,.07)}
-  .cli-more-item.active{color:var(--cli-accent,#7A5C3A);background:#F5EBD8}
-  .cli-more-item .ext-mark{margin-left:auto;color:var(--cli-light,#A09080);font-size:12px}
-  .cli-more-sep{height:1px;background:var(--cli-border,rgba(139,107,72,.13));margin:7px 20px}
+    letter-spacing:.03em;border-radius:13px;
+    transition:background-color .16s cubic-bezier(.32,.72,0,1),
+               transform .3s cubic-bezier(.32,.72,0,1),opacity .3s cubic-bezier(.32,.72,0,1);
+    opacity:0;transform:translateY(7px);transition-delay:calc(var(--i,0) * 24ms)}
+  #cli-more.open .cli-more-item{opacity:1;transform:translateY(0)}
+  .cli-more-item:active{background:rgba(139,107,72,.09)}
+  .cli-more-item.active{color:var(--cli-accent,#7A5C3A);background:#F3E7D4}
+  .cli-more-ic{display:flex;align-items:center;justify-content:center;
+    width:17px;flex-shrink:0;color:var(--cli-light,#A09080)}
+  .cli-more-item.active .cli-more-ic{color:var(--cli-accent,#7A5C3A)}
+  .cli-more-out .cli-more-ic{color:#A63B26}
+  /* 外連標記貼在文字旁邊，不要甩到最右邊；顏色也要看得見 */
+  .cli-more-ext .ext-mark{margin-left:5px;color:var(--cli-accent2,#B8936A);font-size:12px}
+  /* 面板頂端的抓手：讓人一眼看出這是可以關掉的浮層 */
+  .cli-more-grab{width:36px;height:4px;border-radius:999px;margin:7px auto 3px;
+    background:rgba(139,107,72,.24)}
+  #cli-more-panel:focus{outline:none}
+  .cli-more-sep{height:1px;background:var(--cli-border,rgba(139,107,72,.13));margin:6px 18px}
   .cli-more-out{color:#A63B26}
 
   /* 內容要讓出底部列的高度，否則最後一張卡片會被蓋住 */
